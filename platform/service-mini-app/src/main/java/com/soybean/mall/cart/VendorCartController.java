@@ -31,10 +31,23 @@ import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
+import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoResponse;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySpuIdsRequest;
 import com.wanmi.sbc.goods.api.response.spec.GoodsInfoSpecDetailRelBySpuIdsResponse;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
@@ -49,7 +62,7 @@ import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoDetailByIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingGetByIdForCustomerResponse;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
-import com.wanmi.sbc.marketing.bean.vo.CouponGoodsVO;
+import com.wanmi.sbc.marketing.bean.enums.RangeDayType;
 import com.wanmi.sbc.marketing.bean.vo.CouponInfoVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
@@ -71,10 +84,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -109,6 +124,11 @@ public class VendorCartController {
     private SpuNewSearchService spuNewSearchService;
     @Autowired
     private GoodsInfoSpecDetailRelQueryProvider goodsInfoSpecDetailRelQueryProvider;
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+    @Autowired
+    private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+
 
     /**
      * 购物车-购物车信息
@@ -216,7 +236,7 @@ public class VendorCartController {
                 skuVO.setSpecText(item.getSpecText());
                 skuVO.setMaxCount(item.getMaxCount());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
-                skuVO.setChecked(client2Checked.get(item.getGoodsInfoId())); //处理客户端指定选中的商品
+                skuVO.setChecked(Boolean.TRUE.equals(client2Checked.get(item.getGoodsInfoId()))); //处理客户端指定选中的商品
                 skuVO.setMarketings(buildMarketings(goodsMarketingMap.get(item.getGoodsInfoId())));
                 return skuVO;
             }).collect(Collectors.toList()));
@@ -226,7 +246,7 @@ public class VendorCartController {
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
             goodsInfos.addAll(
-                entry.getValue().stream().filter(item -> client2Checked.get(item.getGoodsInfoId())).map(item -> {
+                entry.getValue().stream().filter(item -> Boolean.TRUE.equals(client2Checked.get(item.getGoodsInfoId()))).map(item -> {
                     TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
                     goods.setMarketingId(entry.getKey() == 0 ? null : entry.getKey());
                     goods.setGoodsInfoId(item.getGoodsInfoId());
@@ -235,8 +255,33 @@ public class VendorCartController {
                 }).collect(Collectors.toList())
             );
         }
+        //价格信息
         resultVO.setCalcPrice(calcPrice(customer, goodsInfos));
+        //会员信息
+        resultVO.setVipInfo(vipInfo(customer.getCustomerId()));
+
         return BaseResponse.success(resultVO);
+    }
+
+    /**
+     * 获取用户的会员信息
+     */
+    private PurchaseInfoResultVO.VipInfo vipInfo(String customerId) {
+        //查询是否购买付费会员卡
+        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+                        .customerId(customerId)
+                        .delFlag(DeleteFlag.NO)
+                        .endTimeFlag(LocalDateTime.now())
+                        .build()).getContext();
+        if (CollectionUtils.isEmpty(paidCardCustomerRelVOList)) {
+            return null;
+        }
+        PaidCardVO paidCardVO = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getPaidCardVO).min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+        PurchaseInfoResultVO.VipInfo vipInfo = new PurchaseInfoResultVO.VipInfo();
+        vipInfo.setRate(paidCardVO.getDiscountRate());
+        vipInfo.setName(paidCardVO.getName());
+        return vipInfo;
     }
 
     private PurchasePriceResultVO calcPrice(CustomerVO customer, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
@@ -428,9 +473,14 @@ public class VendorCartController {
         CouponInfoVO coupon = couponResp.getContext().getCouponInfo();
         //营销信息
         PromoteGoodsResultVO.PromoteInfo promoteInfo = new PromoteGoodsResultVO.PromoteInfo();
-        promoteInfo.setStartTime(coupon.getStartTime().format(formatter));
-        promoteInfo.setEndTime(coupon.getEndTime().format(formatter));
-
+        if (RangeDayType.DAYS.equals(coupon.getRangeDayType())) {
+            promoteInfo.setStartTime(LocalDateTime.now().format(formatter));
+            promoteInfo.setEndTime(LocalDateTime.now().plusDays(coupon.getEffectiveDays()).format(formatter));
+        }
+        if (RangeDayType.RANGE_DAY.equals(coupon.getRangeDayType())) {
+            promoteInfo.setStartTime(coupon.getStartTime().format(formatter));
+            promoteInfo.setEndTime(coupon.getEndTime().format(formatter));
+        }
         if (FullBuyType.FULL_MONEY.equals(coupon.getFullBuyType())) {
             promoteInfo.setTipText("满" + coupon.getFullBuyPrice() + "减" + coupon.getDenomination());
         } else if (FullBuyType.NO_THRESHOLD.equals(coupon.getFullBuyType())) {
@@ -439,12 +489,38 @@ public class VendorCartController {
             promoteInfo.setTipText("其他");
         }
 
-        CouponGoodsVO couponGoods = couponResp.getContext().getGoodsList();
-        //适用的spu集合
-        List<String> spuIds = couponGoods.getGoodses().stream().map(GoodsVO::getGoodsId).distinct().collect(Collectors.toList());
+        //通过ES搜索优惠券适用商品
+        EsGoodsInfoQueryRequest esGoodsInfoQueryRequest = new EsGoodsInfoQueryRequest();
+        esGoodsInfoQueryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
+        esGoodsInfoQueryRequest.setStoreState(StoreState.OPENING.toValue());
+        esGoodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+        esGoodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+//        esGoodsInfoQueryRequest.setSortFlag(0);
+        esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum());
+        esGoodsInfoQueryRequest.setPageSize(paramVO.getPageSize());
+        esGoodsInfoQueryRequest.setCateAggFlag(true);
+        String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
+        esGoodsInfoQueryRequest.setContractStartDate(now);
+        esGoodsInfoQueryRequest.setContractEndDate(now);
+        esGoodsInfoQueryRequest.setVendibility(Constants.yes);
+        esGoodsInfoQueryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+
+        switch (coupon.getScopeType()) {
+            case ALL: break;
+            case BOSS_CATE: esGoodsInfoQueryRequest.setCateIds(coupon.getScopeIds().stream().map(i->Long.valueOf(i)).collect(Collectors.toList())); break;
+            case BRAND: esGoodsInfoQueryRequest.setBrandIds(coupon.getScopeIds().stream().map(i->Long.valueOf(i)).collect(Collectors.toList())); break;
+            case SKU: esGoodsInfoQueryRequest.setGoodsInfoIds(coupon.getScopeIds()); break;
+            case STORE_CATE: esGoodsInfoQueryRequest.setStoreCateIds(coupon.getScopeIds().stream().map(i->Long.valueOf(i)).collect(Collectors.toList())); break;
+            default: break;
+        }
+
+        EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(esGoodsInfoQueryRequest).getContext();
+        List<EsGoodsInfoVO> goodsInfoVOs = esGoodsInfoResponse.getEsGoodsInfoPage().getContent();
+        List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+
         PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword());
         result.setPromoteInfo(promoteInfo);
-        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), (int)esGoodsInfoResponse.getEsGoodsInfoPage().getTotal()));
     }
 
     private PromoteGoodsResultVO buildPromoteGoodsResultVO(List<String> spuIds, Integer pageNum, Integer pageSize, String keyword) {
@@ -460,7 +536,6 @@ public class VendorCartController {
         spuParam.setPageNum(pageNum);
         spuParam.setPageSize(pageSize);
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
-        spuParam.setSearchSpuNewCategory(2);
         spuParam.setKeyword(keyword);
         spuParam.setSpuIds(spuIds);
         //走搜索路线

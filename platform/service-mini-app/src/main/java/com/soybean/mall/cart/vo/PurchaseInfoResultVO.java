@@ -2,6 +2,7 @@ package com.soybean.mall.cart.vo;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -23,4 +24,20 @@ public class PurchaseInfoResultVO {
      * 价格信息
      */
     private PurchasePriceResultVO calcPrice;
+    /**
+     * 会员信息
+     */
+    private VipInfo vipInfo;
+
+    @Data
+    public static class VipInfo {
+        /**
+         * 会员折扣率
+         */
+        private BigDecimal rate;
+        /**
+         * 会员卡名称
+         */
+        private String name;
+    }
 }
