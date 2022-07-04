@@ -32,6 +32,12 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      */
     @NotNull
     private Integer searchSpuNewCategory;
-
-    private List<String> spuIds;
+    /**
+     * 不展示的spuid
+     */
+    private List<String> unSpuIds;
+    /**
+     * 知识顾问专项商品 0 非知识顾问 其他为非知识顾问
+     */
+    private Integer cpsSpecial = 0;
 }

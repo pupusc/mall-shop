@@ -23,10 +23,6 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -47,6 +43,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description: 搜索商品信息
@@ -82,9 +83,14 @@ public class EsSpuNewService {
         boolQb.must(termQuery("auditStatus", 1));
         boolQb.must(termQuery("addedFlag", 1));
         boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+        //不展示spu信息
+        if (CollectionUtils.isNotEmpty(req.getUnSpuIds())) {
+            boolQb.mustNot(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds()));
+        }
 
-        if (CollectionUtils.isNotEmpty(req.getSpuIds())) {
-            boolQb.must(termsQuery("spuId", req.getSpuIds()));
+        //传递值，0表示非知识顾问商品可以访问
+        if (req.getCpsSpecial() != null && Objects.equals(req.getCpsSpecial(), 0)) {
+            boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));
         }
 
         BoolQueryBuilder boolQbChild = QueryBuilders.boolQuery();

@@ -73,8 +73,8 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
-    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList){
-        return this.packageSpuNewBookListResp(esSpuNewRespList);
+    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer);
     }
 
 
@@ -83,7 +83,7 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
-    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList){
+    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
         if (CollectionUtils.isEmpty(esSpuNewRespList)) {
             return new ArrayList<>();
         }
@@ -91,13 +91,6 @@ public class SpuNewSearchService {
         List<String> spuIdList = esSpuNewRespList.stream().map(EsSpuNewResp::getSpuId).collect(Collectors.toList());
         Map<String, SpuRecomBookListDTO> spuId2SpuRecomBookListDTOMap = spuNewBookListService.getSpuId2EsBookListModelResp(spuIdList);
 
-
-        //获取客户信息
-        CustomerGetByIdResponse customer = null;
-        String userId = commonUtil.getOperatorId();
-        if (!StringUtils.isEmpty(userId)) {
-            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
-        }
 
         //获取goodsInfo信息
 //        BigDecimal salePrice = new BigDecimal("9999");
