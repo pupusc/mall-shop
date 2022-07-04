@@ -249,10 +249,14 @@ public class VendorCartController {
         calcPrice.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
         calcPrice.setPayPrice(calcPriceResult.getContext().getPayPrice());
         calcPrice.setCutPrice(calcPriceResult.getContext().getCutPrice());
-        calcPrice.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
-                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-        calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
-                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        if (CollectionUtils.isNotEmpty(calcPriceResult.getContext().getTotalPriceItems())) {
+            calcPrice.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
+                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        }
+        if (CollectionUtils.isNotEmpty(calcPriceResult.getContext().getCutPriceItems())) {
+            calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
+                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        }
         return calcPrice;
     }
 
