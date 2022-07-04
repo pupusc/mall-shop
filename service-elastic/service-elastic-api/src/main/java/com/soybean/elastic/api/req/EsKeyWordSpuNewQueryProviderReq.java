@@ -23,11 +23,6 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     private String keyword;
 
     /**
-     * 删除标志 0不删除 1删除
-     */
-    private Integer delFlag = 0;
-
-    /**
      * 书单类别 1图书 2商品
      */
     @NotNull
