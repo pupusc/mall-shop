@@ -495,8 +495,8 @@ public class VendorCartController {
         esGoodsInfoQueryRequest.setStoreState(StoreState.OPENING.toValue());
         esGoodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
         esGoodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-//        esGoodsInfoQueryRequest.setSortFlag(0);
-        esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum());
+        esGoodsInfoQueryRequest.setSortFlag(0);
+        esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum()-1);
         esGoodsInfoQueryRequest.setPageSize(paramVO.getPageSize());
         esGoodsInfoQueryRequest.setCateAggFlag(true);
         String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
