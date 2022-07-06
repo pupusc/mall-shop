@@ -106,6 +106,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/vendorCart")
 public class VendorCartController {
+    //凑单页促销日期格式化
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Autowired
     private CommonUtil commonUtil;
     @Autowired
@@ -417,7 +419,6 @@ public class VendorCartController {
         return BaseResponse.success(couponVOs);
     }
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /**
      * 购物车-凑单商品-活动
      */
@@ -552,7 +553,7 @@ public class VendorCartController {
         result.setTotal(context.getTotal());
 
         //计算购物车价格
-        result.setCalcPrice(calcPrice4FitGoods(commonUtil.getCustomer()));
+        result.setCalcPrice(handCart4FitGoods(fitGoods, commonUtil.getCustomer()));
         //处理商品规格
         BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> specResp =
                 goodsInfoSpecDetailRelQueryProvider.listBySpuIds(new GoodsInfoSpecDetailRelBySpuIdsRequest(spuIds));
@@ -571,7 +572,7 @@ public class VendorCartController {
         return result;
     }
 
-    private PurchasePriceResultVO calcPrice4FitGoods(CustomerVO customer) {
+    private PurchasePriceResultVO handCart4FitGoods(List<PromoteFitGoodsResultVO> fitGoods, CustomerVO customer) {
         //统一查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
                 PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
@@ -579,6 +580,12 @@ public class VendorCartController {
         PurchaseListResponse cartInfo = cartResponse.getContext();
         if (cartInfo == null || CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
             return new PurchasePriceResultVO();
+        }
+        //处理采购数量
+        Map<String, GoodsInfoVO> skuId2sku = cartInfo.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i -> i));
+        for (PromoteFitGoodsResultVO fitGood : fitGoods) {
+            GoodsInfoVO skuVO = skuId2sku.get(fitGood.getSkuId());
+            fitGood.setBuyCount(skuVO == null ? 0 : skuVO.getBuyCount().intValue());
         }
 
         //sku对应的营销列表映射

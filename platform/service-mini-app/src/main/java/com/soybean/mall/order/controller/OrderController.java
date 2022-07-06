@@ -991,6 +991,9 @@ public class OrderController {
                 viewSku.setSpuName(tradeItem.getSpuName());
                 viewSku.setPropPrice(tradeItem.getPropPrice());
                 viewSku.setPayPrice(tradeItem.getPrice());
+                viewSku.setNum(tradeItem.getNum());
+                viewSku.setGoodsCubage(tradeItem.getGoodsCubage());
+                viewSku.setGoodsWeight(tradeItem.getGoodsWeight());
                 viewSkus.add(viewSku);
             }
         }

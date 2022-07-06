@@ -41,4 +41,12 @@ public class SettlementResultVO$GoodsInfo {
      * 规格描述信息
      */
     private String specDetails;
+    /**
+     * 商品体积
+     */
+    private BigDecimal goodsCubage;
+    /**
+     * 商品重量
+     */
+    private BigDecimal goodsWeight;
 }
