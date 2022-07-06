@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class SettlementParamVO$Marketing {
      * 该营销活动关联的订单商品id集合
      */
     @NotEmpty
-    private List<SettlementParamVO$TradeItem> goodsInfos;
+    private List<SettlementParamVO$TradeItem> goodsInfos = new ArrayList<>();
 
 //    /**
 //     * 如果是满赠，则填入用户选择的赠品id集合

@@ -42,7 +42,6 @@ import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
-import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -61,11 +60,13 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoStoreIdBySkuIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoStoreIdBySkuIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -214,6 +215,7 @@ public class OrderController {
     private TradePriceProvider tradePriceProvider;
     @Autowired
     private MarkupQueryProvider markupQueryProvider;
+    @Autowired
     private CouponCacheProvider couponCacheProvider;
     @Autowired
     private MarketingCommonQueryProvider marketingCommonQueryProvider;
@@ -731,9 +733,6 @@ public class OrderController {
                 .build();
     }
 
-    @Autowired
-    private CustomerLevelQueryProvider customerLevelQueryProvider;
-
     /**
      * @description 0元订单批量支付
      * @param request
@@ -830,26 +829,40 @@ public class OrderController {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "没有找对指定的用户");
         }
 
-        List<String> skuIds = new ArrayList<>();
-        List<TradeItemDTO> tradeItems = new ArrayList<>();
-        List<TradeMarketingDTO> marketings = new ArrayList<>();
-        paramVO.getMarketings().forEach(item -> {
-            TradeMarketingDTO marketing = new TradeMarketingDTO();
-            marketing.setMarketingId(item.getMarketingId());
-            marketing.setSkuIds(new ArrayList<>());
-            item.getGoodsInfos().stream().forEach(goods -> {
-                skuIds.add(goods.getSkuId());
-                marketing.getSkuIds().add(goods.getSkuId());
-                tradeItems.add(TradeItemDTO.builder().skuId(goods.getSkuId()).num(goods.getCount()).build());
-            });
-            marketings.add(marketing);
-        });
+        List<TradeItemDTO> tradeItems = paramVO.getMarketings().stream().flatMap(i->i.getGoodsInfos().stream()).map(goods->
+            TradeItemDTO.builder().skuId(goods.getSkuId()).num(goods.getCount()).build()).collect(Collectors.toList());
 
-        //验证营销活动
-        List<GoodsInfoMarketingVO> marketingInfos = skuIds.stream().map(i -> GoodsInfoMarketingVO.builder().goodsInfoId(i).build()).collect(Collectors.toList());
+        List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(skuIds)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "提交的sku不能为空");
+        }
+
+        List<TradeMarketingDTO> marketings = paramVO.getMarketings().stream()
+                .filter(i->Objects.nonNull(i.getMarketingId()) && i.getMarketingId()>0)
+                .map(item-> {
+                    TradeMarketingDTO mktDTO = new TradeMarketingDTO();
+                    mktDTO.setMarketingId(item.getMarketingId());
+                    mktDTO.setSkuIds(item.getGoodsInfos().stream().map(i->i.getSkuId()).collect(Collectors.toList()));
+                    return mktDTO;
+                }).collect(Collectors.toList());
+
+        BaseResponse<GoodsInfoStoreIdBySkuIdResponse> storeIdResp = goodsInfoQueryProvider.getStoreIdByGoodsId(new GoodsInfoStoreIdBySkuIdRequest(skuIds.get(0)));
+        if (storeIdResp == null || storeIdResp.getContext() == null) {
+            log.warn("根据商品没有找到对应的店铺信息, skuId={}", skuIds.get(0));
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "根据商品没有找到对应的店铺信息");
+        }
+
+        //验证营销活动->查询商品支持的营销活动
+        List<GoodsInfoMarketingVO> marketingInfos = skuIds.stream()
+                .map(i -> GoodsInfoMarketingVO.builder().goodsInfoId(i).storeId(storeIdResp.getContext().getStoreId()).build())
+                .collect(Collectors.toList());
+
         MarketInfoForPurchaseResponse marketResp = marketingCommonQueryProvider.queryInfoForPurchase(new InfoForPurchseRequest(marketingInfos, customer, null)).getContext();
-        Map<Long, MarketingViewVO> mktMap = marketResp.getGoodsInfos().stream().flatMap(item -> item.getMarketingViewList().stream())
+        Map<Long, MarketingViewVO> mktMap = marketResp.getGoodsInfos().stream()
+                .filter(i->Objects.nonNull(i.getMarketingViewList()))
+                .flatMap(item -> item.getMarketingViewList().stream())
                 .collect(Collectors.toMap(MarketingViewVO::getMarketingId, i -> i, (a, b) -> a));
+
         for (TradeMarketingDTO item : marketings) {
             MarketingViewVO mkt = mktMap.get(item.getMarketingId());
             if (mkt == null) {

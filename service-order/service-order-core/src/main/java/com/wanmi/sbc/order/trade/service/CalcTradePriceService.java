@@ -145,9 +145,30 @@ public class CalcTradePriceService {
         if (tradeItems.stream().anyMatch(tradeItem -> Boolean.TRUE.equals(tradeItem.getIsFlashSaleGoods()))) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前还不支持秒杀购活动算价");
         }
-
         //1.验证用户
         CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(customerId);
+
+        //4.查询商品信息
+        GoodsInfoViewByIdsResponse skuResp = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
+        Trade tradeParam = new Trade();
+        tradeParam.setTradeItems(tradeItems);
+        TradeGoodsListVO goodsResp = tradeGoodsService.getGoodsInfoResponse(tradeParam, customerVO, skuResp);
+
+        Map<String, GoodsInfoVO> skuMap = goodsResp.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i -> i));
+
+        tradeItems.forEach(item -> {
+            GoodsInfoVO sku = skuMap.get(item.getSkuId());
+            if (Objects.isNull(sku)) {
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "sku信息没有查询到, skuId={}", item.getSkuId());
+            }
+            item.setPrice(sku.getSalePrice());
+            item.setLevelPrice(sku.getSalePrice());
+            item.setOriginalPrice(Objects.isNull(sku.getMarketPrice()) ? BigDecimal.ZERO : sku.getMarketPrice());
+            item.setSplitPrice(item.getPrice().multiply(new BigDecimal(item.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP));
+        });
+        //总价
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
         //按照营销活动分组
         Map<Long, List<TradeItem>> mktId2items = tradeItems.stream().filter(i->i.getMarketingId()!=null && i.getMarketingId()>0)
                 .collect(Collectors.groupingBy(TradeItem::getMarketingId));
@@ -192,25 +213,6 @@ public class CalcTradePriceService {
             }
             marketings.add(dto);
         }
-
-        //4.查询商品信息
-        GoodsInfoViewByIdsResponse skuResp = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
-        Trade tradeParam = new Trade();
-        tradeParam.setTradeItems(tradeItems);
-        TradeGoodsListVO skuList = tradeGoodsService.getGoodsInfoResponse(tradeParam, customerVO, skuResp);
-
-        Map<String, GoodsInfoVO> skuMap = skuList.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i -> i));
-
-        tradeItems.forEach(item -> {
-            GoodsInfoVO sku = skuMap.get(item.getSkuId());
-            if (Objects.isNull(sku)) {
-                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "sku信息没有查询到, skuId={}", item.getSkuId());
-            }
-            item.setPrice(sku.getSalePrice());
-            item.setLevelPrice(sku.getSalePrice());
-            item.setOriginalPrice(Objects.isNull(sku.getMarketPrice()) ? BigDecimal.ZERO : sku.getMarketPrice());
-            item.setSplitPrice(item.getPrice().multiply(new BigDecimal(item.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP));
-        });
 
         // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
 //        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);

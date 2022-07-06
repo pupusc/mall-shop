@@ -3,6 +3,7 @@ package com.soybean.mall.order.request;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public class StmtParamVO {
      * 订单营销信息快照
      */
     @NotEmpty
-    private List<SettlementParamVO$Marketing> marketings;
+    private List<SettlementParamVO$Marketing> marketings = new ArrayList<>();
 
 //    /**
 //     * 商品信息，必传
