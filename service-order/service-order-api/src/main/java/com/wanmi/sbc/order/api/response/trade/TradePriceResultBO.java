@@ -44,7 +44,8 @@ public class TradePriceResultBO {
         ADD_DELIVERY(102, "配送费用"),
         SUB_VIP_RATE(201, "会员折扣"),
         SUB_COUPON_COST(202, "优惠券抵扣"),
-        SUB_PROMOTE_MKT(203, "营销促销");
+        SUB_PROMOTE_MKT(203, "营销促销"),
+        SUB_GOODS(204, "商品优惠");
 
         private Integer code;
         private String desc;

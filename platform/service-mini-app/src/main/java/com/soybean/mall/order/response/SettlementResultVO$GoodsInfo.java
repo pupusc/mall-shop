@@ -49,4 +49,12 @@ public class SettlementResultVO$GoodsInfo {
      * 商品重量
      */
     private BigDecimal goodsWeight;
+    /**
+     * 是否在积分黑名单
+     */
+    private Boolean inPointBlackList;
+    /**
+     * 显示电话输入框
+     */
+    private Boolean showPhoneNum = false;
 }

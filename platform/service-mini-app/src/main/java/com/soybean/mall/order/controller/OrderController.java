@@ -73,17 +73,20 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
+import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingCommonQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
-import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponCodeListForUseByCustomerIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse;
+import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
+import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import com.wanmi.sbc.marketing.bean.vo.GoodsInfoMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemProvider;
@@ -128,9 +131,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,7 +152,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/wx/order")
 public class OrderController {
-
+    //结算页优惠券格式
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Autowired
     private CommonUtil commonUtil;
 
@@ -217,6 +223,8 @@ public class OrderController {
     private MarkupQueryProvider markupQueryProvider;
     @Autowired
     private CouponCacheProvider couponCacheProvider;
+    @Resource
+    private CouponCodeQueryProvider couponCodeQueryProvider;
     @Autowired
     private MarketingCommonQueryProvider marketingCommonQueryProvider;
 
@@ -927,10 +935,10 @@ public class OrderController {
 
         //获取订单商品详情和会员价salePrice
         GoodsInfoResponse skuResp = getGoodsResponse(tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList()), customer);
-//        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
         //设置是否展示输入电话输入框
         //获取商品下的打包信息 TODO 修改此处的时候，同时修改 h5的 purchase 接口
-//        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
 
 //        List<TradeConfirmItemVO> items = new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
@@ -963,6 +971,8 @@ public class OrderController {
             if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
                 tradeItem.setInPointBlackList(true);
             }
+            //设置是否显示输入框
+            tradeItem.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()));
         }
 
         //--------------------------------------------------------------------------------------------
@@ -994,40 +1004,16 @@ public class OrderController {
                 viewSku.setNum(tradeItem.getNum());
                 viewSku.setGoodsCubage(tradeItem.getGoodsCubage());
                 viewSku.setGoodsWeight(tradeItem.getGoodsWeight());
+                viewSku.setInPointBlackList(tradeItem.getInPointBlackList());
+                viewSku.setShowPhoneNum(tradeItem.getShowPhoneNum());
                 viewSkus.add(viewSku);
             }
         }
         //商品信息
         StmtResultVO resultVO = new StmtResultVO();
         resultVO.setGoodsInfos(viewSkus);
-        //优惠券信息
-        CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
-        request.setCustomerId(customerId);
-        request.setGoodsInfoIds(new ArrayList<>(tradeItemMap.keySet()));
-        BaseResponse<CouponCacheListForGoodsListResponse> couponResp = couponCacheProvider.listCouponForGoodsList(request);
-
-        if (couponResp != null && couponResp.getContext() != null) {
-            List<PromoteInfoResultVO$Coupon> couponVOs = couponResp.getContext().getCouponViews().stream().map(couponBO -> {
-                PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
-                couponVO.setStartTime(couponBO.getCouponStartTime());
-                couponVO.setEndTime(couponBO.getCouponEndTime());
-                couponVO.setActivityId(couponBO.getActivityId());
-                couponVO.setCouponId(couponBO.getCouponId());
-                couponVO.setCouponType(couponBO.getCouponType().toValue());
-                couponVO.setCouponName(couponBO.getCouponName());
-                couponVO.setCouponDesc(couponBO.getCouponDesc());
-                couponVO.setDenomination(BigDecimal.valueOf(couponBO.getDenomination()));
-                couponVO.setLimitPrice(FullBuyType.FULL_MONEY.equals(couponBO.getFullBuyType()) ? BigDecimal.valueOf(couponBO.getFullBuyPrice()) : BigDecimal.ZERO);
-                couponVO.setLimitScope(couponBO.getScopeType().toValue());
-                couponVO.setCanFetch(couponBO.isLeftFlag());
-                couponVO.setHasFetch(couponBO.isHasFetched());
-                couponVO.setNearOverdue(couponBO.isCouponWillEnd());
-                couponVO.setRangeDayType(couponBO.getRangeDayType().toValue());
-                couponVO.setEffectiveDays(couponBO.getEffectiveDays());
-                return couponVO;
-            }).collect(Collectors.toList());
-            resultVO.setCoupons(couponVOs);
-        }
+        //--------------------------------------------------------------------------------------------------------------------------------
+        //计算价格
         //计算价格
         TradePriceParamBO paramBO = new TradePriceParamBO();
         paramBO.setCustomerId(customerId);
@@ -1036,7 +1022,72 @@ public class OrderController {
         if (priceResponse != null) {
             resultVO.setCalcPrice(priceResponse.getContext());
         }
+        //--------------------------------------------------------------------------------------------------------------------------------
+        //查询优惠券
+        List<TradeItemInfoDTO> tradeDtos =  new ArrayList<>();
+        for (TradeItemVO item : tradeItemVOList) {
+            TradeItemInfoDTO tradeDto = new TradeItemInfoDTO();
+            tradeDto.setStoreId(item.getStoreId());
+            tradeDto.setSpuId(item.getSpuId());
+            tradeDto.setSkuId(item.getSkuId());
+            tradeDto.setPrice(item.getPrice());
+            tradeDtos.add(tradeDto);
+        }
+        CouponCodeListForUseByCustomerIdRequest couponParam = CouponCodeListForUseByCustomerIdRequest.builder()
+                .customerId(customerId).tradeItems(tradeDtos).price(priceResponse.getContext().getPayPrice()).build();
 
+        BaseResponse<CouponCodeListForUseByCustomerIdResponse> couponResult = couponCodeQueryProvider.listForUseByCustomerId(couponParam);
+        if (couponResult.getContext() == null || couponResult.getContext().getCouponCodeList() == null) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "查询用户优惠券返回值错误");
+        }
+
+        resultVO.setCoupons(new ArrayList<>());
+        for (CouponCodeVO couponBO : couponResult.getContext().getCouponCodeList()) {
+            PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
+            couponVO.setStartTime(couponBO.getStartTime().format(formatter));
+            couponVO.setEndTime(couponBO.getEndTime().format(formatter));
+            couponVO.setActivityId(couponBO.getActivityId());
+            couponVO.setCouponId(couponBO.getCouponId());
+            couponVO.setCouponType(couponBO.getCouponType().toValue());
+            couponVO.setCouponName(couponBO.getCouponName());
+            couponVO.setCouponDesc(couponBO.getCouponDesc());
+            couponVO.setDenomination(couponBO.getDenomination());
+            couponVO.setLimitPrice(FullBuyType.FULL_MONEY.equals(couponBO.getFullBuyType()) ? couponBO.getFullBuyPrice() : BigDecimal.ZERO);
+            couponVO.setLimitScope(couponBO.getScopeType().toValue());
+            couponVO.setNearOverdue(couponBO.isNearOverdue());
+            couponVO.setStatus(couponBO.getStatus().toValue());
+            resultVO.getCoupons().add(couponVO);
+        }
+
+//        //优惠券信息
+//        CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
+//        request.setCustomerId(customerId);
+//        request.setGoodsInfoIds(new ArrayList<>(tradeItemMap.keySet()));
+//        BaseResponse<CouponCacheListForGoodsListResponse> couponResp = couponCacheProvider.listCouponForGoodsList(request);
+//
+//        if (couponResp != null && couponResp.getContext() != null) {
+//            List<PromoteInfoResultVO$Coupon> couponVOs = couponResp.getContext().getCouponViews().stream().map(couponBO -> {
+//                PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
+//                couponVO.setStartTime(couponBO.getCouponStartTime());
+//                couponVO.setEndTime(couponBO.getCouponEndTime());
+//                couponVO.setActivityId(couponBO.getActivityId());
+//                couponVO.setCouponId(couponBO.getCouponId());
+//                couponVO.setCouponType(couponBO.getCouponType().toValue());
+//                couponVO.setCouponName(couponBO.getCouponName());
+//                couponVO.setCouponDesc(couponBO.getCouponDesc());
+//                couponVO.setDenomination(BigDecimal.valueOf(couponBO.getDenomination()));
+//                couponVO.setLimitPrice(FullBuyType.FULL_MONEY.equals(couponBO.getFullBuyType()) ? BigDecimal.valueOf(couponBO.getFullBuyPrice()) : BigDecimal.ZERO);
+//                couponVO.setLimitScope(couponBO.getScopeType().toValue());
+//                couponVO.setCanFetch(couponBO.isLeftFlag());
+//                couponVO.setHasFetch(couponBO.isHasFetched());
+//                couponVO.setNearOverdue(couponBO.isCouponWillEnd());
+//                couponVO.setRangeDayType(couponBO.getRangeDayType().toValue());
+//                couponVO.setEffectiveDays(couponBO.getEffectiveDays());
+//                return couponVO;
+//            }).collect(Collectors.toList());
+//            resultVO.setCoupons(couponVOs);
+//        }
+        //--------------------------------------------------------------------------------------------------------------------------------
         return BaseResponse.success(resultVO);
     }
 }

@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
+import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
@@ -67,7 +68,8 @@ public class CalcTradePriceService {
     private TradeCacheService tradeCacheService;
     @Autowired
     private MarketingQueryProvider marketingQueryProvider;
-
+    @Autowired
+    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
 //    /**
 //     * @see TradeService#validateAndWrapperTrade(com.wanmi.sbc.order.trade.model.root.Trade, com.wanmi.sbc.order.trade.request.TradeParams)
 //     */
@@ -148,26 +150,24 @@ public class CalcTradePriceService {
         //1.验证用户
         CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(customerId);
 
-        //4.查询商品信息
+        //4.查询商品原始信息
         GoodsInfoViewByIdsResponse skuResp = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
         Trade tradeParam = new Trade();
         tradeParam.setTradeItems(tradeItems);
+        //查询商品下单信息（计算会员价）
         TradeGoodsListVO goodsResp = tradeGoodsService.getGoodsInfoResponse(tradeParam, customerVO, skuResp);
-
         Map<String, GoodsInfoVO> skuMap = goodsResp.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i -> i));
-
-        tradeItems.forEach(item -> {
-            GoodsInfoVO sku = skuMap.get(item.getSkuId());
-            if (Objects.isNull(sku)) {
+        for (TradeItem item : tradeItems) {
+            if (Objects.isNull(skuMap.get(item.getSkuId()))) {
                 throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "sku信息没有查询到, skuId={}", item.getSkuId());
             }
+            GoodsInfoVO sku = skuMap.get(item.getSkuId());
             item.setPrice(sku.getSalePrice());
             item.setLevelPrice(sku.getSalePrice());
             item.setOriginalPrice(Objects.isNull(sku.getMarketPrice()) ? BigDecimal.ZERO : sku.getMarketPrice());
             item.setSplitPrice(item.getPrice().multiply(new BigDecimal(item.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP));
-        });
-        //总价
-        BigDecimal totalPrice = BigDecimal.ZERO;
+            item.setPropPrice(getSkuPropPrice(sku.getGoodsInfoId()));
+        }
 
         //按照营销活动分组
         Map<Long, List<TradeItem>> mktId2items = tradeItems.stream().filter(i->i.getMarketingId()!=null && i.getMarketingId()>0)
@@ -225,6 +225,17 @@ public class CalcTradePriceService {
         calcMarketingPrice(tradeItems, tradeMarketingVOs, tradeCouponVO);
         // 2.9.计算并设置订单总价(已减去营销优惠总金额)
         return calc(tradeItems, tradeMarketingVOs, tradeCouponVO);
+    }
+
+    private Double getSkuPropPrice(String skuId) {
+        if (StringUtils.isBlank(skuId)) {
+            return 0D;
+        }
+        BaseResponse<String> priceResult = goodsIntervalPriceProvider.findPriceByGoodsId(skuId);
+        if (priceResult == null || StringUtils.isBlank(priceResult.getContext())) {
+            return 0D;
+        }
+        return Double.valueOf(priceResult.getContext());
     }
 
     /**
@@ -338,8 +349,11 @@ public class CalcTradePriceService {
         tradePrice.setOriginPrice(BigDecimal.ZERO);
         tradePrice.setTotalPrice(BigDecimal.ZERO);
         tradePrice.setBuyPoints(null);
-        tradeItems.forEach(t -> {
-            BigDecimal buyItemPrice = t.getPrice().multiply(BigDecimal.valueOf(t.getNum()));
+        tradePrice.setPropPrice(BigDecimal.ZERO);
+        tradePrice.setSalePrice(BigDecimal.ZERO);
+        for (TradeItem t : tradeItems) {
+            BigDecimal num = BigDecimal.valueOf(t.getNum());
+            BigDecimal buyItemPrice = t.getPrice().multiply(num);
             // 订单商品总价
             tradePrice.setGoodsPrice(tradePrice.getGoodsPrice().add(buyItemPrice));
             // 订单应付总金额
@@ -350,8 +364,15 @@ public class CalcTradePriceService {
             if (Objects.nonNull(t.getBuyPoint())) {
                 tradePrice.setBuyPoints(Objects.isNull(tradePrice.getBuyPoints()) ? t.getBuyPoint() * t.getNum() : tradePrice.getBuyPoints() + t.getBuyPoint() * t.getNum());
             }
-        });
-
+            //商品定价
+            if (Objects.nonNull(t.getPropPrice())) {
+                tradePrice.setPropPrice(tradePrice.getPropPrice().add(BigDecimal.valueOf(t.getPropPrice()).multiply(num)));
+            }
+            //市场售价
+            if (Objects.nonNull(t.getOriginalPrice())) {
+                tradePrice.setSalePrice(tradePrice.getSalePrice().add(t.getOriginalPrice().multiply(num)));
+            }
+        }
         List<TradeMarketingVO> mktList = tradeMarketings.stream().filter(
                 i -> !MarketingType.GIFT.equals(i.getMarketingType()) && !MarketingType.MARKUP.equals(i.getMarketingType())).collect(Collectors.toList());
 
