@@ -320,7 +320,7 @@ public class GoodsStockService {
                         erpGoodsNo = entry.getValue().toString();
                     }
                     if ("erp_goods_info_no".equals(entry.getKey())) {
-                        erpGoodsInfoNo = entry.getValue().toString();
+                        erpGoodsInfoNo = entry.getValue() == null ? "" : entry.getValue().toString();
                     }
                     if ("cost_price".equals(entry.getKey())) {
                         costPrice = new BigDecimal(entry.getValue().toString());
