@@ -143,9 +143,10 @@ public class TradeSettingService {
 
             localPageNum++;
             if (tradeList.size() < pageSize) {
-                if (pageNum <= 0) {
-                    redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
-                }
+                localPageNum = 0;
+            }
+            if (pageNum <= 0) {
+                redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
             }
             log.info("自动确认收货成功");
         } catch (Exception ex) {
