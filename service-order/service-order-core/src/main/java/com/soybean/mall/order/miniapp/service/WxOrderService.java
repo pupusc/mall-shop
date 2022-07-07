@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -141,6 +142,7 @@ public class WxOrderService {
      *
      * @param trade
      */
+    @Transactional
     public void syncWxOrderReceive(Trade trade) {
         if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
             return;
