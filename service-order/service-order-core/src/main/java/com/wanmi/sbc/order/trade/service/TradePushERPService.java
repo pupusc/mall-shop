@@ -734,16 +734,16 @@ public class TradePushERPService {
 
                         }*/
                 }
-                // 扫描次数小于3的加1
-                if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                    TradeState tradeState = providerTrade.getTradeState();
-                    if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                        tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                    } else {
-                        tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
-                    }
-                    providerTradeService.updateProviderTrade(providerTrade);
+            }
+            // 扫描次数小于3的加1
+            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+                TradeState tradeState = providerTrade.getTradeState();
+                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                } else {
+                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
                 }
+                providerTradeService.updateProviderTrade(providerTrade);
             }
         } catch (Exception e) {
             log.error("#批量同步发货状态异常:{}", e);
