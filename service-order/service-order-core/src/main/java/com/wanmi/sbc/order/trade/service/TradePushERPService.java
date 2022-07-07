@@ -701,44 +701,53 @@ public class TradePushERPService {
      * @param providerTrade
      */
     public void syncDeliveryStatus(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
-        if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
-            this.syncDeliveryStatusProduct(providerTrade);
-            return;
-        }
         try {
-            //周期购订单和普通订单分开处理
-            if (providerTrade.getCycleBuyFlag()) {
-                this.updateCycleBuyDeliveryStatus(providerTrade,deliveryInfoVOList);
+            if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
+                this.syncDeliveryStatusProduct(providerTrade);
             } else {
-                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
-                deliveryQueryRequest.setTid(providerTrade.getId());
-                //设置查询erp发货状态
-                deliveryQueryRequest.setDelivery(Constants.yes);
-                // 是否是历史订单
-                if (CollectionUtils.isEmpty(deliveryInfoVOList)){
-                    deliveryInfoVOList = guanyierpProvider
-                            .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
-                }
-                if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
-                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList,0);
+                //周期购订单和普通订单分开处理
+                if (providerTrade.getCycleBuyFlag()) {
+                    this.updateCycleBuyDeliveryStatus(providerTrade, deliveryInfoVOList);
                 } else {
-                    // 扫描次数小于3的加1
-                    if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                        TradeState tradeState = providerTrade.getTradeState();
-                        if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                            tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                        } else {
-                            tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
-                        }
+                    DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
+                    deliveryQueryRequest.setTid(providerTrade.getId());
+                    //设置查询erp发货状态
+                    deliveryQueryRequest.setDelivery(Constants.yes);
+                    // 是否是历史订单
+                    if (CollectionUtils.isEmpty(deliveryInfoVOList)) {
+                        deliveryInfoVOList = guanyierpProvider
+                                .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
+                    }
+                    if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
+                        this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList, 0);
+                    } /*else {
+                            // 扫描次数小于3的加1
+                            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+                                TradeState tradeState = providerTrade.getTradeState();
+                                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                                } else {
+                                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
+                                }
+                            }
+                            providerTradeService.updateProviderTrade(providerTrade);
+
+                        }*/
+                }
+                // 扫描次数小于3的加1
+                if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+                    TradeState tradeState = providerTrade.getTradeState();
+                    if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                        tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                    } else {
+                        tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
                     }
                     providerTradeService.updateProviderTrade(providerTrade);
-
                 }
             }
         } catch (Exception e) {
             log.error("#批量同步发货状态异常:{}", e);
         }
-
     }
 
     /**
@@ -801,7 +810,7 @@ public class TradePushERPService {
                                     deliverCalendar.getCycleDeliverStatus().equals(CycleDeliverStatus.PUSHED) && Objects.nonNull(deliverCalendar.getErpTradeCode()))
                             .collect(Collectors.toList());
 
-            if (CollectionUtils.isEmpty(deliveryList)) {
+            /*if (CollectionUtils.isEmpty(deliveryList)) {
                 // 扫描次数小于3的加1
                 if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
                     TradeState tradeState = providerTrade.getTradeState();
@@ -810,10 +819,9 @@ public class TradePushERPService {
                     } else {
                         tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
                     }
+                    providerTradeService.updateProviderTrade(providerTrade);
                 }
-
-                providerTradeService.updateProviderTrade(providerTrade);
-            }
+            }*/
 
             deliveryList.forEach(deliverCalendar -> {
                 DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
@@ -946,7 +954,7 @@ public class TradePushERPService {
 
                         }
                     }
-                } else {
+                } /*else {
                     // erp返回空数据
                     // 扫描次数小于3的加1
                     if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
@@ -954,11 +962,9 @@ public class TradePushERPService {
                         if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
                             tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
                         }
+                        providerTradeService.updateProviderTrade(providerTrade);
                     }
-
-                    providerTradeService.updateProviderTrade(providerTrade);
-
-                }
+                }*/
             });
         }
     }
