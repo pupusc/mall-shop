@@ -4691,7 +4691,10 @@ public class TradeService {
                 .event(event)
                 .build();
         tradeFSMService.changeState(stateRequest);
-        wxOrderService.syncWxOrderReceive(trade);
+        //非视频号消息过来的数据走业务逻辑
+        if (!Platform.WX_VIDEO.equals(operator.getPlatform())) {
+            wxOrderService.syncWxOrderReceive(trade);
+        }
         //将物流信息更新为结束
         logisticsLogService.modifyEndFlagByOrderNo(tid);
 

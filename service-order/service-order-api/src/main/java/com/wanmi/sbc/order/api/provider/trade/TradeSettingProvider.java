@@ -5,6 +5,7 @@ import com.wanmi.sbc.order.api.request.trade.ReturnOrderModifyAutoAuditRequest;
 import com.wanmi.sbc.order.api.request.trade.ReturnOrderModifyAutoReceiveRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeSettingModifyRequest;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -46,7 +47,7 @@ public interface TradeSettingProvider {
      * 订单代发货自动收货
      * @return
     */
-    @PostMapping("/order/${application.order.version}/trade/order-auto-receive")
-    BaseResponse orderAutoReceive();
+    @PostMapping("/order/${application.order.version}/trade/order-auto-receive/{pageNum}/{pageSize}")
+    BaseResponse orderAutoReceive(@PathVariable("pageNum") Integer pageNum, @PathVariable("pageSize") Integer pageSize);
 
 }
