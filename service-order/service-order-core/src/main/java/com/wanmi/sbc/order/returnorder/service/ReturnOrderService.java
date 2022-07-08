@@ -2450,6 +2450,10 @@ public class ReturnOrderService {
                     && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 return;
             } else {
+                if (FlowState.VOID.equals(trade.getTradeState().getFlowState())) {
+                    log.info("ReturnOrderService receive tid:{} state flowState is void return", trade.getId());
+                    return;
+                }
                 //判断是否全量退货完成
                 if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
                     //作废主订单

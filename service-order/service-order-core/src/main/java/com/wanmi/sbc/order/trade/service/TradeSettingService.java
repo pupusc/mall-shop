@@ -243,8 +243,7 @@ public class TradeSettingService {
             }
             log.info("退单自动审核成功");
         } catch (Exception ex) {
-            log.error("returnOrderAutoAudit schedule error");
-            ex.printStackTrace();
+            log.error("returnOrderAutoAudit schedule error", ex);
             throw new SbcRuntimeException("K-050005");
         }
     }
@@ -277,15 +276,15 @@ public class TradeSettingService {
         } else {
             List<ReturnOrder> returnOrders = returnOrderService.queryReturnOrderByEndDate(endDate, 0, total, ReturnFlowState.DELIVERED);
 
-            returnOrders.forEach(returnOrder
-                    -> {
+            for (ReturnOrder returnOrder : returnOrders) {
                 log.info("执行的退单号: " + returnOrder.getId());
                 try{
                     processReturnAutoAction(ReturnFlowState.DELIVERED, returnOrder);
                 } catch (SbcRuntimeException brt){
-                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
+                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage(), brt);
                 }
-            });
+            }
+
         }
 
         log.info("退单收货审核成功");
