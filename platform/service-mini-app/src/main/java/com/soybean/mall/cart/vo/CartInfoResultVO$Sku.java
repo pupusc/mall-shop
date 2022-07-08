@@ -65,7 +65,7 @@ public class CartInfoResultVO$Sku {
     /**
      * 是否有更多规格
      */
-    private Boolean specMore = false;
+    private boolean specMore;
     /**
      * 是否有更多促销
      */
@@ -73,7 +73,7 @@ public class CartInfoResultVO$Sku {
     /**
      * 前端是否选中
      */
-    private Boolean checked = false;
+    private boolean checked;
     /**
      * 商品状态 0：正常 1：缺货 2：失效
      */

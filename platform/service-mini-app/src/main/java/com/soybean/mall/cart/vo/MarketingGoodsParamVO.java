@@ -20,7 +20,6 @@ public class MarketingGoodsParamVO {
      * 搜索关键词
      */
     private String keyword;
-
     /**
      * 分页页码
      */
@@ -29,4 +28,8 @@ public class MarketingGoodsParamVO {
      * 分页大小
      */
     private Integer pageSize = 10;
+    /**
+     * 排序类型 0 默认
+     */
+    private Integer spuSortType = 0;
 }

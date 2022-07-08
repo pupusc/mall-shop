@@ -27,4 +27,8 @@ public class CouponGoodsParamVO {
      * 分页大小
      */
     private Integer pageSize = 10;
+    /**
+     * 排序类型 0 默认
+     */
+    private Integer spuSortType = 0;
 }

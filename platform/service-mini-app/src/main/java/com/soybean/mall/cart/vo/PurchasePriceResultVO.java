@@ -33,4 +33,8 @@ public class PurchasePriceResultVO {
      * 支付金额
      */
     private BigDecimal payPrice = BigDecimal.ZERO;
+    /**
+     * 提示文案
+     */
+    private String tipText;
 }

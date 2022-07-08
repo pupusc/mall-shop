@@ -37,7 +37,7 @@ public class CartInfoResultVO$Marketing {
     /**
      * 是否最大优惠政策（再逛逛/去凑单）
      */
-    private boolean isMaxPolicy;
+    private boolean isMaxPolicy = true;
 
     public void setType(int type) {
         this.type = type;

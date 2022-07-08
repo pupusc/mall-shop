@@ -17,6 +17,7 @@ import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.order.response.SettlementResultVO$GoodsInfo;
 import com.soybean.mall.order.response.StmtResultVO;
 import com.soybean.mall.service.CommonService;
+import com.soybean.mall.service.PromoteFilter;
 import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
@@ -77,9 +78,11 @@ import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingCommonQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodeListForUseByCustomerIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse;
 import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
@@ -877,13 +880,7 @@ public class OrderController {
                 log.warn("营销方案不存在或者已过期, mktId={}", item.getMarketingId());
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "营销方案已不存在");
             }
-
-            boolean support = MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())
-                    || MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType())
-                    || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())
-                    || MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType());
-
-            if (!support) {
+            if (!PromoteFilter.supportMkt(mkt.getSubType())) {
                 log.warn("小程序当前仅支持满减或满折营销, subType={}", mkt.getSubType());
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "营销方案类型错误");
             }
@@ -1048,6 +1045,7 @@ public class OrderController {
             couponVO.setEndTime(couponBO.getEndTime().format(formatter));
             couponVO.setActivityId(couponBO.getActivityId());
             couponVO.setCouponId(couponBO.getCouponId());
+            couponVO.setCouponCodeId(couponBO.getCouponCodeId());
             couponVO.setCouponType(couponBO.getCouponType().toValue());
             couponVO.setCouponName(couponBO.getCouponName());
             couponVO.setCouponDesc(couponBO.getCouponDesc());
@@ -1060,10 +1058,10 @@ public class OrderController {
         }
 
 //        //优惠券信息
-//        CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
-//        request.setCustomerId(customerId);
-//        request.setGoodsInfoIds(new ArrayList<>(tradeItemMap.keySet()));
-//        BaseResponse<CouponCacheListForGoodsListResponse> couponResp = couponCacheProvider.listCouponForGoodsList(request);
+        CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
+        request.setCustomerId(customerId);
+        request.setGoodsInfoIds(new ArrayList<>(tradeItemMap.keySet()));
+        BaseResponse<CouponCacheListForGoodsListResponse> couponResp = couponCacheProvider.listCouponForGoodsList(request);
 //
 //        if (couponResp != null && couponResp.getContext() != null) {
 //            List<PromoteInfoResultVO$Coupon> couponVOs = couponResp.getContext().getCouponViews().stream().map(couponBO -> {
