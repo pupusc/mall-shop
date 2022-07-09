@@ -1,8 +1,9 @@
 package com.wanmi.sbc.order.purchase.request;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
-import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.customer.bean.vo.CustomerLevelVO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.order.enums.FollowFlag;
@@ -24,6 +25,8 @@ import javax.persistence.criteria.Predicate;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 

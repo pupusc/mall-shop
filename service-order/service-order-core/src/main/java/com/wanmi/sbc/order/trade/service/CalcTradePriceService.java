@@ -24,6 +24,8 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingStatus;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
@@ -41,11 +43,15 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -169,62 +175,108 @@ public class CalcTradePriceService {
             item.setPropPrice(getSkuPropPrice(sku.getGoodsInfoId()));
         }
 
-        //按照营销活动分组
-        Map<Long, List<TradeItem>> mktId2items = tradeItems.stream().filter(i->i.getMarketingId()!=null && i.getMarketingId()>0)
-                .collect(Collectors.groupingBy(TradeItem::getMarketingId));
+        long totalCount = tradeItems.stream().mapToLong(TradeItem::getNum).sum();
+        BigDecimal totalPrice = tradeItems.stream().map(TradeItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+//        //按照营销活动分组
+//        Map<Long, List<TradeItem>> mktId2items = tradeItems.stream().filter(i->i.getMarketingId()!=null && i.getMarketingId()>0)
+//                .collect(Collectors.groupingBy(TradeItem::getMarketingId));
+
+        //所有需要计算商品的id
         List<String> skuIds = tradeItems.stream().map(item -> item.getSkuId()).distinct().collect(Collectors.toList());
 
-        //根据skuId查询关联的营销活动
+        //根据skuId查询所有关联的营销活动
         MarketingMapGetByGoodsIdRequest mktParamm = MarketingMapGetByGoodsIdRequest.builder().goodsInfoIdList(skuIds)
                 .marketingStatus(MarketingStatus.STARTED).deleteFlag(DeleteFlag.NO).cascadeLevel(true).build();
         BaseResponse<MarketingMapGetByGoodsIdResponse> mktResponse = marketingQueryProvider.getMarketingMapByGoodsId(mktParamm);
 
-        Map<Long, MarketingForEndVO> mktId2mkt = new HashMap<>();
+        //商品查询的全部营销活动
+        Map<Long, MarketingForEndVO> mkt2all = new HashMap<>();
         if (mktResponse != null && mktResponse.getContext() != null && mktResponse.getContext().getListMap() != null) {
-            mktResponse.getContext().getListMap().values().stream().flatMap(item->item.stream()).forEach(mkt->mktId2mkt.put(mkt.getMarketingId(), mkt));
+            mktResponse.getContext().getListMap().values().stream().flatMap(item->item.stream()).forEach(mkt->mkt2all.put(mkt.getMarketingId(), mkt));
         }
-
-        List<TradeMarketingDTO> marketings = new ArrayList<>();
-        for (Map.Entry<Long, List<TradeItem>> entry : mktId2items.entrySet()) {
-            MarketingForEndVO mkt = mktId2mkt.get(entry.getKey());
+        //不满足的营销活动
+        Set<Long> mkt2bad = new HashSet<>();
+        //满足条件的营销活动
+        Map<Long, TradeMarketingDTO> mkt2yes = new HashMap<>();
+        for (TradeItem item : tradeItems) {
+            Long mktId = item.getMarketingId();
+            if (mktId == null || mktId == 0) {
+                continue;
+            }
+            MarketingForEndVO mkt = mkt2all.get(mktId);
             if (mkt == null) {
-                log.warn("营销活动不存在或者当前不可用, mktId={}", entry.getKey());
-                throw new SbcRuntimeException(CommonErrorCode.FAILED, "指定的营销活动不存在");
+                log.warn("营销活动不存在或者当前不可用, mktId={}", mktId);
+                throw new SbcRuntimeException(CommonErrorCode.FAILED, "指定的营销活动不存在或不可用");
             }
             if (mkt.getIsPause() == BoolFlag.YES || mkt.getDelFlag() == DeleteFlag.YES
                     || mkt.getBeginTime().isAfter(LocalDateTime.now()) || mkt.getEndTime().isBefore(LocalDateTime.now())) {
                 log.warn("营销活动当前的状态信息不正确, mkt={}", JSON.toJSONString(mkt));
-                throw new SbcRuntimeException(CommonErrorCode.FAILED, "指定的营销活动状态错误");
+                throw new SbcRuntimeException(CommonErrorCode.FAILED, "指定的营销活动当前不可用状态");
             }
-
+            if (mkt2bad.contains(mktId)) {
+                continue; //已经排除了那就跳过
+            }
+            if (mkt2yes.containsKey(mktId)) {
+                mkt2yes.get(mktId).getMarkupSkuIds().add(item.getSkuId());
+                continue;
+            }
+            Long levelId = getMktLevelId(mkt, totalCount, totalPrice);
+            if (levelId == null) {
+                mkt2bad.add(mktId); //不满足活动就排除
+                continue;
+            }
             TradeMarketingDTO dto = new TradeMarketingDTO();
             dto.setStoreId(mkt.getStoreId());
             dto.setMarketingId(mkt.getMarketingId());
             dto.setMarketingSubType(mkt.getSubType().toValue());
-            dto.setSkuIds(entry.getValue().stream().map(TradeItem::getSkuId).distinct().collect(Collectors.toList()));
-            //满折
-            if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType()) || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())) {
-                dto.setMarketingLevelId(CollectionUtils.isEmpty(mkt.getFullDiscountLevelList()) ? null : mkt.getFullDiscountLevelList().get(0).getDiscountLevelId());
-            } else if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType()) || MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())) {
-                dto.setMarketingLevelId(CollectionUtils.isEmpty(mkt.getFullReductionLevelList()) ? null : mkt.getFullReductionLevelList().get(0).getReductionLevelId());
-            } else {
-                log.warn("其他营销类型暂不支持, mktId={}, subTpye={}", mkt.getMarketingId(), mkt.getSubType().toValue());
-                throw new SbcRuntimeException("暂时只支持满减或满折类型的营销活动");
-            }
-            marketings.add(dto);
+            dto.setSkuIds(Arrays.asList(item.getSkuId()));
+            dto.setMarketingLevelId(levelId);
+            mkt2yes.put(mktId, dto);
         }
 
-        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
+//        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
 //        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);
 
         // 1.构建订单满系营销对象
-        List<TradeMarketingVO> tradeMarketingVOs = this.wrapperMarketingForConfirm(tradeItems, marketings);
+        List<TradeMarketingVO> mktVOs = this.wrapperMarketingForConfirm(tradeItems, mkt2yes.values().stream().collect(Collectors.toList()));
         // 2.构建订单优惠券对象
         TradeCouponVO tradeCouponVO = StringUtils.isBlank(couponId) ? null : tradeMarketingService.buildTradeCouponInfo(tradeItems, couponId, false, customerId);
         //计算并赋值splitPrice
-        calcMarketingPrice(tradeItems, tradeMarketingVOs, tradeCouponVO);
+        calcMarketingPrice(tradeItems, mktVOs, tradeCouponVO);
         // 2.9.计算并设置订单总价(已减去营销优惠总金额)
-        return calc(tradeItems, tradeMarketingVOs, tradeCouponVO);
+        return calc(tradeItems, mktVOs, tradeCouponVO);
+    }
+
+    private Long getMktLevelId(MarketingForEndVO mkt, long totalCount, BigDecimal totalPrice) {
+        Long levelId = null;
+        //满折
+        if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType()) || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())) {
+            List<MarketingFullDiscountLevelVO> levelList = mkt.getFullDiscountLevelList();
+            levelList.sort(Comparator.comparing(MarketingFullDiscountLevelVO::getDiscount).reversed());
+
+            for (MarketingFullDiscountLevelVO level : levelList) {
+                if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType()) ? totalCount >= level.getFullCount() : totalPrice.compareTo(level.getFullAmount()) >= 0) {
+                    levelId = level.getDiscountLevelId();
+                }
+            }
+            return levelId;
+        }
+        //满减
+        if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType()) || MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())) {
+            List<MarketingFullReductionLevelVO> levelList = mkt.getFullReductionLevelList();
+            levelList.sort(Comparator.comparing(MarketingFullReductionLevelVO::getReduction));
+
+            for (MarketingFullReductionLevelVO level : levelList) {
+                if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType()) ? totalCount >= level.getFullCount() : totalPrice.compareTo(level.getFullAmount()) >= 0) {
+                    levelId = level.getReductionLevelId();
+                }
+            }
+            return levelId;
+        }
+
+        log.warn("其他营销类型暂不支持, mktId={}, subTpye={}", mkt.getMarketingId(), mkt.getSubType().toValue());
+        throw new SbcRuntimeException("暂时只支持满减或满折类型的营销活动");
     }
 
     private Double getSkuPropPrice(String skuId) {
@@ -304,13 +356,13 @@ public class CalcTradePriceService {
     /**
      * 包装营销信息(供确认订单使用)
      */
-    private List<TradeMarketingVO> wrapperMarketingForConfirm(List<TradeItem> skus, List<TradeMarketingDTO> marketings) {
-        if (CollectionUtils.isEmpty(marketings)) {
+    private List<TradeMarketingVO> wrapperMarketingForConfirm(List<TradeItem> items, List<TradeMarketingDTO> mkts) {
+        if (CollectionUtils.isEmpty(mkts)) {
             return Collections.EMPTY_LIST;
         }
 
-        Map<Long, TradeMarketingDTO> mktId2mkt = marketings.stream().collect(Collectors.toMap(TradeMarketingDTO::getMarketingId, item -> item, (a, b) -> a));
-        Map<Long, List<TradeItem>> mktId2items = skus.stream().filter(item -> mktId2mkt.containsKey(item.getMarketingId())).collect(Collectors.groupingBy(TradeItem::getMarketingId));
+        Map<Long, TradeMarketingDTO> mktId2mkt = mkts.stream().collect(Collectors.toMap(TradeMarketingDTO::getMarketingId, item -> item, (a, b) -> a));
+        Map<Long, List<TradeItem>> mktId2items = items.stream().filter(item -> mktId2mkt.containsKey(item.getMarketingId())).collect(Collectors.groupingBy(TradeItem::getMarketingId));
 
         // 1.构建营销插件请求对象
         List<TradeMarketingWrapperDTO> pluginParam = new ArrayList<>();

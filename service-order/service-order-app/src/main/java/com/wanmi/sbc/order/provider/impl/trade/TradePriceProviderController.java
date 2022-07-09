@@ -29,12 +29,13 @@ public class TradePriceProviderController implements TradePriceProvider {
     @Override
     public BaseResponse<TradePriceResultBO> calcPrice(TradePriceParamBO paramBO) {
         //skus
-        List<TradeItem> tradeItems = paramBO.getGoodsInfos().stream().map(item -> TradeItem.builder().skuId(item.getGoodsInfoId()).num(item.getBuyCount())
-                .marketingId(item.getMarketingId()).build()).collect(Collectors.toList());
+        List<TradeItem> tradeItems = paramBO.getGoodsInfos().stream()
+                .map(item -> TradeItem.builder().skuId(item.getGoodsInfoId()).num(item.getBuyCount()).marketingId(item.getMarketingId()).build())
+                .collect(Collectors.toList());
 
         //综合算价
         TradePrice price = calcTradePriceService.calc(tradeItems, paramBO.getCouponId(), paramBO.getCustomerId());
-        BigDecimal propPriceCut = price.getPropPrice().compareTo(price.getTotalPrice()) > 0 ? price.getPropPrice().subtract(price.getTotalPrice()) : BigDecimal.ZERO;
+        BigDecimal propPriceCut = price.getPropPrice().compareTo(price.getSalePrice()) > 0 ? price.getPropPrice().subtract(price.getSalePrice()) : BigDecimal.ZERO;
         BigDecimal vipPriceCut = price.getSalePrice().compareTo(price.getTotalPrice()) > 0 ? price.getSalePrice().subtract(price.getTotalPrice()) : BigDecimal.ZERO;
 
         TradePriceResultBO resultBO = new TradePriceResultBO();

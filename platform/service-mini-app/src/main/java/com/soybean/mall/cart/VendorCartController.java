@@ -76,6 +76,7 @@ import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
+import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradePriceProvider;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreCouponExistRequest;
@@ -152,7 +153,7 @@ public class VendorCartController {
 
         //查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
-                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
+                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).shopCartSource(ShopCartSourceEnum.WX_MINI).build());
 
         PurchaseListResponse cartInfo = cartResponse.getContext();
         if (cartInfo == null) {

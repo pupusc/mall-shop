@@ -1,14 +1,23 @@
 package com.wanmi.sbc.order.purchase;
 
-import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.VASEntity;
 import com.wanmi.sbc.common.constant.VASStatus;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.SortType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.IteratorUtils;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
@@ -16,8 +25,6 @@ import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerR
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.company.CompanyInfoQueryByIdsRequest;
 import com.wanmi.sbc.customer.api.request.company.CompanyListRequest;
-import com.wanmi.sbc.customer.api.request.enterpriseinfo.EnterpriseInfoByCustomerIdRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
@@ -27,9 +34,14 @@ import com.wanmi.sbc.customer.api.response.store.StoreByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
-import com.wanmi.sbc.customer.bean.vo.*;
-import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.customer.bean.vo.MiniCompanyInfoVO;
+import com.wanmi.sbc.customer.bean.vo.MiniStoreVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.common.GoodsCommonQueryProvider;
@@ -45,19 +57,28 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsPriceAssistProvider;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.common.InfoForPurchaseRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoVerifyRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.request.info.*;
-import com.wanmi.sbc.goods.api.request.marketing.*;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoFillGoodsStatusRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.ProviderGoodsStockSyncRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingBatchAddRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingDeleteByCustomerIdRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingListByCustomerIdRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingModifyRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceByCustomerIdRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsPriceSetBatchByIepRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelByGoodsIdAndSkuIdRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleInProcessResponse;
-import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.common.GoodsInfoForPurchaseResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
@@ -67,8 +88,27 @@ import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResp
 import com.wanmi.sbc.goods.api.response.price.GoodsPriceSetBatchByIepResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsMarketingDTO;
-import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.EnterprisePriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoResponseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsMarketingVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
@@ -82,7 +122,11 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsGoodInf
 import com.wanmi.sbc.marketing.api.request.distribution.DistributionStoreSettingGetByStoreIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
 import com.wanmi.sbc.marketing.api.request.market.MarketingGetByIdRequest;
-import com.wanmi.sbc.marketing.api.request.plugin.*;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginByGoodsInfoListAndCustomerRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGetCustomerLevelsByStoreIdsRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGetCustomerLevelsRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsDetailResponse;
 import com.wanmi.sbc.marketing.api.response.distribution.DistributionStoreSettingGetByStoreIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse;
@@ -90,12 +134,27 @@ import com.wanmi.sbc.marketing.bean.constant.MarketingErrorCode;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
-import com.wanmi.sbc.marketing.bean.vo.*;
+import com.wanmi.sbc.marketing.bean.vo.CouponCacheVO;
+import com.wanmi.sbc.marketing.bean.vo.GoodsInfoMarketingVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingBuyoutPriceLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingHalfPriceSecondPieceLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
+import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontMiniRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseInfoRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseMergeRequest;
-import com.wanmi.sbc.order.api.response.purchase.*;
+import com.wanmi.sbc.order.api.response.purchase.MiniPurchaseResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetGoodsMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGoodsReponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseMarketingCalcResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseResponse;
 import com.wanmi.sbc.order.bean.dto.PurchaseGoodsInfoDTO;
 import com.wanmi.sbc.order.bean.dto.PurchaseMergeDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -136,7 +195,17 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -2503,6 +2572,10 @@ public class PurchaseService {
         // 2.查询商品、店铺、营销相关信息
         GoodsInfoForPurchaseResponse goodsResp = goodsCommonQueryProvider.queryInfoForPurchase(
                 InfoForPurchaseRequest.builder().goodsInfoIds(request.getGoodsInfoIds()).customer(customer).areaId(request.getAreaId()).build()).getContext();
+
+        //小程序购物车处理
+        filterShopCartGoods(request.getShopCartSource(), goodsResp, buyCountMap);
+
         if (CollectionUtils.isEmpty(goodsResp.getGoodsList())) return response;
         List<GoodsInfoVO> goodsInfoList = goodsResp.getGoodsInfoList();
 
@@ -2756,6 +2829,25 @@ public class PurchaseService {
         if (Objects.nonNull(customer)) response.setPointsAvailable(customer.getPointsAvailable());
 
         return response;
+    }
+
+    private void filterShopCartGoods(ShopCartSourceEnum shopCartSource, GoodsInfoForPurchaseResponse goodsResp, Map<String, Long> buyCountMap) {
+        String channel = ShopCartSourceEnum.WX_MINI.equals(shopCartSource) ? GoodsChannelTypeEnum.MALL_MINI.getCode() : GoodsChannelTypeEnum.MALL_H5.getCode();
+        Iterator<GoodsVO> spuIter = goodsResp.getGoodsList().iterator();
+        while (spuIter.hasNext()) {
+            GoodsVO spu = spuIter.next();
+            if (!spu.getGoodsChannelTypeSet().contains(channel)) {
+                spuIter.remove();
+            }
+        }
+        Iterator<GoodsInfoVO> skuIter = goodsResp.getGoodsInfoList().iterator();
+        while (skuIter.hasNext()) {
+            GoodsInfoVO sku = skuIter.next();
+            if (!sku.getGoodsChannelTypeSet().contains(channel)) {
+                skuIter.remove();
+                buyCountMap.remove(sku.getGoodsInfoId());
+            }
+        }
     }
 
     private List<GoodsLevelPriceVO> getGoodsLevelPrices(PurchaseListResponse response, CustomerVO customer, List<GoodsInfoVO> goodsInfoList) {
