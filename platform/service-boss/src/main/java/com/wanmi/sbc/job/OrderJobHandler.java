@@ -74,17 +74,17 @@ public class OrderJobHandler extends IJobHandler {
             tradeSettingProvider.orderAutoReceive(-1, 100);
         }
 
-        //退单自动确认收货
-        if (Integer.valueOf(1).equals(returnOrderAutoReceiveConfig.getStatus())) {
-            Integer day =  Integer.valueOf(JSON.parseObject(returnOrderAutoReceiveConfig.getContext()).get("day").toString());
-            tradeSettingProvider.modifyReturnOrderAutoReceive(new ReturnOrderModifyAutoReceiveRequest(day));
-        }
-
-        //退单自动审核
-        if (Integer.valueOf(1).equals(autoAuditConfig.getStatus())) {
-            Integer day =  Integer.valueOf(JSON.parseObject(autoAuditConfig.getContext()).get("day").toString());
-            tradeSettingProvider.modifyReturnOrderAutoAudit(new ReturnOrderModifyAutoAuditRequest(day));
-        }
+//        //退单自动确认收货
+//        if (Integer.valueOf(1).equals(returnOrderAutoReceiveConfig.getStatus())) {
+//            Integer day =  Integer.valueOf(JSON.parseObject(returnOrderAutoReceiveConfig.getContext()).get("day").toString());
+//            tradeSettingProvider.modifyReturnOrderAutoReceive(new ReturnOrderModifyAutoReceiveRequest(day));
+//        }
+//
+//        //退单自动审核
+//        if (Integer.valueOf(1).equals(autoAuditConfig.getStatus())) {
+//            Integer day =  Integer.valueOf(JSON.parseObject(autoAuditConfig.getContext()).get("day").toString());
+//            tradeSettingProvider.modifyReturnOrderAutoAudit(new ReturnOrderModifyAutoAuditRequest(day));
+//        }
         return SUCCESS;
     }
 }
