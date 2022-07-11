@@ -107,28 +107,29 @@ public class TradeSettingService {
     /**
      * 订单代发货自动收货
      */
-    public void orderAutoReceive(Integer pageNum, Integer pageSize) {
+    public void orderAutoReceive(Integer pageNum, Integer pageSize, Integer type) {
         log.info("***********自动确认收货 定时任务开始执行 begin******************");
         long beginTime = System.currentTimeMillis();
         //查询符合订单
 
         try {
             pageSize = pageSize == null || pageSize <= 0 ? 1000 : pageSize;
-            int localPageNum = 0;
-            if (pageNum > 0) {
-                localPageNum = pageNum;
-            } else {
-                String autoReceivePageNum = redisService.getString(ORDER_AUTO_RECEIVE_KEY);
-                if (!StringUtils.isBlank(autoReceivePageNum)) {
-                    localPageNum = Integer.parseInt(autoReceivePageNum);
-                }
-            }
+            int localPageNum = pageNum < 0 ? 0 : pageNum;
+//            int localPageNum = 0;
+//            if (pageNum >= 0) {
+//                localPageNum = pageNum;
+//            } else {
+//                String autoReceivePageNum = redisService.getString(ORDER_AUTO_RECEIVE_KEY);
+//                if (!StringUtils.isBlank(autoReceivePageNum)) {
+//                    localPageNum = Integer.parseInt(autoReceivePageNum);
+//                }
+//            }
 
             OrderAutoReceiveConfigGetResponse config =auditQueryProvider.getOrderAutoReceiveConfig().getContext();
             Integer day = Integer.valueOf(JSON.parseObject(config.getContext()).get("day").toString());
             LocalDateTime endDate = LocalDateTime.now().minusDays(day);
 
-            List<Trade> tradeList = tradeService.queryTradeByDate(endDate, FlowState.DELIVERED, localPageNum, pageSize);
+            List<Trade> tradeList = tradeService.queryTradeByDate(endDate, FlowState.DELIVERED, localPageNum, pageSize, type);
             log.info("自动确认收货 第 {} 页 获取的数据量为 {}", localPageNum, tradeList.size());
             if(!CollectionUtils.isEmpty(tradeList)){
                 //自动确认收货排除有赞商城老订单
@@ -136,18 +137,22 @@ public class TradeSettingService {
                     if (!Objects.isNull(deliveredTrade.getYzTid())) {
                         continue;
                     }
-                    tradeService.confirmReceive(deliveredTrade.getId(), Operator.builder().platform(Platform.PLATFORM)
-                            .name("system").account("system").platform(Platform.PLATFORM).build());
+                   try {
+                       tradeService.confirmReceive(deliveredTrade.getId(), Operator.builder().platform(Platform.PLATFORM)
+                               .name("system").account("system").platform(Platform.PLATFORM).build());
+                   } catch (Exception ex) {
+                       log.error("orderAutoReceive schedule tid:{} error", deliveredTrade.getId(), ex);
+                   }
                 }
             }
 
-            localPageNum++;
-            if (tradeList.size() < pageSize) {
-                localPageNum = 0;
-            }
-            if (pageNum <= 0) {
-                redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
-            }
+//            localPageNum++;
+//            if (tradeList.size() < pageSize) {
+//                localPageNum = 0;
+//            }
+//            if (pageNum <= 0) {
+//                redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
+//            }
             log.info("自动确认收货成功");
         } catch (Exception ex) {
             log.error("orderAutoReceive schedule error", ex);

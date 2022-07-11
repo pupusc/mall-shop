@@ -721,16 +721,22 @@ public class TradeService {
      * @param flowState flowState
      * @return List<Trade>
      */
-    public List<Trade> queryTradeByDate(LocalDateTime endDate, FlowState flowState, int PageNum, int pageSize) {
-        Criteria criteria = new Criteria();
+    public List<Trade> queryTradeByDate(LocalDateTime endDate, FlowState flowState, int PageNum, int pageSize, Integer type) {
 
-        criteria.andOperator(Criteria.where("tradeState.flowState").is(flowState.toValue())
-                , Criteria.where("tradeState.deliverTime").lt(endDate)
-                , Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId())
-        );
+        List<Criteria> criterias = new ArrayList<>();
+        criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue()));
+        criterias.add(Criteria.where("tradeState.deliverTime").lt(endDate));
+        criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
 
+        if (type != null && type.equals(2)) {
+            criterias.add(Criteria.where("miniProgramScene").is(2));
+        }
+
+        Criteria criteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+        Query query = new Query(criteria);
+        log.info("TradeService queryTradeByDate query:{}", query);
         return mongoTemplate.find(
-                new Query(criteria).skip(PageNum * pageSize).limit(pageSize)
+                query.skip(PageNum * pageSize).limit(pageSize)
                 , Trade.class);
     }
 

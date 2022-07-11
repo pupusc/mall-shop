@@ -36,8 +36,6 @@ public class OrderJobHandler extends IJobHandler {
 //    private ConfigRepository configRepository;
     private AuditQueryProvider auditQueryProvider;
 
-    @Autowired
-    private RedisService redisService;
 
     /**
      * 凌晨一点执行 考虑使用分布式定时任务
@@ -47,6 +45,23 @@ public class OrderJobHandler extends IJobHandler {
     public ReturnT<String> execute(String param) throws Exception {
         XxlJobLogger.log("订单定时任务执行 " + LocalDateTime.now());
         log.info("订单定时任务执行 " + LocalDateTime.now());
+
+        int pageNum = 0;
+        int pageSize = 100;
+        int orderType = 1;
+        try {
+            String[] paramterArray = param.split(",");
+            pageNum = Integer.parseInt(paramterArray[0]);
+            if (paramterArray.length>1){
+                pageSize = Integer.parseInt(paramterArray[1]);
+            }
+            if (paramterArray.length > 2) {
+                orderType = Integer.parseInt(paramterArray[2]);
+            }
+        } catch (Exception ex) {
+
+        }
+
 //        //订单自动确认收货
 //        Integer autoReceive = configRepository
 //                .findByConfigTypeAndDelFlag(ConfigType.ORDER_SETTING_AUTO_RECEIVE.toString(), DeleteFlag.NO).getStatus();
@@ -71,7 +86,7 @@ public class OrderJobHandler extends IJobHandler {
                 .getTradeConfigByType(request).getContext();
         //开关只有开的时候才执行
         if (Integer.valueOf(1).equals(autoReceive)) {
-            tradeSettingProvider.orderAutoReceive(-1, 100);
+            tradeSettingProvider.orderAutoReceive(pageNum, pageSize, orderType);
         }
 
         //退单自动确认收货

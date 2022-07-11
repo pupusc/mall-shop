@@ -58,8 +58,8 @@ public class TradeSettingController implements TradeSettingProvider {
     }
 
     @Override
-    public BaseResponse orderAutoReceive(Integer pageNum, Integer pageSize) {
-        tradeSettingService.orderAutoReceive(pageNum, pageSize);
+    public BaseResponse orderAutoReceive(Integer pageNum, Integer pageSize, Integer orderType) {
+        tradeSettingService.orderAutoReceive(pageNum, pageSize, orderType);
         return BaseResponse.SUCCESSFUL();
     }
 }
