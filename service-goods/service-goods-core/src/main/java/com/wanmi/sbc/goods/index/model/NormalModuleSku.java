@@ -61,6 +61,12 @@ public class NormalModuleSku {
     private String spuNo;
 
     /**
+     * 排序数
+     */
+    @Column(name = "sort_num")
+    private Integer sortNum;
+
+    /**
      * 创建时间
      */
     @Column(name = "create_time")

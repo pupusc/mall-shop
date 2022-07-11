@@ -48,6 +48,10 @@ public class NormalModuleService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
         }
 
+        if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须的有商品信息，最大为100个");
+        }
+
         NormalModule normalModule = new NormalModule();
         normalModule.setName(normalModuleReq.getName());
         normalModule.setBeginTime(normalModuleReq.getBeginTime());
@@ -64,6 +68,7 @@ public class NormalModuleService {
 
         List<NormalModuleSkuReq> normalModuleSkus = normalModuleReq.getNormalModuleSkus() == null
                 ? new ArrayList<>() : normalModuleReq.getNormalModuleSkus();
+        int sortNum = 1;
         for (NormalModuleSkuReq normalModuleSkuReq : normalModuleSkus) {
             NormalModuleSku normalModuleSku = new NormalModuleSku();
             normalModuleSku.setNormalModelId(normalModule.getId());
@@ -71,6 +76,7 @@ public class NormalModuleService {
             normalModuleSku.setSkuNo(normalModuleSkuReq.getSkuNo());
             normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
             normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
+            normalModuleSku.setSortNum(sortNum++);
             normalModuleSku.setCreateTime(LocalDateTime.now());
             normalModuleSku.setUpdateTime(LocalDateTime.now());
             normalModuleSku.setDelFlag(DeleteFlag.NO);
@@ -89,6 +95,10 @@ public class NormalModuleService {
     public void update(NormalModuleReq normalModuleReq) {
         if (normalModuleReq.getBeginTime().isAfter(normalModuleReq.getEndTime())) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
+        }
+
+        if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须的有商品信息，最大为100个");
         }
 
         List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere());
@@ -129,6 +139,7 @@ public class NormalModuleService {
         List<NormalModuleSku> normalModuleSkuResult = new ArrayList<>();
         List<NormalModuleSkuReq> normalModuleSkus = normalModuleReq.getNormalModuleSkus() == null
                 ? new ArrayList<>() : normalModuleReq.getNormalModuleSkus();
+        int sortNum = 1;
         for (NormalModuleSkuReq normalModuleSkuReq : normalModuleSkus) {
             NormalModuleSku normalModuleSku = new NormalModuleSku();
             normalModuleSku.setNormalModelId(normalModule.getId());
@@ -136,6 +147,7 @@ public class NormalModuleService {
             normalModuleSku.setSkuNo(normalModuleSkuReq.getSkuNo());
             normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
             normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
+            normalModuleSku.setSortNum(sortNum++);
             normalModuleSku.setCreateTime(now);
             normalModuleSku.setUpdateTime(now);
             normalModuleSku.setDelFlag(DeleteFlag.NO);
