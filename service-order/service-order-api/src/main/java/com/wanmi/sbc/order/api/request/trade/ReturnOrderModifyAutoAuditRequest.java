@@ -22,8 +22,4 @@ public class ReturnOrderModifyAutoAuditRequest implements Serializable {
 
     @ApiModelProperty(value = "天")
     private Integer day;
-
-    private int pageSize = 10;
-
-    private int pageNum = 1;
 }

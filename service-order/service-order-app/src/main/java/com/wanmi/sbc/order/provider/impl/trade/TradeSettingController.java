@@ -43,7 +43,7 @@ public class TradeSettingController implements TradeSettingProvider {
      */
     @Override
     public BaseResponse modifyReturnOrderAutoAudit(@RequestBody @Valid ReturnOrderModifyAutoAuditRequest returnOrderModifyAutoAuditRequest) {
-        tradeSettingService.returnOrderAutoAudit(returnOrderModifyAutoAuditRequest.getDay(), returnOrderModifyAutoAuditRequest.getPageNum(), returnOrderModifyAutoAuditRequest.getPageSize());
+        tradeSettingService.returnOrderAutoAudit(returnOrderModifyAutoAuditRequest.getDay());
         return BaseResponse.SUCCESSFUL();
     }
 
