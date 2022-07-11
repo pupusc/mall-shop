@@ -2836,7 +2836,7 @@ public class PurchaseService {
         Iterator<GoodsVO> spuIter = goodsResp.getGoodsList().iterator();
         while (spuIter.hasNext()) {
             GoodsVO spu = spuIter.next();
-            if (!spu.getGoodsChannelTypeSet().contains(channel)) {
+            if (CollectionUtils.isEmpty(spu.getGoodsChannelTypeSet()) || !spu.getGoodsChannelTypeSet().contains(channel)) {
                 spuIter.remove();
             }
         }
