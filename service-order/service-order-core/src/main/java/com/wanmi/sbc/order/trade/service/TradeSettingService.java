@@ -107,7 +107,7 @@ public class TradeSettingService {
     /**
      * 订单代发货自动收货
      */
-    public void orderAutoReceive(Integer pageNum, Integer pageSize) {
+    public void orderAutoReceive(Integer pageNum, Integer pageSize, Integer type) {
         log.info("***********自动确认收货 定时任务开始执行 begin******************");
         long beginTime = System.currentTimeMillis();
         //查询符合订单
@@ -128,7 +128,7 @@ public class TradeSettingService {
             Integer day = Integer.valueOf(JSON.parseObject(config.getContext()).get("day").toString());
             LocalDateTime endDate = LocalDateTime.now().minusDays(day);
 
-            List<Trade> tradeList = tradeService.queryTradeByDate(endDate, FlowState.DELIVERED, localPageNum, pageSize);
+            List<Trade> tradeList = tradeService.queryTradeByDate(endDate, FlowState.DELIVERED, localPageNum, pageSize, type);
             log.info("自动确认收货 第 {} 页 获取的数据量为 {}", localPageNum, tradeList.size());
             if(!CollectionUtils.isEmpty(tradeList)){
                 //自动确认收货排除有赞商城老订单
@@ -136,8 +136,12 @@ public class TradeSettingService {
                     if (!Objects.isNull(deliveredTrade.getYzTid())) {
                         continue;
                     }
-                    tradeService.confirmReceive(deliveredTrade.getId(), Operator.builder().platform(Platform.PLATFORM)
-                            .name("system").account("system").platform(Platform.PLATFORM).build());
+                   try {
+                       tradeService.confirmReceive(deliveredTrade.getId(), Operator.builder().platform(Platform.PLATFORM)
+                               .name("system").account("system").platform(Platform.PLATFORM).build());
+                   } catch (Exception ex) {
+                       log.error("orderAutoReceive schedule tid:{} error", deliveredTrade.getId(), ex);
+                   }
                 }
             }
 
