@@ -724,9 +724,9 @@ public class TradeService {
     public List<Trade> queryTradeByDate(LocalDateTime endDate, FlowState flowState, int PageNum, int pageSize, Integer type) {
 
         List<Criteria> criterias = new ArrayList<>();
-        criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue());
+        criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue()));
         criterias.add(Criteria.where("tradeState.deliverTime").lt(endDate));
-        criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId());
+        criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
 
         if (type != null && type.equals(2)) {
             criterias.add(Criteria.where("miniProgramScene").is(2));
