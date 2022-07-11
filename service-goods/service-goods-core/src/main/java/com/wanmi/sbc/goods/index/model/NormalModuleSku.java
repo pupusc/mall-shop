@@ -40,25 +40,25 @@ public class NormalModuleSku {
      * SkuId
      */
     @Column(name = "sku_id")
-    private Integer skuId;
+    private String skuId;
 
     /**
      * SkuNo
      */
     @Column(name = "sku_no")
-    private Integer skuNo;
+    private String skuNo;
 
     /**
      * SpuId
      */
     @Column(name = "spu_id")
-    private Integer SpuId;
+    private String SpuId;
 
     /**
      * spuNo
      */
     @Column(name = "spu_no")
-    private Integer spuNo;
+    private String spuNo;
 
     /**
      * 创建时间

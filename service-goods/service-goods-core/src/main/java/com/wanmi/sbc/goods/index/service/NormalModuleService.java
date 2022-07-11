@@ -4,17 +4,21 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleReq;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuReq;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.NormalModule;
 import com.wanmi.sbc.goods.index.model.NormalModuleSku;
 import com.wanmi.sbc.goods.index.repository.NormalModuleRepository;
 import com.wanmi.sbc.goods.index.repository.NormalModuleSkuRepository;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Description:
@@ -33,49 +37,113 @@ public class NormalModuleService {
     @Autowired
     private NormalModuleSkuRepository normalModuleSkuRepository;
 
+    /**
+     * 新增栏目
+     * @param normalModuleReq
+     */
+    @Transactional
+    public void add(NormalModuleReq normalModuleReq) {
 
-    public void add() {
+        if (normalModuleReq.getBeginTime().isAfter(normalModuleReq.getEndTime())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
+        }
+
         NormalModule normalModule = new NormalModule();
-        normalModule.setName("");
-        normalModule.setBeginTime();
-        normalModule.setEndTime();
-        normalModule.setModelCategory(0);
+        normalModule.setName(normalModuleReq.getName());
+        normalModule.setBeginTime(normalModuleReq.getBeginTime());
+        normalModule.setEndTime(normalModuleReq.getEndTime());
+        normalModule.setModelCategory(normalModuleReq.getModelCategory());
         normalModule.setPublishState(PublishState.NOT_ENABLE.toValue());
-        normalModule.setModelTag("");
+        normalModule.setModelTag(normalModuleReq.getModelTag());
         normalModule.setCreateTime(LocalDateTime.now());
         normalModule.setUpdateTime(LocalDateTime.now());
         normalModule.setDelFlag(DeleteFlag.NO);
         normalModuleRepository.save(normalModule);
 
-        List<NormalModuleSku> normalModuleSkus = new ArrayList<>();
+        List<NormalModuleSku> normalModuleSkuResult = new ArrayList<>();
 
-        NormalModuleSku normalModuleSku = new NormalModuleSku();
-        normalModuleSku.setId(0);
-        normalModuleSku.setNormalModelId(normalModule.getId());
-        normalModuleSku.setSkuId(0);
-        normalModuleSku.setSkuNo(0);
-        normalModuleSku.setSpuId(0);
-        normalModuleSku.setSpuNo(0);
-        normalModuleSku.setCreateTime(LocalDateTime.now());
-        normalModuleSku.setUpdateTime(LocalDateTime.now());
-        normalModuleSku.setDelFlag(DeleteFlag.NO);
-        normalModuleSkuRepository.saveAll(normalModuleSkus);
+        List<NormalModuleSkuReq> normalModuleSkus = normalModuleReq.getNormalModuleSkus() == null
+                ? new ArrayList<>() : normalModuleReq.getNormalModuleSkus();
+        for (NormalModuleSkuReq normalModuleSkuReq : normalModuleSkus) {
+            NormalModuleSku normalModuleSku = new NormalModuleSku();
+            normalModuleSku.setNormalModelId(normalModule.getId());
+            normalModuleSku.setSkuId(normalModuleSkuReq.getSkuId());
+            normalModuleSku.setSkuNo(normalModuleSkuReq.getSkuNo());
+            normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
+            normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
+            normalModuleSku.setCreateTime(LocalDateTime.now());
+            normalModuleSku.setUpdateTime(LocalDateTime.now());
+            normalModuleSku.setDelFlag(DeleteFlag.NO);
+            normalModuleSkuResult.add(normalModuleSku);
+        }
+        if (CollectionUtils.isNotEmpty(normalModuleSkuResult)) {
+            normalModuleSkuRepository.saveAll(normalModuleSkuResult);
+        }
     }
 
+    /**
+     * 更新栏目
+     * @param normalModuleReq
+     */
+    @Transactional
+    public void update(NormalModuleReq normalModuleReq) {
+        if (normalModuleReq.getBeginTime().isAfter(normalModuleReq.getEndTime())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
+        }
 
-    public void update() {
-
-        NormalModule normalModule = new NormalModule();
-        normalModule.setId();
-        normalModule.setName("");
-        normalModule.setBeginTime();
-        normalModule.setEndTime();
-        normalModule.setModelTag("");
-        normalModule.setUpdateTime(LocalDateTime.now());
+        List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere());
+        if (CollectionUtils.isEmpty(normalModules)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "id有误");
+        }
+        NormalModule normalModule = normalModules.get(0);
+        LocalDateTime now = LocalDateTime.now();
+        if (StringUtils.isNotBlank(normalModuleReq.getName())) {
+            normalModule.setName(normalModuleReq.getName());
+        }
+        if (normalModuleReq.getBeginTime() != null) {
+            normalModule.setBeginTime(normalModuleReq.getBeginTime());
+        }
+        if (normalModuleReq.getEndTime() != null) {
+            normalModule.setEndTime(normalModuleReq.getEndTime());
+        }
+        if (StringUtils.isNotBlank(normalModuleReq.getModelTag())) {
+            normalModule.setModelTag(normalModuleReq.getModelTag());
+        }
+        normalModule.setUpdateTime(now);
         normalModuleRepository.save(normalModule);
 
-        //删除
+        //获取要删除商品信息
+        List<NormalModuleSku> rawNormalModuleSkus = normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere());
+        //逻辑删除
+        if (CollectionUtils.isNotEmpty(rawNormalModuleSkus)) {
+            List<NormalModuleSku> normalModuleSkuList = new ArrayList<>();
+            for (NormalModuleSku normalModuleSku : rawNormalModuleSkus) {
+                normalModuleSku.setUpdateTime(now);
+                normalModuleSku.setDelFlag(DeleteFlag.YES);
+                normalModuleSkuList.add(normalModuleSku);
+            }
+            normalModuleSkuRepository.saveAll(normalModuleSkuList);
+        }
 
+        //新增商品信息
+        List<NormalModuleSku> normalModuleSkuResult = new ArrayList<>();
+        List<NormalModuleSkuReq> normalModuleSkus = normalModuleReq.getNormalModuleSkus() == null
+                ? new ArrayList<>() : normalModuleReq.getNormalModuleSkus();
+        for (NormalModuleSkuReq normalModuleSkuReq : normalModuleSkus) {
+            NormalModuleSku normalModuleSku = new NormalModuleSku();
+            normalModuleSku.setNormalModelId(normalModule.getId());
+            normalModuleSku.setSkuId(normalModuleSkuReq.getSkuId());
+            normalModuleSku.setSkuNo(normalModuleSkuReq.getSkuNo());
+            normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
+            normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
+            normalModuleSku.setCreateTime(now);
+            normalModuleSku.setUpdateTime(now);
+            normalModuleSku.setDelFlag(DeleteFlag.NO);
+            normalModuleSkuResult.add(normalModuleSku);
+        }
+        if (CollectionUtils.isNotEmpty(normalModuleSkuResult)) {
+            normalModuleSkuRepository.saveAll(normalModuleSkuResult);
+        }
     }
 
     /**
