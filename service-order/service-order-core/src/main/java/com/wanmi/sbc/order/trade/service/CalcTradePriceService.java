@@ -225,7 +225,7 @@ public class CalcTradePriceService {
                 continue; //已经排除了那就跳过
             }
             if (mkt2yes.containsKey(mktId)) {
-                mkt2yes.get(mktId).getMarkupSkuIds().add(item.getSkuId());
+                mkt2yes.get(mktId).getSkuIds().add(item.getSkuId());
                 continue;
             }
             Long levelId = getMktLevelId(mkt, mktId2count.getOrDefault(mkt.getMarketingId(), 0L), mktId2Price.getOrDefault(mkt.getMarketingId(), BigDecimal.ZERO));

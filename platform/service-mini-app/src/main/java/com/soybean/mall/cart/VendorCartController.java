@@ -430,7 +430,7 @@ public class VendorCartController {
             return BaseResponse.success(resultVO);
         }
         //过滤符合当前营销的sku，根据营销id
-        String tipText = filterSku4composeMkt(paramVO, cartInfo);
+        String tipText = filterSku4composePrice(paramVO, cartInfo);
         //参与算价的商品
         List<TradePriceParamBO.GoodsInfo> calcGoods = cartInfo.getGoodsInfos().stream().map(item -> {
             TradePriceParamBO.GoodsInfo goodsInfo = new TradePriceParamBO.GoodsInfo();
@@ -482,27 +482,36 @@ public class VendorCartController {
         return null;
     }
 
-    private String filterSku4composeMkt(ComposePriceParamVO paramVO, PurchaseListResponse cartInfo) {
+    private String filterSku4composePrice(ComposePriceParamVO paramVO, PurchaseListResponse cartInfo) {
         if (paramVO.getMarketingId() == null) {
-            return null;
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定算价的营销id不能为空");
         }
 
-        Map<Long, MarketingViewVO> mktId2mktVO = new HashMap<>();
-        //仅支持满减和满折的营销
-        for (List<MarketingViewVO> mktVOs : cartInfo.getGoodsMarketingMap().values()) {
-            for (MarketingViewVO mktVO : mktVOs) {
-                if (PromoteFilter.supportMkt(mktVO.getSubType())) {
-                    mktId2mktVO.put(mktVO.getMarketingId(), mktVO);
-                }
-            }
-        }
-
-        //查询mkt详细信息
-        MarketingViewVO mktBO = mktId2mktVO.get(paramVO.getMarketingId());
-        if (mktBO == null) {
-            log.warn("mktId = {}", paramVO.getMarketingId());
+        MarketingGetByIdRequest mktParam = new MarketingGetByIdRequest();
+        mktParam.setMarketingId(paramVO.getMarketingId());
+        MarketingGetByIdForCustomerResponse mktResult = marketingQueryProvider.getByIdForCustomer(mktParam).getContext();
+        if (mktResult == null || mktResult.getMarketingForEndVO() == null) {
+            log.warn("marketingId={}", paramVO.getMarketingId());
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的营销活动没有找到");
         }
+        MarketingForEndVO mktBO = mktResult.getMarketingForEndVO();
+
+//        Map<Long, MarketingViewVO> mktId2mktVO = new HashMap<>();
+//        //仅支持满减和满折的营销
+//        for (List<MarketingViewVO> mktVOs : cartInfo.getGoodsMarketingMap().values()) {
+//            for (MarketingViewVO mktVO : mktVOs) {
+//                if (PromoteFilter.supportMkt(mktVO.getSubType())) {
+//                    mktId2mktVO.put(mktVO.getMarketingId(), mktVO);
+//                }
+//            }
+//        }
+//
+//        //查询mkt详细信息
+//        MarketingViewVO mktBO = mktId2mktVO.get(paramVO.getMarketingId());
+//        if (mktBO == null) {
+//            log.warn("购物车中商品 mktId = {}", paramVO.getMarketingId());
+//            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的营销活动没有找到");
+//        }
 
         //删除不符合营销的商品
         List<GoodsInfoVO> skuVOs = cartInfo.getGoodsInfos();
