@@ -115,7 +115,7 @@ public class TradeSettingService {
         try {
             pageSize = pageSize == null || pageSize <= 0 ? 1000 : pageSize;
             int localPageNum = 0;
-            if (pageNum > 0) {
+            if (pageNum >= 0) {
                 localPageNum = pageNum;
             } else {
                 String autoReceivePageNum = redisService.getString(ORDER_AUTO_RECEIVE_KEY);
