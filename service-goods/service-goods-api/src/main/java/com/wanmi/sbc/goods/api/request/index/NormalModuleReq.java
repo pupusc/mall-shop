@@ -16,6 +16,7 @@ import java.util.List;
 @Data
 public class NormalModuleReq {
 
+    private Integer id;
     /**
      * 名称
      */

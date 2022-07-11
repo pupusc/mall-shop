@@ -1,4 +1,5 @@
 package com.wanmi.sbc.goods.index.service;
+import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -6,8 +7,12 @@ import java.util.List;
 
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleReq;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuReq;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuSearchReq;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleResp;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.NormalModule;
 import com.wanmi.sbc.goods.index.model.NormalModuleSku;
@@ -16,6 +21,9 @@ import com.wanmi.sbc.goods.index.repository.NormalModuleSkuRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,8 +108,9 @@ public class NormalModuleService {
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须的有商品信息，最大为100个");
         }
-
-        List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere());
+        NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
+        searchReq.setId(normalModuleReq.getId());
+        List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere(searchReq));
         if (CollectionUtils.isEmpty(normalModules)) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "id有误");
         }
@@ -123,7 +132,10 @@ public class NormalModuleService {
         normalModuleRepository.save(normalModule);
 
         //获取要删除商品信息
-        List<NormalModuleSku> rawNormalModuleSkus = normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere());
+        NormalModuleSkuSearchReq normalModuleSkuSearchReq = new NormalModuleSkuSearchReq();
+        normalModuleSkuSearchReq.setNormalModuleId(normalModule.getId());
+        List<NormalModuleSku> rawNormalModuleSkus =
+                normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq));
         //逻辑删除
         if (CollectionUtils.isNotEmpty(rawNormalModuleSkus)) {
             List<NormalModuleSku> normalModuleSkuList = new ArrayList<>();
@@ -158,27 +170,50 @@ public class NormalModuleService {
         }
     }
 
-    /**
-     * 获取列表，无分页
-     * @return
-     */
-    public List<NormalModule> listNoPage() {
-        Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
-        return normalModuleRepository.findAll(normalModuleRepository.packageWhere(), sort);
-    }
 
     /**
      * 获取列表，分页
      * @return
      */
-    public List<NormalModule> list() {
+    public CommonPageResp<List<NormalModuleResp>> list(NormalModuleSearchReq normalModuleSearchReq) {
         Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
-//        Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
-//        return normalModuleRepository.findAll(normalModuleRepository.packageWhere(request), pageable);
-        return null;
+        Pageable pageable = PageRequest.of(normalModuleSearchReq.getPageNum(), normalModuleSearchReq.getPageSize(), sort);
+        Page<NormalModule> normalModulePage = normalModuleRepository.findAll(normalModuleRepository.packageWhere(normalModuleSearchReq), pageable);
+        List<NormalModuleResp> result = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        for (NormalModule normalModule : normalModulePage.getContent()) {
+            NormalModuleResp normalModuleResp = new NormalModuleResp();
+            normalModuleResp.setId(normalModule.getId());
+            normalModuleResp.setName(normalModule.getName());
+            normalModuleResp.setBeginTime(normalModule.getBeginTime());
+            normalModuleResp.setEndTime(normalModule.getEndTime());
+            normalModuleResp.setPublishState(normalModule.getPublishState());
+            if (now.isBefore(normalModule.getBeginTime())) {
+                normalModuleResp.setStatus(StateEnum.BEFORE.getCode());
+            } else if (now.isAfter(normalModule.getBeginTime()) && now.isBefore(normalModule.getEndTime())) {
+                normalModuleResp.setStatus(StateEnum.RUNNING.getCode());
+            } else {
+                normalModuleResp.setStatus(StateEnum.AFTER.getCode());
+            }
+            normalModuleResp.setModelTag(normalModule.getModelTag());
+            result.add(normalModuleResp);
+        }
+        return new CommonPageResp<>(normalModulePage.getTotalElements(), result);
     }
 
-    public void delete() {
 
+    /**
+     * 开启
+     */
+    public void publish(Integer id, Boolean isOpen) {
+        NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
+        searchReq.setId(id);
+        List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere(searchReq));
+        if (CollectionUtils.isEmpty(normalModules)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "id有误");
+        }
+        NormalModule normalModule = normalModules.get(0);
+        normalModule.setPublishState(isOpen ? PublishState.ENABLE.toValue() : PublishState.NOT_ENABLE.toValue());
+        normalModuleRepository.save(normalModule);
     }
 }
