@@ -114,15 +114,16 @@ public class TradeSettingService {
 
         try {
             pageSize = pageSize == null || pageSize <= 0 ? 1000 : pageSize;
-            int localPageNum = 0;
-            if (pageNum > 0) {
-                localPageNum = pageNum;
-            } else {
-                String autoReceivePageNum = redisService.getString(ORDER_AUTO_RECEIVE_KEY);
-                if (!StringUtils.isBlank(autoReceivePageNum)) {
-                    localPageNum = Integer.parseInt(autoReceivePageNum);
-                }
-            }
+            int localPageNum = pageNum < 0 ? 0 : pageNum;
+//            int localPageNum = 0;
+//            if (pageNum >= 0) {
+//                localPageNum = pageNum;
+//            } else {
+//                String autoReceivePageNum = redisService.getString(ORDER_AUTO_RECEIVE_KEY);
+//                if (!StringUtils.isBlank(autoReceivePageNum)) {
+//                    localPageNum = Integer.parseInt(autoReceivePageNum);
+//                }
+//            }
 
             OrderAutoReceiveConfigGetResponse config =auditQueryProvider.getOrderAutoReceiveConfig().getContext();
             Integer day = Integer.valueOf(JSON.parseObject(config.getContext()).get("day").toString());
@@ -145,13 +146,13 @@ public class TradeSettingService {
                 }
             }
 
-            localPageNum++;
-            if (tradeList.size() < pageSize) {
-                localPageNum = 0;
-            }
-            if (pageNum <= 0) {
-                redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
-            }
+//            localPageNum++;
+//            if (tradeList.size() < pageSize) {
+//                localPageNum = 0;
+//            }
+//            if (pageNum <= 0) {
+//                redisService.setString(ORDER_AUTO_RECEIVE_KEY, localPageNum + "", 3 * 24 * 60 * 60);
+//            }
             log.info("自动确认收货成功");
         } catch (Exception ex) {
             log.error("orderAutoReceive schedule error", ex);

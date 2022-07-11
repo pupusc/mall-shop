@@ -722,17 +722,17 @@ public class TradeService {
      * @return List<Trade>
      */
     public List<Trade> queryTradeByDate(LocalDateTime endDate, FlowState flowState, int PageNum, int pageSize, Integer type) {
-        Criteria criteria = new Criteria();
 
-        criteria.andOperator(Criteria.where("tradeState.flowState").is(flowState.toValue())
-                , Criteria.where("tradeState.deliverTime").lt(endDate)
-                , Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId())
-        );
+        List<Criteria> criterias = new ArrayList<>();
+        criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue()));
+        criterias.add(Criteria.where("tradeState.deliverTime").lt(endDate));
+        criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
 
         if (type != null && type.equals(2)) {
-            criteria.andOperator(Criteria.where("miniProgramScene").is(2));
+            criterias.add(Criteria.where("miniProgramScene").is(2));
         }
 
+        Criteria criteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
 
         return mongoTemplate.find(
                 new Query(criteria).skip(PageNum * pageSize).limit(pageSize)
