@@ -2833,17 +2833,24 @@ public class PurchaseService {
 
     private void filterShopCartGoods(ShopCartSourceEnum shopCartSource, GoodsInfoForPurchaseResponse goodsResp, Map<String, Long> buyCountMap) {
         String channel = ShopCartSourceEnum.WX_MINI.equals(shopCartSource) ? GoodsChannelTypeEnum.MALL_MINI.getCode() : GoodsChannelTypeEnum.MALL_H5.getCode();
+
         Iterator<GoodsVO> spuIter = goodsResp.getGoodsList().iterator();
         while (spuIter.hasNext()) {
             GoodsVO spu = spuIter.next();
-            if (CollectionUtils.isEmpty(spu.getGoodsChannelTypeSet()) || !spu.getGoodsChannelTypeSet().contains(channel)) {
+            if (StringUtils.isBlank(spu.getGoodsChannelType())) {
+                spuIter.remove();
+            }
+            if (!Arrays.asList(spu.getGoodsChannelType().split(",")).contains(channel)) {
                 spuIter.remove();
             }
         }
         Iterator<GoodsInfoVO> skuIter = goodsResp.getGoodsInfoList().iterator();
         while (skuIter.hasNext()) {
             GoodsInfoVO sku = skuIter.next();
-            if (CollectionUtils.isEmpty(sku.getGoodsChannelTypeSet()) || !sku.getGoodsChannelTypeSet().contains(channel)) {
+            if (StringUtils.isBlank(sku.getGoodsChannelType())) {
+                skuIter.remove();
+            }
+            if (!Arrays.asList(sku.getGoodsChannelType().split(",")).contains(channel)) {
                 skuIter.remove();
                 buyCountMap.remove(sku.getGoodsInfoId());
             }
