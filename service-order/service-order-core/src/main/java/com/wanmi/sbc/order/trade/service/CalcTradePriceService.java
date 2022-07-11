@@ -179,6 +179,7 @@ public class CalcTradePriceService {
         Map<Long, List<TradeItem>> mktId2items = tradeItems.stream()
                 .filter(i->i.getMarketingId() != null && i.getMarketingId() > 0)
                 .collect(Collectors.groupingBy(TradeItem::getMarketingId));
+
         //对营销活动进行总数量和总价格统计
         Map<Long, Long> mktId2count = new HashMap<>();
         Map<Long, BigDecimal> mktId2Price = new HashMap<>();
@@ -227,7 +228,7 @@ public class CalcTradePriceService {
                 mkt2yes.get(mktId).getMarkupSkuIds().add(item.getSkuId());
                 continue;
             }
-            Long levelId = getMktLevelId(mkt, totalCount, totalPrice);
+            Long levelId = getMktLevelId(mkt, mktId2count.getOrDefault(mkt.getMarketingId(), 0L), mktId2Price.getOrDefault(mkt.getMarketingId(), BigDecimal.ZERO));
             if (levelId == null) {
                 mkt2bad.add(mktId); //不满足活动就排除
                 continue;

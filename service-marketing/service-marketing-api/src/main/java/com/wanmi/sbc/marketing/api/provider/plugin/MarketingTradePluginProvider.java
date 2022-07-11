@@ -14,7 +14,7 @@ import javax.validation.Valid;
  * author: daiyitian
  * Date: 2018-11-15
  */
-@FeignClient(value = "${application.marketing.name}", contextId = "MarketingTradePluginProvider", url = "http://127.0.0.1:8960")
+@FeignClient(value = "${application.marketing.name}", contextId = "MarketingTradePluginProvider")
 public interface MarketingTradePluginProvider {
 
     /**

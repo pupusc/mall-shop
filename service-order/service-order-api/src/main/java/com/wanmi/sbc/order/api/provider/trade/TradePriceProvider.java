@@ -13,7 +13,7 @@ import javax.validation.Valid;
  * @author Liang Jun
  * @date 2022-06-28 13:38:00
  */
-@FeignClient(value = "${application.order.name}", contextId = "TradePriceProvider", url = "http://127.0.0.1:8970")
+@FeignClient(value = "${application.order.name}", contextId = "TradePriceProvider")
 public interface TradePriceProvider {
 
     @PostMapping("/order/${application.order.version}/trade/calcPrice")
