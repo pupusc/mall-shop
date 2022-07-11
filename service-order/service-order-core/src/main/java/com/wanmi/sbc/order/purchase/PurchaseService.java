@@ -2843,7 +2843,7 @@ public class PurchaseService {
         Iterator<GoodsInfoVO> skuIter = goodsResp.getGoodsInfoList().iterator();
         while (skuIter.hasNext()) {
             GoodsInfoVO sku = skuIter.next();
-            if (!sku.getGoodsChannelTypeSet().contains(channel)) {
+            if (CollectionUtils.isEmpty(sku.getGoodsChannelTypeSet()) || !sku.getGoodsChannelTypeSet().contains(channel)) {
                 skuIter.remove();
                 buyCountMap.remove(sku.getGoodsInfoId());
             }
