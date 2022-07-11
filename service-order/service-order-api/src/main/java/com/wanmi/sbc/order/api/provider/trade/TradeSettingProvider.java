@@ -47,7 +47,10 @@ public interface TradeSettingProvider {
      * 订单代发货自动收货
      * @return
     */
-    @PostMapping("/order/${application.order.version}/trade/order-auto-receive/{pageNum}/{pageSize}/{orderType}")
-    BaseResponse orderAutoReceive(@PathVariable("pageNum") Integer pageNum, @PathVariable("pageSize") Integer pageSize, @PathVariable("orderType") Integer orderType);
+    @PostMapping("/order/${application.order.version}/trade/order-auto-receive/{pageNum}/{pageSize}/{orderType}/{starTime}")
+    BaseResponse orderAutoReceive(@PathVariable("pageNum") Integer pageNum,
+                                  @PathVariable("pageSize") Integer pageSize,
+                                  @PathVariable("starTime") String starTime,
+                                  @PathVariable("orderType") Integer orderType);
 
 }
