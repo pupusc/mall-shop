@@ -207,60 +207,48 @@ public class TradeSettingService {
     /**
      * 退单自动审核
      */
-//    @Transactional
-    public void returnOrderAutoAudit(Integer day,Integer pageNum, Integer pageSize) {
+    @Transactional
+    public void returnOrderAutoAudit(Integer day) {
         //查询符合订单
         //批量扭转状态
+        val pageSize = 1000;
         try {
-
             LocalDateTime endDate = LocalDateTime.now().minusDays(day);
             int total = returnOrderService.countReturnOrderByEndDate(endDate, ReturnFlowState.INIT);
             log.info("退单自动审核分页订单数: " + total);
-
-            if (total < pageSize) {
-                pageSize = total;
+            //超过1000条批量处理
+            if (total > pageSize) {
+                int pageNum = calPage(total, pageSize);
+                for (int i = 0; i < pageNum; i++) {
+                    returnOrderService.queryReturnOrderByEndDate(endDate, i * pageSize, i + pageSize + pageSize
+                                    , ReturnFlowState.INIT)
+                            .forEach(returnOrder ->{
+                                try{
+                                    processReturnAutoAction(ReturnFlowState.INIT, returnOrder);
+                                } catch (SbcRuntimeException brt){
+                                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
+                                }
+                            } );
+                }
+            } else {
+                List<ReturnOrder> returnOrders = returnOrderService.queryReturnOrderByEndDate(endDate, 0, total, ReturnFlowState.INIT);
+                returnOrders.forEach(returnOrder -> {
+                    log.info("执行的退单号: " + returnOrder.getId());
+                    try{
+                        processReturnAutoAction(ReturnFlowState.INIT, returnOrder);
+                    } catch (SbcRuntimeException brt){
+                        log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
+                    }
+                });
             }
-            List<ReturnOrder> returnOrders = returnOrderService.queryReturnOrderByEndDate(endDate, pageNum, pageSize, ReturnFlowState.INIT);
-            for (ReturnOrder returnOrder : returnOrders) {
-                log.info("执行的退单号: " + returnOrder.getId());
-//                try{
-                    processReturnAutoAction(ReturnFlowState.INIT, returnOrder);
-//                } catch (SbcRuntimeException brt){
-//                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage(), brt);
-//                }
-            }
-
-//            //超过1000条批量处理
-//            if (total > pageSize) {
-//                int pageNum = calPage(total, pageSize);
-//                for (int i = 0; i < pageNum; i++) {
-//                    returnOrderService.queryReturnOrderByEndDate(endDate, i * pageSize, i + pageSize + pageSize
-//                            , ReturnFlowState.INIT)
-//                            .forEach(returnOrder ->{
-//                                try{
-//                                    processReturnAutoAction(ReturnFlowState.INIT, returnOrder);
-//                                } catch (SbcRuntimeException brt){
-//                                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
-//                                }
-//                            } );
-//                }
-//            } else {
-//                List<ReturnOrder> returnOrders = returnOrderService.queryReturnOrderByEndDate(endDate, 0, total, ReturnFlowState.INIT);
-//                returnOrders.forEach(returnOrder -> {
-//                    log.info("执行的退单号: " + returnOrder.getId());
-//                    try{
-//                        processReturnAutoAction(ReturnFlowState.INIT, returnOrder);
-//                    } catch (SbcRuntimeException brt){
-//                        log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
-//                    }
-//                });
-//            }
             log.info("退单自动审核成功");
         } catch (Exception ex) {
-            log.error("returnOrderAutoAudit schedule error", ex);
+            log.error("returnOrderAutoAudit schedule error");
+            ex.printStackTrace();
             throw new SbcRuntimeException("K-050005");
         }
     }
+
 
 
     /**
@@ -290,19 +278,20 @@ public class TradeSettingService {
         } else {
             List<ReturnOrder> returnOrders = returnOrderService.queryReturnOrderByEndDate(endDate, 0, total, ReturnFlowState.DELIVERED);
 
-            for (ReturnOrder returnOrder : returnOrders) {
+            returnOrders.forEach(returnOrder
+                    -> {
                 log.info("执行的退单号: " + returnOrder.getId());
                 try{
                     processReturnAutoAction(ReturnFlowState.DELIVERED, returnOrder);
                 } catch (SbcRuntimeException brt){
-                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage(), brt);
+                    log.error("rid " +  returnOrder.getTid() + "异常： "+ brt.getMessage());
                 }
-            }
-
+            });
         }
 
         log.info("退单收货审核成功");
     }
+
 
 
     /**
