@@ -23,6 +23,7 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilter
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -208,6 +209,23 @@ public class SpuNewSearchService {
             spuNewBookListResp.setSpuName(esSpuNewRespParam.getSpuName());
             spuNewBookListResp.setSpuSubName(esSpuNewRespParam.getSpuSubName());
             spuNewBookListResp.setSpuCategory(esSpuNewRespParam.getSpuCategory());
+
+            if (!CollectionUtils.isEmpty(goodsInfoVO.getCouponLabels())) {
+                List<SpuNewBookListResp.CouponLabel> cpnLabels = goodsInfoVO.getCouponLabels().stream().map(i -> {
+                    SpuNewBookListResp.CouponLabel cpnLabel = new SpuNewBookListResp.CouponLabel();
+                    BeanUtils.copyProperties(i, cpnLabel);
+                    return cpnLabel;
+                }).collect(Collectors.toList());
+                spuNewBookListResp.setCouponLabels(cpnLabels);
+            }
+            if (!CollectionUtils.isEmpty(goodsInfoVO.getMarketingLabels())) {
+                List<SpuNewBookListResp.MarketingLabel> mktLabels = goodsInfoVO.getMarketingLabels().stream().map(i -> {
+                    SpuNewBookListResp.MarketingLabel mktLable = new SpuNewBookListResp.MarketingLabel();
+                    BeanUtils.copyProperties(i, mktLable);
+                    return mktLable;
+                }).collect(Collectors.toList());
+                spuNewBookListResp.setMarketingLabels(mktLabels);
+            }
 
             if (esSpuNewRespParam.getBook() != null) {
                 EsSpuNewResp.Book book = esSpuNewRespParam.getBook();

@@ -429,6 +429,7 @@ public class VendorCartController {
         if (cartInfo == null || CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
             return BaseResponse.success(resultVO);
         }
+
         //过滤符合当前营销的sku，根据营销id
         String tipText = filterSku4composePrice(paramVO, cartInfo);
         //参与算价的商品

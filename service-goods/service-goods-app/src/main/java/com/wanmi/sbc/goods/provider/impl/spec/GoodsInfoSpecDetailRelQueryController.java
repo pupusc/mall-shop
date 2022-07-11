@@ -68,7 +68,7 @@ public class GoodsInfoSpecDetailRelQueryController implements GoodsInfoSpecDetai
 
     @Override
     public BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> listBySpuIds(@RequestBody @Valid GoodsInfoSpecDetailRelBySpuIdsRequest goodsInfoSpecDetailRelBySpuIdsRequest) {
-        List<GoodsInfoSpecDetailRel>  goodsInfoSpecDetailRelList = goodsInfoSpecDetailRelService.findByGoodsInfoIds(goodsInfoSpecDetailRelBySpuIdsRequest.getSpuIds());
+        List<GoodsInfoSpecDetailRel>  goodsInfoSpecDetailRelList = goodsInfoSpecDetailRelService.findByGoodsIds(goodsInfoSpecDetailRelBySpuIdsRequest.getSpuIds());
         if (CollectionUtils.isEmpty(goodsInfoSpecDetailRelList)){
             return BaseResponse.success(new GoodsInfoSpecDetailRelBySpuIdsResponse(Collections.EMPTY_LIST));
         }

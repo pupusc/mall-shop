@@ -23,12 +23,4 @@ public class PromoteFitGoodsResultVO extends SpuNewBookListResp {
 //     * 最大数量
 //     */
 //    private Integer maxCount;
-    /**
-     * 优惠券
-     */
-    private Object couponLabels;
-    /**
-     * 营销列表
-     */
-    private Object marketingLabels;
 }

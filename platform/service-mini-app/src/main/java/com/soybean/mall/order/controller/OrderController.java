@@ -88,7 +88,6 @@ import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse
 import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
-import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import com.wanmi.sbc.marketing.bean.vo.GoodsInfoMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
@@ -1003,6 +1002,7 @@ public class OrderController {
                 viewSku.setGoodsWeight(tradeItem.getGoodsWeight());
                 viewSku.setInPointBlackList(tradeItem.getInPointBlackList());
                 viewSku.setShowPhoneNum(tradeItem.getShowPhoneNum());
+                viewSku.setPic(tradeItem.getPic());
                 viewSkus.add(viewSku);
             }
         }
