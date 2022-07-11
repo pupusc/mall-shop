@@ -156,8 +156,8 @@ public class RefundOrderService {
         refundOrder.setReturnPoints(actualPointsOrKnowledge);
         refundOrder.setDelFlag(DeleteFlag.NO);
         refundOrder.setPayType(payType);
-        refundOrder.setSupplierId(returnOrder.getCompany().getCompanyInfoId());
-        return Optional.of(refundOrderRepository.saveAndFlush(refundOrder));
+        refundOrder.setSupplierId(returnOrder.getCompany() == null ? 1183L : returnOrder.getCompany().getCompanyInfoId());
+        return Optional.of(refundOrderRepository.save(refundOrder));
     }
 
 

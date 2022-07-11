@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Description:
+ * Description: 搜索 h5 小程序 公共部分
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
  * Date       : 2022/6/9 2:19 上午

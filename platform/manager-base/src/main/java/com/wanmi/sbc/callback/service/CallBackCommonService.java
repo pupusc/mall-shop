@@ -117,6 +117,7 @@ public class CallBackCommonService {
      */
     public Operator packOperator(TradeVO tradeVo) {
         Operator operator = new Operator();
+        operator.setPlatform(Platform.WX_VIDEO);
         operator.setUserId(tradeVo.getBuyer().getId());
         operator.setName(tradeVo.getBuyer().getName());
         operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());

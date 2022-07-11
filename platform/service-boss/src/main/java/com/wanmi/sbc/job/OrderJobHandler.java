@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.order.api.provider.trade.TradeSettingProvider;
 import com.wanmi.sbc.order.api.request.trade.ReturnOrderModifyAutoAuditRequest;
 import com.wanmi.sbc.order.api.request.trade.ReturnOrderModifyAutoReceiveRequest;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import com.wanmi.sbc.setting.api.request.TradeConfigGetByTypeRequest;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
@@ -34,6 +35,9 @@ public class OrderJobHandler extends IJobHandler {
     @Autowired
 //    private ConfigRepository configRepository;
     private AuditQueryProvider auditQueryProvider;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 凌晨一点执行 考虑使用分布式定时任务
@@ -67,7 +71,7 @@ public class OrderJobHandler extends IJobHandler {
                 .getTradeConfigByType(request).getContext();
         //开关只有开的时候才执行
         if (Integer.valueOf(1).equals(autoReceive)) {
-            tradeSettingProvider.orderAutoReceive();
+            tradeSettingProvider.orderAutoReceive(-1, 100);
         }
 
         //退单自动确认收货
