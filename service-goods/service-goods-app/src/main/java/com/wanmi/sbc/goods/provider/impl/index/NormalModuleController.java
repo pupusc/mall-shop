@@ -5,7 +5,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.index.NormalModuleProvider;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuSearchReq;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleResp;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.index.service.NormalModuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +56,11 @@ public class NormalModuleController implements NormalModuleProvider {
     public BaseResponse publish(Integer id, Boolean isOpen) {
         normalModuleService.publish(id, isOpen);
         return BaseResponse.SUCCESSFUL();
+    }
+
+
+    @Override
+    public BaseResponse<List<NormalModuleSkuResp>> listNormalModuleSku(NormalModuleSkuSearchReq normalModuleSkuSearchReq) {
+        return BaseResponse.success(normalModuleService.listNormalModuleSku(normalModuleSkuSearchReq));
     }
 }

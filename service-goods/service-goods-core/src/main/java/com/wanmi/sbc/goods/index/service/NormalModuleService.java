@@ -13,6 +13,7 @@ import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuSearchReq;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleResp;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.NormalModule;
 import com.wanmi.sbc.goods.index.model.NormalModuleSku;
@@ -215,5 +216,25 @@ public class NormalModuleService {
         NormalModule normalModule = normalModules.get(0);
         normalModule.setPublishState(isOpen ? PublishState.ENABLE.toValue() : PublishState.NOT_ENABLE.toValue());
         normalModuleRepository.save(normalModule);
+    }
+
+
+    public List<NormalModuleSkuResp> listNormalModuleSku(NormalModuleSkuSearchReq normalModuleSkuSearchReq) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "sortNum");
+        List<NormalModuleSku> normalModuleSkus =
+                normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq), sort);
+        List<NormalModuleSkuResp> result = new ArrayList<>();
+        for (NormalModuleSku moduleSku : normalModuleSkus) {
+            NormalModuleSkuResp normalModuleSkuResp = new NormalModuleSkuResp();
+            normalModuleSkuResp.setId(moduleSku.getId());
+            normalModuleSkuResp.setNormalModelId(moduleSku.getNormalModelId());
+            normalModuleSkuResp.setSkuId(moduleSku.getSkuId());
+            normalModuleSkuResp.setSkuNo(moduleSku.getSkuNo());
+            normalModuleSkuResp.setSpuId(moduleSku.getSpuId());
+            normalModuleSkuResp.setSpuNo(moduleSku.getSpuNo());
+            normalModuleSkuResp.setSortNum(moduleSku.getSortNum());
+            result.add(normalModuleSkuResp);
+        }
+        return result;
     }
 }

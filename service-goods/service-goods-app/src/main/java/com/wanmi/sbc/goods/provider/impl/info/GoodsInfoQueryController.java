@@ -524,4 +524,22 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         return BaseResponse.success(new GoodsInfoMarketingPriceByNosResponse(KsBeanUtil.convertList(marketingPriceByNos,
                 GoodsInfoMarketingPriceDTO.class)));
     }
+
+
+    @Override
+    public BaseResponse<GoodsInfoViewByIdsResponse> listSimpleView(@RequestBody GoodsInfoViewByIdsRequest request) {
+        GoodsInfoRequest infoRequest = goodsInfoMapper.goodsInfoViewByIdsRequestToGoodsInfoRequest(request);
+        GoodsInfoResponse goodsInfoResponse = goodsInfoService.listSimpleGoodsInfo(infoRequest);
+        GoodsInfoViewByIdsResponse response = GoodsInfoViewByIdsResponse.builder()
+                .goodsInfos(goodsInfoMapper.goodsInfosToGoodsInfoVOs(goodsInfoResponse.getGoodsInfos())).build();
+
+        if (CollectionUtils.isNotEmpty(response.getGoodsInfos())) {
+            for (GoodsInfoVO item : response.getGoodsInfos()) {
+                if (StringUtils.isNotBlank(item.getGoodsChannelType())) {
+                    item.setGoodsChannelTypeSet(Arrays.asList(item.getGoodsChannelType().split(",")));
+                }
+            }
+        }
+        return BaseResponse.success(response);
+    }
 }

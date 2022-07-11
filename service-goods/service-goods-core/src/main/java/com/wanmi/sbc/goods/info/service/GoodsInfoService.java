@@ -38,6 +38,7 @@ import com.wanmi.sbc.goods.api.request.info.DistributionGoodsDeleteRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoSmallProgramCodeRequest;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterpriseByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.BatchEnterPrisePriceDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
@@ -2935,5 +2936,25 @@ public class GoodsInfoService {
      */
     public int updateCostPriceSyncFlagById(Integer costPriceSyncFlag, String goodsInfoId) {
         return goodsInfoRepository.updateCostPriceSyncFlagById(costPriceSyncFlag, goodsInfoId);
+    }
+
+
+    /**
+     * 获取goodsInfo信息
+     * @param infoRequest
+     * @return
+     */
+    public GoodsInfoResponse listSimpleGoodsInfo(GoodsInfoRequest infoRequest) {
+        //批量查询SKU信息列表
+        GoodsInfoQueryRequest queryRequest = new GoodsInfoQueryRequest();
+        queryRequest.setGoodsInfoIds(infoRequest.getGoodsInfoIds());
+        if (infoRequest.getDeleteFlag() != null) {
+            queryRequest.setDelFlag(infoRequest.getDeleteFlag().toValue());
+        }
+
+        List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(queryRequest.getWhereCriteria());
+        GoodsInfoResponse responses = new GoodsInfoResponse();
+        responses.setGoodsInfos(goodsInfos);
+       return responses;
     }
 }

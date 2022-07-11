@@ -31,7 +31,7 @@ public class NormalModuleSku {
     private Integer id;
 
     /**
-     * 名称
+     * normalModelId
      */
     @Column(name = "normal_model_id")
     private Integer normalModelId;

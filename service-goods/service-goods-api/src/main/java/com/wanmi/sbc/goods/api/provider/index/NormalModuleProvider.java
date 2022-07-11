@@ -4,7 +4,9 @@ import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
+import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuSearchReq;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleResp;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,4 +60,13 @@ public interface NormalModuleProvider {
      */
     @PostMapping("/goods/${application.goods.version}/normal-module/publish/{id}/{isOpen}")
     BaseResponse publish(@PathVariable("id") Integer id, @PathVariable("isOpen") Boolean isOpen);
+
+
+    /**
+     * 查询商品
+     * @param normalModuleSkuSearchReq
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/normal-module-sku/list")
+    BaseResponse<List<NormalModuleSkuResp>> listNormalModuleSku(@RequestBody NormalModuleSkuSearchReq normalModuleSkuSearchReq);
 }
