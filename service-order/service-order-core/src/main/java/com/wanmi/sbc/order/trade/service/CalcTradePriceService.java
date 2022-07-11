@@ -175,12 +175,18 @@ public class CalcTradePriceService {
             item.setPropPrice(getSkuPropPrice(sku.getGoodsInfoId()));
         }
 
-        long totalCount = tradeItems.stream().mapToLong(TradeItem::getNum).sum();
-        BigDecimal totalPrice = tradeItems.stream().map(TradeItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+        //按照营销活动分组
+        Map<Long, List<TradeItem>> mktId2items = tradeItems.stream()
+                .filter(i->i.getMarketingId() != null && i.getMarketingId() > 0)
+                .collect(Collectors.groupingBy(TradeItem::getMarketingId));
+        //对营销活动进行总数量和总价格统计
+        Map<Long, Long> mktId2count = new HashMap<>();
+        Map<Long, BigDecimal> mktId2Price = new HashMap<>();
 
-//        //按照营销活动分组
-//        Map<Long, List<TradeItem>> mktId2items = tradeItems.stream().filter(i->i.getMarketingId()!=null && i.getMarketingId()>0)
-//                .collect(Collectors.groupingBy(TradeItem::getMarketingId));
+        for (Map.Entry<Long, List<TradeItem>> entry : mktId2items.entrySet()) {
+            mktId2count.put(entry.getKey(), entry.getValue().stream().mapToLong(TradeItem::getNum).sum());
+            mktId2Price.put(entry.getKey(), entry.getValue().stream().map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getNum()))).reduce(BigDecimal.ZERO, BigDecimal::add));
+        }
 
         //所有需要计算商品的id
         List<String> skuIds = tradeItems.stream().map(item -> item.getSkuId()).distinct().collect(Collectors.toList());

@@ -791,9 +791,9 @@ public class VendorCartController {
         }
 
         //sku对应的营销列表映射
-        Map<String, List<MarketingViewVO>> goodsMarketingMap = cartInfo.getGoodsMarketingMap();
+        Map<String, List<MarketingViewVO>> skuId2mkts = cartInfo.getGoodsMarketingMap();
         //仅支持满减和满折的营销
-        for (List<MarketingViewVO> marketings : goodsMarketingMap.values()) {
+        for (List<MarketingViewVO> marketings : skuId2mkts.values()) {
             Iterator<MarketingViewVO> iter = marketings.iterator();
             while (iter.hasNext()) {
                 MarketingViewVO mktView = iter.next();
@@ -806,13 +806,14 @@ public class VendorCartController {
         //markerting的id->goods列表映射
         Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
         for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
-            List<MarketingViewVO> marketingViewVOS = goodsMarketingMap.get(goodsInfo.getGoodsInfoId());
-            Long marketingId = CollectionUtils.isEmpty(marketingViewVOS) ? 0L : marketingViewVOS.get(0).getMarketingId();
+            List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
+            Long marketingId = CollectionUtils.isEmpty(mkts) ? 0L : mkts.get(0).getMarketingId();
             makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
         }
 
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
+            //过滤指定mktId下的商品参与算价
             for (GoodsInfoVO item : entry.getValue()) {
                 TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
                 goods.setMarketingId(entry.getKey()==0 ? null : entry.getKey());
