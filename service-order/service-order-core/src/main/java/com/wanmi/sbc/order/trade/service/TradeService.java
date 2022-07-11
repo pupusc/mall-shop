@@ -727,15 +727,18 @@ public class TradeService {
         criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue()));
         criterias.add(Criteria.where("tradeState.deliverTime").lt(endDate));
         criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
+        criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
 
         if (type != null && type.equals(2)) {
+            criterias.add(Criteria.where("tradeState.payTime").gte(LocalDateTime.parse("2022-05-19 14:00:00", DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1))));
             criterias.add(Criteria.where("miniProgramScene").is(2));
         }
 
         Criteria criteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-
+        Query query = new Query(criteria);
+        log.info("TradeService queryTradeByDate query:{}", query);
         return mongoTemplate.find(
-                new Query(criteria).skip(PageNum * pageSize).limit(pageSize)
+                query.skip(PageNum * pageSize).limit(pageSize)
                 , Trade.class);
     }
 
