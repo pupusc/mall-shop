@@ -149,10 +149,19 @@ public class WxOrderService {
         }
         WxDeliveryReceiveRequest request = WxDeliveryReceiveRequest.builder().outOrderId(trade.getId()).openid(trade.getBuyer().getOpenId()).build();
         try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.receive(request);
-            log.info("微信小程序订单确认收货，request:{},response:{}", JSON.toJSONString(request), response != null ? JSON.toJSON(response) : "空");
-            if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
-                addMiniOrderOperateResult(JSON.toJSONString(request), response != null ? JSON.toJSONString(response) : "空", MiniOrderOperateType.RECEIVE.getIndex(), trade.getId());
+            WxOrderDetailRequest wxOrderDetailRequest = new WxOrderDetailRequest();
+            wxOrderDetailRequest.setOutOrderId(trade.getId());
+            wxOrderDetailRequest.setOpenid(trade.getBuyer().getOpenId());
+            WxVideoOrderDetailResponse context = wxOrderApiController.getDetail(wxOrderDetailRequest).getContext();
+            //后续要抽取状态码
+            if (context != null && context.getOrder() != null && context.getOrder().getStatus() == 30) {
+                BaseResponse<WxResponseBase> response = wxOrderApiController.receive(request);
+                log.info("微信小程序订单确认收货，request:{},response:{}", JSON.toJSONString(request), response != null ? JSON.toJSON(response) : "空");
+                if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+                    addMiniOrderOperateResult(JSON.toJSONString(request), response != null ? JSON.toJSONString(response) : "空", MiniOrderOperateType.RECEIVE.getIndex(), trade.getId());
+                }
+            } else {
+                log.error("微信小程序订单确认收货失败，orderId:{} 为:{} 无法进行确认收货", trade.getId(), JSON.toJSONString(context));
             }
         } catch (Exception e) {
             log.error("微信小程序订单确认收货失败，orderId:{}", trade.getId(), e);
