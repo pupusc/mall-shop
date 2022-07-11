@@ -733,9 +733,10 @@ public class TradeService {
         }
 
         Criteria criteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-
+        Query query = new Query(criteria);
+        log.info("TradeService queryTradeByDate query:{}", query);
         return mongoTemplate.find(
-                new Query(criteria).skip(PageNum * pageSize).limit(pageSize)
+                query.skip(PageNum * pageSize).limit(pageSize)
                 , Trade.class);
     }
 
