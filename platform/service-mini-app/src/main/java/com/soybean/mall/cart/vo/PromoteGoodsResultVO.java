@@ -27,6 +27,10 @@ public class PromoteGoodsResultVO {
     @Data
     public static class PromoteInfo {
         /**
+         * 促销名称
+         */
+        private String name;
+        /**
          * 开始时间
          */
         private String startTime;

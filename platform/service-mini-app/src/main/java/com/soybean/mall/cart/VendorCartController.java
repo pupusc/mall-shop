@@ -75,6 +75,7 @@ import com.wanmi.sbc.marketing.bean.vo.CouponInfoVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
@@ -238,7 +239,7 @@ public class VendorCartController {
                 skuVO.setMarketPrice(item.getMarketPrice());
                 skuVO.setSalePrice(item.getSalePrice());
                 skuVO.setSpecText(item.getSpecText());
-                skuVO.setMaxCount(item.getMaxCount());
+                skuVO.setMaxCount(item.getStock());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
                 skuVO.setChecked(checked); //处理客户端指定选中的商品
                 skuVO.setMarketings(buildMarketings(skuId2mktVOs.get(item.getGoodsInfoId())));
@@ -661,7 +662,29 @@ public class VendorCartController {
             text += "其他";
         }
         promoteInfo.setTipText(text);
-        List<String> spuIds = mkt.getGoodsList().getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        promoteInfo.setName(mkt.getMarketingName());
+
+        //List<String> spuIds = mkt.getGoodsList().getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        //按照h5方式搜索
+        EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+        queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
+        queryRequest.setStoreState(StoreState.OPENING.toValue());
+        queryRequest.setAddedFlag(AddedFlag.YES.toValue());
+        queryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        queryRequest.setVendibility(Constants.yes);
+        queryRequest.setCateAggFlag(true);
+        queryRequest.setSortFlag(paramVO.getSpuSortType() == null ? 0 : paramVO.getSpuSortType());
+        queryRequest.setPageNum(paramVO.getPageNum()-1);
+        queryRequest.setPageSize(paramVO.getPageSize());
+        String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
+        queryRequest.setContractStartDate(now);
+        queryRequest.setContractEndDate(now);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        queryRequest.setGoodsInfoIds(mkt.getMarketingScopeList().stream().map(MarketingScopeVO::getScopeId).collect(Collectors.toList()));
+
+        EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(queryRequest).getContext();
+        List<EsGoodsInfoVO> goodsInfoVOs = esGoodsInfoResponse.getEsGoodsInfoPage().getContent();
+        List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
         //返回参数
         PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword());
         result.setPromoteInfo(promoteInfo);
@@ -702,13 +725,14 @@ public class VendorCartController {
             text += "其他";
         }
         promoteInfo.setTipText(text);
+        promoteInfo.setName(coupon.getCouponName());
         //通过ES搜索优惠券适用商品
         EsGoodsInfoQueryRequest esGoodsInfoQueryRequest = new EsGoodsInfoQueryRequest();
         esGoodsInfoQueryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         esGoodsInfoQueryRequest.setStoreState(StoreState.OPENING.toValue());
         esGoodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
         esGoodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-        esGoodsInfoQueryRequest.setSortFlag(0);
+        esGoodsInfoQueryRequest.setSortFlag(paramVO.getSpuSortType() == null ? 0 : paramVO.getSpuSortType());
         esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum()-1);
         esGoodsInfoQueryRequest.setPageSize(paramVO.getPageSize());
         esGoodsInfoQueryRequest.setCateAggFlag(true);
