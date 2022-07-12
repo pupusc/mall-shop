@@ -33,7 +33,7 @@ public class NormalActivitySkuResp {
     /**
      * SpuId
      */
-    private String SpuId;
+    private String spuId;
 
     /**
      * spuNo

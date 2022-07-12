@@ -135,7 +135,11 @@ public class NormalActivityPointSkuService extends NormalActivityService {
     }
 
 
-
+    /**
+     * 活动下的商品列表
+     * @param id
+     * @return
+     */
     public List<NormalActivitySkuResp> listActivityPointSku(Integer id) {
         NormalActivitySearchReq searchReq = new NormalActivitySearchReq();
         searchReq.setId(id);
