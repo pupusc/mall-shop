@@ -63,6 +63,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleNotEndResponse;
@@ -78,6 +79,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
@@ -140,6 +142,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -512,10 +515,27 @@ public class GoodsController {
         }
 
         if(Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
+            Map<String, GoodsInfoVO> skuId2GoodsInfoMap = new HashMap<>();
+            //获取商品信息
+            List<String> skuIds = request.getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(skuIds)) {
+                GoodsInfoListByIdsRequest goodsInfoListByIdsRequest = new GoodsInfoListByIdsRequest();
+                goodsInfoListByIdsRequest.setGoodsInfoIds(skuIds);
+                GoodsInfoListByIdsResponse context = goodsInfoQueryProvider.listByIds(goodsInfoListByIdsRequest).getContext();
+                Map<String, GoodsInfoVO> tmpSkuId2GoodsInfoMap =
+                        context.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+                if (!tmpSkuId2GoodsInfoMap.isEmpty()) {
+                    skuId2GoodsInfoMap.putAll(tmpSkuId2GoodsInfoMap);
+                }
+            }
+
             //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
-            goodsInfoVOS.forEach(goodsInfoVO -> {
+            for (GoodsInfoVO goodsInfoVO : request.getGoodsInfos()) {
                 if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+                    GoodsInfoVO goodsInfoTmp = skuId2GoodsInfoMap.get(goodsInfoVO.getGoodsInfoId());
+                    if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
+                        continue;
+                    }
                     List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
                     if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
                         List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
@@ -526,7 +546,21 @@ public class GoodsController {
                         throw new SbcRuntimeException("K-800003");
                     }
                 }
-            });
+            }
+//            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
+//            goodsInfoVOS.forEach(goodsInfoVO -> {
+//                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+//                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+//                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+//                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+//                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+//                            throw new SbcRuntimeException("K-800002");
+//                        }
+//                    } else {
+//                        throw new SbcRuntimeException("K-800003");
+//                    }
+//                }
+//            });
         }
 
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
