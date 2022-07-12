@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
@@ -109,4 +110,20 @@ public class LoginResponse implements Serializable {
     private String openId;
 
     private String photo;
+    /**
+     * 会员信息
+     */
+    private VipInfo vipInfo;
+
+    @Data
+    public static class VipInfo {
+        /**
+         * 会员卡名称
+         */
+        private String name;
+        /**
+         * 会员折扣率
+         */
+        private BigDecimal rate;
+    }
 }

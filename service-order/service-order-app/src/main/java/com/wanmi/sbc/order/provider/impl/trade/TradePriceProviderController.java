@@ -33,23 +33,24 @@ public class TradePriceProviderController implements TradePriceProvider {
                 .map(item -> TradeItem.builder().skuId(item.getGoodsInfoId()).num(item.getBuyCount()).marketingId(item.getMarketingId()).build())
                 .collect(Collectors.toList());
 
-        //综合算价
+        //综合算价，propPrice：定价；salePrice：售价；originPrice：原价（会员价）；totalPrice：支付价（活动价）
         TradePrice price = calcTradePriceService.calc(tradeItems, paramBO.getCouponId(), paramBO.getCustomerId());
         BigDecimal propPriceCut = price.getPropPrice().compareTo(price.getSalePrice()) > 0 ? price.getPropPrice().subtract(price.getSalePrice()) : BigDecimal.ZERO;
-        BigDecimal vipPriceCut = price.getSalePrice().compareTo(price.getTotalPrice()) > 0 ? price.getSalePrice().subtract(price.getTotalPrice()) : BigDecimal.ZERO;
+        BigDecimal vipPriceCut = price.getSalePrice().compareTo(price.getOriginPrice()) > 0 ? price.getSalePrice().subtract(price.getOriginPrice()) : BigDecimal.ZERO;
+        BigDecimal mktPriceCut = price.getDiscountsPrice() != null ? price.getDiscountsPrice() : BigDecimal.ZERO;
 
         TradePriceResultBO resultBO = new TradePriceResultBO();
-        resultBO.setTotalPrice(price.getTotalPrice().add(propPriceCut).add(vipPriceCut));
-        resultBO.setCutPrice(price.getDiscountsPrice().add(propPriceCut).add(vipPriceCut));
+        resultBO.setTotalPrice(price.getTotalPrice().add(propPriceCut).add(vipPriceCut).add(mktPriceCut));
+        resultBO.setCutPrice(propPriceCut.add(vipPriceCut).add(mktPriceCut));
         resultBO.setPayPrice(price.getTotalPrice());
-        //加价明细
+        //正价明细
         TradePriceResultBO.PriceItem priceItem = new TradePriceResultBO.PriceItem();
         priceItem.setType(TradePriceResultBO.PriceItemType.ADD_GOODS.getCode());
         priceItem.setDesc(TradePriceResultBO.PriceItemType.ADD_GOODS.getDesc());
         priceItem.setAmount(resultBO.getTotalPrice());
         resultBO.setTotalPriceItems(Arrays.asList(priceItem));
 
-        //减价明细
+        //负价明细
         //1.商品优惠
         if (propPriceCut.compareTo(BigDecimal.ZERO) > 0) {
             TradePriceResultBO.PriceItem item = new TradePriceResultBO.PriceItem();
@@ -66,13 +67,13 @@ public class TradePriceProviderController implements TradePriceProvider {
             item.setDesc(TradePriceResultBO.PriceItemType.SUB_VIP_RATE.getDesc());
             resultBO.getCutPriceItems().add(item);
         }
-        //3.活动折扣明细
+        //3.活动折扣明细：mktPriceCut
         if (CollectionUtils.isNotEmpty(price.getDiscountsPriceDetails())) {
             for (DiscountsPriceDetail detail : price.getDiscountsPriceDetails()) {
                 TradePriceResultBO.PriceItem item = new TradePriceResultBO.PriceItem();
-                priceItem.setAmount(detail.getDiscounts());
-                priceItem.setType(TradePriceResultBO.PriceItemType.SUB_PROMOTE_MKT.getCode());
-                priceItem.setDesc(detail.getMarketingType().getDesc());
+                item.setAmount(detail.getDiscounts());
+                item.setType(TradePriceResultBO.PriceItemType.SUB_PROMOTE_MKT.getCode());
+                item.setDesc(detail.getMarketingType().getDesc());
                 resultBO.getCutPriceItems().add(item);
             }
         }

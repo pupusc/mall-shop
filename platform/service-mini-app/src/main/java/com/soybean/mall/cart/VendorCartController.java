@@ -287,6 +287,7 @@ public class VendorCartController {
             //已满2件减30元，再买5件减300
             for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
                 imax = totalCount >= item.getFullCount();
+                text = "满" + item.getFullCount() + "件减" + item.getReduction() + "元";
                 if (!imax) {
                     text = text + "，再买" + (item.getFullCount() - totalCount) + "件减" + item.getReduction();
                     break;
@@ -312,6 +313,7 @@ public class VendorCartController {
             //已满2件打9折，再买5件打8折
             for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
                 imax = totalCount >= item.getFullCount();
+                text = "满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
                 if (!imax) {
                     text = text + "，再买" + (item.getFullCount() - totalCount) + "件打" + item.getDiscount() + "折";
                     break;
@@ -786,7 +788,7 @@ public class VendorCartController {
                     continue;
                 }
                 fitGood.setSpecMore(specs.size() > 1);
-                fitGood.setSpecText(specs.stream().filter(item->fitGood.getSkuId().equals(item.getGoodsId())).map(item->item.getDetailName()).collect(Collectors.joining(",")));
+                fitGood.setSpecText(specs.stream().filter(item->fitGood.getSkuId().equals(item.getGoodsInfoId())).map(item->item.getDetailName()).collect(Collectors.joining(",")));
             }
         }
         return result;
