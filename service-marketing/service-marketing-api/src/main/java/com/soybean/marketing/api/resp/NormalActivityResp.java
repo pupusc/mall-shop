@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.request.index;
+package com.soybean.marketing.api.resp;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -6,31 +6,29 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.persistence.Column;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * Description: 栏目对象
+ * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/11 3:47 下午
+ * Date       : 2022/7/12 3:18 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class NormalModuleReq {
+public class NormalActivityResp {
 
     private Integer id;
+
     /**
      * 名称
      */
-    @NotNull
     private String name;
 
     /**
      * 开始时间
      */
-    @NotNull
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime beginTime;
@@ -38,24 +36,23 @@ public class NormalModuleReq {
     /**
      * 结束时间
      */
-    @NotNull
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
     /**
-     * 模块分类 {@link com.wanmi.sbc.goods.api.enums.NormalModuleCategoryEnum}
+     * 活动渠道 {@link com.wanmi.sbc.common.enums.TerminalSource}
      */
-    @NotNull
-    private Integer modelCategory;
+    private Integer channelType;
 
 
     /**
-     * 标签名称
+     * 0未启用 1启用  {@link com.wanmi.sbc.goods.bean.enums.PublishState}
      */
-    private String modelTag;
+    private Integer publishState;
 
-
-    @NotNull
-    private List<NormalModuleSkuReq> normalModuleSkus;
+    /**
+     * 活动状态 1未开始 2进行中 3 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
+     */
+    private Integer status;
 }

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.request.index;
+package com.soybean.marketing.api.req;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -6,25 +6,27 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * Description: 栏目对象
+ * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/11 3:47 下午
+ * Date       : 2022/7/12 2:35 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class NormalModuleReq {
+public class NormalActivityReq {
+
 
     private Integer id;
+
     /**
      * 名称
      */
-    @NotNull
+    @NotBlank
     private String name;
 
     /**
@@ -44,18 +46,14 @@ public class NormalModuleReq {
     private LocalDateTime endTime;
 
     /**
-     * 模块分类 {@link com.wanmi.sbc.goods.api.enums.NormalModuleCategoryEnum}
+     * 活动渠道 {@link com.wanmi.sbc.common.enums.TerminalSource}
      */
     @NotNull
-    private Integer modelCategory;
-
+    private Integer channelType;
 
     /**
-     * 标签名称
+     * 1、返积分活动 {@link }
      */
-    private String modelTag;
+    private Integer normalCategory;
 
-
-    @NotNull
-    private List<NormalModuleSkuReq> normalModuleSkus;
 }

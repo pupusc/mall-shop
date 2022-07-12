@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.index.model;
+package com.soybean.marketing.activity.model;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import lombok.Data;
@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/11 2:06 上午
+ * Date       : 2022/7/12 1:38 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Table(name = "t_normal_model")
 @Data
 @Entity
-public class IndexNormalModule {
+@Table(name = "t_activity_point_sku")
+public class NormalActivityPointSku {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,40 +30,46 @@ public class IndexNormalModule {
     private Integer id;
 
     /**
-     * 名称
+     * normalActivityId
      */
-    @Column(name = "name")
-    private String name;
+    @Column(name = "normal_activity_id")
+    private Integer normalActivityId;
 
     /**
-     * 开始时间
+     * SkuId
      */
-    @Column(name = "begin_time")
-    private LocalDateTime beginTime;
+    @Column(name = "sku_id")
+    private String skuId;
 
     /**
-     * 结束时间
+     * SkuNo
      */
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
+    @Column(name = "sku_no")
+    private String skuNo;
 
     /**
-     * 1、返积分模块信息
+     * SpuId
      */
-    @Column(name = "model_category")
-    private Integer modelCategory;
+    @Column(name = "spu_id")
+    private String SpuId;
 
     /**
-     * 0未启用 1启用
+     * spuNo
      */
-    @Column(name = "publish_state")
-    private Integer publishState;
+    @Column(name = "spu_no")
+    private String spuNo;
+
+//    /**
+//     * 排序数
+//     */
+//    @Column(name = "sort_num")
+//    private Integer sortNum;
 
     /**
-     * 标签名称
+     *  数量
      */
-    @Column(name = "model_tag")
-    private String modelTag;
+    @Column(name = "num")
+    private Integer num;
 
     /**
      * 创建时间

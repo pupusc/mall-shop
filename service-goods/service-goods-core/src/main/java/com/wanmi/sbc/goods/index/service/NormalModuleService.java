@@ -219,6 +219,11 @@ public class NormalModuleService {
     }
 
 
+    /**
+     * 查询栏目商品
+     * @param normalModuleSkuSearchReq
+     * @return
+     */
     public List<NormalModuleSkuResp> listNormalModuleSku(NormalModuleSkuSearchReq normalModuleSkuSearchReq) {
         Sort sort = Sort.by(Sort.Direction.ASC, "sortNum");
         List<NormalModuleSku> normalModuleSkus =

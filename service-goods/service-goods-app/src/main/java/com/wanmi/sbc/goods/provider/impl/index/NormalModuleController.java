@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.index;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.enums.NormalModuleCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.index.NormalModuleProvider;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleReq;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
@@ -33,6 +34,7 @@ public class NormalModuleController implements NormalModuleProvider {
 
     @Override
     public BaseResponse add(NormalModuleReq normalModuleReq) {
+        normalModuleReq.setModelCategory(NormalModuleCategoryEnum.BACK_POINT.getCode());
         normalModuleService.add(normalModuleReq);
         return BaseResponse.SUCCESSFUL();
     }
@@ -40,6 +42,7 @@ public class NormalModuleController implements NormalModuleProvider {
 
     @Override
     public BaseResponse update(NormalModuleReq normalModuleReq) {
+        normalModuleReq.setModelCategory(NormalModuleCategoryEnum.BACK_POINT.getCode());
         normalModuleService.update(normalModuleReq);
         return BaseResponse.SUCCESSFUL();
     }
