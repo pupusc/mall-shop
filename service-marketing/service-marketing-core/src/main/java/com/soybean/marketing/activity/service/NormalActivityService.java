@@ -34,7 +34,7 @@ import org.springframework.data.domain.Sort;
 public class NormalActivityService {
 
     @Autowired
-    private NormalActivityRepository normalActivityRepository;
+    protected NormalActivityRepository normalActivityRepository;
 
 
     /**
@@ -42,9 +42,7 @@ public class NormalActivityService {
      * @param normalActivityReq
      */
     public NormalActivity add(NormalActivityReq normalActivityReq) {
-        if (normalActivityReq.getBeginTime().isAfter(normalActivityReq.getEndTime())) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
-        }
+
         LocalDateTime now = LocalDateTime.now();
         NormalActivity normalActivity = new NormalActivity();
         normalActivity.setName(normalActivityReq.getName());
@@ -64,12 +62,12 @@ public class NormalActivityService {
      * @param normalActivityReq
      */
     public NormalActivity update(NormalActivityReq normalActivityReq) {
-        if (normalActivityReq.getBeginTime().isAfter(normalActivityReq.getEndTime())) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
-        }
-        if (normalActivityReq.getId() == null) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动id有误");
-        }
+//        if (normalActivityReq.getBeginTime().isAfter(normalActivityReq.getEndTime())) {
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
+//        }
+//        if (normalActivityReq.getId() == null) {
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动id有误");
+//        }
         NormalActivitySearchReq searchReq = new NormalActivitySearchReq();
         searchReq.setId(normalActivityReq.getId());
         List<NormalActivity> normalActivities = normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq));
@@ -98,6 +96,10 @@ public class NormalActivityService {
         return normalActivityRepository.save(normalActivity);
     }
 
+    public List<NormalActivity> listNoPage(NormalActivitySearchReq searchReq) {
+        return  normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq));
+
+    }
 
     /**
      * 获取活动列表
@@ -124,20 +126,5 @@ public class NormalActivityService {
         return new CommonPageResp<>(normalActivityPage.getTotalElements(), result);
     }
 
-
-    /**
-     * 开启/关闭
-     */
-    public void publish(Integer id, Boolean isOpen) {
-        NormalActivitySearchReq searchReq = new NormalActivitySearchReq();
-        searchReq.setId(id);
-        List<NormalActivity> normalActivities = normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq));
-        if (CollectionUtils.isEmpty(normalActivities)) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "id有误");
-        }
-        NormalActivity normalActivity = normalActivities.get(0);
-        normalActivity.setPublishState(isOpen ? PublishState.ENABLE.toValue() : PublishState.NOT_ENABLE.toValue());
-        normalActivityRepository.save(normalActivity);
-    }
 
 }

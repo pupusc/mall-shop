@@ -4,6 +4,7 @@ import com.soybean.marketing.activity.model.NormalActivity;
 import com.soybean.marketing.api.req.NormalActivitySearchReq;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,6 +36,15 @@ public interface NormalActivityRepository extends JpaRepository<NormalActivity, 
             }
             if (searchReq.getEndTime() != null) {
                 conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), searchReq.getEndTime()));
+            }
+            if (searchReq.getBeginTimeR() != null && searchReq.getEndTime() != null) {
+                Predicate condition1 = criteriaBuilder.and(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), searchReq.getBeginTimeR()),
+                        criteriaBuilder.lessThan(root.get("beginTime"), searchReq.getEndTimeR()));
+                Predicate condition2 = criteriaBuilder.and(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), searchReq.getBeginTimeR()),
+                        criteriaBuilder.lessThan(root.get("endTime"), searchReq.getEndTimeR()));
+                conditionList.add(criteriaBuilder.or(condition1, condition2));
             }
             //状态
             if (searchReq.getStatus() != null) {
