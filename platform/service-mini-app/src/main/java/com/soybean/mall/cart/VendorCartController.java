@@ -433,6 +433,7 @@ public class VendorCartController {
 
         //过滤符合当前营销的sku，根据营销id
         String tipText = filterSku4composePrice(paramVO, cartInfo);
+
         //参与算价的商品
         List<TradePriceParamBO.GoodsInfo> calcGoods = cartInfo.getGoodsInfos().stream().map(item -> {
             TradePriceParamBO.GoodsInfo goodsInfo = new TradePriceParamBO.GoodsInfo();
@@ -485,10 +486,10 @@ public class VendorCartController {
     }
 
     private String filterSku4composePrice(ComposePriceParamVO paramVO, PurchaseListResponse cartInfo) {
+        //优惠券发起的算价不过滤营销活动
         if (paramVO.getMarketingId() == null) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定算价的营销id不能为空");
+            return null;
         }
-
         MarketingGetByIdRequest mktParam = new MarketingGetByIdRequest();
         mktParam.setMarketingId(paramVO.getMarketingId());
         MarketingGetByIdForCustomerResponse mktResult = marketingQueryProvider.getByIdForCustomer(mktParam).getContext();
@@ -497,24 +498,6 @@ public class VendorCartController {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的营销活动没有找到");
         }
         MarketingForEndVO mktBO = mktResult.getMarketingForEndVO();
-
-//        Map<Long, MarketingViewVO> mktId2mktVO = new HashMap<>();
-//        //仅支持满减和满折的营销
-//        for (List<MarketingViewVO> mktVOs : cartInfo.getGoodsMarketingMap().values()) {
-//            for (MarketingViewVO mktVO : mktVOs) {
-//                if (PromoteFilter.supportMkt(mktVO.getSubType())) {
-//                    mktId2mktVO.put(mktVO.getMarketingId(), mktVO);
-//                }
-//            }
-//        }
-//
-//        //查询mkt详细信息
-//        MarketingViewVO mktBO = mktId2mktVO.get(paramVO.getMarketingId());
-//        if (mktBO == null) {
-//            log.warn("购物车中商品 mktId = {}", paramVO.getMarketingId());
-//            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的营销活动没有找到");
-//        }
-
         //删除不符合营销的商品
         List<GoodsInfoVO> skuVOs = cartInfo.getGoodsInfos();
         Iterator<GoodsInfoVO> iterator = skuVOs.iterator();
@@ -686,7 +669,7 @@ public class VendorCartController {
         List<EsGoodsInfoVO> goodsInfoVOs = esGoodsInfoResponse.getEsGoodsInfoPage().getContent();
         List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
         //返回参数
-        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword());
+        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), queryRequest.getSortFlag());
         result.setPromoteInfo(promoteInfo);
         return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
     }
@@ -755,12 +738,12 @@ public class VendorCartController {
         List<EsGoodsInfoVO> goodsInfoVOs = esGoodsInfoResponse.getEsGoodsInfoPage().getContent();
         List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
 
-        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword());
+        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(spuIds, paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), esGoodsInfoQueryRequest.getSortFlag());
         result.setPromoteInfo(promoteInfo);
         return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), (int)esGoodsInfoResponse.getEsGoodsInfoPage().getTotal()));
     }
 
-    private PromoteGoodsResultVO buildPromoteGoodsResultVO(List<String> spuIds, Integer pageNum, Integer pageSize, String keyword) {
+    private PromoteGoodsResultVO buildPromoteGoodsResultVO(List<String> spuIds, Integer pageNum, Integer pageSize, String keyword, Integer sortFlag) {
         //返回参数
         PromoteGoodsResultVO result = new PromoteGoodsResultVO();
         if (CollectionUtils.isEmpty(spuIds)) {
@@ -775,6 +758,7 @@ public class VendorCartController {
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
         spuParam.setKeyword(keyword);
         spuParam.setSpuIds(spuIds);
+        spuParam.setSpuSortType(sortFlag);
         //走搜索路线
         spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();

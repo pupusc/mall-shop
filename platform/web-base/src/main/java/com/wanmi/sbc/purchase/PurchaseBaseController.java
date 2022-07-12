@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -13,6 +14,7 @@ import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.distribute.DistributionCacheService;
 import com.wanmi.sbc.distribute.DistributionService;
+import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
@@ -658,8 +660,10 @@ public class PurchaseBaseController {
         purchaseCountGoodsRequest.setCustomerId(commonUtil.getOperatorId());
         purchaseCountGoodsRequest.setInviteeId(commonUtil.getPurchaseInviteeId());
 
-        PurchaseCountGoodsResponse purchaseCountGoodsResponse =
-                purchaseQueryProvider.countGoods(purchaseCountGoodsRequest).getContext();
+        purchaseCountGoodsRequest.setGoodsChannelType(TerminalSource.MINIPROGRAM.equals(commonUtil.getTerminal()) ?
+                GoodsChannelTypeEnum.MALL_MINI.getCode() : GoodsChannelTypeEnum.MALL_H5.getCode());
+
+        PurchaseCountGoodsResponse purchaseCountGoodsResponse = purchaseQueryProvider.countGoods(purchaseCountGoodsRequest).getContext();
         return BaseResponse.success(purchaseCountGoodsResponse.getTotal());
     }
 
