@@ -17,6 +17,9 @@ public class NormalModuleSkuResp {
 
     private Integer id;
 
+    /**
+     * 栏目id
+     */
     private Integer normalModelId;
     /**
      * SkuId

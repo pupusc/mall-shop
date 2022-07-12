@@ -53,7 +53,8 @@ public class NormalModuleController {
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     /**
-     * 新增
+     * 栏目 新增
+     * @menu 返积分活动
      * @param normalModuleReq
      * @return
      */
@@ -64,7 +65,8 @@ public class NormalModuleController {
     }
 
     /**
-     * 修改
+     * 栏目 修改
+     * @menu 返积分活动
      * @param normalModuleReq
      * @return
      */
@@ -75,18 +77,21 @@ public class NormalModuleController {
     }
 
     /**
-     * 列表
+     * 栏目 列表
+     * @menu 返积分活动
      * @param normalModuleSearchReq
      * @return
      */
     @PostMapping("/list")
-    public BaseResponse list(@RequestBody NormalModuleSearchReq normalModuleSearchReq) {
+    public BaseResponse<CommonPageResp<List<NormalModuleResp>>> list(@RequestBody NormalModuleSearchReq normalModuleSearchReq) {
         return normalModuleProvider.list(normalModuleSearchReq);
     }
 
 
     /**
-     * 发布 true 开启 false 关闭
+     *
+     * 栏目 发布 true 开启 false 关闭
+     * @menu 返积分活动
      */
     @GetMapping("/publish/{id}/{isOpen}")
     public BaseResponse publish(@PathVariable("id") Integer id, @PathVariable("isOpen") Boolean isOpen) {
@@ -95,7 +100,8 @@ public class NormalModuleController {
     }
 
     /**
-     * 获取详细信息
+     * 栏目 获取详细信息
+     * @menu 返积分活动
      * @param id
      * @return
      */

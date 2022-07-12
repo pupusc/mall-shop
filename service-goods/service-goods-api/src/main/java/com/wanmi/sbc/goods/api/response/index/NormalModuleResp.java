@@ -47,8 +47,9 @@ public class NormalModuleResp {
     private Integer publishState;
 
     /**
-     * {@link com.wanmi.sbc.goods.api.enums.StateEnum}
      * 0未开始 1进行中 2结束
+     * {@link com.wanmi.sbc.goods.api.enums.StateEnum}
+     *
      */
     private Integer status;
 
