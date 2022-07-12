@@ -727,9 +727,9 @@ public class TradeService {
         criterias.add(Criteria.where("tradeState.flowState").is(flowState.toValue()));
         criterias.add(Criteria.where("tradeState.deliverTime").lt(endDate));
         criterias.add(Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId()));
+        criterias.add(Criteria.where("tradeState.payTime").gte(LocalDateTime.parse(starTime, DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1))));
 
         if (type != null && type.equals(2)) {
-            criterias.add(Criteria.where("tradeState.payTime").gte(LocalDateTime.parse(starTime, DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1))));
             criterias.add(Criteria.where("miniProgramScene").is(2));
         }
 
