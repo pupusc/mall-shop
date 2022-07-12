@@ -237,7 +237,7 @@ public class CalcTradePriceService {
             dto.setStoreId(mkt.getStoreId());
             dto.setMarketingId(mkt.getMarketingId());
             dto.setMarketingSubType(mkt.getSubType().toValue());
-            dto.setSkuIds(Arrays.asList(item.getSkuId()));
+            dto.setSkuIds(new ArrayList<>(Arrays.asList(item.getSkuId())));
             dto.setMarketingLevelId(levelId);
             mkt2yes.put(mktId, dto);
         }
