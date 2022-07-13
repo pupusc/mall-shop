@@ -17,16 +17,43 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.DistributorLevelVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsMarketingVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
-import com.wanmi.sbc.order.api.request.purchase.*;
-import com.wanmi.sbc.order.api.response.purchase.*;
+import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCountGoodsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontMiniRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetGoodsMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreCouponExistRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseInfoRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseMiniListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseQueryGoodsMarketingListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseQueryRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.ValidateAndSetGoodsMarketingsRequest;
+import com.wanmi.sbc.order.api.response.purchase.MiniPurchaseResponse;
+import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseCountGoodsResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetGoodsMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseMarketingCalcResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseMiniListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseQueryGoodsMarketingListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseQueryResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseResponse;
 import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
 import com.wanmi.sbc.order.bean.vo.PurchaseVO;
 import com.wanmi.sbc.order.constant.OrderErrorCode;
@@ -34,6 +61,7 @@ import com.wanmi.sbc.order.purchase.Purchase;
 import com.wanmi.sbc.order.purchase.PurchaseService;
 import com.wanmi.sbc.order.purchase.request.PurchaseRequest;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +69,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -196,12 +230,34 @@ public class PurchaseQueryController implements PurchaseQueryProvider {
      */
     @Override
     public BaseResponse<PurchaseCountGoodsResponse> countGoods(@RequestBody @Valid PurchaseCountGoodsRequest request) {
-
-
-        Integer total = purchaseService.countGoods(request.getCustomerId(), request.getInviteeId());
-
         PurchaseCountGoodsResponse purchaseCountGoodsResponse = new PurchaseCountGoodsResponse();
-        purchaseCountGoodsResponse.setTotal(total);
+        purchaseCountGoodsResponse.setTotal(0);
+
+        if (StringUtils.isBlank(request.getGoodsChannelType())) {
+            purchaseCountGoodsResponse.setTotal(purchaseService.countGoods(request.getCustomerId(), request.getInviteeId()));
+            return BaseResponse.success(purchaseCountGoodsResponse);
+        }
+
+        //数量要根据不同的channel判断
+        List<Purchase> purchases = purchaseService.queryPurchase(request.getCustomerId(), Collections.EMPTY_LIST, request.getInviteeId());
+        if (CollectionUtils.isEmpty(purchases)) {
+            return BaseResponse.success(purchaseCountGoodsResponse);
+        }
+
+        List<String> spuIds = purchases.stream().map(Purchase::getGoodsId).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(spuIds)) {
+            return BaseResponse.success(purchaseCountGoodsResponse);
+        }
+        GoodsListByIdsResponse goodsResult = goodsQueryProvider.listByIds(GoodsListByIdsRequest.builder().goodsIds(spuIds).build()).getContext();
+        if (goodsResult == null || CollectionUtils.isEmpty(goodsResult.getGoodsVOList())) {
+            return BaseResponse.success(purchaseCountGoodsResponse);
+        }
+
+        List<String> hitIds = goodsResult.getGoodsVOList().stream()
+                .filter(i -> i.getGoodsChannelType() != null && Arrays.asList(i.getGoodsChannelType().split(",")).contains(request.getGoodsChannelType()))
+                .map(GoodsVO::getGoodsId).distinct().collect(Collectors.toList());
+
+        purchaseCountGoodsResponse.setTotal((int) purchases.stream().filter(i->hitIds.contains(i.getGoodsId())).count());
         return BaseResponse.success(purchaseCountGoodsResponse);
     }
 

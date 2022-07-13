@@ -3,8 +3,8 @@ package com.wanmi.sbc.order.api.request.purchase;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import javax.validation.constraints.NotBlank;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -34,5 +34,8 @@ public class PurchaseCountGoodsRequest implements Serializable {
     @ApiModelProperty(value = "公司信息ID")
     private Long companyInfoId;
 
-
+    /**
+     * 商品渠道：1商城h5；2商城小程序
+     */
+    private String goodsChannelType;
 }

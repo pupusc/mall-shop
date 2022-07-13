@@ -5,8 +5,10 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelByGoodsIdAndSkuIdRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
+import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySpuIdsRequest;
 import com.wanmi.sbc.goods.api.response.spec.GoodsInfoSpecDetailRelByGoodsIdAndSkuIdResponse;
 import com.wanmi.sbc.goods.api.response.spec.GoodsInfoSpecDetailRelBySkuIdsResponse;
+import com.wanmi.sbc.goods.api.response.spec.GoodsInfoSpecDetailRelBySpuIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
 import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
 import com.wanmi.sbc.goods.spec.service.GoodsInfoSpecDetailRelService;
@@ -62,5 +64,15 @@ public class GoodsInfoSpecDetailRelQueryController implements GoodsInfoSpecDetai
         }
         List<GoodsInfoSpecDetailRelVO> goodsInfoSpecDetailRelVOList = KsBeanUtil.convert(goodsInfoSpecDetailRelList,GoodsInfoSpecDetailRelVO.class);
         return BaseResponse.success(new GoodsInfoSpecDetailRelBySkuIdsResponse(goodsInfoSpecDetailRelVOList));
+    }
+
+    @Override
+    public BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> listBySpuIds(@RequestBody @Valid GoodsInfoSpecDetailRelBySpuIdsRequest goodsInfoSpecDetailRelBySpuIdsRequest) {
+        List<GoodsInfoSpecDetailRel>  goodsInfoSpecDetailRelList = goodsInfoSpecDetailRelService.findByGoodsIds(goodsInfoSpecDetailRelBySpuIdsRequest.getSpuIds());
+        if (CollectionUtils.isEmpty(goodsInfoSpecDetailRelList)){
+            return BaseResponse.success(new GoodsInfoSpecDetailRelBySpuIdsResponse(Collections.EMPTY_LIST));
+        }
+        List<GoodsInfoSpecDetailRelVO> goodsInfoSpecDetailRelVOList = KsBeanUtil.convert(goodsInfoSpecDetailRelList,GoodsInfoSpecDetailRelVO.class);
+        return BaseResponse.success(new GoodsInfoSpecDetailRelBySpuIdsResponse(goodsInfoSpecDetailRelVOList));
     }
 }

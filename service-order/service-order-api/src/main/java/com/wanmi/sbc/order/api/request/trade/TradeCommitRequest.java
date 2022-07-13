@@ -215,5 +215,8 @@ public class TradeCommitRequest extends BaseRequest {
      */
     private Integer miniProgramScene;
 
-
+    /**
+     * 提交方式：小程序购物车下单
+     */
+    private boolean miniProgramCart;
 }
