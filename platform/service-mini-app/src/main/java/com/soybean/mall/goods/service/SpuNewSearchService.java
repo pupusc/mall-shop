@@ -5,6 +5,8 @@ import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -32,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -196,7 +199,21 @@ public class SpuNewSearchService {
 
 
         //normalActivity 活动信息
-        normalActivityPointSkuProvider.listActivityPointSku()
+        Map<String, SkuNormalActivityResp> spuId2NormalActivityMap = new HashMap<>();
+        SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+        spuNormalActivityReq.setSpuIds(spuIdList);
+        spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuNormalActivity(spuNormalActivityReq).getContext();
+        for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+            SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(skuNormalActivityRespParam.getSpuId());
+            if (skuNormalActivityResp == null) {
+                spuId2NormalActivityMap.put(skuNormalActivityRespParam.getSpuId(), skuNormalActivityRespParam);
+            } else {
+                if (skuNormalActivityResp.getNum() < skuNormalActivityRespParam.getNum()) {
+                    spuId2NormalActivityMap.put(skuNormalActivityRespParam.getSpuId(), skuNormalActivityRespParam);
+                }
+            }
+        }
 
 
         List<SpuNewBookListResp> result = new ArrayList<>();
@@ -270,7 +287,7 @@ public class SpuNewSearchService {
                             : spuRecomBookListDTO.getSpu().getSortNum(), spuRecomBookListDTO.getBookListBusinessType()) : null;
             spuNewBookListResp.setBookList(bookList);
 
-            //获取图书信息
+            //获取图书氛围信息
             AtmosphereDTO atmosphereDTO = skuId2AtomsphereMap.get(goodsInfoVO.getGoodsInfoId());
             if (atmosphereDTO != null) {
                 SpuNewBookListResp.Atmosphere atmosphere = new SpuNewBookListResp.Atmosphere();
@@ -283,6 +300,16 @@ public class SpuNewSearchService {
                 spuNewBookListResp.setAtmosphere(atmosphere);
             }
 
+            //获取活动信息
+            SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(esSpuNewRespParam.getSpuId());
+            if (skuNormalActivityResp != null) {
+                List<SpuNewBookListResp.NormalActivity> activities = new ArrayList<>();
+                SpuNewBookListResp.NormalActivity activity = new SpuNewBookListResp.NormalActivity();
+                activity.setNum(skuNormalActivityResp.getNum());
+                activity.setActivityShow(String.format("限时返%d积分", skuNormalActivityResp.getNum()));
+                activities.add(activity);
+                spuNewBookListResp.setActivities(activities);
+            }
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());

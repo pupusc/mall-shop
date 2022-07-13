@@ -25,4 +25,6 @@ public class NormalActivityPointSkuSearchReq extends CommonPageQueryReq {
     private List<Integer> normalActivityIds;
 
     private List<String> skuIds;
+
+    private List<String> spuIds;
 }

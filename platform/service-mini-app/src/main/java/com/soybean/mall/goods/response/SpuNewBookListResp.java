@@ -96,6 +96,11 @@ public class SpuNewBookListResp {
     private List<MarketingLabel> marketingLabels = new ArrayList<>();
 
     /**
+     * 活动信息
+     */
+    private List<NormalActivity> activities;
+
+    /**
      * 书单或者榜单信息
      */
     @Data
@@ -257,5 +262,21 @@ public class SpuNewBookListResp {
          * 活动状态
          */
         private Integer marketingStatus;
+    }
+
+    /**
+     * 活动信息
+     */
+    @Data
+    public static class NormalActivity {
+        /**
+         * 份数
+         */
+        private Integer num;
+
+        /**
+         * 活动展示
+         */
+        private String activityShow;
     }
 }

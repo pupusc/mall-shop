@@ -2,12 +2,13 @@ package com.sobean.marketing.provider.impl.activity;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.marketing.activity.service.NormalActivityPointSkuService;
-import com.soybean.marketing.activity.service.NormalActivityService;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.NormalActivityPointSkuReq;
 import com.soybean.marketing.api.req.NormalActivitySearchReq;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.NormalActivityResp;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -59,7 +60,9 @@ public class NormalActivityPointSkuController implements NormalActivityPointSkuP
         return BaseResponse.success(normalActivityPointSkuService.listActivityPointSku(activityId));
     }
 
-    public BaseResponse list() {
 
+    @Override
+    public BaseResponse<List<SkuNormalActivityResp>> listSpuNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
+        return BaseResponse.success(normalActivityPointSkuService.listSpuNormalActivity(spuNormalActivityReq));
     }
 }

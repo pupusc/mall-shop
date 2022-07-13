@@ -1,8 +1,8 @@
 package com.soybean.marketing.activity.service;
-import com.soybean.common.resp.CommonPageResp;
 import com.soybean.marketing.api.req.NormalActivityPointSkuSearchReq;
-import com.soybean.marketing.api.resp.NormalActivityResp;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import java.time.LocalDateTime;
 
@@ -14,6 +14,7 @@ import com.soybean.marketing.api.req.NormalActivitySearchReq;
 import com.soybean.marketing.api.req.NormalActivitySkuReq;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -22,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -223,7 +226,71 @@ public class NormalActivityPointSkuService extends NormalActivityService {
         }
     }
 
-    public void test() {
-        
+
+    /**
+     * 查看 sku对应的活动
+     * @param spuNormalActivityReq
+     * @return
+     */
+    public List<SkuNormalActivityResp> listSpuNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
+        if (CollectionUtils.isEmpty(spuNormalActivityReq.getSpuIds()) && CollectionUtils.isEmpty(spuNormalActivityReq.getSkuIds())) {
+            return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(spuNormalActivityReq.getChannelTypes())) {
+            return new ArrayList<>();
+        }
+        NormalActivitySearchReq normalActivitySearchReq = new NormalActivitySearchReq();
+        normalActivitySearchReq.setStatus(StateEnum.RUNNING.getCode());
+        normalActivitySearchReq.setPublishState(PublishState.ENABLE.toValue());
+        normalActivitySearchReq.setChannelTypes(spuNormalActivityReq.getChannelTypes());
+        List<NormalActivity> normalActivities = super.listNoPage(normalActivitySearchReq); //进行中的活动
+        if (CollectionUtils.isEmpty(normalActivities)) {
+            return new ArrayList<>();
+        }
+        //获取商品对应的活动
+        Map<Integer, NormalActivity> activityId2NormalActivityMap = new HashMap<>();
+        List<Integer> activityIds = new ArrayList<>();
+        for (NormalActivity normalActivity : normalActivities) {
+            activityId2NormalActivityMap.put(normalActivity.getId(), normalActivity);
+            activityIds.add(normalActivity.getId());
+        }
+        NormalActivityPointSkuSearchReq pointSkuSearchReq = new NormalActivityPointSkuSearchReq();
+        pointSkuSearchReq.setNormalActivityIds(activityIds);
+        if (CollectionUtils.isNotEmpty(spuNormalActivityReq.getSpuIds())) {
+            pointSkuSearchReq.setSpuIds(spuNormalActivityReq.getSpuIds());
+        }
+        if (CollectionUtils.isNotEmpty(spuNormalActivityReq.getSkuIds())) {
+            pointSkuSearchReq.setSkuIds(spuNormalActivityReq.getSkuIds());
+        }
+
+        List<NormalActivityPointSku> normalActivityPointSkus =
+                normalActivityPointSkuRepository.findAll(normalActivityPointSkuRepository.buildSearchCondition(pointSkuSearchReq));
+        if (CollectionUtils.isEmpty(normalActivityPointSkus)) {
+            return new ArrayList<>();
+        }
+
+        List<SkuNormalActivityResp> result = new ArrayList<>();
+        for (NormalActivityPointSku activityPointSkuParam : normalActivityPointSkus) {
+            NormalActivity normalActivity = activityId2NormalActivityMap.get(activityPointSkuParam.getNormalActivityId());
+            if (normalActivity == null) {
+                continue;
+            }
+            SkuNormalActivityResp skuForNormalActivityResp = new SkuNormalActivityResp();
+            skuForNormalActivityResp.setId(activityPointSkuParam.getId());
+            skuForNormalActivityResp.setNormalActivityId(normalActivity.getId());
+            skuForNormalActivityResp.setSkuId(activityPointSkuParam.getSkuId());
+            skuForNormalActivityResp.setSkuNo(activityPointSkuParam.getSkuNo());
+            skuForNormalActivityResp.setSpuId(activityPointSkuParam.getSpuId());
+            skuForNormalActivityResp.setSpuNo(activityPointSkuParam.getSpuNo());
+            skuForNormalActivityResp.setNum(activityPointSkuParam.getNum());
+            skuForNormalActivityResp.setId(normalActivity.getId());
+            skuForNormalActivityResp.setName(normalActivity.getName());
+            skuForNormalActivityResp.setBeginTime(normalActivity.getBeginTime());
+            skuForNormalActivityResp.setEndTime(normalActivity.getEndTime());
+            skuForNormalActivityResp.setChannelType(normalActivity.getChannelType());
+            skuForNormalActivityResp.setPublishState(normalActivity.getPublishState());
+            result.add(skuForNormalActivityResp);
+        }
+        return result;
     }
 }

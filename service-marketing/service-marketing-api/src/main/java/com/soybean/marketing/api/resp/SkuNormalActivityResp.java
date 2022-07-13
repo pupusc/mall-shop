@@ -10,7 +10,7 @@ import lombok.Data;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SkuForNormalActivityResp extends NormalActivityResp{
+public class SkuNormalActivityResp extends NormalActivityResp{
 
 
     private Integer id;

@@ -3,8 +3,10 @@ package com.soybean.marketing.api.provider.activity;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.marketing.api.req.NormalActivityPointSkuReq;
 import com.soybean.marketing.api.req.NormalActivitySearchReq;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.NormalActivityResp;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
@@ -68,4 +70,14 @@ public interface NormalActivityPointSkuProvider {
      */
     @GetMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/listActivityPointSku/{activityId}")
     BaseResponse<List<NormalActivitySkuResp>> listActivityPointSku(@PathVariable("activityId") Integer activityId);
+
+
+    /**
+     *
+     * 根据商品反查活动
+     * @param spuNormalActivityReq
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/listSpuNormalActivity")
+    BaseResponse<List<SkuNormalActivityResp>> listSpuNormalActivity(@RequestBody SpuNormalActivityReq spuNormalActivityReq);
 }

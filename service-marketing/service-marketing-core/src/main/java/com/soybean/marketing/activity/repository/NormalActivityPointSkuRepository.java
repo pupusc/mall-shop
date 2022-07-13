@@ -28,6 +28,9 @@ public interface NormalActivityPointSkuRepository extends JpaRepository<NormalAc
             if (CollectionUtils.isNotEmpty(searchReq.getSkuIds())) {
                 conditionList.add(root.get("skuId").in(searchReq.getSkuIds()));
             }
+            if (CollectionUtils.isNotEmpty(searchReq.getSpuIds())) {
+                conditionList.add(root.get("spuId").in(searchReq.getSpuIds()));
+            }
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
     }
