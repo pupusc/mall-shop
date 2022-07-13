@@ -276,6 +276,9 @@ public class VendorCartController {
 
     private void fillPromoteText4cart(CartInfoResultVO$Marketing mktVO, MarketingViewVO mktBO) {
         List<CartInfoResultVO$Sku> skus = mktVO.getGoodsInfos().stream().filter(CartInfoResultVO$Sku::isChecked).collect(Collectors.toList());
+        long totalCount = skus.stream().mapToLong(i -> i.getBuyCount()).sum();
+        BigDecimal totalPrice = skus.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         //促销文案
         Boolean imax = true;
         String text = "";
@@ -283,7 +286,6 @@ public class VendorCartController {
             if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
                 return;
             }
-            long totalCount = skus.stream().mapToLong(i -> i.getBuyCount()).sum();
             //已满2件减30元，再买5件减300
             for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
                 imax = totalCount >= item.getFullCount();
@@ -295,7 +297,6 @@ public class VendorCartController {
                 text = "已满" + item.getFullCount() + "件减" + item.getReduction();
             }
         } else if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额减
-            BigDecimal totalPrice = skus.stream().map(CartInfoResultVO$Sku::getSalePrice).reduce(BigDecimal.ZERO, BigDecimal::add);
             //每满300减150，还差32
             for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
                 imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
@@ -309,7 +310,6 @@ public class VendorCartController {
             if (CollectionUtils.isEmpty(mktBO.getFullDiscountLevelList())) {
                 return;
             }
-            long totalCount = skus.stream().mapToLong(i -> i.getBuyCount()).sum();
             //已满2件打9折，再买5件打8折
             for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
                 imax = totalCount >= item.getFullCount();
@@ -321,7 +321,6 @@ public class VendorCartController {
                 text = "已满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
             }
         } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额折
-            BigDecimal totalPrice = skus.stream().map(CartInfoResultVO$Sku::getSalePrice).reduce(BigDecimal.ZERO, BigDecimal::add);
             //每满300打9折，还差32打8折
             for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
                 imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
