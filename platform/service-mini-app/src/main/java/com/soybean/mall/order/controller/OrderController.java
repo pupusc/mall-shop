@@ -70,6 +70,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoStoreIdBySkuIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
@@ -1022,15 +1023,17 @@ public class OrderController {
         List<TradeItemInfoDTO> tradeDtos =  new ArrayList<>();
         for (TradeItemVO item : tradeItemVOList) {
             TradeItemInfoDTO tradeDto = new TradeItemInfoDTO();
-            tradeDto.setStoreId(item.getStoreId());
+            tradeDto.setBrandId(item.getBrand());
+            tradeDto.setCateId(item.getCateId());
             tradeDto.setSpuId(item.getSpuId());
             tradeDto.setSkuId(item.getSkuId());
-            tradeDto.setPrice(item.getPrice());
+            tradeDto.setStoreId(item.getStoreId());
+            tradeDto.setPrice(item.getSplitPrice());
+            tradeDto.setDistributionGoodsAudit(item.getDistributionGoodsAudit());
             tradeDtos.add(tradeDto);
         }
         CouponCodeListForUseByCustomerIdRequest couponParam = CouponCodeListForUseByCustomerIdRequest.builder()
                 .customerId(customerId).tradeItems(tradeDtos).price(priceResponse.getContext().getPayPrice()).build();
-
         BaseResponse<CouponCodeListForUseByCustomerIdResponse> couponResult = couponCodeQueryProvider.listForUseByCustomerId(couponParam);
         if (couponResult.getContext() == null || couponResult.getContext().getCouponCodeList() == null) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "查询用户优惠券返回值错误");
