@@ -35,8 +35,11 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
@@ -143,6 +146,8 @@ public class VendorCartController {
     private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
 
     /**
      * 购物车-购物车信息
@@ -267,10 +272,15 @@ public class VendorCartController {
             );
         }
         //价格信息
-        resultVO.setCalcPrice(calcPrice(customer, goodsInfos));
+        PurchasePriceResultVO priceResult = calcPrice(customer, goodsInfos);
+        resultVO.setCalcPrice(priceResult);
+        //满足营销活动的levelId
+        if (CollectionUtils.isNotEmpty(priceResult.getTradeMkts())) {
+            Map<Long, Long> mktId2mktLevelId = priceResult.getTradeMkts().stream().collect(Collectors.toMap(i -> i.getMktId(), i -> i.getMktLevelId()));
+            resultVO.getMarketings().forEach(mkt-> mkt.setMarketingLvelId(mktId2mktLevelId.get(mkt.getMarketingId())));
+        }
         //会员信息
         resultVO.setVipInfo(vipInfo(customer.getCustomerId()));
-
         return BaseResponse.success(resultVO);
     }
 
@@ -366,20 +376,27 @@ public class VendorCartController {
         TradePriceParamBO paramBO = new TradePriceParamBO();
         paramBO.setCustomerId(customer.getCustomerId());
         paramBO.setGoodsInfos(goodsInfos);
-        BaseResponse<TradePriceResultBO> calcPriceResult = tradePriceProvider.calcPrice(paramBO);
-        if (calcPriceResult == null || calcPriceResult.getContext() == null) {
+        BaseResponse<TradePriceResultBO> priceResult = tradePriceProvider.calcPrice(paramBO);
+        if (priceResult == null || priceResult.getContext() == null) {
             return calcPrice;
         }
+        //满足优惠的营销活动
+        calcPrice.setTradeMkts(priceResult.getContext().getTradeMkts().stream().map(i -> {
+            PurchasePriceResultVO.TradeMkt tradeMkt = new PurchasePriceResultVO.TradeMkt();
+            tradeMkt.setMktId(i.getMktId());
+            tradeMkt.setMktLevelId(i.getMktLevelId());
+            return tradeMkt;
+        }).collect(Collectors.toList()));
 
-        calcPrice.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
-        calcPrice.setPayPrice(calcPriceResult.getContext().getPayPrice());
-        calcPrice.setCutPrice(calcPriceResult.getContext().getCutPrice());
-        if (CollectionUtils.isNotEmpty(calcPriceResult.getContext().getTotalPriceItems())) {
-            calcPrice.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
+        calcPrice.setTotalPrice(priceResult.getContext().getTotalPrice());
+        calcPrice.setPayPrice(priceResult.getContext().getPayPrice());
+        calcPrice.setCutPrice(priceResult.getContext().getCutPrice());
+        if (CollectionUtils.isNotEmpty(priceResult.getContext().getTotalPriceItems())) {
+            calcPrice.setTotalPriceItems(priceResult.getContext().getTotalPriceItems().stream()
                     .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(calcPriceResult.getContext().getCutPriceItems())) {
-            calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
+        if (CollectionUtils.isNotEmpty(priceResult.getContext().getCutPriceItems())) {
+            calcPrice.setCutPriceItems(priceResult.getContext().getCutPriceItems().stream()
                     .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
         }
         return calcPrice;
@@ -760,10 +777,18 @@ public class VendorCartController {
         spuParam.setKeyword(keyword);
         spuParam.setSpuIds(spuIds);
         spuParam.setSpuSortType(sortFlag);
+
+        //获取客户信息
+        CustomerGetByIdResponse customer = null;
+        String userId = commonUtil.getOperatorId();
+        if (StringUtils.isNotBlank(userId)) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+        }
+
         //走搜索路线
         spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent(), customer);
 
         List<PromoteFitGoodsResultVO> fitGoods = spuNewBookListResps.stream().map(item -> {
             PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();

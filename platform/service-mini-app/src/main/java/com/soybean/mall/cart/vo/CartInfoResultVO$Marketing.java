@@ -15,6 +15,10 @@ public class CartInfoResultVO$Marketing {
      */
     private Long marketingId;
     /**
+     * 营销等级id
+     */
+    private Long marketingLvelId;
+    /**
      * 营销类型 0：满减 1:满折 2:满赠
      */
     private int type;

@@ -34,6 +34,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.DiscountsPriceDetail;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.reponse.CalcPriceResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -142,7 +143,7 @@ public class CalcTradePriceService {
      * 4.查询商品信息
      * 5.验证商品信息
      */
-    public TradePrice calc(List<TradeItem> tradeItems, String couponId, String customerId) {
+    public CalcPriceResult calc(List<TradeItem> tradeItems, String couponId, String customerId) {
         //商品校验
         if (tradeItems.stream().anyMatch(tradeItem -> Boolean.TRUE.equals(tradeItem.getIsMarkupGoods()))) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前还不支持加价购活动算价");
@@ -241,18 +242,29 @@ public class CalcTradePriceService {
             dto.setMarketingLevelId(levelId);
             mkt2yes.put(mktId, dto);
         }
+        List<TradeMarketingDTO> mktDTOs = mkt2yes.values().stream().collect(Collectors.toList());
 
-//        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
+        //        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
 //        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);
 
         // 1.构建订单满系营销对象
-        List<TradeMarketingVO> mktVOs = this.wrapperMarketingForConfirm(tradeItems, mkt2yes.values().stream().collect(Collectors.toList()));
+        List<TradeMarketingVO> mktVOs = this.wrapperMarketingForConfirm(tradeItems, mktDTOs);
         // 2.构建订单优惠券对象
         TradeCouponVO tradeCouponVO = StringUtils.isBlank(couponId) ? null : tradeMarketingService.buildTradeCouponInfo(tradeItems, couponId, false, customerId);
         //计算并赋值splitPrice
         calcMarketingPrice(tradeItems, mktVOs, tradeCouponVO);
         // 2.9.计算并设置订单总价(已减去营销优惠总金额)
-        return calc(tradeItems, mktVOs, tradeCouponVO);
+        TradePrice tradePrice = calc(tradeItems, mktVOs, tradeCouponVO);
+
+        CalcPriceResult result = new CalcPriceResult();
+        result.setTradePrice(tradePrice);
+        result.setTradeMkts(mktDTOs.stream().map(i -> {
+            CalcPriceResult.TradeMkt tradeMkt = new CalcPriceResult.TradeMkt();
+            tradeMkt.setMktId(i.getMarketingId());
+            tradeMkt.setMktLevelId(i.getMarketingLevelId());
+            return tradeMkt;
+        }).collect(Collectors.toList()));
+        return result;
     }
 
     private Long getMktLevelId(MarketingForEndVO mkt, long totalCount, BigDecimal totalPrice) {

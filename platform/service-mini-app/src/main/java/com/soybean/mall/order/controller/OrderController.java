@@ -850,6 +850,7 @@ public class OrderController {
                 .map(item-> {
                     TradeMarketingDTO mktDTO = new TradeMarketingDTO();
                     mktDTO.setMarketingId(item.getMarketingId());
+                    mktDTO.setMarketingLevelId(item.getMarketingLevelId());
                     mktDTO.setSkuIds(item.getGoodsInfos().stream().map(i->i.getSkuId()).collect(Collectors.toList()));
                     return mktDTO;
                 }).collect(Collectors.toList());

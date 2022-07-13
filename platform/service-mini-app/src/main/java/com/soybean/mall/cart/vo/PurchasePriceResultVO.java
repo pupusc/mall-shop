@@ -37,4 +37,14 @@ public class PurchasePriceResultVO {
      * 提示文案
      */
     private String tipText;
+    /**
+     * 已经满足的营销活动
+     */
+    private List<TradeMkt> tradeMkts = new ArrayList<>();
+
+    @Data
+    public static class TradeMkt {
+        private Long mktId;
+        private Long mktLevelId;
+    }
 }

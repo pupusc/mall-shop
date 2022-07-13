@@ -19,6 +19,19 @@ public class TradePriceResultBO {
     private BigDecimal payPrice;
     private List<PriceItem> totalPriceItems = new ArrayList<>();
     private List<PriceItem> cutPriceItems = new ArrayList<>();
+    private List<TradeMkt> tradeMkts = new ArrayList<>();
+
+    @Data
+    public static class TradeMkt {
+        /**
+         * 营销id
+         */
+        private Long mktId;
+        /**
+         * 营销等级id
+         */
+        private Long mktLevelId;
+    }
 
     @Data
     public static class PriceItem {
