@@ -1002,6 +1002,7 @@ public class OrderController {
                 viewSku.setShowPhoneNum(tradeItem.getShowPhoneNum());
                 viewSku.setPic(tradeItem.getPic());
                 viewSku.setFreightTempId(tradeItem.getFreightTempId());
+                viewSku.setGoodsType(tradeItem.getGoodsType().toValue());
                 viewSkus.add(viewSku);
             }
         }

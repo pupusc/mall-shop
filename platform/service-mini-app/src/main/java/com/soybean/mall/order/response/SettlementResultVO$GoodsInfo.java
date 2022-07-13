@@ -1,5 +1,6 @@
 package com.soybean.mall.order.response;
 
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -61,4 +62,8 @@ public class SettlementResultVO$GoodsInfo {
      * 运费模板ID
      */
     private Long freightTempId;
+    /**
+     * 商品类型
+     */
+    private Integer goodsType;
 }
