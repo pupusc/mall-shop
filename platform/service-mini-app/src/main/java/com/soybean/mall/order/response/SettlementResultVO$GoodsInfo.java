@@ -57,4 +57,8 @@ public class SettlementResultVO$GoodsInfo {
      * 显示电话输入框
      */
     private Boolean showPhoneNum = false;
+    /**
+     * 运费模板ID
+     */
+    private Long freightTempId;
 }
