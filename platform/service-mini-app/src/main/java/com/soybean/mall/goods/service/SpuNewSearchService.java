@@ -306,7 +306,7 @@ public class SpuNewSearchService {
                 List<SpuNewBookListResp.NormalActivity> activities = new ArrayList<>();
                 SpuNewBookListResp.NormalActivity activity = new SpuNewBookListResp.NormalActivity();
                 activity.setNum(skuNormalActivityResp.getNum());
-                activity.setActivityShow(String.format("限时返%d积分", skuNormalActivityResp.getNum()));
+                activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
                 activities.add(activity);
                 spuNewBookListResp.setActivities(activities);
             }
