@@ -4,6 +4,7 @@ import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -61,6 +62,9 @@ public class SpuNewSearchService {
 
     @Autowired
     private AtmosphereProvider atmosphereProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -190,6 +194,9 @@ public class SpuNewSearchService {
             }
         }
 
+
+        //normalActivity 活动信息
+        normalActivityPointSkuProvider.listActivityPointSku()
 
 
         List<SpuNewBookListResp> result = new ArrayList<>();

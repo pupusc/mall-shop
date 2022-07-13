@@ -222,4 +222,8 @@ public class NormalActivityPointSkuService extends NormalActivityService {
             }
         }
     }
+
+    public void test() {
+        
+    }
 }

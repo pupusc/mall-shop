@@ -58,4 +58,8 @@ public class NormalActivityPointSkuController implements NormalActivityPointSkuP
     public BaseResponse<List<NormalActivitySkuResp>> listActivityPointSku(Integer activityId) {
         return BaseResponse.success(normalActivityPointSkuService.listActivityPointSku(activityId));
     }
+
+    public BaseResponse list() {
+
+    }
 }
