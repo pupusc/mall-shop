@@ -166,7 +166,7 @@ public class VendorCartController {
             return BaseResponse.success(resultVO);
         }
         //店铺信息
-        if (CollectionUtils.isNotEmpty(cartInfo.getStores())) {
+        if (!CollectionUtils.isEmpty(cartInfo.getStores())) {
             CartInfoResultVO$Store store = new CartInfoResultVO$Store();
             store.setStoreId(cartInfo.getStores().get(0).getStoreId());
             store.setStoreName(cartInfo.getStores().get(0).getStoreName());
@@ -275,7 +275,7 @@ public class VendorCartController {
         PurchasePriceResultVO priceResult = calcPrice(customer, goodsInfos);
         resultVO.setCalcPrice(priceResult);
         //满足营销活动的levelId
-        if (CollectionUtils.isNotEmpty(priceResult.getTradeMkts())) {
+        if (!CollectionUtils.isEmpty(priceResult.getTradeMkts())) {
             Map<Long, Long> mktId2mktLevelId = priceResult.getTradeMkts().stream().collect(Collectors.toMap(i -> i.getMktId(), i -> i.getMktLevelId()));
             resultVO.getMarketings().forEach(mkt-> mkt.setMarketingLvelId(mktId2mktLevelId.get(mkt.getMarketingId())));
         }
@@ -391,11 +391,11 @@ public class VendorCartController {
         calcPrice.setTotalPrice(priceResult.getContext().getTotalPrice());
         calcPrice.setPayPrice(priceResult.getContext().getPayPrice());
         calcPrice.setCutPrice(priceResult.getContext().getCutPrice());
-        if (CollectionUtils.isNotEmpty(priceResult.getContext().getTotalPriceItems())) {
+        if (!CollectionUtils.isEmpty(priceResult.getContext().getTotalPriceItems())) {
             calcPrice.setTotalPriceItems(priceResult.getContext().getTotalPriceItems().stream()
                     .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(priceResult.getContext().getCutPriceItems())) {
+        if (!CollectionUtils.isEmpty(priceResult.getContext().getCutPriceItems())) {
             calcPrice.setCutPriceItems(priceResult.getContext().getCutPriceItems().stream()
                     .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
         }
@@ -410,7 +410,7 @@ public class VendorCartController {
             CartInfoResultVO$Sku.Marketing mkt = new CartInfoResultVO$Sku.Marketing();
             mkt.setMarketingId(view.getMarketingId());
             mkt.setMarketingName(view.getMarketingName());
-            if (CollectionUtils.isNotEmpty(view.getFullReductionLevelList())) {
+            if (!CollectionUtils.isEmpty(view.getFullReductionLevelList())) {
                 //满金额减
                 if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(view.getSubType())) {
                     mkt.setMarketingDesc(view.getFullReductionLevelList().stream().map(item -> "满" + item.getFullAmount() + "减" + item.getReduction()).collect(Collectors.joining(",")));
