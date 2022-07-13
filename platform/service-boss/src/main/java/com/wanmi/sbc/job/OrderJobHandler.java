@@ -14,6 +14,7 @@ import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import com.xxl.job.core.log.XxlJobLogger;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class OrderJobHandler extends IJobHandler {
         int pageNum = 0;
         int pageSize = 100;
         int orderType = 1;
+        String starTime = "";
         try {
             String[] paramterArray = param.split(",");
             pageNum = Integer.parseInt(paramterArray[0]);
@@ -58,8 +60,15 @@ public class OrderJobHandler extends IJobHandler {
             if (paramterArray.length > 2) {
                 orderType = Integer.parseInt(paramterArray[2]);
             }
+            if (paramterArray.length > 3) {
+                starTime = paramterArray[3];
+            }
         } catch (Exception ex) {
+            log.error("OrderJobHandler execute param {} error", param);
+        }
 
+        if (StringUtils.isBlank(starTime)) {
+            starTime = "2022-05-01 00:00:00";
         }
 
 //        //订单自动确认收货
@@ -86,7 +95,7 @@ public class OrderJobHandler extends IJobHandler {
                 .getTradeConfigByType(request).getContext();
         //开关只有开的时候才执行
         if (Integer.valueOf(1).equals(autoReceive)) {
-            tradeSettingProvider.orderAutoReceive(pageNum, pageSize, orderType);
+            tradeSettingProvider.orderAutoReceive(pageNum, pageSize, starTime, orderType);
         }
 
         //退单自动确认收货
