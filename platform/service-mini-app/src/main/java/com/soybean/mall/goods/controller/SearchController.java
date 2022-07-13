@@ -61,9 +61,6 @@ public class SearchController {
     private EsBookListModelProvider esBookListModelProvider;
 
     @Autowired
-    private GoodsBlackListProvider goodsBlackListProvider;
-
-    @Autowired
     private EsSpuNewProvider esSpuNewProvider;
 
     @Autowired

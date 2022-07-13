@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
@@ -56,6 +57,11 @@ public class EsNormalSpuNewService extends AbstractEsSpuNewService{
             } else {
                 boolQueryBuilder.mustNot(termQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds().get(0)));
             }
+        }
+
+        //传递值，0表示非知识顾问商品可以访问
+        if (req.getCpsSpecial() != null && Objects.equals(req.getCpsSpecial(), 0)) {
+            boolQueryBuilder.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));
         }
         return boolQueryBuilder;
     }
