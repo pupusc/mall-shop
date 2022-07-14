@@ -1,5 +1,6 @@
 package com.soybean.mall.goods.response;
 
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -94,6 +95,11 @@ public class SpuNewBookListResp {
      * 促销标签
      */
     private List<MarketingLabel> marketingLabels = new ArrayList<>();
+
+    /**
+     * spu关联的所有sku
+     */
+    private List<GoodsInfoVO> skus = new ArrayList<>();
 
     /**
      * 书单或者榜单信息

@@ -43,9 +43,4 @@ public class PromoteGoodsResultVO {
          */
         private String tipText;
     }
-
-    /**
-     * 总数
-     */
-    private Long total = 0L;
 }
