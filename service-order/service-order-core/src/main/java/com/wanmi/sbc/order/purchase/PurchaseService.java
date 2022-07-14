@@ -2803,11 +2803,11 @@ public class PurchaseService {
                     if (Objects.nonNull(goodsInfo.getGoodsMarketing())) {
                         response.getGoodsMarketings().add(goodsInfo.getGoodsMarketing());
                     } else {
-                        response.getGoodsMarketings().add(
-                                GoodsMarketingVO.builder().goodsInfoId(marketInfo.getGoodsInfoId()).marketingId(marketInfo.getMarketingViewList().get(0).getMarketingId()).build()
-                        );
+                        GoodsMarketingVO mkt = GoodsMarketingVO.builder().goodsInfoId(marketInfo.getGoodsInfoId()).marketingId(marketInfo.getMarketingViewList().get(0).getMarketingId()).build();
+                        response.getGoodsMarketings().add(mkt);
                         if (Objects.nonNull(customer) && goodsInfo.getDelFlag() != DeleteFlag.YES) {
-                            this.modifyGoodsMarketing(marketInfo.getGoodsInfoId(), marketInfo.getMarketingViewList().get(0).getMarketingId(), customer);
+                            this.modifyGoodsMarketing(marketInfo.getGoodsInfoId(), mkt.getMarketingId(), customer);
+                            goodsInfo.setGoodsMarketing(mkt);
                         }
                     }
                     // goodsMarketingMap
