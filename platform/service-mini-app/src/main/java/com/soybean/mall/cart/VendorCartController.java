@@ -683,6 +683,7 @@ public class VendorCartController {
         queryRequest.setContractEndDate(now);
         queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         queryRequest.setGoodsInfoIds(mkt.getMarketingScopeList().stream().map(MarketingScopeVO::getScopeId).collect(Collectors.toList()));
+        queryRequest.setLikeGoodsName(paramVO.getKeyword());
         EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(queryRequest).getContext();
         //返回参数
         PromoteGoodsResultVO result = buildPromoteGoodsResultVO(esGoodsInfoResponse.getEsGoodsInfoPage().getContent(),
@@ -743,6 +744,7 @@ public class VendorCartController {
         esGoodsInfoQueryRequest.setContractEndDate(now);
         esGoodsInfoQueryRequest.setVendibility(Constants.yes);
         esGoodsInfoQueryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        esGoodsInfoQueryRequest.setLikeGoodsName(paramVO.getKeyword());
 
         switch (coupon.getScopeType()) {
             case ALL: break;
@@ -774,10 +776,10 @@ public class VendorCartController {
         //查询商品
         KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
         spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
-        spuParam.setPageNum(pageNum);
-        spuParam.setPageSize(pageSize);
+        spuParam.setPageNum(0);
+        spuParam.setPageSize(100);
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
-        spuParam.setKeyword(keyword);
+        //spuParam.setKeyword(keyword);
         spuParam.setSpuIds(spuIds);
         spuParam.setSpuSortType(sortFlag);
 
