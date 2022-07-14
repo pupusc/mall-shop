@@ -1,5 +1,6 @@
 package com.soybean.mall.cart;
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
@@ -521,7 +522,7 @@ public class VendorCartController {
         Iterator<GoodsInfoVO> iterator = skuVOs.iterator();
         while (iterator.hasNext()) {
             GoodsInfoVO next = iterator.next();
-            if (next.getGoodsMarketing() == null || !next.getGoodsMarketing().getMarketingId().equals(paramVO.getMarketingId())) {
+            if (next.getGoodsMarketing() == null || !paramVO.getMarketingId().equals(next.getGoodsMarketing().getMarketingId())) {
                 iterator.remove();
             }
         }
