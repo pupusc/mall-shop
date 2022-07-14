@@ -787,7 +787,7 @@ public class VendorCartController {
             fitGoodsVO.setStock(sku.getStock());
             fitGoodsVO.setSalesPrice(sku.getSalePrice());
             fitGoodsVO.setMarketPrice(sku.getMarketPrice());
-            fitGoodsVO.setPic(sku.getImageUrl());
+            fitGoodsVO.setPic(sku.getGoodsInfoImg());
             if (!CollectionUtils.isEmpty(sku.getCouponLabels())) {
                 List<SpuNewBookListResp.CouponLabel> cpnLabels = sku.getCouponLabels().stream().map(i -> {
                     SpuNewBookListResp.CouponLabel cpnLabel = new SpuNewBookListResp.CouponLabel();
