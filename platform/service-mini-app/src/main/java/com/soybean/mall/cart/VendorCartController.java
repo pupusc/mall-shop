@@ -9,14 +9,11 @@ import com.soybean.mall.cart.vo.CartInfoResultVO$Marketing;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Sku;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Store;
 import com.soybean.mall.cart.vo.ComposePriceParamVO;
-import com.soybean.mall.cart.vo.CouponGoodsParamVO;
-import com.soybean.mall.cart.vo.MarketingGoodsParamVO;
 import com.soybean.mall.cart.vo.PromoteCouponParamVO;
 import com.soybean.mall.cart.vo.PromoteFitGoodsResultVO;
+import com.soybean.mall.cart.vo.PromoteGoodsParamVO;
 import com.soybean.mall.cart.vo.PromoteGoodsResultVO;
 import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
-import com.soybean.mall.cart.vo.PromoteInfoResultVO$Marketing;
-import com.soybean.mall.cart.vo.PromoteMarketingParamVO;
 import com.soybean.mall.cart.vo.PurchaseInfoParamVO;
 import com.soybean.mall.cart.vo.PurchaseInfoResultVO;
 import com.soybean.mall.cart.vo.PurchasePriceResultVO;
@@ -589,14 +586,6 @@ public class VendorCartController {
     }
 
     /**
-     * 购物车-商品营销列表
-     */
-    @PostMapping(value = "/promoteMarketing")
-    public BaseResponse<List<PromoteInfoResultVO$Marketing>> promoteMarketing(@Valid @RequestBody PromoteMarketingParamVO param) {
-        return null;
-    }
-
-    /**
      * 购物车-商品优惠券列表
      */
     @PostMapping(value = "/promoteCoupon")
@@ -636,10 +625,10 @@ public class VendorCartController {
      * 购物车-凑单商品-活动
      */
     @PostMapping(value = "/marketingGoods")
-    public BusinessResponse<PromoteGoodsResultVO> marketingGoods(@RequestBody @Valid MarketingGoodsParamVO paramVO) {
+    public BusinessResponse<PromoteGoodsResultVO> marketingGoods(@RequestBody @Valid PromoteGoodsParamVO paramVO) {
         //查询营销活动
         MarketingGetByIdRequest mktParam = new MarketingGetByIdRequest();
-        mktParam.setMarketingId(paramVO.getId());
+        mktParam.setMarketingId(Long.valueOf(paramVO.getId()));
         BaseResponse<MarketingGetByIdForCustomerResponse> mktResp = marketingQueryProvider.getByIdForCustomer(mktParam);
         if (mktResp == null || mktResp.getContext() == null || mktResp.getContext().getMarketingForEndVO() == null) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的营销活动不存在");
@@ -665,32 +654,12 @@ public class VendorCartController {
         }
         promoteInfo.setTipText(text);
         promoteInfo.setName(mkt.getMarketingName());
-
-        //List<String> spuIds = mkt.getGoodsList().getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
         //按照h5方式搜索
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
-        queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
-        queryRequest.setStoreState(StoreState.OPENING.toValue());
-        queryRequest.setAddedFlag(AddedFlag.YES.toValue());
-        queryRequest.setDelFlag(DeleteFlag.NO.toValue());
-        queryRequest.setVendibility(Constants.yes);
-        queryRequest.setCateAggFlag(true);
-        queryRequest.setSortFlag(paramVO.getSpuSortType() == null ? 0 : paramVO.getSpuSortType());
-        queryRequest.setPageNum(paramVO.getPageNum()-1);
-        queryRequest.setPageSize(paramVO.getPageSize());
-        String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
-        queryRequest.setContractStartDate(now);
-        queryRequest.setContractEndDate(now);
-        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         queryRequest.setGoodsInfoIds(mkt.getMarketingScopeList().stream().map(MarketingScopeVO::getScopeId).collect(Collectors.toList()));
-        queryRequest.setLikeGoodsName(paramVO.getKeyword());
-        EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(queryRequest).getContext();
-        //返回参数
-        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(esGoodsInfoResponse.getEsGoodsInfoPage().getContent(),
-                paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), queryRequest.getSortFlag());
 
+        PromoteGoodsResultVO result = getPromoteGoodsResultVO(queryRequest, paramVO);
         result.setPromoteInfo(promoteInfo);
-        result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
         return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
     }
 
@@ -698,7 +667,7 @@ public class VendorCartController {
      * 购物车-凑单商品-优惠券
      */
     @PostMapping(value = "/couponGoods")
-    public BaseResponse<PromoteGoodsResultVO> couponGoods(@RequestBody @Valid CouponGoodsParamVO paramVO) {
+    public BaseResponse<PromoteGoodsResultVO> couponGoods(@RequestBody @Valid PromoteGoodsParamVO paramVO) {
         //查询优惠券活动
         CouponInfoDetailByIdRequest couponParam = CouponInfoDetailByIdRequest.builder().couponId(paramVO.getId()).build();
         BaseResponse<CouponInfoDetailByIdResponse> couponResp = couponInfoQueryProvider.getDetailById(couponParam);
@@ -731,21 +700,6 @@ public class VendorCartController {
         promoteInfo.setName(coupon.getCouponName());
         //通过ES搜索优惠券适用商品
         EsGoodsInfoQueryRequest esGoodsInfoQueryRequest = new EsGoodsInfoQueryRequest();
-        esGoodsInfoQueryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
-        esGoodsInfoQueryRequest.setStoreState(StoreState.OPENING.toValue());
-        esGoodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
-        esGoodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-        esGoodsInfoQueryRequest.setSortFlag(paramVO.getSpuSortType() == null ? 0 : paramVO.getSpuSortType());
-        esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum()-1);
-        esGoodsInfoQueryRequest.setPageSize(paramVO.getPageSize());
-        esGoodsInfoQueryRequest.setCateAggFlag(true);
-        String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
-        esGoodsInfoQueryRequest.setContractStartDate(now);
-        esGoodsInfoQueryRequest.setContractEndDate(now);
-        esGoodsInfoQueryRequest.setVendibility(Constants.yes);
-        esGoodsInfoQueryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
-        esGoodsInfoQueryRequest.setLikeGoodsName(paramVO.getKeyword());
-
         switch (coupon.getScopeType()) {
             case ALL: break;
             case BOSS_CATE: esGoodsInfoQueryRequest.setCateIds(coupon.getScopeIds().stream().map(i->Long.valueOf(i)).collect(Collectors.toList())); break;
@@ -755,19 +709,33 @@ public class VendorCartController {
             default: break;
         }
 
-        EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(esGoodsInfoQueryRequest).getContext();
-        PromoteGoodsResultVO result = buildPromoteGoodsResultVO(esGoodsInfoResponse.getEsGoodsInfoPage().getContent(),
-                paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), esGoodsInfoQueryRequest.getSortFlag());
-
+        PromoteGoodsResultVO result = getPromoteGoodsResultVO(esGoodsInfoQueryRequest, paramVO);
         result.setPromoteInfo(promoteInfo);
-        result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
         return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
     }
 
-    private PromoteGoodsResultVO buildPromoteGoodsResultVO(List<EsGoodsInfoVO> goodsInfoVOs, Integer pageNum, Integer pageSize, String keyword, Integer sortFlag) {
+    private PromoteGoodsResultVO getPromoteGoodsResultVO(EsGoodsInfoQueryRequest esGoodsInfoQueryRequest, PromoteGoodsParamVO paramVO) {
+
+        esGoodsInfoQueryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
+        esGoodsInfoQueryRequest.setStoreState(StoreState.OPENING.toValue());
+        esGoodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+        esGoodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        esGoodsInfoQueryRequest.setVendibility(Constants.yes);
+        esGoodsInfoQueryRequest.setCateAggFlag(true);
+        esGoodsInfoQueryRequest.setSortFlag(paramVO.convertSortType());
+        esGoodsInfoQueryRequest.setPageNum(paramVO.getPageNum()-1);
+        esGoodsInfoQueryRequest.setPageSize(paramVO.getPageSize());
+        String now = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4);
+        esGoodsInfoQueryRequest.setContractStartDate(now);
+        esGoodsInfoQueryRequest.setContractEndDate(now);
+
+        esGoodsInfoQueryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        esGoodsInfoQueryRequest.setLikeGoodsName(paramVO.getKeyword());
+
+        EsGoodsInfoResponse esGoodsInfoResponse = esGoodsInfoElasticQueryProvider.page(esGoodsInfoQueryRequest).getContext();
+        List<EsGoodsInfoVO> goodsInfoVOs = esGoodsInfoResponse.getEsGoodsInfoPage().getContent();
         List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
 
-        //返回参数
         PromoteGoodsResultVO result = new PromoteGoodsResultVO();
         if (CollectionUtils.isEmpty(spuIds)) {
             return result;
@@ -779,9 +747,7 @@ public class VendorCartController {
         spuParam.setPageNum(0);
         spuParam.setPageSize(100);
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
-        //spuParam.setKeyword(keyword);
         spuParam.setSpuIds(spuIds);
-        spuParam.setSpuSortType(sortFlag);
 
         //获取客户信息
         CustomerGetByIdResponse customer = null;
@@ -800,13 +766,6 @@ public class VendorCartController {
         Map<String, GoodsInfoVO> skuId2sku = spuNewBookListResps.stream().flatMap(i->i.getSkus().stream()).collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i->i));
 
         List<PromoteFitGoodsResultVO> fitGoods = new ArrayList<>();
-
-//        spuNewBookListResps.stream().map(item -> {
-//            PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
-//            BeanUtils.copyProperties(item, fitGoodsVO);
-//            return fitGoodsVO;
-//        }).collect(Collectors.toList());
-
         for (EsGoodsInfoVO goodsInfo : goodsInfoVOs) {
             String skuId = goodsInfo.getGoodsInfo().getGoodsInfoId();
             GoodsInfoVO sku = skuId2sku.get(skuId);
@@ -847,6 +806,7 @@ public class VendorCartController {
             }
         }
         result.setFitGoods(fitGoods);
+        result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
         //计算购物车价格
         result.setCalcPrice(handCart4FitGoods(fitGoods, commonUtil.getCustomer()));
         //处理商品规格
@@ -866,6 +826,109 @@ public class VendorCartController {
         }
         return result;
     }
+
+//    private PromoteGoodsResultVO buildPromoteGoodsResultVO2(List<EsGoodsInfoVO> goodsInfoVOs, Integer pageNum, Integer pageSize, String keyword, Integer sortFlag) {
+//        List<String> spuIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+//
+//        //返回参数
+//        PromoteGoodsResultVO result = new PromoteGoodsResultVO();
+//        if (CollectionUtils.isEmpty(spuIds)) {
+//            return result;
+//        }
+//
+//        //查询商品
+//        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
+//        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
+//        spuParam.setPageNum(0);
+//        spuParam.setPageSize(100);
+//        spuParam.setDelFlag(DeleteFlag.NO.toValue());
+//        //spuParam.setKeyword(keyword);
+//        spuParam.setSpuIds(spuIds);
+//        spuParam.setSpuSortType(sortFlag);
+//
+//        //获取客户信息
+//        CustomerGetByIdResponse customer = null;
+//        String userId = commonUtil.getOperatorId();
+//        if (StringUtils.isNotBlank(userId)) {
+//            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+//        }
+//
+//        //走搜索路线
+//        spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+//        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext(); //查询spu信息
+//        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent(), customer, true);
+//
+//        //搜素的结果，fenbie按照spu以及sku的主键映射结构
+//        Map<String, SpuNewBookListResp> spuId2spu = spuNewBookListResps.stream().collect(Collectors.toMap(SpuNewBookListResp::getSpuId, i->i));
+//        Map<String, GoodsInfoVO> skuId2sku = spuNewBookListResps.stream().flatMap(i->i.getSkus().stream()).collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i->i));
+//
+//        List<PromoteFitGoodsResultVO> fitGoods = new ArrayList<>();
+//
+////        spuNewBookListResps.stream().map(item -> {
+////            PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
+////            BeanUtils.copyProperties(item, fitGoodsVO);
+////            return fitGoodsVO;
+////        }).collect(Collectors.toList());
+//
+//        for (EsGoodsInfoVO goodsInfo : goodsInfoVOs) {
+//            String skuId = goodsInfo.getGoodsInfo().getGoodsInfoId();
+//            GoodsInfoVO sku = skuId2sku.get(skuId);
+//            SpuNewBookListResp spu = spuId2spu.get(goodsInfo.getGoodsId());
+//            if (sku == null || spu == null) {
+//                log.error("凑单商品的基础信息没有找到，sku={}, spu={}", JSON.toJSONString(sku), JSON.toJSONString(spu));
+//                continue;
+//                //throw new SbcRuntimeException(CommonErrorCode.FAILED, "适用商品的信息没有找到， skuId=" + skuId);
+//            }
+//
+//            PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
+//            BeanUtils.copyProperties(spu, fitGoodsVO);
+//            fitGoods.add(fitGoodsVO);
+//
+//            if (skuId.equals(spu.getSkuId())) {
+//                continue;
+//            }
+//            fitGoodsVO.setSkuId(skuId);
+//            fitGoodsVO.setStock(sku.getStock());
+//            fitGoodsVO.setSalesPrice(sku.getSalePrice());
+//            fitGoodsVO.setMarketPrice(sku.getMarketPrice());
+//            fitGoodsVO.setPic(sku.getImageUrl());
+//            if (!CollectionUtils.isEmpty(sku.getCouponLabels())) {
+//                List<SpuNewBookListResp.CouponLabel> cpnLabels = sku.getCouponLabels().stream().map(i -> {
+//                    SpuNewBookListResp.CouponLabel cpnLabel = new SpuNewBookListResp.CouponLabel();
+//                    BeanUtils.copyProperties(i, cpnLabel);
+//                    return cpnLabel;
+//                }).collect(Collectors.toList());
+//                fitGoodsVO.setCouponLabels(cpnLabels);
+//            }
+//            if (!CollectionUtils.isEmpty(sku.getMarketingLabels())) {
+//                List<SpuNewBookListResp.MarketingLabel> mktLabels = sku.getMarketingLabels().stream().map(i -> {
+//                    SpuNewBookListResp.MarketingLabel mktLable = new SpuNewBookListResp.MarketingLabel();
+//                    BeanUtils.copyProperties(i, mktLable);
+//                    return mktLable;
+//                }).collect(Collectors.toList());
+//                fitGoodsVO.setMarketingLabels(mktLabels);
+//            }
+//        }
+//        result.setFitGoods(fitGoods);
+//        //计算购物车价格
+//        result.setCalcPrice(handCart4FitGoods(fitGoods, commonUtil.getCustomer()));
+//        //处理商品规格
+//        BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> specResp =
+//                goodsInfoSpecDetailRelQueryProvider.listBySpuIds(new GoodsInfoSpecDetailRelBySpuIdsRequest(spuIds));
+//        if (specResp.getContext() != null) {
+//            Map<String, List<GoodsInfoSpecDetailRelVO>> spuidGroup =
+//                    specResp.getContext().getGoodsInfoSpecDetailRelVOList().stream().collect(Collectors.groupingBy(GoodsInfoSpecDetailRelVO::getGoodsId));
+//            for (PromoteFitGoodsResultVO fitGood : fitGoods) {
+//                List<GoodsInfoSpecDetailRelVO> specs = spuidGroup.get(fitGood.getSpuId());
+//                if (specs == null) {
+//                    continue;
+//                }
+//                fitGood.setSpecMore(specs.size() > 1);
+//                fitGood.setSpecText(specs.stream().filter(item->fitGood.getSkuId().equals(item.getGoodsInfoId())).map(item->item.getDetailName()).collect(Collectors.joining(",")));
+//            }
+//        }
+//        return result;
+//    }
 
     private PurchasePriceResultVO handCart4FitGoods(List<PromoteFitGoodsResultVO> fitGoods, CustomerVO customer) {
         //统一查询购物车内容

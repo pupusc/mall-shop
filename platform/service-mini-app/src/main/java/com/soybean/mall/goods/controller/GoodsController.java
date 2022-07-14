@@ -10,6 +10,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
@@ -19,12 +20,16 @@ import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponInfoDetailByIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.MarketingGetByIdRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoDetailByIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingGetByIdForCustomerResponse;
 import com.wanmi.sbc.marketing.bean.vo.CouponGoodsVO;
@@ -41,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -63,6 +67,8 @@ public class GoodsController {
     private MarketingQueryProvider marketingQueryProvider;
     @Autowired
     private CouponInfoQueryProvider couponInfoQueryProvider;
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
 
     /**
      * @description 商品详情页
@@ -127,13 +133,10 @@ public class GoodsController {
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的营销活动不存在");
             }
             MarketingForEndVO mkt = mktResp.getContext().getMarketingForEndVO();
-            List<String> mktSkuIds = new ArrayList<>();
             if (mkt.getGoodsList() != null && mkt.getGoodsList().getGoodsInfos() != null) {
-                for (GoodsInfoVO goodsInfo : mkt.getGoodsList().getGoodsInfos()) {
-                    mktSkuIds.add(goodsInfo.getGoodsInfoId());
-                }
+                List<String> mktSkuIds = mkt.getGoodsList().getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+                goodsInfoVOList = goodsInfoVOList.stream().filter(item -> mktSkuIds.contains(item.getGoodsInfoId())).collect(Collectors.toList());
             }
-            goodsInfoVOList = goodsInfoVOList.stream().filter(item->mktSkuIds.contains(item.getGoodsInfoId())).collect(Collectors.toList());
         }
         //过滤优惠券活动下的sku
         if (Objects.nonNull(paramVO.getCouponId())) {
@@ -144,16 +147,26 @@ public class GoodsController {
                 log.warn("没有找到对应的优惠券活动：couponId={}", paramVO.getCouponId());
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的优惠券信息不存在");
             }
-            List<String> mktSkuIds = new ArrayList<>();
             CouponGoodsVO goodsVO = couponResp.getContext().getGoodsList();
             if (goodsVO != null && goodsVO.getGoodsInfos() != null) {
-                for (GoodsInfoVO goodsInfo : goodsVO.getGoodsInfos()) {
-                    mktSkuIds.add(goodsInfo.getGoodsInfoId());
-                }
+                List<String> mktSkuIds = goodsVO.getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+                goodsInfoVOList = goodsInfoVOList.stream().filter(item->mktSkuIds.contains(item.getGoodsInfoId())).collect(Collectors.toList());
             }
-            goodsInfoVOList = goodsInfoVOList.stream().filter(item->mktSkuIds.contains(item.getGoodsInfoId())).collect(Collectors.toList());
         }
-
+        //处理会员价
+        if (CollectionUtils.isNotEmpty(goodsInfoVOList)) {
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            List<GoodsInfoDTO> goodsInfoDTOS = goodsInfoVOList.stream().map(goodsInfo-> {
+                GoodsInfoDTO goodsInfoDTO = KsBeanUtil.convert(goodsInfo, GoodsInfoDTO.class);
+                goodsInfoDTO.setPriceType(GoodsPriceType.MARKET.toValue()); //此处强制设置为市场价来计算折扣
+                return goodsInfoDTO;
+            }).collect(Collectors.toList());
+            filterRequest.setGoodsInfos(goodsInfoDTOS);
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            }
+            goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+        }
         SpuSpecsResultVO result = new SpuSpecsResultVO();
         result.setGoodsInfos(goodsInfoVOList);
         result.setGoodsSpecs(response.getGoodsSpecs());

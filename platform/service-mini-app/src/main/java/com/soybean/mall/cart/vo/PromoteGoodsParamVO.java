@@ -2,20 +2,19 @@ package com.soybean.mall.cart.vo;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 /**
  * @author Liang Jun
  * @date 2022-06-20 19:39:00
  */
 @Data
-public class MarketingGoodsParamVO {
+public class PromoteGoodsParamVO {
     /**
-     * 活动id
+     * 活动id或优惠券id
      */
-    @NotNull
-    private Long id;
-
+    @NotBlank
+    private String id;
     /**
      * 搜索关键词
      */

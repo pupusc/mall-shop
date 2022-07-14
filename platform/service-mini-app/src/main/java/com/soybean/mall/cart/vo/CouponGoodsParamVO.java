@@ -31,4 +31,19 @@ public class CouponGoodsParamVO {
      * 排序类型 0 默认
      */
     private Integer spuSortType = 0;
+
+    public Integer convertSortType() {
+        if (this.spuSortType == null) {
+            return 0;
+        }
+        switch (spuSortType) {
+            case 0 : return 0;
+            case 1 : return 5;
+            case 2 : return 1;
+            case 3 : return 6;
+            case 4 : return 2;
+            case 5 : return 3;
+        }
+        return spuSortType;
+    }
 }
