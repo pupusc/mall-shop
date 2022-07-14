@@ -689,7 +689,7 @@ public class VendorCartController {
                 paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), queryRequest.getSortFlag());
 
         result.setPromoteInfo(promoteInfo);
-        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), (int)esGoodsInfoResponse.getEsGoodsInfoPage().getTotal()));
     }
 
     /**
