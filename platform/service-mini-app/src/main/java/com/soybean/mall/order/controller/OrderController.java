@@ -846,7 +846,8 @@ public class OrderController {
         }
 
         List<TradeMarketingDTO> marketings = paramVO.getMarketings().stream()
-                .filter(i->Objects.nonNull(i.getMarketingId()) && i.getMarketingId()>0)
+                //小程序购物车暂时只支持满减和满折营销活动
+                .filter(i->Objects.nonNull(i.getMarketingId()) && i.getMarketingId()>0 && Objects.nonNull(i.getMarketingLevelId()) && i.getMarketingLevelId()>0)
                 .map(item-> {
                     TradeMarketingDTO mktDTO = new TradeMarketingDTO();
                     mktDTO.setMarketingId(item.getMarketingId());
