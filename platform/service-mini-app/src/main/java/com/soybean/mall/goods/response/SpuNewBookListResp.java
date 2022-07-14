@@ -54,6 +54,11 @@ public class SpuNewBookListResp {
     private String anchorRecomName;
 
     /**
+     * 显示标签(当前只有栏目中有设置)
+     */
+    private String spuTag;
+
+    /**
      * 商品主图
      */
     private String pic;
@@ -278,5 +283,6 @@ public class SpuNewBookListResp {
          * 活动展示
          */
         private String activityShow;
+
     }
 }

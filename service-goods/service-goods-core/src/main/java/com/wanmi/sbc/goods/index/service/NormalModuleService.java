@@ -67,7 +67,6 @@ public class NormalModuleService {
         normalModule.setEndTime(normalModuleReq.getEndTime());
         normalModule.setModelCategory(normalModuleReq.getModelCategory());
         normalModule.setPublishState(PublishState.NOT_ENABLE.toValue());
-        normalModule.setModelTag(normalModuleReq.getModelTag());
         normalModule.setCreateTime(LocalDateTime.now());
         normalModule.setUpdateTime(LocalDateTime.now());
         normalModule.setDelFlag(DeleteFlag.NO);
@@ -86,6 +85,7 @@ public class NormalModuleService {
             normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
             normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
             normalModuleSku.setSortNum(sortNum++);
+            normalModuleSku.setSkuTag(normalModuleSkuReq.getSkuTag());
             normalModuleSku.setCreateTime(LocalDateTime.now());
             normalModuleSku.setUpdateTime(LocalDateTime.now());
             normalModuleSku.setDelFlag(DeleteFlag.NO);
@@ -126,9 +126,6 @@ public class NormalModuleService {
         if (normalModuleReq.getEndTime() != null) {
             normalModule.setEndTime(normalModuleReq.getEndTime());
         }
-        if (StringUtils.isNotBlank(normalModuleReq.getModelTag())) {
-            normalModule.setModelTag(normalModuleReq.getModelTag());
-        }
         normalModule.setUpdateTime(now);
         normalModuleRepository.save(normalModule);
 
@@ -161,6 +158,7 @@ public class NormalModuleService {
             normalModuleSku.setSpuId(normalModuleSkuReq.getSpuId());
             normalModuleSku.setSpuNo(normalModuleSkuReq.getSpuNo());
             normalModuleSku.setSortNum(sortNum++);
+            normalModuleSku.setSkuTag(normalModuleSkuReq.getSkuTag());
             normalModuleSku.setCreateTime(now);
             normalModuleSku.setUpdateTime(now);
             normalModuleSku.setDelFlag(DeleteFlag.NO);
@@ -196,7 +194,6 @@ public class NormalModuleService {
             } else {
                 normalModuleResp.setStatus(StateEnum.AFTER.getCode());
             }
-            normalModuleResp.setModelTag(normalModule.getModelTag());
             result.add(normalModuleResp);
         }
         return new CommonPageResp<>(normalModulePage.getTotalElements(), result);
@@ -238,6 +235,7 @@ public class NormalModuleService {
             normalModuleSkuResp.setSpuId(moduleSku.getSpuId());
             normalModuleSkuResp.setSpuNo(moduleSku.getSpuNo());
             normalModuleSkuResp.setSortNum(moduleSku.getSortNum());
+            normalModuleSkuResp.setSkuTag(moduleSku.getSkuTag());
             result.add(normalModuleSkuResp);
         }
         return result;

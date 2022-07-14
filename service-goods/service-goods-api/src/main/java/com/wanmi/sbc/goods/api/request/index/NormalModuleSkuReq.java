@@ -30,4 +30,9 @@ public class NormalModuleSkuReq {
     @NotBlank
     private String spuNo;
 
+    /**
+     * 标签名称
+     */
+    @NotBlank
+    private String skuTag;
 }

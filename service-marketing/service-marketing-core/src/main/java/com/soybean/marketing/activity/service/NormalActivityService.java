@@ -13,7 +13,6 @@ import com.soybean.marketing.api.req.NormalActivityReq;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
-import com.wanmi.sbc.goods.api.request.index.NormalModuleSearchReq;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

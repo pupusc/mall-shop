@@ -63,4 +63,10 @@ public class GoodsBlackListPageProviderResponse implements Serializable {
      * 下单不使用优惠券
      */
     private BlackListCategoryProviderResponse unUseCouponBlackListModel;
+
+
+    /*
+     * 下单不返还积分客户
+     */
+    private BlackListCategoryProviderResponse unBackPointAfterPayBlackListModel;
 }

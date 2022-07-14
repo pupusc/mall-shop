@@ -45,4 +45,9 @@ public class NormalModuleSkuResp {
      * 排序数
      */
     private Integer sortNum;
+
+    /**
+     * 标签值
+     */
+    private String skuTag;
 }

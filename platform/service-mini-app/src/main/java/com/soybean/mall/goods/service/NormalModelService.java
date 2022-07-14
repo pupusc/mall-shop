@@ -129,6 +129,7 @@ public class NormalModelService {
             }
             Boolean isExists = spuId2ExistsMap.get(normalModuleSkuResp.getSpuId());
             if (isExists == null) {
+                spuNewBookListResp.setSpuTag(normalModuleSkuResp.getSkuTag());
                 result.add(spuNewBookListResp);
                 spuId2ExistsMap.put(normalModuleSkuResp.getSpuId(), true);
             }

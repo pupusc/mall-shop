@@ -65,6 +65,12 @@ public class NormalModuleSku {
     private Integer sortNum;
 
     /**
+     * 标签值
+     */
+    @Column(name = "sku_tag")
+    private String skuTag;
+
+    /**
      * 创建时间
      */
     @Column(name = "create_time")

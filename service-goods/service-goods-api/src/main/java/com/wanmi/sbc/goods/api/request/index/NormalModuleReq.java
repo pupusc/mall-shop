@@ -46,14 +46,7 @@ public class NormalModuleReq {
     /**
      * 模块分类 {@link com.wanmi.sbc.goods.api.enums.NormalModuleCategoryEnum}
      */
-    @NotNull
     private Integer modelCategory;
-
-
-    /**
-     * 标签名称
-     */
-    private String modelTag;
 
 
     @NotNull

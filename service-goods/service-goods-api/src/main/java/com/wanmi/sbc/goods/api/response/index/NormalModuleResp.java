@@ -53,9 +53,4 @@ public class NormalModuleResp {
      */
     private Integer status;
 
-
-    /**
-     * 标签名称
-     */
-    private String modelTag;
 }
