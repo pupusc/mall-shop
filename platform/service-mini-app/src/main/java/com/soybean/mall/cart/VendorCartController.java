@@ -689,7 +689,8 @@ public class VendorCartController {
                 paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), queryRequest.getSortFlag());
 
         result.setPromoteInfo(promoteInfo);
-        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), (int)esGoodsInfoResponse.getEsGoodsInfoPage().getTotal()));
+        result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
     }
 
     /**
@@ -757,7 +758,8 @@ public class VendorCartController {
                 paramVO.getPageNum(), paramVO.getPageSize(), paramVO.getKeyword(), esGoodsInfoQueryRequest.getSortFlag());
 
         result.setPromoteInfo(promoteInfo);
-        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), (int)esGoodsInfoResponse.getEsGoodsInfoPage().getTotal()));
+        result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), result.getTotal().intValue()));
     }
 
     private PromoteGoodsResultVO buildPromoteGoodsResultVO(List<EsGoodsInfoVO> goodsInfoVOs, Integer pageNum, Integer pageSize, String keyword, Integer sortFlag) {
@@ -808,8 +810,9 @@ public class VendorCartController {
             GoodsInfoVO sku = skuId2sku.get(skuId);
             SpuNewBookListResp spu = spuId2spu.get(goodsInfo.getGoodsId());
             if (sku == null || spu == null) {
-                log.warn("凑单商品的基础信息没有找到，sku={}, spu={}", JSON.toJSONString(sku), JSON.toJSONString(spu));
-                throw new SbcRuntimeException(CommonErrorCode.FAILED, "适用商品的信息没有找到， skuId=" + skuId);
+                log.error("凑单商品的基础信息没有找到，sku={}, spu={}", JSON.toJSONString(sku), JSON.toJSONString(spu));
+                continue;
+                //throw new SbcRuntimeException(CommonErrorCode.FAILED, "适用商品的信息没有找到， skuId=" + skuId);
             }
 
             PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
