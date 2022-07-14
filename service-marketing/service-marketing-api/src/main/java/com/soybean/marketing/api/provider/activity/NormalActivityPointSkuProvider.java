@@ -74,10 +74,10 @@ public interface NormalActivityPointSkuProvider {
 
     /**
      *
-     * 根据商品反查活动
+     * 根据商品反查进行中的活动
      * @param spuNormalActivityReq
      * @return
      */
-    @PostMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/listSpuNormalActivity")
-    BaseResponse<List<SkuNormalActivityResp>> listSpuNormalActivity(@RequestBody SpuNormalActivityReq spuNormalActivityReq);
+    @PostMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/listSpuRunningNormalActivity")
+    BaseResponse<List<SkuNormalActivityResp>> listSpuRunningNormalActivity(@RequestBody SpuNormalActivityReq spuNormalActivityReq);
 }

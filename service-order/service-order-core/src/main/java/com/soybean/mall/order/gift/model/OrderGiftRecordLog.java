@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.index.model;
+package com.soybean.mall.order.gift.model;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import lombok.Data;
@@ -15,13 +15,14 @@ import java.time.LocalDateTime;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/11 2:06 上午
+ * Date       : 2022/7/13 8:12 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Table(name = "t_normal_model_sku")
 @Data
 @Entity
-public class NormalModuleSku {
+@Table(name = "t_order_gift_record_log")
+public class OrderGiftRecordLog {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,40 +30,41 @@ public class NormalModuleSku {
     private Integer id;
 
     /**
-     * normalModelId
+     * 客户id
      */
-    @Column(name = "normal_model_id")
-    private Integer normalModelId;
+    @Column(name = "customer_id")
+    private String customerId;
+
 
     /**
-     * SkuId
+     * 订单id
      */
-    @Column(name = "sku_id")
-    private String skuId;
+    @Column(name = "order_id")
+    private String orderId;
 
     /**
-     * SkuNo
+     * 活动id
      */
-    @Column(name = "sku_no")
-    private String skuNo;
+    @Column(name = "activity_id")
+    private String activityId;
 
     /**
-     * SpuId
+     * 记录表id
      */
-    @Column(name = "spu_id")
-    private String SpuId;
+    @Column(name = "record_id")
+    private Integer recordId;
 
     /**
-     * spuNo
+     * 记录状态 0、创建 1 锁定 2 成功 3 普通取消 4 黑名单取消
      */
-    @Column(name = "spu_no")
-    private String spuNo;
+    @Column(name = "record_status")
+    private Integer recordStatus;
 
     /**
-     * 排序数
+     * 备注信息
      */
-    @Column(name = "sort_num")
-    private Integer sortNum;
+    @Column(name = "remark")
+    private String remark;
 
     /**
      * 创建时间

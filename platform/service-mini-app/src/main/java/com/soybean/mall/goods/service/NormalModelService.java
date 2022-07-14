@@ -84,7 +84,10 @@ public class NormalModelService {
     }
 
 
-    //获取栏目信息
+    /**
+     * 获取栏目信息
+     * @return
+     */
     public HomeSpuTopicResp<HomeTitleResp, List<SpuNewBookListResp>> homeSpuTopic() {
         Map<String, HomeTitleResp> homeTopicMap = this.getHomeTitle();
         HomeTitleResp homeTitleResp = homeTopicMap.get(IndexModuleEnum.SPU_TOPIC.getCode());

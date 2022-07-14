@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.index.model;
+package com.soybean.mall.order.gift.model;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import lombok.Data;
@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/11 2:06 上午
+ * Date       : 2022/7/13 8:02 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Table(name = "t_normal_model_sku")
 @Data
 @Entity
-public class NormalModuleSku {
+@Table(name = "t_order_gift_record")
+public class OrderGiftRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,40 +29,59 @@ public class NormalModuleSku {
     private Integer id;
 
     /**
-     * normalModelId
+     * 名称
      */
-    @Column(name = "normal_model_id")
-    private Integer normalModelId;
+    @Column(name = "name")
+    private String name;
 
     /**
-     * SkuId
+     * 客户id
      */
-    @Column(name = "sku_id")
-    private String skuId;
+    @Column(name = "customer_id")
+    private String customerId;
+
 
     /**
-     * SkuNo
+     * 订单id
      */
-    @Column(name = "sku_no")
-    private String skuNo;
+    @Column(name = "order_id")
+    private String orderId;
 
     /**
-     * SpuId
+     * 活动id
      */
-    @Column(name = "spu_id")
-    private String SpuId;
+    @Column(name = "activity_id")
+    private String activityId;
 
     /**
-     * spuNo
+     * 份数
      */
-    @Column(name = "spu_no")
-    private String spuNo;
+    @Column(name = "per")
+    private Integer per;
 
     /**
-     * 排序数
+     * 外部引用id
      */
-    @Column(name = "sort_num")
-    private Integer sortNum;
+    @Column(name = "quote_id")
+    private String quoteId;
+
+    /**
+     * 外部引用表名称
+     */
+    @Column(name = "quoteName")
+    private String quoteName;
+
+    /**
+     * 记录分类 1 返积分活动
+     */
+    @Column(name = "record_category")
+    private Integer recordCategory;
+
+    /**
+     * 记录状态 0、创建 1 锁定 2 成功 3 普通取消 4 黑名单取消
+     */
+    @Column(name = "record_status")
+    private Integer recordStatus;
 
     /**
      * 创建时间
@@ -81,4 +100,5 @@ public class NormalModuleSku {
      */
     @Column(name = "del_flag")
     private DeleteFlag delFlag;
+
 }

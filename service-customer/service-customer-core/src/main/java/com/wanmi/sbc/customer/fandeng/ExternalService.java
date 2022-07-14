@@ -206,6 +206,11 @@ public class ExternalService {
     public static final String MATERIAL_CHENCK_URL = "/file/image/uploadWithVerify";
 
     /**
+     * 积分增减
+     */
+    public static final String POINT_CHANGE_URL = "/point/change";
+
+    /**
      * 调用樊登接口公共参数
      */
     public static final String PARAMETER = "?appid=%s&sign=%s&access_token=%s";
@@ -943,8 +948,25 @@ public class ExternalService {
         String body = JSON.toJSONString(request);
         String jointUrlString  = jointUrl(INVOICE_CREATE_URL + PARAMETER, body);
 
-        String result = getUrl(jointUrlString,
-                body);
+        String result = getUrl(jointUrlString, body);
+        JSONObject object = JSONObject.parseObject(body);
+        String code = (String) object.get("status");
+        if (code == null || (code != null && code.equals("0000"))) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        throw  new SbcRuntimeException("K-120801", (String) object.get("msg"));
+    }
+
+    /**
+     * 新增/减少 积分
+     * @param req
+     * @return
+     */
+    public BaseResponse changePoint(FanDengAddPointReq req) {
+        req.setChangeSource(12); //强制设置为商城来源
+        String body = JSON.toJSONString(req);
+        String jointUrlString  = jointUrl(POINT_CHANGE_URL + PARAMETER, body);
+        String result = getUrl(jointUrlString, body);
         JSONObject object = JSONObject.parseObject(body);
         String code = (String) object.get("status");
         if (code == null || (code != null && code.equals("0000"))) {

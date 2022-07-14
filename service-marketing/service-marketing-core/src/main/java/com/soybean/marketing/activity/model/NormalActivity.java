@@ -5,7 +5,6 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -82,6 +81,5 @@ public class NormalActivity {
      * 是否删除
      */
     @Column(name = "del_flag")
-    @Enumerated
     private DeleteFlag delFlag;
 }

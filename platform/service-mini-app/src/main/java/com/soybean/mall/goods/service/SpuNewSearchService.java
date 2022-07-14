@@ -203,7 +203,7 @@ public class SpuNewSearchService {
         SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
         spuNormalActivityReq.setSpuIds(spuIdList);
         spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
-        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuNormalActivity(spuNormalActivityReq).getContext();
+        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
             SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(skuNormalActivityRespParam.getSpuId());
             if (skuNormalActivityResp == null) {

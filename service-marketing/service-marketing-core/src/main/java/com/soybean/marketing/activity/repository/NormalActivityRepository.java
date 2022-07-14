@@ -31,6 +31,9 @@ public interface NormalActivityRepository extends JpaRepository<NormalActivity, 
             if (searchReq.getPublishState() != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("publishState"), searchReq.getPublishState()));
             }
+            if (CollectionUtils.isNotEmpty(searchReq.getChannelTypes())) {
+                conditionList.add(root.get("channelType").in(searchReq.getChannelTypes()));
+            }
             if (searchReq.getBeginTime() != null) {
                 conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), searchReq.getBeginTime()));
             }

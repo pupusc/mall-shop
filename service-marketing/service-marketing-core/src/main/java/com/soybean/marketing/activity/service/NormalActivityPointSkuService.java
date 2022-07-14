@@ -232,7 +232,7 @@ public class NormalActivityPointSkuService extends NormalActivityService {
      * @param spuNormalActivityReq
      * @return
      */
-    public List<SkuNormalActivityResp> listSpuNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
+    public List<SkuNormalActivityResp> listSpuRunningNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
         if (CollectionUtils.isEmpty(spuNormalActivityReq.getSpuIds()) && CollectionUtils.isEmpty(spuNormalActivityReq.getSkuIds())) {
             return new ArrayList<>();
         }

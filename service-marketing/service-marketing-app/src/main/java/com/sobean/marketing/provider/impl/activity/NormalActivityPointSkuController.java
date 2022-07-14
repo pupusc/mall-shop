@@ -62,7 +62,7 @@ public class NormalActivityPointSkuController implements NormalActivityPointSkuP
 
 
     @Override
-    public BaseResponse<List<SkuNormalActivityResp>> listSpuNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
-        return BaseResponse.success(normalActivityPointSkuService.listSpuNormalActivity(spuNormalActivityReq));
+    public BaseResponse<List<SkuNormalActivityResp>> listSpuRunningNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
+        return BaseResponse.success(normalActivityPointSkuService.listSpuRunningNormalActivity(spuNormalActivityReq));
     }
 }
