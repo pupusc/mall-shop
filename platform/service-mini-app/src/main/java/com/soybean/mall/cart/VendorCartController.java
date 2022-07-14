@@ -278,7 +278,7 @@ public class VendorCartController {
         //满足营销活动的levelId
         if (!CollectionUtils.isEmpty(priceResult.getTradeMkts())) {
             Map<Long, Long> mktId2mktLevelId = priceResult.getTradeMkts().stream().collect(Collectors.toMap(i -> i.getMktId(), i -> i.getMktLevelId()));
-            resultVO.getMarketings().forEach(mkt-> mkt.setMarketingLvelId(mktId2mktLevelId.get(mkt.getMarketingId())));
+            resultVO.getMarketings().forEach(mkt-> mkt.setMarketingLevelId(mktId2mktLevelId.get(mkt.getMarketingId())));
         }
         //会员信息
         resultVO.setVipInfo(vipInfo(customer.getCustomerId()));
