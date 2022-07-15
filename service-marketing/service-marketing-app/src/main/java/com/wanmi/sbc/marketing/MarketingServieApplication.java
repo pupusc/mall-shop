@@ -27,7 +27,7 @@ import java.net.InetAddress;
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.marketing"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall", "com.soybean.marketing"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @ImportResource(locations = {"classpath:spring-plugin.xml"})
 @EnableJpaAuditing

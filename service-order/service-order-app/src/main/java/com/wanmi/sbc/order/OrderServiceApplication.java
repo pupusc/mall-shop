@@ -19,17 +19,17 @@ import java.net.InetAddress;
 
 
 
-@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc","com.soybean.mall"})
+@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc","com.soybean"})
 
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @EnableJpaAuditing
 @EnableCaching
-@EnableJpaRepositories(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
-@EntityScan(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@EnableJpaRepositories(basePackages = {"com.wanmi.sbc", "com.soybean"})
+@EntityScan(basePackages = {"com.wanmi.sbc", "com.soybean"})
 public class OrderServiceApplication {
 
     public static void main(String[] args) throws Exception {

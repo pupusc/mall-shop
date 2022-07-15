@@ -1,4 +1,4 @@
-package com.sobean.marketing.provider.impl.activity;
+package com.soybean.marketing.provider.impl.activity;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.marketing.activity.service.NormalActivityPointSkuService;

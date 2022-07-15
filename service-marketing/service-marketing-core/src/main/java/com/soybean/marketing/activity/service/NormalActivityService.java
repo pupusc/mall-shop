@@ -30,7 +30,7 @@ import org.springframework.data.domain.Sort;
  * Date       : 2022/7/12 2:16 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-public class NormalActivityService {
+public abstract class NormalActivityService {
 
     @Autowired
     protected NormalActivityRepository normalActivityRepository;
