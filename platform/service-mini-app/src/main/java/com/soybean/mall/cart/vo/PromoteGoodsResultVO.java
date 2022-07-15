@@ -26,7 +26,7 @@ public class PromoteGoodsResultVO {
     /**
      *  条目总数
      */
-    private Long total;
+    private Long total = 0L;
 
     @Data
     public static class PromoteInfo {
