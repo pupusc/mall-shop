@@ -79,7 +79,14 @@ public class SpuNewSearchService {
      * @return
      */
     public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
-        return this.packageSpuNewBookListResp(esSpuNewRespList, customer);
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false);
+    }
+
+    /**
+     * 搜索商品书单信息并以及关联的skus
+     */
+    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus){
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, fetchSkus);
     }
 
     /**
@@ -93,16 +100,15 @@ public class SpuNewSearchService {
         if (!StringUtils.isEmpty(userId)) {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
         }
-        return this.packageSpuNewBookListResp(esSpuNewRespList, customer);
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false);
     }
-
 
     /**
      * 封装商品信息
      * @param esSpuNewRespList
      * @return
      */
-    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
+    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus){
         if (CollectionUtils.isEmpty(esSpuNewRespList)) {
             return new ArrayList<>();
         }
@@ -317,6 +323,11 @@ public class SpuNewSearchService {
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
             result.add(spuNewBookListResp);
+        }
+
+        if (fetchSkus && !CollectionUtils.isEmpty(goodsInfos)) {
+            Map<String, List<GoodsInfoVO>> spuId2skus = goodsInfos.stream().collect(Collectors.groupingBy(GoodsInfoVO::getGoodsId));
+            result.forEach(spu -> spu.setSkus(spuId2skus.getOrDefault(spu.getSpuId(), new ArrayList<>())));
         }
         return result;
     }

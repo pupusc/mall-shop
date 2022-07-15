@@ -23,6 +23,10 @@ public class PromoteGoodsResultVO {
      * 价格信息
      */
     private PurchasePriceResultVO calcPrice;
+    /**
+     *  条目总数
+     */
+    private Long total = 0L;
 
     @Data
     public static class PromoteInfo {
@@ -43,9 +47,4 @@ public class PromoteGoodsResultVO {
          */
         private String tipText;
     }
-
-    /**
-     * 总数
-     */
-    private Long total = 0L;
 }

@@ -8,6 +8,7 @@ import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.DiscountsPriceDetail;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
+import com.wanmi.sbc.order.trade.reponse.CalcPriceResult;
 import com.wanmi.sbc.order.trade.service.CalcTradePriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +35,8 @@ public class TradePriceProviderController implements TradePriceProvider {
                 .collect(Collectors.toList());
 
         //综合算价，propPrice：定价；salePrice：售价；originPrice：原价（会员价）；totalPrice：支付价（活动价）
-        TradePrice price = calcTradePriceService.calc(tradeItems, paramBO.getCouponId(), paramBO.getCustomerId());
+        CalcPriceResult priceResult = calcTradePriceService.calc(tradeItems, paramBO.getCouponId(), paramBO.getCustomerId());
+        TradePrice price = priceResult.getTradePrice();
         BigDecimal propPriceCut = price.getPropPrice().compareTo(price.getSalePrice()) > 0 ? price.getPropPrice().subtract(price.getSalePrice()) : BigDecimal.ZERO;
         BigDecimal vipPriceCut = price.getSalePrice().compareTo(price.getOriginPrice()) > 0 ? price.getSalePrice().subtract(price.getOriginPrice()) : BigDecimal.ZERO;
         BigDecimal mktPriceCut = price.getDiscountsPrice() != null ? price.getDiscountsPrice() : BigDecimal.ZERO;
@@ -85,6 +87,13 @@ public class TradePriceProviderController implements TradePriceProvider {
             priceItem.setDesc(TradePriceResultBO.PriceItemType.SUB_COUPON_COST.getDesc());
             resultBO.getCutPriceItems().add(item);
         }
+        //参与算价的营销活动
+        resultBO.setTradeMkts(priceResult.getTradeMkts().stream().map(i -> {
+            TradePriceResultBO.TradeMkt tradeMkt = new TradePriceResultBO.TradeMkt();
+            tradeMkt.setMktId(i.getMktId());
+            tradeMkt.setMktLevelId(i.getMktLevelId());
+            return tradeMkt;
+        }).collect(Collectors.toList()));
         return BaseResponse.success(resultBO);
     }
 }

@@ -22,10 +22,10 @@ public class SettlementParamVO$Marketing {
      */
     @NotNull
     private Long marketingId;
-//    /**
-//     * 营销等级id
-//     */
-//    //private Long marketingLevelId;
+    /**
+     * 营销等级id
+     */
+    private Long marketingLevelId;
 
     /**
      * 该营销活动关联的订单商品id集合

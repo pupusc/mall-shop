@@ -2,6 +2,7 @@ package com.soybean.mall.order.response;
 
 import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
 import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import lombok.Data;
 
 import java.util.List;
@@ -26,4 +27,8 @@ public class StmtResultVO {
      * 商品列表
      */
     private List<SettlementResultVO$GoodsInfo> goodsInfos;
+    /**
+     * 商家与店铺信息
+     */
+    private SupplierVO supplier;
 }
