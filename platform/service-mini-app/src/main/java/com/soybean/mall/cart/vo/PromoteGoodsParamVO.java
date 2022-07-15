@@ -28,7 +28,12 @@ public class PromoteGoodsParamVO {
      */
     private Integer pageSize = 10;
     /**
-     * 排序类型 0 默认
+     * 综合：0			h5：0（默认）
+     * 书评评分：1		h5：5（评论数）
+     * 最新上架：2		h5：1
+     * 好评优先：3		h5：6
+     * 高价优先：4		h5：2
+     * 低价优先：5		h5：3
      */
     private Integer spuSortType = 0;
 
