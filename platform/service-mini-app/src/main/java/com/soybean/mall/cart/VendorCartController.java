@@ -526,7 +526,7 @@ public class VendorCartController {
 
         //商品的总数、总价
         long totalCount = skuVOs.stream().mapToLong(GoodsInfoVO::getBuyCount).sum();
-        BigDecimal totalPrice = skuVOs.stream().map(GoodsInfoVO::getSalePrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = skuVOs.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         //促销文案
         Boolean imax = true;
