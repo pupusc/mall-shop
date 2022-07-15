@@ -228,7 +228,7 @@ public class UserController {
                         modifyRequest.setCustomerId(newCustomerVO.getCustomerId());
                         modifyRequest.setFanDengId(response.getUserNo());
                         customerProvider.modifyCustomerFanDengIdTime(modifyRequest);
-                        customer = newCustomerVO;
+//                        customer = newCustomerVO;
 
                         List<String> customerIdList = Arrays.asList(customer.getCustomerId());
                         deleteRequest.setCustomerIds(customerIdList);
@@ -236,6 +236,7 @@ public class UserController {
                         webBaseProducerService.sendMQForDelCustomerInfo(customer.getCustomerId());
                         customerIdRequest.setCustomerId(newCustomerVO.getCustomerId());
                         customerIdRequest.setOldCustomerId(customer.getCustomerId());
+                        customer = newCustomerVO;
                     }else if (!CollectionUtils.isEmpty(oldTradeVOS) && !CollectionUtils.isEmpty(newTradeVOS)) {
                         List<TradeVO> tradeVOList  = new ArrayList<>();
                         tradeVOList.addAll(newTradeVOS);
