@@ -57,7 +57,7 @@ public class NormalModule {
      */
     @Column(name = "publish_state")
     private Integer publishState;
-    
+
     /**
      * 创建时间
      */

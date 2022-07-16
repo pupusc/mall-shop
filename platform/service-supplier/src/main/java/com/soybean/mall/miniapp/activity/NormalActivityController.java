@@ -58,8 +58,7 @@ public class NormalActivityController {
      */
     @PostMapping("/add")
     public BaseResponse add(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
-        normalActivityPointSkuProvider.add(normalActivityPointSkuReq);
-        return BaseResponse.SUCCESSFUL();
+        return normalActivityPointSkuProvider.add(normalActivityPointSkuReq);
     }
 
 
@@ -71,8 +70,7 @@ public class NormalActivityController {
      */
     @PostMapping("/update")
     public BaseResponse update(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
-        normalActivityPointSkuProvider.update(normalActivityPointSkuReq);
-        return BaseResponse.SUCCESSFUL();
+        return normalActivityPointSkuProvider.update(normalActivityPointSkuReq);
     }
 
     /**
@@ -96,8 +94,7 @@ public class NormalActivityController {
      */
     @GetMapping("/publish/{activityId}/{isOpen}")
     public BaseResponse publish(@PathVariable("activityId") Integer activityId, @PathVariable("isOpen") Boolean isOpen) {
-        normalActivityPointSkuProvider.publish(activityId, isOpen);
-        return BaseResponse.SUCCESSFUL();
+        return normalActivityPointSkuProvider.publish(activityId, isOpen);
     }
 
 

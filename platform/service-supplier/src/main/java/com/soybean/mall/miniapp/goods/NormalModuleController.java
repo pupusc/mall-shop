@@ -60,8 +60,7 @@ public class NormalModuleController {
      */
     @PostMapping("/add")
     public BaseResponse add(@RequestBody @Validated NormalModuleReq normalModuleReq) {
-        normalModuleProvider.add(normalModuleReq);
-        return BaseResponse.SUCCESSFUL();
+        return normalModuleProvider.add(normalModuleReq);
     }
 
     /**
@@ -72,8 +71,7 @@ public class NormalModuleController {
      */
     @PostMapping("/update")
     public BaseResponse update(@RequestBody @Validated NormalModuleReq normalModuleReq) {
-        normalModuleProvider.update(normalModuleReq);
-        return BaseResponse.SUCCESSFUL();
+        return normalModuleProvider.update(normalModuleReq);
     }
 
     /**
@@ -95,8 +93,7 @@ public class NormalModuleController {
      */
     @GetMapping("/publish/{id}/{isOpen}")
     public BaseResponse publish(@PathVariable("id") Integer id, @PathVariable("isOpen") Boolean isOpen) {
-        normalModuleProvider.publish(id, isOpen);
-        return BaseResponse.SUCCESSFUL();
+        return normalModuleProvider.publish(id, isOpen);
     }
 
     /**

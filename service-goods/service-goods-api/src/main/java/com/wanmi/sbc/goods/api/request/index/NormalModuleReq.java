@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,5 +51,6 @@ public class NormalModuleReq {
 
 
     @NotNull
+    @Valid
     private List<NormalModuleSkuReq> normalModuleSkus;
 }
