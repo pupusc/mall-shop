@@ -57,13 +57,7 @@ public class NormalModule {
      */
     @Column(name = "publish_state")
     private Integer publishState;
-
-    /**
-     * 标签名称
-     */
-    @Column(name = "model_tag")
-    private String modelTag;
-
+    
     /**
      * 创建时间
      */
