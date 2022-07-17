@@ -3,6 +3,7 @@ package com.soybean.mall.miniapp.activity;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.mall.miniapp.activity.resp.NormalActivityDetailResp;
 import com.soybean.mall.miniapp.activity.resp.NormalActivitySkuDetailResp;
+import com.soybean.marketing.api.enums.ActivityCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.NormalActivityPointSkuReq;
 import com.soybean.marketing.api.req.NormalActivitySearchReq;
@@ -58,6 +59,7 @@ public class NormalActivityController {
      */
     @PostMapping("/add")
     public BaseResponse add(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
+        normalActivityPointSkuReq.setNormalCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
         return normalActivityPointSkuProvider.add(normalActivityPointSkuReq);
     }
 
@@ -70,6 +72,7 @@ public class NormalActivityController {
      */
     @PostMapping("/update")
     public BaseResponse update(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
+        normalActivityPointSkuReq.setNormalCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
         return normalActivityPointSkuProvider.update(normalActivityPointSkuReq);
     }
 

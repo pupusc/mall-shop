@@ -2,6 +2,7 @@ package com.soybean.marketing.api.req;
 
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -16,5 +17,6 @@ import java.util.List;
 public class NormalActivityPointSkuReq extends NormalActivityReq {
 
     @NotNull
+    @Valid
     private List<NormalActivitySkuReq> normalActivitySkus;
 }
