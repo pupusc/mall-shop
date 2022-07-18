@@ -2,16 +2,28 @@ package com.wanmi.sbc.order.provider.impl.purchase;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
-import com.wanmi.sbc.order.api.request.purchase.*;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseAddFollowRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseBatchSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcAmountRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseClearLoseGoodsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseDeleteRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFillBuyCountRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseMergeRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseModifyGoodsMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSyncGoodsMarketingsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseTickUpdateRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseUpdateNumRequest;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseCalcMarketingResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseFillBuyCountResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
-import com.wanmi.sbc.order.purchase.PurchaseService;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseMarketingCalcResponse;
+import com.wanmi.sbc.order.purchase.PurchaseCacheService;
+import com.wanmi.sbc.order.purchase.PurchaseService;
 import com.wanmi.sbc.order.purchase.request.PurchaseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +44,8 @@ public class PurchaseController implements PurchaseProvider {
 
     @Autowired
     private PurchaseService purchaseService;
+    @Autowired
+    private PurchaseCacheService purchaseCacheService;
 
     /**
      * @param request 新增采购单请求结构 {@link PurchaseSaveRequest}
@@ -159,5 +173,12 @@ public class PurchaseController implements PurchaseProvider {
     public BaseResponse mergePurchase(@RequestBody @Valid PurchaseMergeRequest request){
         purchaseService.mergePurchase(request);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<Boolean> updateTick(@RequestBody @Valid PurchaseTickUpdateRequest request) {
+        //先清空再添加吧
+        purchaseCacheService.resetTicks(request.getCustomerId(), request.getSkuIds());
+        return BaseResponse.success(true);
     }
 }

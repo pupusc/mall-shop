@@ -24,6 +24,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.purchase.PurchaseCacheService;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.MiniProgram;
@@ -110,6 +111,8 @@ public class OrderService {
 //    @Autowired
 //    private GoodsQueryProvider goodsQueryProvider;
 
+    @Autowired
+    private PurchaseCacheService purchaseCacheService;
 
     /**
      * 提交订单，不用快照,只是正常商品下单，注释的是第一期不做的
@@ -387,10 +390,10 @@ public class OrderService {
             if (Boolean.TRUE.equals(tradeCommitRequest.isMiniProgramCart())) {
                 trades.forEach(
                         trade -> {
-                            List<String> tradeSkuIds =
-                                    trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
-                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
-                                    tradeCommitRequest.getDistributeChannel());
+                            List<String> tradeSkuIds = trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds, tradeCommitRequest.getDistributeChannel());
+                            //删除购物车勾选缓存
+                            purchaseCacheService.unTicks(customer.getCustomerId(), tradeSkuIds);
                         }
                 );
             }

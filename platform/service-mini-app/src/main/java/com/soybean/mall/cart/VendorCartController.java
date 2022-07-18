@@ -9,6 +9,7 @@ import com.soybean.mall.cart.vo.CartInfoResultVO$Marketing;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Sku;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Store;
 import com.soybean.mall.cart.vo.ComposePriceParamVO;
+import com.soybean.mall.cart.vo.GoodsTickParamVO;
 import com.soybean.mall.cart.vo.PromoteCouponParamVO;
 import com.soybean.mall.cart.vo.PromoteFitGoodsResultVO;
 import com.soybean.mall.cart.vo.PromoteGoodsParamVO;
@@ -78,10 +79,12 @@ import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
+import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradePriceProvider;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreCouponExistRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseInfoRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseTickUpdateRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePriceParamBO;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
@@ -125,6 +128,8 @@ public class VendorCartController {
     @Autowired
     private CommonUtil commonUtil;
     @Autowired
+    private PurchaseProvider purchaseProvider;
+    @Autowired
     private PurchaseQueryProvider purchaseQueryProvider;
     @Autowired
     private TradePriceProvider tradePriceProvider;
@@ -146,6 +151,8 @@ public class VendorCartController {
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
 
     /**
      * 购物车-购物车信息
@@ -197,11 +204,11 @@ public class VendorCartController {
 
         //按照客户指定状态分组：指定促销方案；指定选中商品；
         Map<String, Long> client2mktId = new HashMap<>();
-        Map<String, Boolean> client2checkSkuId = new HashMap<>();
+//        Map<String, Boolean> client2checkSkuId = new HashMap<>();
         for (PurchaseInfoParamVO.Marketing marketing : paramVO.getMarketings()) {
             for (PurchaseInfoParamVO.GoodsInfo goodsInfo : marketing.getGoodsInfos()) {
                 client2mktId.put(goodsInfo.getGoodsInfoId(), marketing.getMarketingId());
-                client2checkSkuId.put(goodsInfo.getGoodsInfoId(), Boolean.TRUE.equals(goodsInfo.isChecked()));
+//                client2checkSkuId.put(goodsInfo.getGoodsInfoId(), Boolean.TRUE.equals(goodsInfo.isChecked()));
             }
         }
 
@@ -227,7 +234,7 @@ public class VendorCartController {
             marketingVO.setMarketingId(entry.getKey());
             marketingVO.setGoodsInfos(new ArrayList<>());
             for (GoodsInfoVO item : entry.getValue()) {
-                boolean checked = Boolean.TRUE.equals(client2checkSkuId.get(item.getGoodsInfoId()));
+//                boolean checked = Boolean.TRUE.equals(client2checkSkuId.get(item.getGoodsInfoId()));
                 //包装返回对象
                 CartInfoResultVO$Sku skuVO = new CartInfoResultVO$Sku();
                 skuVO.setGoodsId(item.getGoodsId());
@@ -244,7 +251,8 @@ public class VendorCartController {
                 skuVO.setSpecText(item.getSpecText());
                 skuVO.setMaxCount(item.getStock());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
-                skuVO.setChecked(checked); //处理客户端指定选中的商品
+//                skuVO.setChecked(checked); //处理客户端指定选中的商品
+                skuVO.setChecked(item.getChecked());
                 skuVO.setMarketings(buildMarketings(skuId2mktVOs.get(item.getGoodsInfoId())));
                 marketingVO.getGoodsInfos().add(skuVO);
             }
@@ -259,8 +267,8 @@ public class VendorCartController {
         //计算购物车价格，只包含选中的商品
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : mktId2skus.entrySet()) {
-            goodsInfos.addAll(
-                entry.getValue().stream().filter(item -> Boolean.TRUE.equals(client2checkSkuId.get(item.getGoodsInfoId()))).map(item -> {
+            goodsInfos.addAll(entry.getValue().stream().filter(item -> Boolean.TRUE.equals(item.getChecked())).map(item -> {
+//                entry.getValue().stream().filter(item -> Boolean.TRUE.equals(client2checkSkuId.get(item.getGoodsInfoId()))).map(item -> {
                     TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
                     goods.setMarketingId(entry.getKey() == 0 ? null : entry.getKey());
                     goods.setGoodsInfoId(item.getGoodsInfoId());
@@ -394,6 +402,7 @@ public class VendorCartController {
         if (CollectionUtils.isEmpty(goodsInfos)) {
             return calcPrice;
         }
+
         TradePriceParamBO paramBO = new TradePriceParamBO();
         paramBO.setCustomerId(customer.getCustomerId());
         paramBO.setGoodsInfos(goodsInfos);
@@ -473,7 +482,7 @@ public class VendorCartController {
         //过滤符合当前营销的sku，根据营销id
         String tipText = filterSku4composePrice(paramVO, cartInfo);
 
-        //参与算价的商品
+        //封装参与算价的商品参数
         List<TradePriceParamBO.GoodsInfo> calcGoods = cartInfo.getGoodsInfos().stream().map(item -> {
             TradePriceParamBO.GoodsInfo goodsInfo = new TradePriceParamBO.GoodsInfo();
             goodsInfo.setGoodsInfoId(item.getGoodsInfoId());
@@ -486,9 +495,6 @@ public class VendorCartController {
         calcPrice.setTipText(tipText);
         return BaseResponse.success(calcPrice);
     }
-
-    @Autowired
-    private MarketingPluginProvider marketingPluginProvider;
 
     @Deprecated
     private String fillPromoteText4composeCoupon(ComposePriceParamVO paramVO, PurchaseListResponse cartInfo, CustomerVO customer) {
@@ -537,12 +543,14 @@ public class VendorCartController {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的营销活动没有找到");
         }
         MarketingForEndVO mktBO = mktResult.getMarketingForEndVO();
+
         //删除不符合营销的商品
+        //只处理勾选的商品
         List<GoodsInfoVO> skuVOs = cartInfo.getGoodsInfos();
         Iterator<GoodsInfoVO> iterator = skuVOs.iterator();
         while (iterator.hasNext()) {
             GoodsInfoVO next = iterator.next();
-            if (next.getGoodsMarketing() == null || !paramVO.getMarketingId().equals(next.getGoodsMarketing().getMarketingId())) {
+            if (!Boolean.TRUE.equals(next.getChecked()) || next.getGoodsMarketing() == null || !paramVO.getMarketingId().equals(next.getGoodsMarketing().getMarketingId())) {
                 iterator.remove();
             }
         }
@@ -868,6 +876,7 @@ public class VendorCartController {
 
         //sku对应的营销列表映射
         Map<String, List<MarketingViewVO>> skuId2mkts = cartInfo.getGoodsMarketingMap();
+
         //仅支持满减和满折的营销
         for (List<MarketingViewVO> marketings : skuId2mkts.values()) {
             Iterator<MarketingViewVO> iter = marketings.iterator();
@@ -879,26 +888,57 @@ public class VendorCartController {
             }
         }
 
-        //markerting的id->goods列表映射
-        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
-        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
+        //需要算价的商品
+        List<TradePriceParamBO.GoodsInfo> goodsInfos = cartInfo.getGoodsInfos().stream().filter(GoodsInfoVO::getChecked).map(goodsInfo-> {
             List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
-            Long marketingId = CollectionUtils.isEmpty(mkts) ? 0L : mkts.get(0).getMarketingId();
-            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
-        }
+            TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
+            goods.setMarketingId(CollectionUtils.isEmpty(mkts) ? null : mkts.get(0).getMarketingId());
+            goods.setGoodsInfoId(goodsInfo.getGoodsInfoId());
+            goods.setBuyCount(goodsInfo.getBuyCount());
+            return goods;
+        }).collect(Collectors.toList());
 
-        List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
-        for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
-            //过滤指定mktId下的商品参与算价
-            for (GoodsInfoVO item : entry.getValue()) {
-                TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
-                goods.setMarketingId(entry.getKey()==0 ? null : entry.getKey());
-                goods.setGoodsInfoId(item.getGoodsInfoId());
-                goods.setBuyCount(item.getBuyCount());
-                goodsInfos.add(goods);
-            }
-        }
+//        //markerting的id->goods列表映射
+//        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
+
+//        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
+//            if (!Boolean.TRUE.equals(goodsInfo.getChecked())) {
+//                continue;
+//            }
+//            List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
+//            Long marketingId = CollectionUtils.isEmpty(mkts) ? 0L : mkts.get(0).getMarketingId();
+//            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
+//        }
+
+//        //需要算价的商品
+//        List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
+//        for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
+//            for (GoodsInfoVO item : entry.getValue()) {
+//                TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
+//                goods.setMarketingId(entry.getKey()==0 ? null : entry.getKey());
+//                goods.setGoodsInfoId(item.getGoodsInfoId());
+//                goods.setBuyCount(item.getBuyCount());
+//                goodsInfos.add(goods);
+//            }
+//        }
+
         return calcPrice(customer, goodsInfos);
+    }
+
+    /**
+     * 购物车商品勾选
+     */
+    @PostMapping(value = "/goodsTick")
+    public BaseResponse<Boolean> goodsTick(@RequestBody GoodsTickParamVO paramVO) {
+        PurchaseTickUpdateRequest update = new PurchaseTickUpdateRequest();
+        update.setCustomerId(commonUtil.getCustomer().getCustomerId());
+        update.setSkuIds(paramVO.getSkuIds());
+
+        BaseResponse<Boolean> updateResult = purchaseProvider.updateTick(update);
+        if (updateResult == null) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "商品勾选更新错误");
+        }
+        return BaseResponse.success(updateResult.getContext());
     }
 }
 

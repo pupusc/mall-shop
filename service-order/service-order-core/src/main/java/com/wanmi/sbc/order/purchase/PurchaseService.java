@@ -481,17 +481,17 @@ public class PurchaseService {
         });
         if (goodsInfos.size() > 0) {
             if (goodsInfos.size() == Constants.PURCHASE_MAX_SIZE && purchaseList.size() > 0) {
-                purchaseRepository.deleteByGoodsInfoids(purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList()), customer.getCustomerId(), request.getInviteeId());
+                List<String> list = purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
             } else if ((goodsInfos.size() + purchaseList.size()) > Constants.PURCHASE_MAX_SIZE) {
                 int num = (goodsInfos.size() + purchaseList.size()) - Constants.PURCHASE_MAX_SIZE;
                 if (num >= purchaseList.size() && purchaseList.size() > 0) {
-                    purchaseRepository.deleteByGoodsInfoids(purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList()), customer.getCustomerId(), request.getInviteeId());
+                    List<String> list = purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                    deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
                 } else {
-                    purchaseRepository.deleteByGoodsInfoids(purchaseList.subList(purchaseList.size() - num,
-                            purchaseList.size()).stream()
-                                    .map(Purchase::getGoodsInfoId).collect(Collectors.toList()),
-                            customer.getCustomerId(),
-                            request.getInviteeId());
+                    List<String> list = purchaseList.subList(purchaseList.size() - num,
+                            purchaseList.size()).stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                    deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
                 }
             }
             LocalDateTime dateTime = LocalDateTime.now();
@@ -519,7 +519,7 @@ public class PurchaseService {
         if (Objects.nonNull(purchase)) {
             purchase.setUpdateTime(LocalDateTime.now());
             purchase.setGoodsNum(request.getGoodsNum());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
             return;
         }
         if (countNum >= Constants.PURCHASE_MAX_SIZE) {
@@ -541,7 +541,7 @@ public class PurchaseService {
         purchase.setCateId(goodsInfo.getCateId());
         purchase.setBrandId(goodsInfo.getBrandId());
         purchase.setTerminalSource(request.getTerminalSource());
-        purchaseRepository.save(purchase);
+        purchaseRepository$save(purchase);
     }
 
     /**
@@ -557,7 +557,7 @@ public class PurchaseService {
             purchase.setGoodsNum(purchase.getGoodsNum() + request.getGoodsNum());
         }
         purchase.setUpdateTime(LocalDateTime.now());
-        purchaseRepository.save(purchase);
+        purchaseRepository$save(purchase);
     }
 
     /**
@@ -1072,7 +1072,7 @@ public class PurchaseService {
                 purchase.setUpdateTime(LocalDateTime.now());
             }
             purchase.setGoodsNum(request.getGoodsNum());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
         } else {
             if (countNum >= Constants.PURCHASE_MAX_SIZE) {
                 throw new SbcRuntimeException(SiteResultCode.ERROR_050121, new Object[]{Constants.PURCHASE_MAX_SIZE});
@@ -1089,7 +1089,7 @@ public class PurchaseService {
             purchase.setCateId(goodsInfo.getCateId());
             purchase.setBrandId(goodsInfo.getBrandId());
             purchase.setTerminalSource(request.getTerminalSource());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
         }
     }
 
@@ -1100,8 +1100,7 @@ public class PurchaseService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void delete(PurchaseRequest request) {
-        purchaseRepository.deleteByGoodsInfoids(request.getGoodsInfoIds(), request.getCustomerId(),
-                request.getInviteeId());
+        deleteByGoodsInfoids(request.getGoodsInfoIds(), request.getCustomerId(), request.getInviteeId());
         GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest = new GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest();
         goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest.setGoodsInfoIds(request.getGoodsInfoIds());
         goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest.setCustomerId(request.getCustomerId());
@@ -1151,7 +1150,7 @@ public class PurchaseService {
 
             // 非赠品才删除
             if (!queryRequest.getIsGift()) {
-                purchaseRepository.delete(info);
+                purchaseRepository$delete(info);
             }
         });
     }
@@ -1198,7 +1197,7 @@ public class PurchaseService {
                     Duration duration = Duration.between(store.getContractEndDate(), LocalDateTime.now());
                     if (goodsInfo.getAddedFlag() == 0 || goodsInfo.getDelFlag() == DeleteFlag.YES || goodsInfo.getAuditStatus() == CheckStatus.FORBADE || goodsInfo.getGoodsStatus() == GoodsStatus.INVALID
                             || store.getStoreState() == StoreState.CLOSED || duration.toMinutes() >= 0 || buildGoodsInfoVendibility(goodsInfo) == Constants.no) {
-                        purchaseRepository.delete(item);
+                        purchaseRepository$delete(item);
                     }
                 }
             }
@@ -2575,6 +2574,8 @@ public class PurchaseService {
 
         //小程序购物车处理
         filterShopCartGoods(request.getShopCartSource(), goodsResp, buyCountMap);
+        //填充商品的勾选情况
+        fillShopCartTicks(customer.getCustomerId(), goodsResp.getGoodsInfoList());
 
         if (CollectionUtils.isEmpty(goodsResp.getGoodsList())) return response;
         List<GoodsInfoVO> goodsInfoList = goodsResp.getGoodsInfoList();
@@ -2831,6 +2832,14 @@ public class PurchaseService {
         return response;
     }
 
+    private void fillShopCartTicks(String customerId, List<GoodsInfoVO> goodsInfoList) {
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            return;
+        }
+        List<String> ticks = purchaseCacheService.getTicks(customerId);
+        goodsInfoList.forEach(i->i.setChecked(ticks.contains(i.getGoodsInfoId())));
+    }
+
     private void filterShopCartGoods(ShopCartSourceEnum shopCartSource, GoodsInfoForPurchaseResponse goodsResp, Map<String, Long> buyCountMap) {
         String channel = ShopCartSourceEnum.WX_MINI.equals(shopCartSource) ? GoodsChannelTypeEnum.MALL_MINI.getCode() : GoodsChannelTypeEnum.MALL_H5.getCode();
 
@@ -2914,4 +2923,21 @@ public class PurchaseService {
         goodsInfo.setGoodsMarketing(null);
     }
 
+    @Autowired
+    private PurchaseCacheService purchaseCacheService;
+
+    private void deleteByGoodsInfoids(List<String> list, String customerId, String inviteeId) {
+        purchaseRepository.deleteByGoodsInfoids(list, customerId, inviteeId);
+        purchaseCacheService.unTicks(customerId, list);
+    }
+
+    private void purchaseRepository$save(Purchase purchase) {
+        purchaseRepository.save(purchase);
+        purchaseCacheService.doTick(purchase.getCustomerId(), purchase.getGoodsInfoId());
+    }
+
+    private void purchaseRepository$delete(Purchase info) {
+        purchaseRepository.delete(info);
+        purchaseCacheService.unTick(info.getCustomerId(), info.getGoodsInfoId());
+    }
 }
