@@ -241,7 +241,7 @@ public abstract class PayOrderGiftRecordService {
         //查看当前是否有下单返积分记录
         OrderGiftRecordSearchReq req = new OrderGiftRecordSearchReq();
         req.setOrderId(simpleTradeResp.getOrderId());
-        req.setRecordCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+        req.setRecordCategory(getActivityCategory().getCode());
         List<OrderGiftRecord> orderGiftRecordsByOrder = payOrderGiftRecordRepository.findAll(payOrderGiftRecordRepository.packageWhere(req));
         //如果为空则表示没有记录信息
         if (CollectionUtils.isEmpty(orderGiftRecordsByOrder)) {

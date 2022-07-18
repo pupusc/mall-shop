@@ -5,8 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.mq.MqOrderGiftRecordConsumer;
+import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
@@ -646,6 +649,9 @@ public class TradeService {
 
     @Autowired
     private OrderConfigProperties orderConfigProperties;
+
+    @Autowired
+    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
 
     /**
      * 新增文档
@@ -5236,6 +5242,13 @@ public class TradeService {
         }
         //支付成功发放优惠券
         orderCouponService.addCouponRecord(trade);
+
+        //支付成功后发送消息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setOrderId(trade.getId());
+//        recordMessageMq.setChannelTypes();
+        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
+
     }
 
     /**

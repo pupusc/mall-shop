@@ -1,9 +1,12 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.domain.GoodsInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.soybean.mall.order.api.request.mq.RecordMessageMq;
+import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
@@ -146,6 +149,10 @@ public class TradeOptimizeService {
 
     @Autowired
     private CycleBuyQueryProvider cycleBuyQueryProvider;
+
+    @Autowired
+    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
+
     /**
      * C端下单
      */
@@ -423,6 +430,14 @@ public class TradeOptimizeService {
             tradeItemService.remove(tradeCommitRequest.getTerminalToken());
             // 6.订单提交成功，增加限售记录
             tradeService.insertRestrictedRecord(trades);
+            // 7、创单完成 发送mq消息 duanlsh
+            for (Trade trade : trades) {
+                RecordMessageMq recordMessageMq = new RecordMessageMq();
+                recordMessageMq.setChannelTypes(tradeCommitRequest.getGoodsChannelTypeSet());
+                recordMessageMq.setOrderId(trade.getId());
+                log.info("TradeOptimizeService commit 创建订单参数为: {}", JSON.toJSONString(recordMessageMq));
+                mqOrderGiftRecordProducer.sendCreateOrderGiftRecord(recordMessageMq);
+            }
         } catch (Exception e) {
             log.error("Delete the trade sku list snapshot or the purchase order exception," +
                             "trades={}," +
