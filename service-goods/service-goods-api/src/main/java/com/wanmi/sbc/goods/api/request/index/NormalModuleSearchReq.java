@@ -43,7 +43,7 @@ public class NormalModuleSearchReq extends CommonPageQueryReq {
     private LocalDateTime endTime;
 
     /**
-     * {@link com.wanmi.sbc.goods.api.enums.StateEnum}
+     * 栏目状态 0未开始 1进行中 2 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
      */
     private Integer status;
 

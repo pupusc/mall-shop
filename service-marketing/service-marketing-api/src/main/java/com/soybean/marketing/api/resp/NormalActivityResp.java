@@ -52,7 +52,7 @@ public class NormalActivityResp {
     private Integer publishState;
 
     /**
-     * 活动状态 1未开始 2进行中 3 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
+     * 活动状态 0未开始 1进行中 2 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
      */
     private Integer status;
 }
