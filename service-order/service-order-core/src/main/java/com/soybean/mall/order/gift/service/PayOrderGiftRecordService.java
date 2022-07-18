@@ -156,7 +156,7 @@ public abstract class PayOrderGiftRecordService {
      * @param customerId
      * @return
      */
-    private CustomerGetByIdResponse getCustomer(String customerId){
+    protected CustomerGetByIdResponse getCustomer(String customerId){
         return customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
     }
 
@@ -179,8 +179,16 @@ public abstract class PayOrderGiftRecordService {
      */
     protected abstract OrderGiftRecord getOrderGiftRecordModel(SkuNormalActivityResp skuNormalActivityParam, SimpleTradeResp simpleTradeResp);
 
-
+    /**
+     * 获取黑名单列表
+     * @return
+     */
     protected abstract List<String> listBlackListCustomerId();
+
+    /**
+     * 执行相关操作
+     */
+    protected abstract boolean doSomething(OrderGiftRecord orderGiftRecord);
 
     /**
      * 新增记录/更新记录
@@ -282,19 +290,23 @@ public abstract class PayOrderGiftRecordService {
 
 
             try {
-                //获取樊登账号信息
-                CustomerGetByIdResponse customer = this.getCustomer(orderGiftRecord.getCustomerId());
-                FanDengAddPointReq fanDengAddPointReq = new FanDengAddPointReq();
-                fanDengAddPointReq.setUserNo(customer.getFanDengUserNo());
-                fanDengAddPointReq.setNum(orderGiftRecord.getPer().longValue());
-                fanDengAddPointReq.setType(FanDengChangeTypeEnum.plus.getCode());
-                fanDengAddPointReq.setSourceId(orderGiftRecord.getOrderId());
-                fanDengAddPointReq.setDescription(String.format("订单%s返还积分%s", orderGiftRecord.getOrderId(), orderGiftRecord.getPer()));
-                BaseResponse baseResponse = externalProvider.changePoint(fanDengAddPointReq);
-                if (Objects.equals(CommonErrorCode.SUCCESSFUL, baseResponse.getCode())) {
+                if (doSomething(orderGiftRecord)) {
                     orderGiftRecord.setRecordStatus(RecordStateEnum.SUCCESS.getCode());
                     this.saveGiftRecord(orderGiftRecord);
                 }
+//                //获取樊登账号信息
+//                CustomerGetByIdResponse customer = this.getCustomer(orderGiftRecord.getCustomerId());
+//                FanDengAddPointReq fanDengAddPointReq = new FanDengAddPointReq();
+//                fanDengAddPointReq.setUserNo(customer.getFanDengUserNo());
+//                fanDengAddPointReq.setNum(orderGiftRecord.getPer().longValue());
+//                fanDengAddPointReq.setType(FanDengChangeTypeEnum.plus.getCode());
+//                fanDengAddPointReq.setSourceId(orderGiftRecord.getOrderId());
+//                fanDengAddPointReq.setDescription(String.format("订单%s返还积分%s", orderGiftRecord.getOrderId(), orderGiftRecord.getPer()));
+//                BaseResponse baseResponse = externalProvider.changePoint(fanDengAddPointReq);
+//                if (Objects.equals(CommonErrorCode.SUCCESSFUL, baseResponse.getCode())) {
+//                    orderGiftRecord.setRecordStatus(RecordStateEnum.SUCCESS.getCode());
+//                    this.saveGiftRecord(orderGiftRecord);
+//                }
             } catch (Exception ex) {
                 log.error("PayOrderGiftRecordService afterPayOrderLock activityId:{},customerId:{},skuId:{} 加减积分异常",
                         orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId());

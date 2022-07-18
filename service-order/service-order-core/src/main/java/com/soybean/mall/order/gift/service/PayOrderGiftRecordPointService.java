@@ -98,6 +98,23 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
         return context.getUnBackPointAfterPayBlackListModel().getNormalList();
     }
 
+    @Override
+    protected boolean doSomething(OrderGiftRecord orderGiftRecord) {
+        //获取樊登账号信息
+        CustomerGetByIdResponse customer = super.getCustomer(orderGiftRecord.getCustomerId());
+        FanDengAddPointReq fanDengAddPointReq = new FanDengAddPointReq();
+        fanDengAddPointReq.setUserNo(customer.getFanDengUserNo());
+        fanDengAddPointReq.setNum(orderGiftRecord.getPer().longValue());
+        fanDengAddPointReq.setType(FanDengChangeTypeEnum.plus.getCode());
+        fanDengAddPointReq.setSourceId(orderGiftRecord.getOrderId());
+        fanDengAddPointReq.setDescription(String.format("订单%s返还积分%s", orderGiftRecord.getOrderId(), orderGiftRecord.getPer()));
+        BaseResponse baseResponse = externalProvider.changePoint(fanDengAddPointReq);
+        if (Objects.equals(CommonErrorCode.SUCCESSFUL, baseResponse.getCode())) {
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * 创建订单调用
