@@ -18,9 +18,12 @@ import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.order.api.enums.RecordStateEnum;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -133,5 +136,29 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
     @Override
     public void afterPayOrderLock(String message) {
         super.afterPayOrderLock(message);
+    }
+
+
+    @GlobalTransactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void runTest() {
+        OrderGiftRecord orderGiftRecord = new OrderGiftRecord();
+        orderGiftRecord.setName("返积分活动");
+        orderGiftRecord.setCustomerId("customer_id123");
+        orderGiftRecord.setOrderId("orderId_1234");
+        orderGiftRecord.setActivityId("activityId_1234");
+        orderGiftRecord.setPer(100);
+        orderGiftRecord.setQuoteId("quoteId_13123");
+        orderGiftRecord.setQuoteName("goods_info");
+        orderGiftRecord.setRecordCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+        orderGiftRecord.setRecordStatus(RecordStateEnum.CREATE.getCode());
+        orderGiftRecord.setCreateTime(LocalDateTime.now());
+        orderGiftRecord.setUpdateTime(LocalDateTime.now());
+        orderGiftRecord.setDelFlag(DeleteFlag.NO);
+
+        OrderGiftRecord save = payOrderGiftRecordRepository.save(orderGiftRecord);
+        System.out.println(orderGiftRecord.getId());
+        System.out.println(JSON.toJSONString(save));
+        System.out.println("-------------end-------------");
     }
 }

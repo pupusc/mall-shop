@@ -31,7 +31,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +75,14 @@ public abstract class PayOrderGiftRecordService {
 
     @Autowired
     protected GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    protected PlatformTransactionManager transactionManager;
+
+    @Resource
+    protected TransactionDefinition transactionDefinition;
+
+
 
     /**
      * 过滤订单信息
@@ -134,7 +149,7 @@ public abstract class PayOrderGiftRecordService {
      * 新增日志记录信息
      * @param orderGiftRecord
      */
-    private void addGiftRecordLog(OrderGiftRecord orderGiftRecord) {
+    public void addGiftRecordLog(OrderGiftRecord orderGiftRecord) {
         //记录日志
         OrderGiftRecordLog orderGiftRecordLog = new OrderGiftRecordLog();
         orderGiftRecordLog.setCustomerId(orderGiftRecord.getCustomerId());
@@ -194,10 +209,18 @@ public abstract class PayOrderGiftRecordService {
      * 新增记录/更新记录
      * @param orderGiftRecord
      */
-    private OrderGiftRecord saveGiftRecord(OrderGiftRecord orderGiftRecord) {
+    public OrderGiftRecord saveGiftRecord(OrderGiftRecord orderGiftRecord) {
         orderGiftRecord.setUpdateTime(LocalDateTime.now());
-        OrderGiftRecord orderGiftRecordModel = payOrderGiftRecordRepository.save(orderGiftRecord);
-        this.addGiftRecordLog(orderGiftRecordModel);
+        TransactionStatus status = transactionManager.getTransaction(transactionDefinition);// 获得事务状态
+        OrderGiftRecord orderGiftRecordModel = null;
+        try {
+            orderGiftRecordModel = payOrderGiftRecordRepository.save(orderGiftRecord);
+            this.addGiftRecordLog(orderGiftRecordModel);
+            transactionManager.commit(status);
+        } catch (Exception ex) {
+            log.error("PayOrderGiftRecordService saveGiftRecord ex", ex);
+            transactionManager.rollback(status);
+        }
         return orderGiftRecordModel;
     }
 

@@ -2,11 +2,14 @@ package com.soybean.mall.order.mq;
 
 import com.soybean.common.mq.TopicExchangeRabbitMqUtil;
 import com.soybean.mall.order.gift.service.PayOrderGiftRecordPointService;
+import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.mq.OrderSink;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Component;
  ********************************************************************/
 @Component
 @Slf4j
+@EnableBinding(OrderSink.class)
 public class MqOrderGiftRecordConsumer {
 
     @Autowired
@@ -26,17 +30,19 @@ public class MqOrderGiftRecordConsumer {
     /**
      * 接收下单
      */
-    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
-    @RabbitHandler
+//    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
+//    @RabbitHandler
+    @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_CANCEL_ORDER_CONSUMER)
     public void createOrderGiftRecordMessage(String message) {
         log.info("MqOrderGiftRecordConsumer getOrderGiftRecordMessage {}", message);
-        payOrderGiftRecordPointService.afterCreateOrder(message);
+//        payOrderGiftRecordPointService.afterCreateOrder(message);
+        payOrderGiftRecordPointService.runTest();
     }
 
     /**
      * 支付消息
      */
-    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_PAY_ORDER_GIFT_RECORD})
+    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
     @RabbitHandler
     public void payOrderGiftRecordMessage(String message) {
         log.info("MqOrderGiftRecordConsumer payOrderGiftRecordMessage {}", message);

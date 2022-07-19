@@ -18,4 +18,7 @@ public interface OrderConfigProvider {
      */
     @PostMapping("/order/${application.order.version}/list-config")
     BaseResponse<Map<String, String>> listConfig();
+
+    @PostMapping("/order/${application.order.version}/list")
+    BaseResponse list();
 }
