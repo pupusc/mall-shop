@@ -143,6 +143,8 @@ public class NormalModuleController {
             }
             normalModuleSkuDetailResp.setSkuName(goodsInfoVO.getGoodsInfoName());
             normalModuleSkuDetailResp.setChannelTypes(goodsInfoVO.getGoodsChannelTypeSet().stream().map(Integer::parseInt).collect(Collectors.toList()));
+            normalModuleSkuDetailResp.setSpecText(goodsInfoVO.getSpecText());
+            normalModuleSkuDetailResp.setMarketPrice(goodsInfoVO.getMarketPrice());
             resultSkus.add(normalModuleSkuDetailResp);
         }
         normalModuleDetailResp.setNormalModuleSkus(resultSkus);

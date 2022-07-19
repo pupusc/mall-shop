@@ -3,6 +3,7 @@ package com.soybean.mall.miniapp.goods.resp;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -19,4 +20,9 @@ public class NormalModuleSkuDetailResp extends NormalModuleSkuResp {
     private String skuName;
 
     private List<Integer> channelTypes;
+
+
+    private String specText;
+
+    private BigDecimal marketPrice;
 }

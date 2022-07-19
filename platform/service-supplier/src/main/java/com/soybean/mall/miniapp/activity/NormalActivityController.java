@@ -129,7 +129,7 @@ public class NormalActivityController {
 
         List<String> skuIdList = normalActivitySkuResps.stream().map(NormalActivitySkuResp::getSkuId).collect(Collectors.toList());
         //获取商品详细信息
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).deleteFlag(DeleteFlag.NO).build();
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).deleteFlag(DeleteFlag.NO).isHavSpecText(DeleteFlag.YES.toValue()).build();
         GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext();
         List<GoodsInfoVO> goodsInfos = goodsInfoViewByIdsResponse.getGoodsInfos();
         Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap =
@@ -146,6 +146,8 @@ public class NormalActivityController {
             }
             normalActivitySkuDetailResp.setSkuName(goodsInfoVO.getGoodsInfoName());
             normalActivitySkuDetailResp.setChannelTypes(goodsInfoVO.getGoodsChannelTypeSet().stream().map(Integer::parseInt).collect(Collectors.toList()));
+            normalActivitySkuDetailResp.setMarketPrice(goodsInfoVO.getMarketPrice());
+            normalActivitySkuDetailResp.setSpecText(goodsInfoVO.getSpecText());
             resultSkus.add(normalActivitySkuDetailResp);
         }
         result.setNormalActivitySkus(resultSkus);
