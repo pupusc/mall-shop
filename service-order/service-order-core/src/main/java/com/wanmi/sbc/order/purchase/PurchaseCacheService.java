@@ -61,7 +61,7 @@ public class PurchaseCacheService {
         if (CollectionUtils.isEmpty(skuIds)) {
             return;
         }
-        redisTemplate.opsForSet().remove(getCacheKey(userId), skuIds);
+        redisTemplate.opsForSet().remove(getCacheKey(userId), skuIds.toArray(new String[]{}));
         restCacheTime(userId);
     }
 
