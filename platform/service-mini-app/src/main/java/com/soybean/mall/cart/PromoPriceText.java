@@ -6,7 +6,6 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,7 +21,8 @@ public class PromoPriceText {
      */
     public static TextResult promoText(List<TextParam$Sku> skus, TextParam$Mkt mktBO) {
         TextResult result = new TextResult();
-        if (CollectionUtils.isEmpty(skus) || mktBO == null) {
+        //skus为空不直接返回，需要渲染mkt文案
+        if (mktBO == null) {
             return result;
         }
 
