@@ -98,8 +98,9 @@ public class NormalModelService {
         searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         searchReq.setPageSize(1);
         searchReq.setStatus(StateEnum.RUNNING.getCode());
+        searchReq.setPublishState(PublishState.ENABLE.toValue());
         CommonPageResp<List<NormalModuleResp>> context = normalModuleProvider.list(searchReq).getContext();
-        if (!CollectionUtils.isEmpty(context.getContent())) {
+        if (CollectionUtils.isEmpty(context.getContent())) {
             return new HomeSpuTopicResp<>(homeTitleResp, new ArrayList<>());
         }
         NormalModuleResp normalModuleResp = context.getContent().get(0);
