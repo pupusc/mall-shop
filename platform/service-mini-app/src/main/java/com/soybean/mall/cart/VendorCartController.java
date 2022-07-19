@@ -74,8 +74,6 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.RangeDayType;
 import com.wanmi.sbc.marketing.bean.vo.CouponInfoVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
@@ -297,82 +295,23 @@ public class VendorCartController {
      */
     private void fillPromoteText4cart(CartInfoResultVO$Marketing mktVO, MarketingViewVO mktBO) {
         List<CartInfoResultVO$Sku> skus = mktVO.getGoodsInfos().stream().filter(CartInfoResultVO$Sku::isChecked).collect(Collectors.toList());
-        long totalCount = skus.stream().mapToLong(i -> i.getBuyCount()).sum();
-        BigDecimal totalPrice = skus.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        String text = ""; //促销展示文案
-        Boolean imax = true; //促销是否最大
+        List<PromoPriceText.TextParam$Sku> textSkus = skus.stream().map(i -> {
+            PromoPriceText.TextParam$Sku sku = new PromoPriceText.TextParam$Sku();
+            sku.setSkuId(i.getGoodsInfoId());
+            sku.setCount(i.getBuyCount());
+            sku.setSalePrice(i.getSalePrice());
+            return sku;
+        }).collect(Collectors.toList());
 
-        if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mktBO.getSubType())) { //满数量减
-            if (mktBO.getFullReductionLevelList() == null) {
-                return;
-            }
-            for (int i = 0; i < mktBO.getFullReductionLevelList().size(); i++) {
-                MarketingFullReductionLevelVO item = mktBO.getFullReductionLevelList().get(i);
-                imax = totalCount >= item.getFullCount(); //是否满足
-                if (!imax) {
-                    if (i == 0) {
-                        text = "满" + item.getFullCount() + "件减" + item.getReduction() + "元";
-                    }
-                    text += "，再买" + (item.getFullCount() - totalCount) + "件减" + item.getReduction();
-                    break;
-                }
-                text = "已满" + item.getFullCount() + "件减" + item.getReduction() + "元";
-            }
-        } else if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额减
-            if (mktBO.getFullReductionLevelList() == null) {
-                return;
-            }
-            for (int i = 0; i < mktBO.getFullReductionLevelList().size(); i++) {
-                MarketingFullReductionLevelVO item = mktBO.getFullReductionLevelList().get(i);
-                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-                if (!imax) {
-                    if (i == 0) {
-                        text = "满" + item.getFullAmount() + "元减" + item.getReduction() + "元";
-                    }
-                    text += "，再买" + item.getFullAmount().subtract(totalPrice) + "元减" + item.getReduction();
-                    break;
-                }
-                text = "已满" + item.getFullAmount() + "元减" + item.getReduction() + "元";
-            }
-        } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mktBO.getSubType())) { //满数量折
-            if (mktBO.getFullDiscountLevelList() == null) {
-                return;
-            }
-            for (int i = 0; i < mktBO.getFullDiscountLevelList().size(); i++) {
-                MarketingFullDiscountLevelVO item = mktBO.getFullDiscountLevelList().get(i);
-                imax = totalCount >= item.getFullCount();
-                if (!imax) {
-                    if (i == 0) {
-                        text = "满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
-                    }
-                    text = text + "，再买" + (item.getFullCount() - totalCount) + "件打" + item.getDiscount() + "折";
-                    break;
-                }
-                text = "已满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
-            }
-        } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额折
-            if (mktBO.getFullDiscountLevelList() == null) {
-                return;
-            }
-            for (int i = 0; i < mktBO.getFullDiscountLevelList().size(); i++) {
-                MarketingFullDiscountLevelVO item = mktBO.getFullDiscountLevelList().get(i);
-                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-                if (!imax) {
-                    if (i == 0) {
-                        text = "满" + item.getFullAmount() + "元打" + item.getDiscount() + "折";
-                    }
-                    text = text + "，再买" + item.getFullAmount().subtract(totalPrice) + "元打" + item.getDiscount() + "折";
-                    break;
-                }
-                text = "已满" + item.getFullAmount() + "元打" + item.getDiscount() + "折";
-            }
-        } else {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "暂时不支持的营销活动");
-        }
+        PromoPriceText.TextParam$Mkt textMkt = new PromoPriceText.TextParam$Mkt();
+        textMkt.setSubType(mktBO.getSubType());
+        textMkt.setFullDiscountLevelList(mktBO.getFullDiscountLevelList());
+        textMkt.setFullReductionLevelList(mktBO.getFullReductionLevelList());
 
-        mktVO.setMaxPolicy(imax); //最大优惠
-        mktVO.setSubTypeText(text); //促销文案
+        PromoPriceText.TextResult textResult = PromoPriceText.promoText(textSkus, textMkt);
+        mktVO.setMaxPolicy(textResult.getMaxPolicy()); //最大优惠
+        mktVO.setSubTypeText(textResult.getText()); //促销文案
     }
 
     /**
@@ -555,65 +494,82 @@ public class VendorCartController {
             }
         }
 
-        //商品的总数、总价
-        long totalCount = skuVOs.stream().mapToLong(GoodsInfoVO::getBuyCount).sum();
-        BigDecimal totalPrice = skuVOs.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<PromoPriceText.TextParam$Sku> textSkus = skuVOs.stream().map(i -> {
+            PromoPriceText.TextParam$Sku sku = new PromoPriceText.TextParam$Sku();
+            sku.setSkuId(i.getGoodsInfoId());
+            sku.setCount(i.getBuyCount());
+            sku.setSalePrice(i.getSalePrice());
+            return sku;
+        }).collect(Collectors.toList());
 
-        //促销文案
-        Boolean imax = true;
-        String text = "";
-        if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mktBO.getSubType())) { //满数量减
-            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
-                return null;
-            }
-            //已满2件减30元，再买5件减300
-            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
-                imax = totalCount >= item.getFullCount();
-                if (!imax) {
-                    text = "再买" + (item.getFullCount() - totalCount) + "件减" + item.getReduction();
-                    break;
-                }
-                text = "已满" + item.getFullCount() + "件减" + item.getReduction();
-            }
-        } else if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额减
-            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
-                return null;
-            }
-            //再买20.01元，可享受满100减10
-            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
-                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-                if (!imax) {
-                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "元，可享受满" + item.getFullAmount() + "减" + item.getReduction();
-                    break;
-                }
-                text = "每满" + item.getFullAmount() + "减" + item.getReduction();
-            }
-        } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mktBO.getSubType())) { //满数量折
-            if (CollectionUtils.isEmpty(mktBO.getFullDiscountLevelList())) {
-                return null;
-            }
-            //已满2件打9折，再买5件打8折
-            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
-                imax = totalCount >= item.getFullCount();
-                if (!imax) {
-                    text = "再买" + (item.getFullCount() - totalCount) + "件打" + item.getDiscount() + "折";
-                    break;
-                }
-                text = "已满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
-            }
-        } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额折
-            //每满300打9折，还差32打8折
-            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
-                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-                if (!imax) {
-                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "件打" + item.getDiscount() + "折";
-                }
-                text = "每满" + item.getFullAmount() + "打" + item.getDiscount() + "折";
-            }
-        } else {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "暂时不支持的营销活动");
-        }
-        return text;
+        PromoPriceText.TextParam$Mkt textMkt = new PromoPriceText.TextParam$Mkt();
+        textMkt.setSubType(mktBO.getSubType());
+        textMkt.setFullDiscountLevelList(mktBO.getFullDiscountLevelList());
+        textMkt.setFullReductionLevelList(mktBO.getFullReductionLevelList());
+
+        PromoPriceText.TextResult textResult = PromoPriceText.promoText(textSkus, textMkt);
+        return textResult.getText();
+
+//
+//        //商品的总数、总价
+//        long totalCount = skuVOs.stream().mapToLong(GoodsInfoVO::getBuyCount).sum();
+//        BigDecimal totalPrice = skuVOs.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//        //促销文案
+//        Boolean imax = true;
+//        String text = "";
+//        if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mktBO.getSubType())) { //满数量减
+//            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
+//                return null;
+//            }
+//            //已满2件减30元，再买5件减300
+//            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
+//                imax = totalCount >= item.getFullCount();
+//                if (!imax) {
+//                    text = "再买" + (item.getFullCount() - totalCount) + "件减" + item.getReduction();
+//                    break;
+//                }
+//                text = "已满" + item.getFullCount() + "件减" + item.getReduction();
+//            }
+//        } else if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额减
+//            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
+//                return null;
+//            }
+//            //再买20.01元，可享受满100减10
+//            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
+//                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
+//                if (!imax) {
+//                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "元，可享受满" + item.getFullAmount() + "减" + item.getReduction();
+//                    break;
+//                }
+//                text = "每满" + item.getFullAmount() + "减" + item.getReduction();
+//            }
+//        } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mktBO.getSubType())) { //满数量折
+//            if (CollectionUtils.isEmpty(mktBO.getFullDiscountLevelList())) {
+//                return null;
+//            }
+//            //已满2件打9折，再买5件打8折
+//            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
+//                imax = totalCount >= item.getFullCount();
+//                if (!imax) {
+//                    text = "再买" + (item.getFullCount() - totalCount) + "件打" + item.getDiscount() + "折";
+//                    break;
+//                }
+//                text = "已满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
+//            }
+//        } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额折
+//            //每满300打9折，还差32打8折
+//            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
+//                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
+//                if (!imax) {
+//                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "件打" + item.getDiscount() + "折";
+//                }
+//                text = "每满" + item.getFullAmount() + "打" + item.getDiscount() + "折";
+//            }
+//        } else {
+//            throw new SbcRuntimeException(CommonErrorCode.FAILED, "暂时不支持的营销活动");
+//        }
+//        return text;
     }
 
     /**
