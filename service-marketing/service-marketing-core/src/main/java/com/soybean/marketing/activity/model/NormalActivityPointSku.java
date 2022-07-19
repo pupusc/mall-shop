@@ -50,7 +50,7 @@ public class NormalActivityPointSku {
      * SpuId
      */
     @Column(name = "spu_id")
-    private String SpuId;
+    private String spuId;
 
     /**
      * spuNo

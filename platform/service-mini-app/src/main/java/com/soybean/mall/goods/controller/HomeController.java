@@ -26,6 +26,7 @@ public class HomeController {
 
     /**
      * 获取首页 商品栏目模块信息
+     * @menu 返积分活动
      * @return
      */
     @GetMapping("/homeSpuTopic")
