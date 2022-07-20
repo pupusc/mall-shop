@@ -30,9 +30,8 @@ public class MqOrderGiftRecordConsumer {
     /**
      * 接收下单
      */
-//    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
-//    @RabbitHandler
-    @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_CANCEL_ORDER_CONSUMER)
+    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
+    @RabbitHandler
     public void createOrderGiftRecordMessage(String message) {
         log.info("MqOrderGiftRecordConsumer getOrderGiftRecordMessage {}", message);
 //        payOrderGiftRecordPointService.afterCreateOrder(message);
