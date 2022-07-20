@@ -243,8 +243,6 @@ public class BookListModelAndGoodsService {
                 GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
                 activity.setNum(skuNormalActivityResp.getNum());
                 activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
-                activity.setBeginTime(skuNormalActivityResp.getBeginTime());
-                activity.setEndTime(skuNormalActivityResp.getEndTime());
                 goodsInfo.setActivity(activity);
             }
 

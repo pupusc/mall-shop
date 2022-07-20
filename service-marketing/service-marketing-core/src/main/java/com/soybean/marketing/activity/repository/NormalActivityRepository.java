@@ -42,7 +42,7 @@ public interface NormalActivityRepository extends JpaRepository<NormalActivity, 
             if (searchReq.getEndTime() != null) {
                 conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), searchReq.getEndTime()));
             }
-            if (searchReq.getBeginTimeR() != null && searchReq.getEndTime() != null) {
+            if (searchReq.getBeginTimeR() != null && searchReq.getEndTimeR() != null) {
                 Predicate condition1 = criteriaBuilder.and(
                         criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), searchReq.getBeginTimeR()),
                         criteriaBuilder.lessThan(root.get("beginTime"), searchReq.getEndTimeR()));

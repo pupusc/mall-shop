@@ -104,7 +104,7 @@ public abstract class NormalActivityService {
      * 获取活动列表
      */
     public CommonPageResp<List<NormalActivityResp>> list(NormalActivitySearchReq searchReq) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
+        Sort sort = Sort.by(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(searchReq.getPageNum(), searchReq.getPageSize(), sort);
         Page<NormalActivity> normalActivityPage =
                 normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq), pageable);

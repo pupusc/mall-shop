@@ -47,10 +47,11 @@ public class NormalActivityPointSkuService extends NormalActivityService {
         if (normalActivityPointSkuReq.getBeginTime().isAfter(normalActivityPointSkuReq.getEndTime())) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
         }
-        //查询活动
-        if (CollectionUtils.isEmpty(normalActivityPointSkuReq.getNormalActivitySkus())) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动商品为空");
+
+        if (CollectionUtils.isEmpty(normalActivityPointSkuReq.getNormalActivitySkus()) || normalActivityPointSkuReq.getNormalActivitySkus().size() > 100 ) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动商品得有商品，最大为100个");
         }
+
         List<String> skuIds =
                 normalActivityPointSkuReq.getNormalActivitySkus().stream().map(NormalActivitySkuReq::getSkuId).collect(Collectors.toList());
         this.verification(normalActivityPointSkuReq.getBeginTime(), normalActivityPointSkuReq.getEndTime(), skuIds, null);
@@ -88,8 +89,8 @@ public class NormalActivityPointSkuService extends NormalActivityService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "开始时间不能小于结束时间");
         }
         //查询活动
-        if (CollectionUtils.isEmpty(normalActivityPointSkuReq.getNormalActivitySkus())) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动商品不能为空");
+        if (CollectionUtils.isEmpty(normalActivityPointSkuReq.getNormalActivitySkus()) || normalActivityPointSkuReq.getNormalActivitySkus().size() > 100 ) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动商品得有商品，最大为100个");
         }
         if (normalActivityPointSkuReq.getId() == null) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "活动id不能为空");

@@ -798,19 +798,5 @@ public class GoodsInfoVO implements Serializable {
          */
         private String activityShow;
 
-        /**
-         * 活动开始时间
-         */
-        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-        private LocalDateTime beginTime;
-
-        /**
-         * 活动结束时间
-         */
-        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-        private LocalDateTime endTime;
-
     }
 }

@@ -58,7 +58,7 @@ public class NormalModuleService {
         }
 
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须的有商品信息，最大为100个");
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须得有商品信息，最大为100个");
         }
 
         NormalModule normalModule = new NormalModule();
@@ -107,7 +107,7 @@ public class NormalModuleService {
         }
 
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须的有商品信息，最大为100个");
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须得有商品信息，最大为100个");
         }
         NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
         searchReq.setId(normalModuleReq.getId());

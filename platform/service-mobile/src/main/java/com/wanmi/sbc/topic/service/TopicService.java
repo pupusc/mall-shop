@@ -247,6 +247,7 @@ public class TopicService {
                         goods.setElementThree(null);
                         goods.setElementFour(null);
                     }
+                    goods.setActivities(goodsCustom.get().getActivities());
                     goodList.add(goods);
                 });
             }

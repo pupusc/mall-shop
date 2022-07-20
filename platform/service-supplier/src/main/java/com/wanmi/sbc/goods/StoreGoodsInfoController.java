@@ -316,7 +316,9 @@ public class StoreGoodsInfoController {
         }
 
         //处理商品打包信息
-        handGoodsPackInfo(goodsInfoVOList);
+        if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
+            handGoodsPackInfo(goodsInfoVOList);
+        }
 
         response.setGoodsInfoPage(new MicroServicePage<>(goodsInfoVOList, queryRequest.getPageRequest(),
                 response.getGoodsInfoPage().getTotalElements()));
