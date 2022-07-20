@@ -1,6 +1,9 @@
 package com.wanmi.sbc.goods;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -150,6 +153,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -271,6 +275,9 @@ public class GoodsBaseController {
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -812,6 +819,28 @@ public class GoodsBaseController {
                     }
                 });
             }
+        }
+
+        //活动信息
+        Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+        SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+        spuNormalActivityReq.setSpuIds(goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsId).collect(Collectors.toList()));
+        spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+        for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+            skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+        }
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+            SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(goodsInfo.getGoodsInfoId());
+            if (skuNormalActivityResp == null) {
+                continue;
+            }
+            GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
+            activity.setNum(skuNormalActivityResp.getNum());
+            activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+            activity.setBeginTime(skuNormalActivityResp.getBeginTime());
+            activity.setEndTime(skuNormalActivityResp.getEndTime());
+            goodsInfo.setActivity(activity);
         }
         return response;
     }

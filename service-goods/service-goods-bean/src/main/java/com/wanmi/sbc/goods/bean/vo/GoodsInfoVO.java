@@ -777,4 +777,40 @@ public class GoodsInfoVO implements Serializable {
      * 是否是直充商品
      */
     private boolean fddsGoodsFlag;
+
+    /**
+     * 活动信息
+     */
+    private NormalActivity activity;
+
+    /**
+     * 活动信息
+     */
+    @Data
+    public static class NormalActivity {
+        /**
+         * 份数
+         */
+        private Integer num;
+
+        /**
+         * 活动展示
+         */
+        private String activityShow;
+
+        /**
+         * 活动开始时间
+         */
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+        private LocalDateTime beginTime;
+
+        /**
+         * 活动结束时间
+         */
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+        private LocalDateTime endTime;
+
+    }
 }
