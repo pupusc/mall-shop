@@ -23,14 +23,14 @@ import java.net.UnknownHostException;
  */
 
 
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean"})
 @EnableWithStateMachine
 @EnableAsync
 @EnableDiscoveryClient
 @EnableTransactionManagement
 @Slf4j
 @PropertySource(value = {"web-base-application.properties","application.properties", "api-application.properties"}, factory = CompositePropertySourceFactory.class)
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean"})
 @EnableJpaAuditing
 @EnableCaching
 public class MobileApplication {
