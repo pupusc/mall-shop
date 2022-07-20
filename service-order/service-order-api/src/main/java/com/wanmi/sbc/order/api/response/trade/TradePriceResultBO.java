@@ -52,7 +52,7 @@ public class TradePriceResultBO {
 
     @Getter
     @AllArgsConstructor
-    public enum PriceItemType {
+    public enum PriceItemTypeEnum {
         ADD_GOODS(101, "商品费用"),
         ADD_DELIVERY(102, "配送费用"),
         SUB_VIP_RATE(201, "会员折扣"),

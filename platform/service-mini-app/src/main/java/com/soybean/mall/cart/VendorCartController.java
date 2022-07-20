@@ -36,13 +36,10 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
-import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
-import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoResponse;
@@ -104,7 +101,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -202,11 +198,9 @@ public class VendorCartController {
 
         //按照客户指定状态分组：指定促销方案；指定选中商品；
         Map<String, Long> client2mktId = new HashMap<>();
-//        Map<String, Boolean> client2checkSkuId = new HashMap<>();
         for (PurchaseInfoParamVO.Marketing marketing : paramVO.getMarketings()) {
             for (PurchaseInfoParamVO.GoodsInfo goodsInfo : marketing.getGoodsInfos()) {
                 client2mktId.put(goodsInfo.getGoodsInfoId(), marketing.getMarketingId());
-//                client2checkSkuId.put(goodsInfo.getGoodsInfoId(), Boolean.TRUE.equals(goodsInfo.isChecked()));
             }
         }
 
@@ -232,7 +226,6 @@ public class VendorCartController {
             marketingVO.setMarketingId(entry.getKey());
             marketingVO.setGoodsInfos(new ArrayList<>());
             for (GoodsInfoVO item : entry.getValue()) {
-//                boolean checked = Boolean.TRUE.equals(client2checkSkuId.get(item.getGoodsInfoId()));
                 //包装返回对象
                 CartInfoResultVO$Sku skuVO = new CartInfoResultVO$Sku();
                 skuVO.setGoodsId(item.getGoodsId());
@@ -249,7 +242,6 @@ public class VendorCartController {
                 skuVO.setSpecText(item.getSpecText());
                 skuVO.setMaxCount(item.getStock());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
-//                skuVO.setChecked(checked); //处理客户端指定选中的商品
                 skuVO.setChecked(item.getChecked());
                 skuVO.setMarketings(buildMarketings(skuId2mktVOs.get(item.getGoodsInfoId())));
                 marketingVO.getGoodsInfos().add(skuVO);
@@ -284,7 +276,7 @@ public class VendorCartController {
             resultVO.getMarketings().forEach(mkt-> mkt.setMarketingLevelId(mktId2mktLevelId.get(mkt.getMarketingId())));
         }
         //会员信息
-        resultVO.setVipInfo(vipInfo(customer.getCustomerId()));
+        //resultVO.setVipInfo(vipInfo(customer.getCustomerId()));
         return BaseResponse.success(resultVO);
     }
 
@@ -314,26 +306,26 @@ public class VendorCartController {
         mktVO.setSubTypeText(textResult.getText()); //促销文案
     }
 
-    /**
-     * 获取用户的会员信息
-     */
-    private PurchaseInfoResultVO.VipInfo vipInfo(String customerId) {
-        //查询是否购买付费会员卡
-        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
-                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
-                        .customerId(customerId)
-                        .delFlag(DeleteFlag.NO)
-                        .endTimeFlag(LocalDateTime.now())
-                        .build()).getContext();
-        if (CollectionUtils.isEmpty(paidCardCustomerRelVOList)) {
-            return null;
-        }
-        PaidCardVO paidCardVO = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getPaidCardVO).min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
-        PurchaseInfoResultVO.VipInfo vipInfo = new PurchaseInfoResultVO.VipInfo();
-        vipInfo.setRate(paidCardVO.getDiscountRate());
-        vipInfo.setName(paidCardVO.getName());
-        return vipInfo;
-    }
+//    /**
+//     * 获取用户的会员信息
+//     */
+//    private PurchaseInfoResultVO.VipInfo vipInfo(String customerId) {
+//        //查询是否购买付费会员卡
+//        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+//                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+//                        .customerId(customerId)
+//                        .delFlag(DeleteFlag.NO)
+//                        .endTimeFlag(LocalDateTime.now())
+//                        .build()).getContext();
+//        if (CollectionUtils.isEmpty(paidCardCustomerRelVOList)) {
+//            return null;
+//        }
+//        PaidCardVO paidCardVO = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getPaidCardVO).min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+//        PurchaseInfoResultVO.VipInfo vipInfo = new PurchaseInfoResultVO.VipInfo();
+//        vipInfo.setRate(paidCardVO.getDiscountRate());
+//        vipInfo.setName(paidCardVO.getName());
+//        return vipInfo;
+//    }
 
     private PurchasePriceResultVO calcPrice(CustomerVO customer, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
         PurchasePriceResultVO calcPrice = new PurchasePriceResultVO();
@@ -360,14 +352,23 @@ public class VendorCartController {
         calcPrice.setTotalPrice(priceResult.getContext().getTotalPrice());
         calcPrice.setPayPrice(priceResult.getContext().getPayPrice());
         calcPrice.setCutPrice(priceResult.getContext().getCutPrice());
-        if (!CollectionUtils.isEmpty(priceResult.getContext().getTotalPriceItems())) {
-            calcPrice.setTotalPriceItems(priceResult.getContext().getTotalPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-        }
-        if (!CollectionUtils.isEmpty(priceResult.getContext().getCutPriceItems())) {
-            calcPrice.setCutPriceItems(priceResult.getContext().getCutPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-        }
+        calcPrice.setTotalPriceItems(priceResult.getContext().getTotalPriceItems().stream()
+                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        calcPrice.setCutPriceItems(priceResult.getContext().getCutPriceItems().stream()
+                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+
+        //总价去掉定价明细
+        BigDecimal propPrice = calcPrice.getCutPriceItems().stream().filter(i -> TradePriceResultBO.PriceItemTypeEnum.SUB_GOODS.getCode().equals(i.getType()))
+                .map(CalcPriceItem::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        //1.原始总价减去定价部分
+        calcPrice.setTotalPrice(calcPrice.getTotalPrice().subtract(propPrice));
+        //2.原始总价明细减去定价部分
+        calcPrice.getTotalPriceItems().stream().filter(i -> TradePriceResultBO.PriceItemTypeEnum.ADD_GOODS.getCode().equals(i.getType())).forEach(i->i.setAmount(i.getAmount().subtract(propPrice)));
+        //3.优惠总价减去定价部分
+        calcPrice.setCutPrice(calcPrice.getCutPrice().subtract(propPrice));
+        //4.优惠总价明细减去定价部分
+        calcPrice.setCutPriceItems(calcPrice.getCutPriceItems().stream().filter(i -> !TradePriceResultBO.PriceItemTypeEnum.SUB_GOODS.getCode().equals(i.getType())).collect(Collectors.toList()));
+
         return calcPrice;
     }
 
@@ -509,67 +510,6 @@ public class VendorCartController {
 
         PromoPriceText.TextResult textResult = PromoPriceText.promoText(textSkus, textMkt);
         return textResult.getText();
-
-//
-//        //商品的总数、总价
-//        long totalCount = skuVOs.stream().mapToLong(GoodsInfoVO::getBuyCount).sum();
-//        BigDecimal totalPrice = skuVOs.stream().map(i->i.getSalePrice().multiply(BigDecimal.valueOf(i.getBuyCount()))).reduce(BigDecimal.ZERO, BigDecimal::add);
-//
-//        //促销文案
-//        Boolean imax = true;
-//        String text = "";
-//        if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mktBO.getSubType())) { //满数量减
-//            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
-//                return null;
-//            }
-//            //已满2件减30元，再买5件减300
-//            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
-//                imax = totalCount >= item.getFullCount();
-//                if (!imax) {
-//                    text = "再买" + (item.getFullCount() - totalCount) + "件减" + item.getReduction();
-//                    break;
-//                }
-//                text = "已满" + item.getFullCount() + "件减" + item.getReduction();
-//            }
-//        } else if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额减
-//            if (CollectionUtils.isEmpty(mktBO.getFullReductionLevelList())) {
-//                return null;
-//            }
-//            //再买20.01元，可享受满100减10
-//            for (MarketingFullReductionLevelVO item : mktBO.getFullReductionLevelList()) {
-//                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-//                if (!imax) {
-//                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "元，可享受满" + item.getFullAmount() + "减" + item.getReduction();
-//                    break;
-//                }
-//                text = "每满" + item.getFullAmount() + "减" + item.getReduction();
-//            }
-//        } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mktBO.getSubType())) { //满数量折
-//            if (CollectionUtils.isEmpty(mktBO.getFullDiscountLevelList())) {
-//                return null;
-//            }
-//            //已满2件打9折，再买5件打8折
-//            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
-//                imax = totalCount >= item.getFullCount();
-//                if (!imax) {
-//                    text = "再买" + (item.getFullCount() - totalCount) + "件打" + item.getDiscount() + "折";
-//                    break;
-//                }
-//                text = "已满" + item.getFullCount() + "件打" + item.getDiscount() + "折";
-//            }
-//        } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktBO.getSubType())) { //满金额折
-//            //每满300打9折，还差32打8折
-//            for (MarketingFullDiscountLevelVO item : mktBO.getFullDiscountLevelList()) {
-//                imax = totalPrice.compareTo(item.getFullAmount()) >= 0;
-//                if (!imax) {
-//                    text = "再买" + item.getFullAmount().subtract(totalPrice) + "件打" + item.getDiscount() + "折";
-//                }
-//                text = "每满" + item.getFullAmount() + "打" + item.getDiscount() + "折";
-//            }
-//        } else {
-//            throw new SbcRuntimeException(CommonErrorCode.FAILED, "暂时不支持的营销活动");
-//        }
-//        return text;
     }
 
     /**
@@ -795,7 +735,8 @@ public class VendorCartController {
         result.setFitGoods(fitGoods);
         result.setTotal(esGoodsInfoResponse.getEsGoodsInfoPage().getTotal());
         //计算购物车价格
-        result.setCalcPrice(handCart4FitGoods(fitGoods, commonUtil.getCustomer()));
+        //result.setCalcPrice(handCart4FitGoods(fitGoods, commonUtil.getCustomer()));
+        handCart4FitGoods(fitGoods, commonUtil.getCustomer());
         //处理商品规格
         BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> specResp =
                 goodsInfoSpecDetailRelQueryProvider.listBySpuIds(new GoodsInfoSpecDetailRelBySpuIdsRequest(spuIds));
@@ -814,14 +755,14 @@ public class VendorCartController {
         return result;
     }
 
-    private PurchasePriceResultVO handCart4FitGoods(List<PromoteFitGoodsResultVO> fitGoods, CustomerVO customer) {
+    private void handCart4FitGoods(List<PromoteFitGoodsResultVO> fitGoods, CustomerVO customer) {
         //统一查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
                 PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
 
         PurchaseListResponse cartInfo = cartResponse.getContext();
         if (cartInfo == null || CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
-            return new PurchasePriceResultVO();
+            return;
         }
         //处理采购数量
         Map<String, GoodsInfoVO> skuId2sku = cartInfo.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, i -> i));
@@ -829,56 +770,33 @@ public class VendorCartController {
             GoodsInfoVO skuVO = skuId2sku.get(fitGood.getSkuId());
             fitGood.setBuyCount(skuVO == null ? 0 : skuVO.getBuyCount().intValue());
         }
+        return;
 
-        //sku对应的营销列表映射
-        Map<String, List<MarketingViewVO>> skuId2mkts = cartInfo.getGoodsMarketingMap();
-
-        //仅支持满减和满折的营销
-        for (List<MarketingViewVO> marketings : skuId2mkts.values()) {
-            Iterator<MarketingViewVO> iter = marketings.iterator();
-            while (iter.hasNext()) {
-                MarketingViewVO mktView = iter.next();
-                if (!PromoteFilter.supportMkt(mktView.getSubType())) {
-                    iter.remove();
-                }
-            }
-        }
-
-        //需要算价的商品
-        List<TradePriceParamBO.GoodsInfo> goodsInfos = cartInfo.getGoodsInfos().stream().filter(GoodsInfoVO::getChecked).map(goodsInfo-> {
-            List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
-            TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
-            goods.setMarketingId(CollectionUtils.isEmpty(mkts) ? null : mkts.get(0).getMarketingId());
-            goods.setGoodsInfoId(goodsInfo.getGoodsInfoId());
-            goods.setBuyCount(goodsInfo.getBuyCount());
-            return goods;
-        }).collect(Collectors.toList());
-
-//        //markerting的id->goods列表映射
-//        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
-
-//        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
-//            if (!Boolean.TRUE.equals(goodsInfo.getChecked())) {
-//                continue;
+//        //sku对应的营销列表映射
+//        Map<String, List<MarketingViewVO>> skuId2mkts = cartInfo.getGoodsMarketingMap();
+//
+//        //仅支持满减和满折的营销
+//        for (List<MarketingViewVO> marketings : skuId2mkts.values()) {
+//            Iterator<MarketingViewVO> iter = marketings.iterator();
+//            while (iter.hasNext()) {
+//                MarketingViewVO mktView = iter.next();
+//                if (!PromoteFilter.supportMkt(mktView.getSubType())) {
+//                    iter.remove();
+//                }
 //            }
-//            List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
-//            Long marketingId = CollectionUtils.isEmpty(mkts) ? 0L : mkts.get(0).getMarketingId();
-//            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
 //        }
-
+//
 //        //需要算价的商品
-//        List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
-//        for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
-//            for (GoodsInfoVO item : entry.getValue()) {
-//                TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
-//                goods.setMarketingId(entry.getKey()==0 ? null : entry.getKey());
-//                goods.setGoodsInfoId(item.getGoodsInfoId());
-//                goods.setBuyCount(item.getBuyCount());
-//                goodsInfos.add(goods);
-//            }
-//        }
-
-        return calcPrice(customer, goodsInfos);
+//        List<TradePriceParamBO.GoodsInfo> goodsInfos = cartInfo.getGoodsInfos().stream().filter(GoodsInfoVO::getChecked).map(goodsInfo-> {
+//            List<MarketingViewVO> mkts = skuId2mkts.get(goodsInfo.getGoodsInfoId());
+//            TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
+//            goods.setMarketingId(CollectionUtils.isEmpty(mkts) ? null : mkts.get(0).getMarketingId());
+//            goods.setGoodsInfoId(goodsInfo.getGoodsInfoId());
+//            goods.setBuyCount(goodsInfo.getBuyCount());
+//            return goods;
+//        }).collect(Collectors.toList());
+//
+//        return calcPrice(customer, goodsInfos);
     }
 
     /**

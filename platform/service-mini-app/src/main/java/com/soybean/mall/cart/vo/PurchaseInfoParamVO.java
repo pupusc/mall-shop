@@ -39,9 +39,5 @@ public class PurchaseInfoParamVO {
          * skuId
          */
         private String goodsInfoId;
-        /**
-         * 是否选中
-         */
-        private boolean checked;
     }
 }
