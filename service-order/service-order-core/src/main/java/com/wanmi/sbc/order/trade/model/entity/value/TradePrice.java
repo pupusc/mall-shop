@@ -202,4 +202,12 @@ public class TradePrice implements Serializable {
      */
     private Long actualKnowledge;
 
+    /**
+     * 商品定价
+     */
+    private BigDecimal propPrice;
+    /**
+     * 市场售价
+     */
+    private BigDecimal salePrice;
 }

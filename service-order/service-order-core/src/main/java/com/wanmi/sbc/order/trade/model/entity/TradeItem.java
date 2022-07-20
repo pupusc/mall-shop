@@ -280,7 +280,10 @@ public class TradeItem implements Serializable, Cloneable {
      * 佣金比例（返利人）
      */
     private BigDecimal commissionRate;
-
+    /**
+     * 选中的营销活动
+     */
+    private Long marketingId;
     /**
      * 商品参加的营销活动id集合
      */

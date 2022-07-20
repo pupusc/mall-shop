@@ -1,10 +1,12 @@
 package com.soybean.mall.goods.response;
 
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,6 +85,21 @@ public class SpuNewBookListResp {
      * 图书信息
      */
     private Book book;
+
+    /**
+     * 优惠券标签
+     */
+    private List<CouponLabel> couponLabels = new ArrayList<>();
+
+    /**
+     * 促销标签
+     */
+    private List<MarketingLabel> marketingLabels = new ArrayList<>();
+
+    /**
+     * spu关联的所有sku
+     */
+    private List<GoodsInfoVO> skus = new ArrayList<>();
 
     /**
      * 书单或者榜单信息
@@ -196,4 +213,55 @@ public class SpuNewBookListResp {
 
     }
 
+    /**
+     * 优惠券标签
+     */
+    @Data
+    public static class  CouponLabel {
+        /**
+         * 优惠券Id
+         */
+        private String couponInfoId;
+
+        /**
+         * 优惠券活动Id
+         */
+        private String couponActivityId;
+
+        /**
+         * 促销描述
+         */
+        private String couponDesc;
+        /**
+         * 使用场景，1专题2商详3领券中心，可多选，用，分隔
+         */
+        private String couponScene;
+    }
+
+    /**
+     * 营销标签
+     */
+    @Data
+    public static class MarketingLabel {
+        /**
+         * 营销编号
+         */
+        private Long marketingId;
+
+        /**
+         * 促销类型 0：满减 1:满折 2:满赠
+         * 与Marketing.marketingType保持一致
+         */
+        private Integer marketingType;
+
+        /**
+         * 促销描述
+         */
+        private String marketingDesc;
+
+        /**
+         * 活动状态
+         */
+        private Integer marketingStatus;
+    }
 }

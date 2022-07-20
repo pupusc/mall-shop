@@ -1,51 +1,63 @@
 package com.wanmi.sbc.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alipay.api.domain.GoodsInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
-import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
-import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
-import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleMergeInProgressRequest;
-import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
-import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuySendDateRuleRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleMergeInProcessResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
-import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionSimplifyRequest;
-import com.wanmi.sbc.order.api.request.trade.*;
-import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
-import com.wanmi.sbc.order.bean.dto.*;
+import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
+import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
+import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
+import com.wanmi.sbc.order.bean.dto.TradeBatchDeliverDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
 import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.constant.OrderErrorCode;
-import com.wanmi.sbc.order.purchase.Purchase;
+import com.wanmi.sbc.order.purchase.PurchaseCacheService;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
@@ -72,7 +84,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -146,6 +165,9 @@ public class TradeOptimizeService {
 
     @Autowired
     private CycleBuyQueryProvider cycleBuyQueryProvider;
+
+    @Autowired
+    private PurchaseCacheService purchaseCacheService;
     /**
      * C端下单
      */
@@ -412,10 +434,10 @@ public class TradeOptimizeService {
             if (Boolean.TRUE.equals(tradeItemSnapshot.getPurchaseBuy())) {
                 trades.forEach(
                         trade -> {
-                            List<String> tradeSkuIds =
-                                    trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
-                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
-                                    tradeCommitRequest.getDistributeChannel());
+                            List<String> tradeSkuIds = trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds, tradeCommitRequest.getDistributeChannel());
+                            //删除购物车勾选缓存
+                            purchaseCacheService.unTicks(customer.getCustomerId(), tradeSkuIds);
                         }
                 );
             }

@@ -7,26 +7,34 @@ import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest
 import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
 import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.distribution.DistributionCustomerSaveProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
-import com.wanmi.sbc.customer.api.request.customer.*;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerFandengModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomersDeleteRequest;
+import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
+import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByFanDengRequest;
 import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerModifyCustomerIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerLoginTimeRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyPaidCustomerRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengWxAuthLoginRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengWxAuthLoginResponse;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
 import com.wanmi.sbc.order.api.response.trade.TradePageCriteriaResponse;
-import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.bean.dto.TradeQueryDTO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import io.swagger.annotations.ApiOperation;
@@ -42,7 +50,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -67,6 +79,8 @@ public class UserController {
     private TradeQueryProvider tradeQueryProvider;
     @Autowired
     private DistributionCustomerSaveProvider distributionCustomerSaveProvider;
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     /**
      * 微信小程序授权登录
@@ -115,7 +129,32 @@ public class UserController {
                 .mobile(phoneAndOpenid.getContext().getPhoneNumber()).serviceType(101).build();
         BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
         LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
+
+        //会员信息
+        loginResponse.setVipInfo(vipInfo(loginResponse.getCustomerId()));
+
         return BaseResponse.success(loginResponse);
+    }
+
+    private LoginResponse.VipInfo vipInfo(String customerId) {
+        if (StringUtils.isBlank(customerId)) {
+            return null;
+        }
+        //查询是否购买付费会员卡
+        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+                        .customerId(customerId)
+                        .delFlag(DeleteFlag.NO)
+                        .endTimeFlag(LocalDateTime.now())
+                        .build()).getContext();
+        if (com.alibaba.nacos.common.utils.CollectionUtils.isEmpty(paidCardCustomerRelVOList)) {
+            return null;
+        }
+        PaidCardVO paidCardVO = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getPaidCardVO).min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+        LoginResponse.VipInfo vipInfo = new LoginResponse.VipInfo();
+        vipInfo.setRate(paidCardVO.getDiscountRate());
+        vipInfo.setName(paidCardVO.getName());
+        return vipInfo;
     }
 
     public LoginResponse afterWxAuthLogin(FanDengWxAuthLoginResponse.WxAuthLoginData resData, String mobile, String openId, String unionId){
