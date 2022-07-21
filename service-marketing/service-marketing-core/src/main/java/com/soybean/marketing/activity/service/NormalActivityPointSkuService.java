@@ -228,6 +228,8 @@ public class NormalActivityPointSkuService extends NormalActivityService {
     }
 
 
+
+
     /**
      * 查看 sku对应的活动
      * @param spuNormalActivityReq
@@ -241,8 +243,19 @@ public class NormalActivityPointSkuService extends NormalActivityService {
             return new ArrayList<>();
         }
         NormalActivitySearchReq normalActivitySearchReq = new NormalActivitySearchReq();
-        normalActivitySearchReq.setStatus(StateEnum.RUNNING.getCode());
-        normalActivitySearchReq.setPublishState(PublishState.ENABLE.toValue());
+        if (spuNormalActivityReq.getStatus() != null) {
+            normalActivitySearchReq.setStatus(spuNormalActivityReq.getStatus());
+        }
+
+        if (spuNormalActivityReq.getPublishState() != null) {
+            normalActivitySearchReq.setPublishState(spuNormalActivityReq.getPublishState());
+        }
+
+        if (spuNormalActivityReq.getBeginTime() != null && spuNormalActivityReq.getEndTime() != null) {
+            normalActivitySearchReq.setBeginTimeR(spuNormalActivityReq.getBeginTime());
+            normalActivitySearchReq.setEndTimeR(spuNormalActivityReq.getEndTime());
+        }
+
         normalActivitySearchReq.setChannelTypes(spuNormalActivityReq.getChannelTypes());
         List<NormalActivity> normalActivities = super.listNoPage(normalActivitySearchReq); //进行中的活动
         if (CollectionUtils.isEmpty(normalActivities)) {

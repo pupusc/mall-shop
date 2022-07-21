@@ -14,12 +14,14 @@ import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -208,6 +211,8 @@ public class SpuNewSearchService {
         Map<String, SkuNormalActivityResp> spuId2NormalActivityMap = new HashMap<>();
         SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
         spuNormalActivityReq.setSpuIds(spuIdList);
+        spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+        spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
         spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
@@ -321,6 +326,8 @@ public class SpuNewSearchService {
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
+            spuNewBookListResp.setHasVip(goodsInfoVO.getMarketPrice().compareTo(BigDecimal.ZERO) > 0 && !Objects.equals(goodsInfoVO.getSalePrice(), goodsInfoVO.getMarketPrice()) ? 1 : 0);
+            spuNewBookListResp.setSpecMore(StringUtils.isEmpty(goodsInfoVO.getSpecText()) ? 0 : 1);
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
             result.add(spuNewBookListResp);

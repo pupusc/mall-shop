@@ -53,6 +53,9 @@ public interface NormalModuleRepository extends JpaRepository<NormalModule, Inte
                             criteriaBuilder.lessThan(root.get("endTime"), normalModuleSearchReq.getEndTimeR()));
                     conditionList.add(criteriaBuilder.or(condition1, condition2));
                 }
+                if (normalModuleSearchReq.getExcludeNormalModuleId() != null) {
+                    conditionList.add(criteriaBuilder.notEqual(root.get("id"), normalModuleSearchReq.getExcludeNormalModuleId()));
+                }
                 //状态
                 if (normalModuleSearchReq.getStatus() != null) {
                     LocalDateTime now = LocalDateTime.now();

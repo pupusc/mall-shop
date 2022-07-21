@@ -22,7 +22,9 @@ import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengAddPointReq;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.order.api.enums.RecordStateEnum;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
@@ -135,6 +137,8 @@ public abstract class PayOrderGiftRecordService {
         }
         SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
         spuNormalActivityReq.setSkuIds(skuIds);
+        spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+        spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
         spuNormalActivityReq.setChannelTypes(channelTypes);
         List<SkuNormalActivityResp> context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         if (CollectionUtils.isEmpty(context)) {

@@ -96,7 +96,8 @@ public abstract class NormalActivityService {
     }
 
     public List<NormalActivity> listNoPage(NormalActivitySearchReq searchReq) {
-        return  normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq));
+        Sort sort = Sort.by(Sort.Direction.ASC, "createTime");
+        return  normalActivityRepository.findAll(normalActivityRepository.buildSearchCondition(searchReq), sort);
 
     }
 

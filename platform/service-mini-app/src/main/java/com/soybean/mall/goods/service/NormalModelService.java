@@ -95,7 +95,7 @@ public class NormalModelService {
             return new HomeSpuTopicResp<>(homeTitleResp, new ArrayList<>());
         }
         NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
-        searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+//        searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         searchReq.setPageSize(1);
         searchReq.setStatus(StateEnum.RUNNING.getCode());
         searchReq.setPublishState(PublishState.ENABLE.toValue());

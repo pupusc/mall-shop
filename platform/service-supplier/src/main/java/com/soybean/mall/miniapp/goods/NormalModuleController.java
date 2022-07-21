@@ -127,7 +127,7 @@ public class NormalModuleController {
         List<String> skuIdList = normalModuleSkuResps.stream().map(NormalModuleSkuResp::getSkuId).collect(Collectors.toList());
 
         //获取商品详细信息
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).deleteFlag(DeleteFlag.NO).build();
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).isHavSpecText(DeleteFlag.YES.toValue()).deleteFlag(DeleteFlag.NO).build();
         GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext();
         List<GoodsInfoVO> goodsInfos = goodsInfoViewByIdsResponse.getGoodsInfos();
         Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap =

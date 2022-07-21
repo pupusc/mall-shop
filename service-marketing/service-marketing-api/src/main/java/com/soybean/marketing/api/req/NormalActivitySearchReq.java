@@ -69,4 +69,6 @@ public class NormalActivitySearchReq extends CommonPageQueryReq {
      * 0未开启 1开启 {@link com.wanmi.sbc.goods.bean.enums.PublishState}
      */
     private Integer publishState;
+
+    private Integer excludeActivityId;
 }

@@ -1,8 +1,13 @@
 package com.soybean.marketing.api.req;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -21,4 +26,28 @@ public class SpuNormalActivityReq {
 
     @NotNull
     private List<Integer> channelTypes;
+
+    /**
+     * 开始时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime beginTime;
+
+    /**
+     * 结束时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime endTime;
+
+    /**
+     * 活动状态 0未开始 1进行中 2 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
+     */
+    private Integer status;
+
+    /**
+     * 0未开启 1开启 {@link com.wanmi.sbc.goods.bean.enums.PublishState}
+     */
+    private Integer publishState;
 }

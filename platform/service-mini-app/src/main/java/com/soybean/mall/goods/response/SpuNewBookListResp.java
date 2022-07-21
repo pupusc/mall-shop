@@ -48,6 +48,16 @@ public class SpuNewBookListResp {
      */
     private BigDecimal marketPrice;
 
+    /**
+     * 是否是会员 0 否 1 是
+     */
+    private Integer hasVip;
+
+    /**
+     * 是否多规格 0否 1 是
+     */
+    private Integer specMore;
+
 
     /**
      * 主播推荐

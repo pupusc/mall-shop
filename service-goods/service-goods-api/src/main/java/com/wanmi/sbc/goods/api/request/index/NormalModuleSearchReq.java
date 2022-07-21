@@ -65,4 +65,6 @@ public class NormalModuleSearchReq extends CommonPageQueryReq {
      * {@link com.wanmi.sbc.goods.bean.enums.PublishState}
      */
     private Integer publishState;
+
+    private Integer excludeNormalModuleId;
 }

@@ -62,9 +62,7 @@ public class NormalModuleService {
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须得有商品信息，最大为100个");
         }
-        List<String> skuIds =
-                normalModuleReq.getNormalModuleSkus().stream().map(NormalModuleSkuReq::getSkuId).collect(Collectors.toList());
-        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), skuIds, null);
+        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), null);
 
         NormalModule normalModule = new NormalModule();
         normalModule.setName(normalModuleReq.getName());
@@ -119,9 +117,7 @@ public class NormalModuleService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请输入id");
         }
 
-        List<String> skuIds =
-                normalModuleReq.getNormalModuleSkus().stream().map(NormalModuleSkuReq::getSkuId).collect(Collectors.toList());
-        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), skuIds, normalModuleReq.getId());
+        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), normalModuleReq.getId());
 
         NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
         searchReq.setId(normalModuleReq.getId());
@@ -189,7 +185,7 @@ public class NormalModuleService {
      * @return
      */
     public CommonPageResp<List<NormalModuleResp>> list(NormalModuleSearchReq normalModuleSearchReq) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
+        Sort sort = Sort.by(Sort.Direction.DESC, "createTime");
         Pageable pageable = PageRequest.of(normalModuleSearchReq.getPageNum(), normalModuleSearchReq.getPageSize(), sort);
         Page<NormalModule> normalModulePage = normalModuleRepository.findAll(normalModuleRepository.packageWhere(normalModuleSearchReq), pageable);
         List<NormalModuleResp> result = new ArrayList<>();
@@ -241,8 +237,7 @@ public class NormalModuleService {
                     normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq));
             //获取商品信息
             if (CollectionUtils.isNotEmpty(normalModuleSkuList)) {
-                List<String> skuIds = normalModuleSkuList.stream().map(NormalModuleSku::getSkuId).collect(Collectors.toList());
-                this.verification(normalModule.getBeginTime(), normalModule.getEndTime(), skuIds, id);
+                this.verification(normalModule.getBeginTime(), normalModule.getEndTime(), id);
             }
         }
 
@@ -281,27 +276,21 @@ public class NormalModuleService {
      * 校验是否有重叠的栏目
      * @param beginTime
      * @param endTime
-     * @param skuIds
      */
-    private void verification(LocalDateTime beginTime, LocalDateTime endTime, List<String> skuIds, Integer excludeActivityId) {
+    private void verification(LocalDateTime beginTime, LocalDateTime endTime, Integer excludeNormalModuleId) {
         //查询是否有重叠的活动；
         NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
         searchReq.setPublishState(PublishState.ENABLE.toValue());
         searchReq.setBeginTimeR(beginTime);
         searchReq.setEndTimeR(endTime);
+        searchReq.setExcludeNormalModuleId(excludeNormalModuleId);
         List<NormalModule> normalModules = this.listNoPage(searchReq);
-        if (CollectionUtils.isNotEmpty(normalModules)) {
-            List<Integer> normalModuleIds = normalModules.stream()
-                    .map(NormalModule::getId)
-                    .filter(id -> !Objects.equals(id, excludeActivityId)).collect(Collectors.toList());
-            //有重叠的栏目，则查看是否有重叠的商品
-            NormalModuleSkuSearchReq normalModuleSkuSearchReq = new NormalModuleSkuSearchReq();
-            normalModuleSkuSearchReq.setNormalModuleIds(normalModuleIds);
-            normalModuleSkuSearchReq.setSkuIds(skuIds);
-            List<NormalModuleSku> normalModuleSkuList = normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq));
-            if (CollectionUtils.isNotEmpty(normalModuleSkuList)) {
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品" + normalModuleSkuList.get(0).getSkuNo() + "和其他活动有冲突");
-            }
+        if (CollectionUtils.isEmpty(normalModules)) {
+            return;
+        }
+
+        for (NormalModule normalModule : normalModules) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "栏目id" + normalModule.getId() + "和其他栏目有冲突");
         }
     }
 }

@@ -33,6 +33,6 @@ public class NormalModuleSkuReq {
     /**
      * 标签名称
      */
-    @NotBlank
+//    @NotBlank
     private String skuTag;
 }

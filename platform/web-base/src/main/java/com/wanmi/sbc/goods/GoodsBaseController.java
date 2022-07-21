@@ -39,6 +39,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -87,6 +88,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
@@ -826,6 +828,8 @@ public class GoodsBaseController {
         SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
         spuNormalActivityReq.setSpuIds(goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsId).collect(Collectors.toList()));
         spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+        spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
         List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
             skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
@@ -838,8 +842,6 @@ public class GoodsBaseController {
             GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
             activity.setNum(skuNormalActivityResp.getNum());
             activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
-            activity.setBeginTime(skuNormalActivityResp.getBeginTime());
-            activity.setEndTime(skuNormalActivityResp.getEndTime());
             goodsInfo.setActivity(activity);
         }
         return response;
