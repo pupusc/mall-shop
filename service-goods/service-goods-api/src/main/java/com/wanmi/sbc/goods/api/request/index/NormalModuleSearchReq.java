@@ -43,6 +43,20 @@ public class NormalModuleSearchReq extends CommonPageQueryReq {
     private LocalDateTime endTime;
 
     /**
+     * 计算重叠开始时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime beginTimeR;
+
+    /**
+     * 计算重叠开始时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime endTimeR;
+
+    /**
      * 栏目状态 0未开始 1进行中 2 结束 {@link com.wanmi.sbc.goods.api.enums.StateEnum}
      */
     private Integer status;

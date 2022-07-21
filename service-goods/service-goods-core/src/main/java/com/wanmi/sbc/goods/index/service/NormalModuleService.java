@@ -4,6 +4,8 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -60,6 +62,9 @@ public class NormalModuleService {
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须得有商品信息，最大为100个");
         }
+        List<String> skuIds =
+                normalModuleReq.getNormalModuleSkus().stream().map(NormalModuleSkuReq::getSkuId).collect(Collectors.toList());
+        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), skuIds, null);
 
         NormalModule normalModule = new NormalModule();
         normalModule.setName(normalModuleReq.getName());
@@ -109,6 +114,15 @@ public class NormalModuleService {
         if (CollectionUtils.isEmpty(normalModuleReq.getNormalModuleSkus()) || normalModuleReq.getNormalModuleSkus().size() > 100 ) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "必须得有商品信息，最大为100个");
         }
+
+        if (normalModuleReq.getId() == null) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请输入id");
+        }
+
+        List<String> skuIds =
+                normalModuleReq.getNormalModuleSkus().stream().map(NormalModuleSkuReq::getSkuId).collect(Collectors.toList());
+        this.verification(normalModuleReq.getBeginTime(), normalModuleReq.getEndTime(), skuIds, normalModuleReq.getId());
+
         NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
         searchReq.setId(normalModuleReq.getId());
         List<NormalModule> normalModules = normalModuleRepository.findAll(normalModuleRepository.packageWhere(searchReq));
@@ -199,6 +213,14 @@ public class NormalModuleService {
         return new CommonPageResp<>(normalModulePage.getTotalElements(), result);
     }
 
+    /**
+     * 无分页列表
+     * @param normalModuleSearchReq
+     * @return
+     */
+    public List<NormalModule> listNoPage(NormalModuleSearchReq normalModuleSearchReq) {
+        return normalModuleRepository.findAll(normalModuleRepository.packageWhere(normalModuleSearchReq));
+    }
 
     /**
      * 开启
@@ -211,6 +233,19 @@ public class NormalModuleService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "id有误");
         }
         NormalModule normalModule = normalModules.get(0);
+        if (isOpen) {
+            //获取商品列表
+            NormalModuleSkuSearchReq normalModuleSkuSearchReq = new NormalModuleSkuSearchReq();
+            normalModuleSkuSearchReq.setNormalModuleId(id);
+            List<NormalModuleSku> normalModuleSkuList =
+                    normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq));
+            //获取商品信息
+            if (CollectionUtils.isNotEmpty(normalModuleSkuList)) {
+                List<String> skuIds = normalModuleSkuList.stream().map(NormalModuleSku::getSkuId).collect(Collectors.toList());
+                this.verification(normalModule.getBeginTime(), normalModule.getEndTime(), skuIds, id);
+            }
+        }
+
         normalModule.setPublishState(isOpen ? PublishState.ENABLE.toValue() : PublishState.NOT_ENABLE.toValue());
         normalModuleRepository.save(normalModule);
     }
@@ -239,5 +274,34 @@ public class NormalModuleService {
             result.add(normalModuleSkuResp);
         }
         return result;
+    }
+
+
+    /**
+     * 校验是否有重叠的栏目
+     * @param beginTime
+     * @param endTime
+     * @param skuIds
+     */
+    private void verification(LocalDateTime beginTime, LocalDateTime endTime, List<String> skuIds, Integer excludeActivityId) {
+        //查询是否有重叠的活动；
+        NormalModuleSearchReq searchReq = new NormalModuleSearchReq();
+        searchReq.setPublishState(PublishState.ENABLE.toValue());
+        searchReq.setBeginTimeR(beginTime);
+        searchReq.setEndTimeR(endTime);
+        List<NormalModule> normalModules = this.listNoPage(searchReq);
+        if (CollectionUtils.isNotEmpty(normalModules)) {
+            List<Integer> normalModuleIds = normalModules.stream()
+                    .map(NormalModule::getId)
+                    .filter(id -> !Objects.equals(id, excludeActivityId)).collect(Collectors.toList());
+            //有重叠的栏目，则查看是否有重叠的商品
+            NormalModuleSkuSearchReq normalModuleSkuSearchReq = new NormalModuleSkuSearchReq();
+            normalModuleSkuSearchReq.setNormalModuleIds(normalModuleIds);
+            normalModuleSkuSearchReq.setSkuIds(skuIds);
+            List<NormalModuleSku> normalModuleSkuList = normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq));
+            if (CollectionUtils.isNotEmpty(normalModuleSkuList)) {
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品" + normalModuleSkuList.get(0).getSkuNo() + "和其他活动有冲突");
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Description: 栏目对象
@@ -22,4 +23,8 @@ public class NormalModuleSkuSearchReq extends CommonPageQueryReq {
     private Integer id;
 
     private Integer normalModuleId;
+
+    private List<Integer> normalModuleIds;
+
+    private List<String> skuIds;
 }

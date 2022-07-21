@@ -5,10 +5,10 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.index.NormalModuleSkuSearchReq;
 import com.wanmi.sbc.goods.index.model.NormalModule;
 import com.wanmi.sbc.goods.index.model.NormalModuleSku;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -29,6 +29,12 @@ public interface NormalModuleSkuRepository extends JpaRepository<NormalModuleSku
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (normalModuleSkuSearchReq.getNormalModuleId() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("normalModelId"), normalModuleSkuSearchReq.getNormalModuleId()));
+                }
+                if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(normalModuleSkuSearchReq.getNormalModuleIds())) {
+                    conditionList.add(root.get("normalModelId").in(normalModuleSkuSearchReq.getNormalModuleIds()));
+                }
+                if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(normalModuleSkuSearchReq.getSkuIds())) {
+                    conditionList.add(root.get("skuId").in(normalModuleSkuSearchReq.getSkuIds()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }
