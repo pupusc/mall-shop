@@ -5245,7 +5245,7 @@ public class TradeService {
 
         //支付成功后发送消息
         RecordMessageMq recordMessageMq = new RecordMessageMq();
-        recordMessageMq.setOrderId(trade.getId());
+        recordMessageMq.setBusinessId(trade.getId());
 //        recordMessageMq.setChannelTypes();
         mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
 

@@ -93,7 +93,7 @@ public abstract class PayOrderGiftRecordService {
      */
     private SimpleTradeResp filterSimpleTrade(RecordMessageMq recordMessageMq) {
 
-        if (StringUtils.isBlank(recordMessageMq.getOrderId())) {
+        if (StringUtils.isBlank(recordMessageMq.getBusinessId())) {
             return null;
         }
         if (CollectionUtils.isEmpty(recordMessageMq.getChannelTypes())) {
@@ -101,9 +101,9 @@ public abstract class PayOrderGiftRecordService {
         }
 
         //获取订单信息
-        Trade orderDetail = tradeService.detail(recordMessageMq.getOrderId());
+        Trade orderDetail = tradeService.detail(recordMessageMq.getBusinessId());
         if (orderDetail == null) {
-            log.error("PayOrderGiftRecordService filterSimpleTrade orderId:{} 不存在", recordMessageMq.getOrderId());
+            log.error("PayOrderGiftRecordService filterSimpleTrade orderId:{} 不存在", recordMessageMq.getBusinessId());
             return null;
         }
 

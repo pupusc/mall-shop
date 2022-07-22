@@ -54,9 +54,9 @@ public class SpuNewBookListResp {
     private Integer hasVip;
 
     /**
-     * 是否多规格 0否 1 是
+     * 是否有更多规格
      */
-    private Integer specMore;
+    private Boolean specMore = false;
 
 
     /**

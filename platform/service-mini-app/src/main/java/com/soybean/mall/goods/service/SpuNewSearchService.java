@@ -327,7 +327,7 @@ public class SpuNewSearchService {
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
             spuNewBookListResp.setHasVip(goodsInfoVO.getMarketPrice().compareTo(BigDecimal.ZERO) > 0 && !Objects.equals(goodsInfoVO.getSalePrice(), goodsInfoVO.getMarketPrice()) ? 1 : 0);
-            spuNewBookListResp.setSpecMore(StringUtils.isEmpty(goodsInfoVO.getSpecText()) ? 0 : 1);
+            spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
             result.add(spuNewBookListResp);

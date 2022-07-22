@@ -434,7 +434,7 @@ public class TradeOptimizeService {
             for (Trade trade : trades) {
                 RecordMessageMq recordMessageMq = new RecordMessageMq();
                 recordMessageMq.setChannelTypes(tradeCommitRequest.getGoodsChannelTypeSet());
-                recordMessageMq.setOrderId(trade.getId());
+                recordMessageMq.setBusinessId(trade.getId());
                 log.info("TradeOptimizeService commit 创建订单参数为: {}", JSON.toJSONString(recordMessageMq));
                 mqOrderGiftRecordProducer.sendCreateOrderGiftRecord(recordMessageMq);
             }

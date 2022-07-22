@@ -15,9 +15,9 @@ import java.util.List;
 public class RecordMessageMq {
 
     /**
-     * 订单id
+     * 业务id
      */
-    private String orderId;
+    private String businessId;
 
     /**
      * 渠道类型

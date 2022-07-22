@@ -18,7 +18,7 @@ public class TopicExchangeRabbitMqUtil {
     /**
      * queue
      */
-    public static final String QUEUE_CREATE_ORDER_GIFT_RECORD = "QUEUE_CREATE_ORDER_GIFT_RECORD";
+    public static final String QUEUE_CREATE_ORDER_GIFT_RECORD = "QUEUE_ORDER_GIFT_RECORD";
 
     /**
      * topic_router
@@ -28,7 +28,7 @@ public class TopicExchangeRabbitMqUtil {
     /**
      * queue
      */
-    public static final String QUEUE_PAY_ORDER_GIFT_RECORD = "QUEUE_PAY_ORDER_GIFT_RECORD";
+    public static final String QUEUE_PAY_ORDER_GIFT_RECORD = "QUEUE_ORDER_GIFT_RECORD";
 
     /**
      * topic_router
