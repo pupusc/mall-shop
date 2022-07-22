@@ -14,10 +14,10 @@ import java.util.List;
 @Data
 public class AppIdProcessReq {
 
-    private List<String> orderIds;
+    private List<Long> ids;
 
 
-    private Integer maxId;
+    private Long maxId;
 
     private int size = 100;
 }

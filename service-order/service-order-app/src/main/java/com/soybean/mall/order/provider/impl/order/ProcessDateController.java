@@ -10,6 +10,7 @@ import com.wanmi.sbc.order.paycallbackresult.repository.PayCallBackResultReposit
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -59,10 +60,18 @@ public class ProcessDateController implements ProcessDateProvider {
             }
         }
         if (appIdProcessReq.getMaxId() != null) {
-            maxId = appIdProcessReq.getMaxId().longValue();
+            maxId = appIdProcessReq.getMaxId();
         }
-        List<PayCallBackResult> payCallBackResults = payCallBackResultRepository.listByMaxId(maxId.intValue(), appIdProcessReq.getSize());
 
+        List<PayCallBackResult> payCallBackResults;
+        if (CollectionUtils.isEmpty(appIdProcessReq.getIds())) {
+            payCallBackResults = payCallBackResultRepository.listByMaxId(maxId.intValue(), appIdProcessReq.getSize());
+        } else {
+            payCallBackResults = payCallBackResultRepository.findAllById(appIdProcessReq.getIds());
+        }
+
+
+        int num = 1;
         for (PayCallBackResult payCallBackResult : payCallBackResults) {
             if (payCallBackResult.getId() > maxId) {
                 maxId = payCallBackResult.getId();
@@ -101,12 +110,14 @@ public class ProcessDateController implements ProcessDateProvider {
                 log.info("processAppId businessId:{} appId:{} or transactionId:{} isEmpty", payCallBackResult.getBusinessId(), appId, transaction_idStr);
                 continue;
             }
-
+            log.info("ProcessDateController processAppId businessId:{} execute id:{} num:{} ", payCallBackResult.getBusinessId(),payCallBackResult.getId(), num++);
             //修改
             payProvider.saveAppId(appId, transaction_idStr);
         }
 
-        redisService.setString(key, "" + maxId, 24 * 60 * 60);
+        if (CollectionUtils.isEmpty(appIdProcessReq.getIds())) {
+            redisService.setString(key, "" + maxId, 24 * 60 * 60);
+        }
         return BaseResponse.SUCCESSFUL();
     }
 
