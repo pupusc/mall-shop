@@ -42,8 +42,6 @@ public class PayController implements PayProvider {
     @Autowired
     private PayDataService payDataService;
 
-    @Autowired
-    private TradeRecordRepository tradeRecordRepository;
 
     @Override
     public BaseResponse addGateway(@RequestBody @Valid GatewayAddRequest gatewayAddRequest) {
@@ -191,7 +189,7 @@ public class PayController implements PayProvider {
 
     @Override
     public BaseResponse saveAppId(String appId, String tradeNo) {
-        tradeRecordRepository.updateAppIdByTradeNo(appId, tradeNo);
+        payDataService.saveAppId(appId, tradeNo);
         return BaseResponse.SUCCESSFUL();
     }
 }

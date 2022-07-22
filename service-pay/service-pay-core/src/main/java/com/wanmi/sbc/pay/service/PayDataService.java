@@ -40,6 +40,9 @@ public class PayDataService {
     @Autowired
     private GatewayConfigRepository gatewayConfigRepository;
 
+    @Autowired
+    private TradeRecordRepository tradeRecordRepository;
+
     /**
      * 获取交易记录
      *
@@ -324,5 +327,10 @@ public class PayDataService {
             config.setSecret(saveRequest.getSecret());
             gatewayConfigRepository.save(config);
         }
+    }
+
+
+    public void saveAppId(String appId, String tradeNo)  {
+        tradeRecordRepository.updateAppIdByTradeNo(appId, tradeNo);
     }
 }
