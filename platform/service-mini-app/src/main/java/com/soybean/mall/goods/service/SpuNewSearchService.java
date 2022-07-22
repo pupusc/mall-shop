@@ -320,7 +320,7 @@ public class SpuNewSearchService {
                 activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
                 activities.add(activity);
                 spuNewBookListResp.setActivities(activities);
-                spuNewBookListResp.setSkuId(skuNormalActivityResp.getSkuId());
+//                spuNewBookListResp.setSkuId(skuNormalActivityResp.getSkuId());
             }
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
