@@ -11,6 +11,7 @@ import com.wanmi.sbc.pay.model.root.PayChannelItem;
 import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
 import com.wanmi.sbc.pay.model.root.PayTradeRecord;
+import com.wanmi.sbc.pay.repository.TradeRecordRepository;
 import com.wanmi.sbc.pay.service.PayDataService;
 import com.wanmi.sbc.pay.service.PayService;
 import com.wanmi.sbc.pay.unionpay.acp.sdk.AcpService;
@@ -40,6 +41,9 @@ public class PayController implements PayProvider {
 
     @Autowired
     private PayDataService payDataService;
+
+    @Autowired
+    private TradeRecordRepository tradeRecordRepository;
 
     @Override
     public BaseResponse addGateway(@RequestBody @Valid GatewayAddRequest gatewayAddRequest) {
@@ -182,6 +186,12 @@ public class PayController implements PayProvider {
     @Override
     public BaseResponse savePayGatewayByTerminalType(@RequestBody @Valid PayGatewaySaveByTerminalTypeRequest request) {
         payDataService.savePayGatewayByTerminalType(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse saveAppId(String appId, String tradeNo) {
+        tradeRecordRepository.updateAppIdByTradeNo(appId, tradeNo);
         return BaseResponse.SUCCESSFUL();
     }
 }

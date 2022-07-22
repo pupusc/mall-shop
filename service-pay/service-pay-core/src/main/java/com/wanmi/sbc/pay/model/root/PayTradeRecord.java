@@ -108,4 +108,7 @@ public class PayTradeRecord {
      */
     @Column(name = "trade_no")
     private String tradeNo;
+
+    @Column(name = "app_id")
+    private String appId;
 }

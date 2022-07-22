@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * <p>支付回调结果DAO</p>
  * @author lvzhenwei
@@ -24,5 +26,10 @@ public interface PayCallBackResultRepository extends JpaRepository<PayCallBackRe
     @Modifying
     @Query("update PayCallBackResult set resultStatus = ?2 where businessId = ?1")
     int updateStatusSuccessByBusinessId(String businessId, PayCallBackResultStatus resultStatus);
+
+
+
+    @Query(value = "select * from pay_call_back_result where id > ?1 order by id asc limit ?2", nativeQuery = true)
+    List<PayCallBackResult> listByMaxId(int from, int size);
 
 }
