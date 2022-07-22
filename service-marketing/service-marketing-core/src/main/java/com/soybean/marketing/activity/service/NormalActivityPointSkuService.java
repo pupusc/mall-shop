@@ -252,8 +252,8 @@ public class NormalActivityPointSkuService extends NormalActivityService {
         }
 
         if (spuNormalActivityReq.getBeginTime() != null && spuNormalActivityReq.getEndTime() != null) {
-            normalActivitySearchReq.setBeginTimeR(spuNormalActivityReq.getBeginTime());
-            normalActivitySearchReq.setEndTimeR(spuNormalActivityReq.getEndTime());
+            normalActivitySearchReq.setBeginTime(spuNormalActivityReq.getBeginTime());
+            normalActivitySearchReq.setEndTime(spuNormalActivityReq.getEndTime());
         }
 
         normalActivitySearchReq.setChannelTypes(spuNormalActivityReq.getChannelTypes());

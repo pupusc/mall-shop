@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +40,14 @@ public class NormalActivityController {
     @Autowired
     private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
+    /**
+     * 获取商品进行中的活动
+     *
+     * @menu 返积分活动
+     * @param skuId
+     * @return
+     */
+    @PostMapping("/list/{skuId}")
     public BaseResponse listNormalActivity(@PathVariable("skuId") String skuId) {
         SpuNormalActivityReq searchReq = new SpuNormalActivityReq();
         searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
@@ -48,7 +57,7 @@ public class NormalActivityController {
         List<SkuNormalActivityResp> context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(searchReq).getContext();
 
         //进行中的订单
-        Boolean isPrepare = false;
+        boolean isPrepare = false;
         if (CollectionUtils.isEmpty(context)){
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime beginTime = now.minusDays(3);
