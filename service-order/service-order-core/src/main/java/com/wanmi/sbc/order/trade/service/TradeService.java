@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
-import com.soybean.mall.order.mq.MqOrderGiftRecordConsumer;
 import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
