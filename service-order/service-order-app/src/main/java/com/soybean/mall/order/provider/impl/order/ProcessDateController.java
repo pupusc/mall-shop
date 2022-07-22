@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.order.api.provider.order.ProcessDateProvider;
 import com.soybean.mall.order.api.request.process.AppIdProcessReq;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.order.bean.enums.PayCallBackType;
 import com.wanmi.sbc.order.paycallbackresult.model.root.PayCallBackResult;
 import com.wanmi.sbc.order.paycallbackresult.repository.PayCallBackResultRepository;
 import com.wanmi.sbc.order.redis.RedisService;
@@ -50,7 +51,7 @@ public class ProcessDateController implements ProcessDateProvider {
 
 
         Long maxId = 0L;
-        String key = "TMP_PROCESS_APP_ID_FROM_id";
+        String key = "TMP_PROCESS_APP_ID_FROM_ID";
         String redisValue = redisService.getString(key);
         if (StringUtils.isNotBlank(redisValue)) {
             try {
@@ -80,12 +81,12 @@ public class ProcessDateController implements ProcessDateProvider {
             String appId = "";
             //微信
             try {
-                if (Objects.equals(payCallBackResult.getResultStatus(), 0)) {
+                if (Objects.equals(payCallBackResult.getPayType(), PayCallBackType.WECAHT)) {
                     SAXReader saxReader = new SAXReader();
                     Document read = saxReader.read(new ByteArrayInputStream(payCallBackResult.getResultContext().getBytes(StandardCharsets.UTF_8)));
                     Element rootElement = read.getRootElement();
                     Element mch_id = rootElement.element("mch_id");
-                    Element transaction_id = rootElement.elementByID("transaction_id");
+                    Element transaction_id = rootElement.element("transaction_id");
                     appId = mch_id.getStringValue();
                     transaction_idStr = transaction_id.getStringValue();
                 }
@@ -94,7 +95,7 @@ public class ProcessDateController implements ProcessDateProvider {
             }
             try {
                 //支付宝
-                if (Objects.equals(payCallBackResult.getResultStatus(), 1)) {
+                if (Objects.equals(payCallBackResult.getPayType(), PayCallBackType.ALI)) {
                     if (StringUtils.isEmpty(payCallBackResult.getResultContext())) {
                         continue;
                     }
