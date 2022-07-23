@@ -290,7 +290,7 @@ public class NormalModuleService {
         }
 
         for (NormalModule normalModule : normalModules) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "栏目id" + normalModule.getId() + "和其他栏目有冲突");
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "当前投放与其他进行中投放时间重叠，请修改");
         }
     }
 }
