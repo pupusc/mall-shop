@@ -5106,6 +5106,7 @@ public class TradeService {
                         }
                     }
                 } catch (Exception e) {
+                    log.error("TradeService payCallBack exception ", e);
                     // 保存积分订单抵扣异常信息
                     if (Objects.nonNull(exceptionOfTradePoints)) {
                         //存在则更新，更新错误信息及处理状态
@@ -5134,10 +5135,19 @@ public class TradeService {
                         exceptionOfTradePoints.setCreateTime(LocalDateTime.now());
                     }
                 } finally {
-                    //发送积分订单异常消息
-                    if (Objects.nonNull(exceptionOfTradePoints)) {
-                        resolver.resolveDestination(JmsDestinationConstants.Q_ORDER_MODIFY_OR_ADD_TRADE_POINTS_EXCEPTION)
-                                .send(new GenericMessage<>(JSONObject.toJSONString(exceptionOfTradePoints)));
+                    try {
+                        //发送积分订单异常消息
+                        if (Objects.nonNull(exceptionOfTradePoints)) {
+                            if (StringUtils.isBlank(exceptionOfTradePoints.getErrorCode())) {
+                                log.error("TradeService payCallBack exception exceptionOfTradePoints:{}", JSON.toJSONString(exceptionOfTradePoints));
+                                exceptionOfTradePoints.setErrorCode("K-123456");
+                            }
+                            resolver.resolveDestination(JmsDestinationConstants.Q_ORDER_MODIFY_OR_ADD_TRADE_POINTS_EXCEPTION)
+                                    .send(new GenericMessage<>(JSONObject.toJSONString(exceptionOfTradePoints)));
+                        }
+                    } catch (Exception ex ) {
+                        log.error("TradeService payCallBack exception save:", ex);
+
                     }
                 }
             }
@@ -7493,7 +7503,7 @@ public class TradeService {
                         if (cancel || (paid && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
                                 != 18L && recordResponse.getChannelItemId() != 19L)) {
                             //重复支付，直接退款
-                            alipayRefundHandle(out_trade_no, total_amount);
+//                            alipayRefundHandle(out_trade_no, total_amount);
                         } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                             alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
                                     operator, trades, true, recordResponse);
@@ -7512,7 +7522,7 @@ public class TradeService {
                                 .getPayState() == PayState.PAID && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
                                 != 18L && recordResponse.getChannelItemId() != 19L)) {
                             //同一批订单重复支付或过期作废，直接退款
-                            alipayRefundHandle(out_trade_no, total_amount);
+//                            alipayRefundHandle(out_trade_no, total_amount);
                         } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                             trades.add(trade);
                             alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
