@@ -5,6 +5,7 @@ import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.PayResponse;
 import com.wanmi.sbc.pay.api.response.RefundResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -166,6 +167,6 @@ public interface PayProvider {
     @PostMapping("/pay/${application.pay.version}/add-gateway-config-terminal-type")
     BaseResponse savePayGatewayByTerminalType(@RequestBody @Valid PayGatewaySaveByTerminalTypeRequest request);
 
-    @PostMapping("/pay/${application.pay.version}/save-appid/{appId}/{tradeNO}")
+    @GetMapping("/pay/${application.pay.version}/save-appid/{appId}/{tradeNo}")
     BaseResponse saveAppId(@PathVariable("appId") String appId, @PathVariable("tradeNo") String tradeNo);
 }

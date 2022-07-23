@@ -329,7 +329,7 @@ public class PayDataService {
         }
     }
 
-
+    @Transactional
     public void saveAppId(String appId, String tradeNo)  {
         tradeRecordRepository.updateAppIdByTradeNo(appId, tradeNo);
     }
