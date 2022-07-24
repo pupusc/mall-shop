@@ -11,6 +11,7 @@ import com.soybean.marketing.api.resp.NormalActivityResp;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -60,6 +62,9 @@ public class NormalActivityController {
     @PostMapping("/add")
     public BaseResponse add(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
         normalActivityPointSkuReq.setNormalCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+        if (!Arrays.asList(TerminalSource.H5.getCode(), TerminalSource.MINIPROGRAM.getCode()).contains(normalActivityPointSkuReq.getChannelType())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "渠道有误");
+        }
         return normalActivityPointSkuProvider.add(normalActivityPointSkuReq);
     }
 
@@ -73,6 +78,9 @@ public class NormalActivityController {
     @PostMapping("/update")
     public BaseResponse update(@RequestBody @Validated NormalActivityPointSkuReq normalActivityPointSkuReq) {
         normalActivityPointSkuReq.setNormalCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+        if (!Arrays.asList(TerminalSource.H5.getCode(), TerminalSource.MINIPROGRAM.getCode()).contains(normalActivityPointSkuReq.getChannelType())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "渠道有误");
+        }
         return normalActivityPointSkuProvider.update(normalActivityPointSkuReq);
     }
 
