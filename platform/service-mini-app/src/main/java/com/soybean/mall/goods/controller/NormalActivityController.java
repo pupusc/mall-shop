@@ -91,7 +91,7 @@ public class NormalActivityController {
                 String endTime = skuNormalActivityResp.getEndTime().getMonthValue() + "、"
                         + skuNormalActivityResp.getEndTime().getDayOfMonth() + " "
                         + skuNormalActivityResp.getEndTime().getHour() + "点";
-                payAfterActivityResp.setShowTitle(String.format("下单返%s积分 %s-$s", skuNormalActivityResp.getNum(),beginTime, endTime));
+                payAfterActivityResp.setShowTitle(String.format("下单返%s积分 %s-%s", skuNormalActivityResp.getNum(),beginTime, endTime));
             }
             payAfterActivityResp.setNormalActivityId(skuNormalActivityResp.getNormalActivityId());
             payAfterActivityResp.setNormalActivityName(skuNormalActivityResp.getName());

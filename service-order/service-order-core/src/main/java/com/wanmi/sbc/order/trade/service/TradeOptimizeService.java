@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.domain.GoodsInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.soybean.mall.order.api.enums.RecordMessageTypeEnum;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -435,6 +436,7 @@ public class TradeOptimizeService {
                 RecordMessageMq recordMessageMq = new RecordMessageMq();
                 recordMessageMq.setChannelTypes(tradeCommitRequest.getGoodsChannelTypeSet());
                 recordMessageMq.setBusinessId(trade.getId());
+                recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.CREATE_ORDER.getCode());
                 log.info("TradeOptimizeService commit 创建订单参数为: {}", JSON.toJSONString(recordMessageMq));
                 mqOrderGiftRecordProducer.sendCreateOrderGiftRecord(recordMessageMq);
             }

@@ -1,4 +1,4 @@
-package com.soaybean.mall.mq;
+package com.soybean.mall.mq;
 
 import com.soybean.common.mq.TopicExchangeRabbitMqUtil;
 import com.soybean.mall.order.api.provider.order.PayOrderGiftRecordProvider;
@@ -26,22 +26,11 @@ public class MqOrderGiftRecordConsumer {
      * 接收下单
      */
     @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CREATE_ORDER_GIFT_RECORD})
-    public void createOrderGiftRecordMessage(String message) {
-        log.info("MqOrderGiftRecordConsumer getOrderGiftRecordMessage {}", message);
+    public void orderGiftRecordMessage(String message) {
+        log.info("MqOrderGiftRecordConsumer orderGiftRecordMessage {}", message);
 //        payOrderGiftRecordPointService.afterCreateOrder(message);
         OrderGiftRecordMqReq orderGiftRecordMqReq = new OrderGiftRecordMqReq();
         orderGiftRecordMqReq.setMessage(message);
-        payOrderGiftRecordProvider.afterCreateOrder(orderGiftRecordMqReq);
-    }
-
-    /**
-     * 支付消息
-     */
-    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_PAY_ORDER_GIFT_RECORD})
-    public void payOrderGiftRecordMessage(String message) {
-        log.info("MqOrderGiftRecordConsumer payOrderGiftRecordMessage {}", message);
-        OrderGiftRecordMqReq orderGiftRecordMqReq = new OrderGiftRecordMqReq();
-        orderGiftRecordMqReq.setMessage(message);
-        payOrderGiftRecordProvider.afterPayOrderLock(orderGiftRecordMqReq);
+        payOrderGiftRecordProvider.afterRecordMessageOrder(orderGiftRecordMqReq);
     }
 }

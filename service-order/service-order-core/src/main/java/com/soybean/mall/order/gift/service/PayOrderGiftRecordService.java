@@ -230,12 +230,12 @@ public abstract class PayOrderGiftRecordService {
 
     /**
      * 创建订单成功后调用
-     * @param message
+     * @param recordMessageMq
      */
-    public void afterCreateOrder(String message){
+    public void afterCreateOrder(RecordMessageMq recordMessageMq){
         //转换对象
-        log.info("PayOrderGiftRecordService afterCreateOrder message: {}", message);
-        RecordMessageMq recordMessageMq = JSON.parseObject(message, RecordMessageMq.class);
+
+//        RecordMessageMq recordMessageMq = JSON.parseObject(message, RecordMessageMq.class);
         SimpleTradeResp simpleTradeResp = this.filterSimpleTrade(recordMessageMq);
         if (simpleTradeResp == null) {
             return;
@@ -243,7 +243,7 @@ public abstract class PayOrderGiftRecordService {
 
         List<SkuNormalActivityResp> skuNormalActivitys = this.listRunningNormalActivity(simpleTradeResp.getSkuIds(), recordMessageMq.getChannelTypes());
         if (CollectionUtils.isEmpty(skuNormalActivitys)) {
-            log.info("PayOrderGiftRecordService afterCreateOrder message: {} 没有活动信息不执行返积分操作", message);
+            log.info("PayOrderGiftRecordService afterCreateOrder message: {} 没有活动信息不执行返积分操作", JSON.toJSONString(recordMessageMq));
             return;
         }
 
@@ -262,11 +262,11 @@ public abstract class PayOrderGiftRecordService {
 
     /**
      * 支付成功后调用
-     * @param message
+     * @param recordMessageMq
      */
-    public void afterPayOrderLock(String message) {
-        log.info("PayOrderGiftRecordService afterPayOrder message: {}", message);
-        RecordMessageMq recordMessageMq = JSON.parseObject(message, RecordMessageMq.class);
+    public void afterPayOrderLock(RecordMessageMq recordMessageMq) {
+//        log.info("PayOrderGiftRecordService afterPayOrder message: {}", message);
+//        RecordMessageMq recordMessageMq = JSON.parseObject(message, RecordMessageMq.class);
         SimpleTradeResp simpleTradeResp = this.filterSimpleTrade(recordMessageMq);
         if (simpleTradeResp == null) {
             return;
@@ -280,7 +280,7 @@ public abstract class PayOrderGiftRecordService {
         List<OrderGiftRecord> orderGiftRecordsByOrder = payOrderGiftRecordRepository.findAll(payOrderGiftRecordRepository.packageWhere(req));
         //如果为空则表示没有记录信息
         if (CollectionUtils.isEmpty(orderGiftRecordsByOrder)) {
-            log.info("PayOrderGiftRecordService afterPayOrder message: {} 订单下没有对应的记录信息", message);
+            log.info("PayOrderGiftRecordService afterPayOrder message: {} 订单下没有对应的记录信息", JSON.toJSONString(recordMessageMq));
             return;
         }
 

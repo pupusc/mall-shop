@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.api.enums.RecordMessageTypeEnum;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
@@ -5246,6 +5247,7 @@ public class TradeService {
         RecordMessageMq recordMessageMq = new RecordMessageMq();
         recordMessageMq.setBusinessId(trade.getId());
 //        recordMessageMq.setChannelTypes();
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
         mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
 
     }

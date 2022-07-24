@@ -23,4 +23,9 @@ public class RecordMessageMq {
      * 渠道类型
      */
     private List<Integer> channelTypes;
+
+    /**
+     * 消息类型 1 下单 2支付 {@link com.soybean.mall.order.api.enums.RecordMessageTypeEnum}
+     */
+    private Integer recordMessageType;
 }

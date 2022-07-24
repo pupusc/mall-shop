@@ -121,21 +121,21 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
 
     /**
      * 创建订单调用
-     * @param message
+     * @param recordMessageMq
      */
     @Override
-    public void afterCreateOrder(String message) {
-        super.afterCreateOrder(message);
+    public void afterCreateOrder(RecordMessageMq recordMessageMq) {
+        super.afterCreateOrder(recordMessageMq);
     }
 
 
     /**
      * 支付成功后调用
-     * @param message
+     * @param recordMessageMq
      */
     @Override
-    public void afterPayOrderLock(String message) {
-        super.afterPayOrderLock(message);
+    public void afterPayOrderLock(RecordMessageMq recordMessageMq) {
+        super.afterPayOrderLock(recordMessageMq);
     }
 
 

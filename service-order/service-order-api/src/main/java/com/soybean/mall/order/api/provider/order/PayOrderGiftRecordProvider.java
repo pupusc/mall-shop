@@ -16,20 +16,20 @@ public interface PayOrderGiftRecordProvider {
 
 
     /**
-     * 下单发送mq
+     * 记录发送mq
      * @param orderGiftRecordMqReq
      * @return
      */
-    @PostMapping("/order/${application.order.version}/afterCreateOrder")
-    BaseResponse afterCreateOrder(@RequestBody @Validated OrderGiftRecordMqReq orderGiftRecordMqReq);
+    @PostMapping("/order/${application.order.version}/afterRecordMessageOrder")
+    BaseResponse afterRecordMessageOrder(@RequestBody @Validated OrderGiftRecordMqReq orderGiftRecordMqReq);
 
 
-    /**
-     * 支付发送mq
-     * @param orderGiftRecordMqReq
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/afterPayOrderLock")
-    BaseResponse afterPayOrderLock(@RequestBody @Validated OrderGiftRecordMqReq orderGiftRecordMqReq);
+//    /**
+//     * 支付发送mq
+//     * @param orderGiftRecordMqReq
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/afterPayOrderLock")
+//    BaseResponse afterPayOrderLock(@RequestBody @Validated OrderGiftRecordMqReq orderGiftRecordMqReq);
 
 }
