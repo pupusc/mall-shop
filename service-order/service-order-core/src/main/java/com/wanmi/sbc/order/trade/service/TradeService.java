@@ -5752,6 +5752,12 @@ public class TradeService {
         }
         sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
         orderCouponService.addCouponRecord(trade);
+        //支付成功后发送消息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes();
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
         return true;
     }
 
