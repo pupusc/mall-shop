@@ -96,9 +96,9 @@ public abstract class PayOrderGiftRecordService {
         if (StringUtils.isBlank(recordMessageMq.getBusinessId())) {
             return null;
         }
-        if (CollectionUtils.isEmpty(recordMessageMq.getChannelTypes())) {
-            return null;
-        }
+//        if (CollectionUtils.isEmpty(recordMessageMq.getChannelTypes())) {
+//            return null;
+//        }
 
         //获取订单信息
         Trade orderDetail = tradeService.detail(recordMessageMq.getBusinessId());

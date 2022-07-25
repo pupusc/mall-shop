@@ -170,7 +170,7 @@ public class EsGoodsInfoVO implements Serializable {
     /**
      * 活动信息
      */
-    private List<NormalActivity> activities;
+    private NormalActivity activity;
 
     /**
      * 活动信息
