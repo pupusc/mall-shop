@@ -2,6 +2,7 @@ package com.soybean.mall.order.gift.service;
 
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.mall.order.api.request.mq.CancelRecordMessageReq;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.api.request.record.OrderGiftRecordSearchReq;
 import com.soybean.mall.order.api.response.mq.SimpleTradeResp;
@@ -256,6 +257,8 @@ public abstract class PayOrderGiftRecordService {
                 continue;
             }
             //新增记录
+            log.info("PayOrderGiftRecordService afterCreateOrder activityId:{} activityObj:{}",
+                    skuNormalActivityParam.getNormalActivityId(), JSON.toJSONString(skuNormalActivityParam));
             this.saveGiftRecord(this.getOrderGiftRecordModel(skuNormalActivityParam, simpleTradeResp));
         }
     }
@@ -327,23 +330,40 @@ public abstract class PayOrderGiftRecordService {
                     log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 增加积分 {} success", recordMessageMq.getBusinessId(), orderGiftRecord.getPer());
                 }
                 log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 增加积分 {} end", recordMessageMq.getBusinessId(), orderGiftRecord.getPer());
-//                //获取樊登账号信息
-//                CustomerGetByIdResponse customer = this.getCustomer(orderGiftRecord.getCustomerId());
-//                FanDengAddPointReq fanDengAddPointReq = new FanDengAddPointReq();
-//                fanDengAddPointReq.setUserNo(customer.getFanDengUserNo());
-//                fanDengAddPointReq.setNum(orderGiftRecord.getPer().longValue());
-//                fanDengAddPointReq.setType(FanDengChangeTypeEnum.plus.getCode());
-//                fanDengAddPointReq.setSourceId(orderGiftRecord.getOrderId());
-//                fanDengAddPointReq.setDescription(String.format("订单%s返还积分%s", orderGiftRecord.getOrderId(), orderGiftRecord.getPer()));
-//                BaseResponse baseResponse = externalProvider.changePoint(fanDengAddPointReq);
-//                if (Objects.equals(CommonErrorCode.SUCCESSFUL, baseResponse.getCode())) {
-//                    orderGiftRecord.setRecordStatus(RecordStateEnum.SUCCESS.getCode());
-//                    this.saveGiftRecord(orderGiftRecord);
-//                }
             } catch (Exception ex) {
                 log.error("PayOrderGiftRecordService afterPayOrderLock activityId:{},customerId:{},skuId:{} 加减积分异常",
                         orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId(), ex);
             }
+        }
+    }
+
+
+    public void cancelOrderGiftRecord(CancelRecordMessageReq cancelRecordMessageReq){
+        //获取有效的订单
+        try {
+            List<OrderGiftRecord> orderGiftRecords =
+                    payOrderGiftRecordRepository.listFromId(cancelRecordMessageReq.getFromId(), cancelRecordMessageReq.getBeginTime(), cancelRecordMessageReq.getPageSize());
+            for (OrderGiftRecord orderGiftRecord : orderGiftRecords) {
+                if (Objects.equals(orderGiftRecord.getRecordStatus(), RecordStateEnum.CREATE.getCode())) {
+                    orderGiftRecord.setRecordStatus(RecordStateEnum.NORMAL_CANCEL.getCode());
+                    orderGiftRecord.setUpdateTime(LocalDateTime.now());
+                    this.saveGiftRecord(orderGiftRecord);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("PayOrderGiftRecordService cancelOrderGiftRecord cancel record error", ex);
+        }
+
+        try {
+            //超过12小时锁定的订单没有处理则发送mq
+            LocalDateTime beginTime = LocalDateTime.now().minusHours(12);
+            List<OrderGiftRecord> orderGiftRecordsMq =
+                    payOrderGiftRecordRepository.listFromId(0, beginTime, 100);
+            for (OrderGiftRecord orderGiftRecord : orderGiftRecordsMq) {
+
+            }
+        } catch (Exception ex) {
+            log.error("PayOrderGiftRecordService cancelOrderGiftRecord sendMq", ex);
         }
     }
 }

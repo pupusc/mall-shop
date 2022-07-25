@@ -84,6 +84,12 @@ public class OrderGiftRecord {
     private Integer recordStatus;
 
     /**
+     * 活动对象信息
+     */
+    @Column(name = "activity_json")
+    private String activityJson;
+
+    /**
      * 创建时间
      */
     @Column(name = "create_time")

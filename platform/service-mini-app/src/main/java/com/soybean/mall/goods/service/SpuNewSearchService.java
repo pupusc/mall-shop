@@ -130,6 +130,7 @@ public class SpuNewSearchService {
         request.setAuditStatus(CheckStatus.CHECKED);
         request.setDelFlag(DeleteFlag.NO.toValue());
         request.setAddedFlag(AddedFlag.YES.toValue());
+        request.setShowSpecFlag(true);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(request).getContext().getGoodsInfos();
         if (!CollectionUtils.isEmpty(goodsInfos)) {
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();

@@ -8,11 +8,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,10 @@ import java.util.List;
  ********************************************************************/
 public interface PayOrderGiftRecordRepository extends JpaRepository<OrderGiftRecord, Integer>, JpaSpecificationExecutor<OrderGiftRecord> {
 
+
+
+    @Query(value = "select * from t_order_gift_record where id > ?1 and create_time > ?2 and record_status = 1 limit ?3", nativeQuery = true)
+    List<OrderGiftRecord> listFromId(Integer orderGiftRecordId, LocalDateTime fromTime, Integer pageSize);
 
     /**
      * 记录信息
