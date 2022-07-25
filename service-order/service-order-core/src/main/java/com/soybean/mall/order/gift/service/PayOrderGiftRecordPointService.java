@@ -112,6 +112,7 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
         fanDengAddPointReq.setSourceId(orderGiftRecord.getOrderId());
         fanDengAddPointReq.setDescription(String.format("订单%s返还积分%s", orderGiftRecord.getOrderId(), orderGiftRecord.getPer()));
         BaseResponse baseResponse = externalProvider.changePoint(fanDengAddPointReq);
+        log.info("PayOrderGiftRecordPointService doSomething changePoint response {}", JSON.toJSONString(baseResponse));
         if (Objects.equals(CommonErrorCode.SUCCESSFUL, baseResponse.getCode())) {
             return true;
         }

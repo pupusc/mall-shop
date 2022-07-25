@@ -292,6 +292,8 @@ public abstract class PayOrderGiftRecordService {
 
             //黑名单强制取消
             if (blackListCustomerIds.contains(orderGiftRecord.getCustomerId())) {
+                log.info("PayOrderGiftRecordService afterPayOrder businessId:{} customerId:{} 在黑名单中 作废记录",
+                        recordMessageMq.getBusinessId(), orderGiftRecord.getCustomerId());
                 //如果有记录则作废当前记录
                 orderGiftRecord.setRecordStatus(RecordStateEnum.FORCE_CANCEL.getCode());
                 this.saveGiftRecord(orderGiftRecord);
@@ -302,8 +304,8 @@ public abstract class PayOrderGiftRecordService {
             List<OrderGiftRecord> orderGiftRecords = this.listValidBackRecord(orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId(), this.getActivityCategory());
             //存在记录则作废
             if (!CollectionUtils.isEmpty(orderGiftRecords)) {
-                log.info("PayOrderGiftRecordService afterPayOrderLock activityId:{},customerId:{},skuId:{} 存在记录不再执行返积分",
-                        orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId());
+                log.info("PayOrderGiftRecordService afterPayOrderLock bussiness:{} activityId:{},customerId:{},skuId:{} 存在记录不再执行返积分 作废记录",
+                        recordMessageMq.getBusinessId(), orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId());
 
                 //如果有记录则作废当前记录
                 orderGiftRecord.setRecordStatus(RecordStateEnum.NORMAL_CANCEL.getCode());
@@ -312,15 +314,19 @@ public abstract class PayOrderGiftRecordService {
             }
 
             //如果没有记录，则锁定当前记录
+            log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 锁定", recordMessageMq.getBusinessId());
             orderGiftRecord.setRecordStatus(RecordStateEnum.LOCK.getCode());
             this.saveGiftRecord(orderGiftRecord);
 
 
             try {
+                log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 增加积分 {} begin", recordMessageMq.getBusinessId(), orderGiftRecord.getPer());
                 if (doSomething(orderGiftRecord)) {
                     orderGiftRecord.setRecordStatus(RecordStateEnum.SUCCESS.getCode());
                     this.saveGiftRecord(orderGiftRecord);
+                    log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 增加积分 {} success", recordMessageMq.getBusinessId(), orderGiftRecord.getPer());
                 }
+                log.info("PayOrderGiftRecordService afterPayOrderLock bussinessId:{} 增加积分 {} end", recordMessageMq.getBusinessId(), orderGiftRecord.getPer());
 //                //获取樊登账号信息
 //                CustomerGetByIdResponse customer = this.getCustomer(orderGiftRecord.getCustomerId());
 //                FanDengAddPointReq fanDengAddPointReq = new FanDengAddPointReq();
@@ -336,7 +342,7 @@ public abstract class PayOrderGiftRecordService {
 //                }
             } catch (Exception ex) {
                 log.error("PayOrderGiftRecordService afterPayOrderLock activityId:{},customerId:{},skuId:{} 加减积分异常",
-                        orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId());
+                        orderGiftRecord.getActivityId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getQuoteId(), ex);
             }
         }
     }

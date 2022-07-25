@@ -571,7 +571,7 @@ public class BookListModelAndGoodsService {
             goodsCustomerNormal.setNum(normalActivityGoodsInfo.getActivity().getNum());
             goodsCustomerNormal.setActivityShow(normalActivityGoodsInfo.getActivity().getActivityShow());
             esGoodsCustomResponse.setActivities(Arrays.asList(goodsCustomerNormal));
-            esGoodsCustomResponse.setGoodsInfoId(normalActivityGoodsInfo.getGoodsInfoId());
+//            esGoodsCustomResponse.setGoodsInfoId(normalActivityGoodsInfo.getGoodsInfoId());
         }
         //排序获取
         if (!CollectionUtils.isEmpty(anchorPushEnumList)) {
