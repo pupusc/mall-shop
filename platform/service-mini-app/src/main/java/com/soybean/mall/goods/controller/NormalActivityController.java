@@ -60,13 +60,13 @@ public class NormalActivityController {
         boolean isPrepare = false;
         if (CollectionUtils.isEmpty(context)){
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime beginTime = now.minusDays(3);
+            LocalDateTime endTime = now.plusDays(3);
             searchReq = new SpuNormalActivityReq();
             searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
             searchReq.setSkuIds(Collections.singletonList(skuId));
             searchReq.setPublishState(PublishState.ENABLE.toValue());
-            searchReq.setBeginTime(beginTime);
-            searchReq.setEndTime(now);
+            searchReq.setBeginTime(now);
+            searchReq.setEndTime(endTime);
             context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(searchReq).getContext();
             isPrepare = true;
         }
@@ -85,10 +85,10 @@ public class NormalActivityController {
                         + skuNormalActivityResp.getBeginTime().getMinute();
                 payAfterActivityResp.setShowTitle(String.format("返积分预告：%s 下单返%s积分", date, skuNormalActivityResp.getNum()));
             } else {
-                String beginTime = skuNormalActivityResp.getBeginTime().getMonthValue() + "、"
+                String beginTime = skuNormalActivityResp.getBeginTime().getMonthValue() + "."
                         + skuNormalActivityResp.getBeginTime().getDayOfMonth() + " "
                         + skuNormalActivityResp.getBeginTime().getHour() + "点";
-                String endTime = skuNormalActivityResp.getEndTime().getMonthValue() + "、"
+                String endTime = skuNormalActivityResp.getEndTime().getMonthValue() + "."
                         + skuNormalActivityResp.getEndTime().getDayOfMonth() + " "
                         + skuNormalActivityResp.getEndTime().getHour() + "点";
                 payAfterActivityResp.setShowTitle(String.format("下单返%s积分 %s-%s", skuNormalActivityResp.getNum(),beginTime, endTime));
