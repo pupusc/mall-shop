@@ -51,7 +51,10 @@ public interface NormalModuleRepository extends JpaRepository<NormalModule, Inte
                     Predicate condition2 = criteriaBuilder.and(
                             criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), normalModuleSearchReq.getBeginTimeR()),
                             criteriaBuilder.lessThan(root.get("endTime"), normalModuleSearchReq.getEndTimeR()));
-                    conditionList.add(criteriaBuilder.or(condition1, condition2));
+                    Predicate condition3 = criteriaBuilder.and(
+                            criteriaBuilder.lessThanOrEqualTo(root.get("beginTime"), normalModuleSearchReq.getBeginTimeR()),
+                            criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), normalModuleSearchReq.getEndTimeR()));
+                    conditionList.add(criteriaBuilder.or(condition1, condition2, condition3));
                 }
                 if (normalModuleSearchReq.getExcludeNormalModuleId() != null) {
                     conditionList.add(criteriaBuilder.notEqual(root.get("id"), normalModuleSearchReq.getExcludeNormalModuleId()));

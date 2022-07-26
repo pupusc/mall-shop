@@ -49,7 +49,10 @@ public interface NormalActivityRepository extends JpaRepository<NormalActivity, 
                 Predicate condition2 = criteriaBuilder.and(
                         criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), searchReq.getBeginTimeR()),
                         criteriaBuilder.lessThan(root.get("endTime"), searchReq.getEndTimeR()));
-                conditionList.add(criteriaBuilder.or(condition1, condition2));
+                Predicate condition3 = criteriaBuilder.and(
+                        criteriaBuilder.lessThanOrEqualTo(root.get("beginTime"), searchReq.getBeginTimeR()),
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), searchReq.getEndTimeR()));
+                conditionList.add(criteriaBuilder.or(condition1, condition2, condition3));
             }
             //状态
             if (searchReq.getStatus() != null) {

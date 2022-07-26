@@ -61,7 +61,7 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
         req.setCustomerId(customerId);
         req.setRecordCategory(activityCategoryEnum.getCode());
         req.setQuoteId(skuId);
-        req.setRecordStatus(Arrays.asList(RecordStateEnum.LOCK.getCode(), RecordStateEnum.SUCCESS.getCode(), RecordStateEnum.NORMAL_CANCEL.getCode(), RecordStateEnum.FORCE_CANCEL.getCode()));
+        req.setRecordStatus(Arrays.asList(RecordStateEnum.LOCK.getCode(), RecordStateEnum.SUCCESS.getCode()));
         return payOrderGiftRecordRepository.findAll(payOrderGiftRecordRepository.packageWhere(req));
     }
 
