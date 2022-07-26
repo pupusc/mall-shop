@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.provider.impl.goods;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.common.util.WebConstantUtil;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -316,10 +317,8 @@ public class GoodsQueryController implements GoodsQueryProvider {
         if(StringUtils.isEmpty(request.getGoodsId()) && StringUtils.isEmpty(request.getGoodsInfoId())){
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        String goodsId = request.getGoodsId();
-        if (StringUtils.isNotBlank(goodsId) && (Objects.equals("undefined", goodsId) || Objects.equals("null", goodsId))) {
-            goodsId = "";
-        }
+        String goodsId = WebConstantUtil.filterSpecialCharacter(request.getGoodsId());
+
         if(StringUtils.isEmpty(goodsId)){
             GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
             if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {

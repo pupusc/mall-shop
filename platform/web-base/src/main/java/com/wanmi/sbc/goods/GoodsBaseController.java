@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.util.WebConstantUtil;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
@@ -406,6 +407,8 @@ public class GoodsBaseController {
         if(StringUtils.isEmpty(skuId) && StringUtils.isEmpty(spuId)){
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
+        //过滤一层spu
+        spuId = WebConstantUtil.filterSpecialCharacter(spuId);
         GoodsDetailSimpleRequest request = new GoodsDetailSimpleRequest();
         request.setGoodsId(spuId);
         if(StringUtils.isEmpty(spuId)) {
