@@ -83,11 +83,11 @@ public class OrderGiftRecord {
     @Column(name = "record_status")
     private Integer recordStatus;
 
-    /**
-     * 活动对象信息
-     */
-    @Column(name = "activity_json")
-    private String activityJson;
+//    /**
+//     * 活动对象信息
+//     */
+//    @Column(name = "activity_json")
+//    private String activityJson;
 
     /**
      * 创建时间

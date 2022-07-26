@@ -216,16 +216,8 @@ public abstract class PayOrderGiftRecordService {
      */
     public OrderGiftRecord saveGiftRecord(OrderGiftRecord orderGiftRecord) {
         orderGiftRecord.setUpdateTime(LocalDateTime.now());
-        TransactionStatus status = transactionManager.getTransaction(transactionDefinition);// 获得事务状态
-        OrderGiftRecord orderGiftRecordModel = null;
-        try {
-            orderGiftRecordModel = payOrderGiftRecordRepository.save(orderGiftRecord);
-            this.addGiftRecordLog(orderGiftRecordModel);
-            transactionManager.commit(status);
-        } catch (Exception ex) {
-            log.error("PayOrderGiftRecordService saveGiftRecord ex", ex);
-            transactionManager.rollback(status);
-        }
+        OrderGiftRecord orderGiftRecordModel =  payOrderGiftRecordRepository.save(orderGiftRecord);
+        this.addGiftRecordLog(orderGiftRecordModel);
         return orderGiftRecordModel;
     }
 
