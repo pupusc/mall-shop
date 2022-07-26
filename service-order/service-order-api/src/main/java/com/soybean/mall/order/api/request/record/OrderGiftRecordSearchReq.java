@@ -44,4 +44,10 @@ public class OrderGiftRecordSearchReq {
      *
      */
     private String quoteId;
+
+    /**
+     * 引用表id
+     *
+     */
+    private List<String> quoteIds;
 }

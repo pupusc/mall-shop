@@ -29,9 +29,6 @@ public interface PayOrderGiftRecordRepository extends JpaRepository<OrderGiftRec
 
 
 
-    @Query(value = "select * from t_order_gift_record where id > ?1 and create_time > ?2 and record_status = 1 limit ?3", nativeQuery = true)
-    List<OrderGiftRecord> listFromId(Integer orderGiftRecordId, LocalDateTime fromTime, Integer pageSize);
-
     /**
      * 记录信息
      * @return
@@ -57,6 +54,9 @@ public interface PayOrderGiftRecordRepository extends JpaRepository<OrderGiftRec
                 }
                 if (StringUtils.isNotBlank(req.getQuoteId())) {
                     conditionList.add(criteriaBuilder.equal(root.get("quoteId"), req.getQuoteId()));
+                }
+                if (CollectionUtils.isNotEmpty(req.getQuoteIds())) {
+                    conditionList.add(root.get("quoteId").in(req.getQuoteIds()));
                 }
                 if (!CollectionUtils.isEmpty(req.getRecordStatus())) {
                     conditionList.add(root.get("recordStatus").in(req.getRecordStatus()));

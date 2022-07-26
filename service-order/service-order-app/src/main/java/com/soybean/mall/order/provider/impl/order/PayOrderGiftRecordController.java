@@ -45,6 +45,8 @@ public class PayOrderGiftRecordController implements PayOrderGiftRecordProvider 
             payOrderGiftRecordPointService.afterCreateOrder(recordMessageMq);
         } else if (RecordMessageTypeEnum.PAY_ORDER.equals(RecordMessageTypeEnum.getByCode(recordMessageMq.getRecordMessageType()))) {
             payOrderGiftRecordPointService.afterPayOrderLock(recordMessageMq);
+        } else if (RecordMessageTypeEnum.CANCEL_ORDER.equals(RecordMessageTypeEnum.getByCode(recordMessageMq.getRecordMessageType()))) {
+            payOrderGiftRecordPointService.cancelOrderGiftRecord(recordMessageMq);
         } else {
             return BaseResponse.FAILED();
         }

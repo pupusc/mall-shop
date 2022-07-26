@@ -54,7 +54,22 @@ public class RabbitmqConfiguration {
     }
 
     @Bean
-    public Binding bindingOrderGiftRecord(@Qualifier("exchangeOrderGiftRecord") TopicExchange topicExchange, @Qualifier("queuePayOrderGiftRecord") Queue queue) {
+    public Binding bindingPayOrderGiftRecord(@Qualifier("exchangeOrderGiftRecord") TopicExchange topicExchange, @Qualifier("queuePayOrderGiftRecord") Queue queue) {
         return BindingBuilder.bind(queue).to(topicExchange).with(TopicExchangeRabbitMqUtil.TOPIC_PAY_ORDER_GIFT_RECORD_ROUTER);
+    }
+
+
+    /**
+     * queuePayOrderGiftRecord
+     * @return
+     */
+    @Bean(name = "queueCancelOrderGiftRecord")
+    public Queue queueCancelOrderGiftRecord() {
+        return new Queue(TopicExchangeRabbitMqUtil.QUEUE_CANCEL_ORDER_GIFT_RECORD);
+    }
+
+    @Bean
+    public Binding bindingCancelOrderGiftRecord(@Qualifier("exchangeOrderGiftRecord") TopicExchange topicExchange, @Qualifier("queueCancelOrderGiftRecord") Queue queue) {
+        return BindingBuilder.bind(queue).to(topicExchange).with(TopicExchangeRabbitMqUtil.TOPIC_CANCEL_ORDER_GIFT_RECORD_ROUTER);
     }
 }

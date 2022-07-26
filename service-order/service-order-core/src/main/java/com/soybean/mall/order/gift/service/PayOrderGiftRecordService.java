@@ -1,8 +1,8 @@
 package com.soybean.mall.order.gift.service;
+import com.google.common.collect.Lists;
 
 
 import com.alibaba.fastjson.JSON;
-import com.soybean.mall.order.api.request.mq.CancelRecordMessageReq;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.api.request.record.OrderGiftRecordSearchReq;
 import com.soybean.mall.order.api.response.mq.SimpleTradeResp;
@@ -14,14 +14,10 @@ import com.soybean.marketing.api.enums.ActivityCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.customer.api.enums.FanDengChangeTypeEnum;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengAddPointReq;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
@@ -36,8 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
@@ -330,32 +324,28 @@ public abstract class PayOrderGiftRecordService {
     }
 
 
-    public void cancelOrderGiftRecord(CancelRecordMessageReq cancelRecordMessageReq){
-        //获取有效的订单
-        try {
-            List<OrderGiftRecord> orderGiftRecords =
-                    payOrderGiftRecordRepository.listFromId(cancelRecordMessageReq.getFromId(), cancelRecordMessageReq.getBeginTime(), cancelRecordMessageReq.getPageSize());
-            for (OrderGiftRecord orderGiftRecord : orderGiftRecords) {
-                if (Objects.equals(orderGiftRecord.getRecordStatus(), RecordStateEnum.CREATE.getCode())) {
-                    orderGiftRecord.setRecordStatus(RecordStateEnum.NORMAL_CANCEL.getCode());
-                    orderGiftRecord.setUpdateTime(LocalDateTime.now());
-                    this.saveGiftRecord(orderGiftRecord);
-                }
-            }
-        } catch (Exception ex) {
-            log.error("PayOrderGiftRecordService cancelOrderGiftRecord cancel record error", ex);
+    public void cancelOrderGiftRecord(RecordMessageMq recordMessageMq){
+        SimpleTradeResp simpleTradeResp = this.filterSimpleTrade(recordMessageMq);
+        if (simpleTradeResp == null) {
+            return;
         }
 
-        try {
-            //超过12小时锁定的订单没有处理则发送mq
-            LocalDateTime beginTime = LocalDateTime.now().minusHours(12);
-            List<OrderGiftRecord> orderGiftRecordsMq =
-                    payOrderGiftRecordRepository.listFromId(0, beginTime, 100);
-            for (OrderGiftRecord orderGiftRecord : orderGiftRecordsMq) {
-
+        OrderGiftRecordSearchReq req = new OrderGiftRecordSearchReq();
+        req.setOrderId(simpleTradeResp.getOrderId());
+        req.setCustomerId(simpleTradeResp.getCustomerId());
+        req.setQuoteIds(simpleTradeResp.getSkuIds());
+        List<OrderGiftRecord> orderGiftRecordsMq =
+                payOrderGiftRecordRepository.findAll(payOrderGiftRecordRepository.packageWhere(req));
+        for (OrderGiftRecord orderGiftRecord : orderGiftRecordsMq) {
+            if (Objects.equals(orderGiftRecord.getRecordStatus(), RecordStateEnum.CREATE.getCode())) {
+                orderGiftRecord.setUpdateTime(LocalDateTime.now());
+                orderGiftRecord.setRecordStatus(RecordStateEnum.NORMAL_CANCEL.getCode());
+                this.saveGiftRecord(orderGiftRecord);
+//                    continue;
+            } else {
+                log.error("PayOrderGiftRecordService cancelOrderGiftRecord orderId:{} customerId:{} activityId:{} recordId{} 状态异常 不做处理",
+                        simpleTradeResp.getOrderId(), simpleTradeResp.getCustomerId(), orderGiftRecord.getActivityId(), orderGiftRecord.getId());
             }
-        } catch (Exception ex) {
-            log.error("PayOrderGiftRecordService cancelOrderGiftRecord sendMq", ex);
         }
     }
 }

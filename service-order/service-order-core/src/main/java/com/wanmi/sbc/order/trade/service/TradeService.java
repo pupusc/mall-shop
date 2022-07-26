@@ -627,6 +627,9 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
+    @Autowired
+    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
+
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
@@ -649,9 +652,6 @@ public class TradeService {
 
     @Autowired
     private OrderConfigProperties orderConfigProperties;
-
-    @Autowired
-    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
 
     /**
      * 新增文档
@@ -4323,6 +4323,8 @@ public class TradeService {
         tradeFSMService.changeState(stateRequest);
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
         // 返换限售记录——取消订单
@@ -4330,6 +4332,7 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
 
+        
         //视频号
         if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
@@ -6855,6 +6858,8 @@ public class TradeService {
 
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
 
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
@@ -6863,6 +6868,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+
+
         //小程序发送取消消息
         if (context != null) {
             wxOrderService.sendWxCancelOrderMessage(trade, context);
@@ -8673,5 +8680,19 @@ public class TradeService {
             orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
         }
         return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 取消订单调用
+     * @param trade
+     */
+    public void cancelOrderCommon(Trade trade) {
+        //取消订单 发送 取消活动记录表信息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes(Lists.newArrayList());
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.CANCEL_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendCancelOrderGiftRecord(recordMessageMq);
     }
 }

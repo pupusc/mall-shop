@@ -36,5 +36,14 @@ public class TopicExchangeRabbitMqUtil {
     public static final String TOPIC_PAY_ORDER_GIFT_RECORD_ROUTER = "#.pay.order";
 
 
+    /**
+     * queue
+     */
+    public static final String QUEUE_CANCEL_ORDER_GIFT_RECORD = "QUEUE_CANCEL_ORDER_GIFT_RECORD";
+
+    /**
+     * topic_router
+     */
+    public static final String TOPIC_CANCEL_ORDER_GIFT_RECORD_ROUTER = "#.cancel.order";
 
 }

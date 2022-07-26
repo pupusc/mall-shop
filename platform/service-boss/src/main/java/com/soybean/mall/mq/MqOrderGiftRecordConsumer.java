@@ -48,4 +48,18 @@ public class MqOrderGiftRecordConsumer {
             }
         }
     }
+
+
+    /**
+     * 取消订单监听
+     * @param message
+     * @param channel
+     */
+    @RabbitListener(queues = {TopicExchangeRabbitMqUtil.QUEUE_CANCEL_ORDER_GIFT_RECORD})
+    public void orderCancelGiftRecordMessage(Message message, Channel channel) {
+        log.info("MqOrderGiftRecordConsumer orderCancelGiftRecordMessage {}", new String(message.getBody(), Charset.defaultCharset()));
+        OrderGiftRecordMqReq orderGiftRecordMqReq = new OrderGiftRecordMqReq();
+        orderGiftRecordMqReq.setMessage(new String(message.getBody(), Charset.defaultCharset()));
+        payOrderGiftRecordProvider.afterRecordMessageOrder(orderGiftRecordMqReq);
+    }
 }

@@ -41,4 +41,16 @@ public class MqOrderGiftRecordProducer {
         log.info("MqOrderGiftRecordProducer sendPayOrderGiftRecord sendMq:{}", content);
         amqpTemplate.convertAndSend(TopicExchangeRabbitMqUtil.EXCHANGE_NAME_ORDER_GIFT_RECORD, "gift.record.pay.order", content);
     }
+
+
+
+    /**
+     * 发送支付消息
+     * @param recordMessageMq
+     */
+    public void sendCancelOrderGiftRecord(RecordMessageMq recordMessageMq) {
+        String content = JSON.toJSONString(recordMessageMq);
+        log.info("MqOrderGiftRecordProducer sendCancelOrderGiftRecord sendMq:{}", content);
+        amqpTemplate.convertAndSend(TopicExchangeRabbitMqUtil.EXCHANGE_NAME_ORDER_GIFT_RECORD, "gift.record.cancel.order", content);
+    }
 }

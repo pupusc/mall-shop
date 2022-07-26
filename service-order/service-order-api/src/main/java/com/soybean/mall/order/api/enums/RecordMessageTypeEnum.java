@@ -18,7 +18,8 @@ public enum RecordMessageTypeEnum {
 
 
     CREATE_ORDER(1, "创建订单"),
-    PAY_ORDER(2, "支付订单");
+    PAY_ORDER(2, "支付订单"),
+    CANCEL_ORDER(3, "取消订单"),;
 
     private int code;
 
