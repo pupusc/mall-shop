@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -40,7 +41,11 @@ public class MqOrderGiftRecordConsumer {
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception ex) {
             log.error("MqOrderGiftRecordConsumer orderGiftRecordMessage error", ex);
-            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
+            try {
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
+            } catch (IOException e) {
+                log.error("MqOrderGiftRecordConsumer orderGiftRecordMessage basicNack error", e);
+            }
         }
     }
 }
