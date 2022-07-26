@@ -140,11 +140,6 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
     }
 
 
-    @Override
-    public void afterCancelOrder(RecordMessageMq recordMessageMq) {
-        super.afterPayOrderLock(recordMessageMq);
-    }
-
 
     @GlobalTransactional
     @Transactional(propagation = Propagation.REQUIRES_NEW)
