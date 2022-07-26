@@ -215,6 +215,9 @@ public class NormalActivityPointSkuService extends NormalActivityService {
             List<Integer> normalActivityIds = normalActivities.stream()
                     .map(NormalActivity::getId)
                     .filter(id -> !Objects.equals(id, excludeActivityId)).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(normalActivityIds)) {
+                return;
+            }
             //有重叠的活动，则查看是否有重叠的商品
             NormalActivityPointSkuSearchReq pointSkuSearchReq = new NormalActivityPointSkuSearchReq();
             pointSkuSearchReq.setNormalActivityIds(normalActivityIds);
