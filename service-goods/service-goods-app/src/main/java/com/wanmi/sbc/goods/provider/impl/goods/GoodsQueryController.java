@@ -317,7 +317,10 @@ public class GoodsQueryController implements GoodsQueryProvider {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         String goodsId = request.getGoodsId();
-        if(StringUtils.isEmpty(request.getGoodsId())){
+        if (StringUtils.isNotBlank(goodsId) && (Objects.equals("undefined", goodsId) || Objects.equals("null", goodsId))) {
+            goodsId = "";
+        }
+        if(StringUtils.isEmpty(goodsId)){
             GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
             if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
