@@ -1216,21 +1216,7 @@ public class GoodsInfoBaseController {
     @ApiOperation(value = "根据商品skuId批量查询商品sku列表")
     @RequestMapping(value = "/info/list-by-ids", method = RequestMethod.POST)
     BaseResponse<GoodsInfoListByIdsResponse> listByIds(@RequestBody @Valid GoodsInfoListByIdsRequest request) {
-        GoodsInfoListByIdsResponse context = goodsInfoQueryProvider.listByIds(request).getContext();
-        if (CollectionUtils.isNotEmpty(context.getGoodsInfos())) {
-            Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = this.skuId2SkuNormalActivityRespMap(request.getGoodsInfoIds());
-            for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
-                SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(goodsInfo.getGoodsInfoImg());
-                if (skuNormalActivityResp == null) {
-                    continue;
-                }
-                GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
-                activity.setNum(skuNormalActivityResp.getNum());
-                activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
-                goodsInfo.setActivity(activity);
-            }
-        }
-        return BaseResponse.success(context);
+        return goodsInfoQueryProvider.listByIds(request);
     }
 
     private void providerSkuStockSync(EsGoodsInfoResponse response) {
