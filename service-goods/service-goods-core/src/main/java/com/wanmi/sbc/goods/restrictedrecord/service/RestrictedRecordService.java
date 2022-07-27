@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -223,9 +224,19 @@ public class RestrictedRecordService {
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void batchSaveAndPlus(List<RestrictedRecordSimpVO> recordSimpVOS, String customerId){
-		Map<String,Long> skuNumMap = recordSimpVOS.stream().collect(Collectors.toMap(RestrictedRecordSimpVO::getSkuId,RestrictedRecordSimpVO::getNum));
+		Map<String,Long> skuNumMap = new HashMap<>();
+		for (RestrictedRecordSimpVO recordSimpVO : recordSimpVOS) {
+			Long num = skuNumMap.get(recordSimpVO.getSkuId());
+			if (num == null) {
+				skuNumMap.put(recordSimpVO.getSkuId(), num);
+			} else {
+				num += recordSimpVO.getNum();
+				skuNumMap.put(recordSimpVO.getSkuId(), num);
+			}
+		}
+//		recordSimpVOS.stream().collect(Collectors.toMap(RestrictedRecordSimpVO::getSkuId,RestrictedRecordSimpVO::getNum));
 		if(!CollectionUtils.isEmpty(recordSimpVOS)){
-			List<String> goodInfoIds = recordSimpVOS.stream().map(RestrictedRecordSimpVO::getSkuId).collect(Collectors.toList());
+			List<String> goodInfoIds = recordSimpVOS.stream().map(RestrictedRecordSimpVO::getSkuId).distinct().collect(Collectors.toList());
 			//查询所有的限售的信息
 			List<GoodsRestrictedVO> goodsRestrictedVOS = goodsRestrictedSaleService.findByGoodsInfoIds(goodInfoIds);
 			//查询所有的限售记录
@@ -237,6 +248,9 @@ public class RestrictedRecordService {
 					// 1. 判断是否有该限售记录
 					if(Objects.isNull(restrictedRecord)){
 						//没有该记录直接保存
+						if (goodsRestrictedVO.getRestrictedCycleType() == null){ //修复线上bug
+							return;
+						}
 						RestrictedRecord rr = new RestrictedRecord();
 						rr.setCustomerId(customerId);
 						rr.setPurchaseNum(skuNumMap.get(goodsRestrictedVO.getGoodsInfoId()));

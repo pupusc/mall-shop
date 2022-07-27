@@ -16,6 +16,7 @@ import com.soybean.mall.goods.response.BookListSpuResp;
 import com.soybean.mall.goods.response.SearchHomeResp;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.mall.goods.service.BookListSearchService;
+import com.soybean.mall.goods.service.SpuComponentService;
 import com.soybean.mall.goods.service.SpuNewSearchService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
@@ -60,9 +61,6 @@ public class SearchController {
     private EsBookListModelProvider esBookListModelProvider;
 
     @Autowired
-    private GoodsBlackListProvider goodsBlackListProvider;
-
-    @Autowired
     private EsSpuNewProvider esSpuNewProvider;
 
     @Autowired
@@ -73,6 +71,9 @@ public class SearchController {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private SpuComponentService spuComponentService;
 
     @Autowired
     private CustomerProvider customerProvider;
@@ -172,21 +173,10 @@ public class SearchController {
     public BaseResponse<CommonPageResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
         request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         //获取搜索黑名单
-        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+        List<String> unSpuIds = spuComponentService.listSearchBlackList(
                 Arrays.asList(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode(), GoodsBlackListCategoryEnum.GOODS_SESRCH_AT_INDEX.getCode()));
-        GoodsBlackListPageProviderResponse goodsBlackListResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
-        if (goodsBlackListResponse != null) {
-            List<String> unSpuIds = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
-            List<String> goodsIdList = goodsBlackListResponse.getGoodsSearchAtIndexBlackListModel().getGoodsIdList();
-            if (!CollectionUtils.isEmpty(goodsIdList)) {
-                unSpuIds.addAll(goodsIdList);
-            }
-            goodsIdList = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
-            if (!CollectionUtils.isEmpty(goodsIdList)) {
-                request.setUnSpuIds(goodsIdList);
-            }
-        }
+        request.setUnSpuIds(unSpuIds);
+
         //获取是否知识顾问用户
         //获取客户信息
         CustomerGetByIdResponse customer = null;

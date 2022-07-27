@@ -162,4 +162,13 @@ public interface GoodsInfoQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/info/list-marketing-price-by-nos")
     BaseResponse<GoodsInfoMarketingPriceByNosResponse> listMarketingPriceByNos(@RequestBody @Valid GoodsInfoMarketingPriceByNosRequest request);
+
+
+    /**
+     * 获取sku simple信息
+     * @param request
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/list-simple-view")
+    BaseResponse<GoodsInfoViewByIdsResponse> listSimpleView(@RequestBody GoodsInfoViewByIdsRequest request);
 }

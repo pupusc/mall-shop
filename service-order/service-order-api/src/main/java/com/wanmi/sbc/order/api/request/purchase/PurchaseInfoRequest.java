@@ -42,4 +42,9 @@ public class PurchaseInfoRequest implements Serializable {
      * 购物车来源
      */
     private ShopCartSourceEnum shopCartSource;
+
+    /**
+     * 渠道类型
+     */
+    private Integer channelType;
 }

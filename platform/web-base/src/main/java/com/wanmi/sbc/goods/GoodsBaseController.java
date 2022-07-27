@@ -1,6 +1,10 @@
 package com.wanmi.sbc.goods;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.util.WebConstantUtil;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -36,6 +40,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -84,6 +89,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
@@ -150,6 +156,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -271,6 +278,9 @@ public class GoodsBaseController {
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -397,6 +407,8 @@ public class GoodsBaseController {
         if(StringUtils.isEmpty(skuId) && StringUtils.isEmpty(spuId)){
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
+        //过滤一层spu
+        spuId = WebConstantUtil.filterSpecialCharacter(spuId);
         GoodsDetailSimpleRequest request = new GoodsDetailSimpleRequest();
         request.setGoodsId(spuId);
         if(StringUtils.isEmpty(spuId)) {
@@ -812,6 +824,29 @@ public class GoodsBaseController {
                     }
                 });
             }
+        }
+
+        //活动信息
+        Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+        SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+        spuNormalActivityReq.setSpuIds(goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsId).collect(Collectors.toList()));
+        spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+        spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+        spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+        for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+            skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+        }
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+            SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(goodsInfo.getGoodsInfoId());
+            if (skuNormalActivityResp == null) {
+                continue;
+            }
+            GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
+            activity.setNum(skuNormalActivityResp.getNum());
+            activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+            goodsInfo.setActivity(activity);
         }
         return response;
     }

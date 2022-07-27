@@ -23,4 +23,9 @@ public class EsSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderReq {
      * 排除制定spuId信息
      */
     private List<String> unSpuIds;
+
+    /**
+     * 知识顾问专项商品 0 非知识顾问 其他为非知识顾问
+     */
+    private Integer cpsSpecial = 0;
 }

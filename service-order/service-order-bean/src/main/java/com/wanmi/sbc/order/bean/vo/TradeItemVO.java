@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -542,6 +543,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Boolean showPhoneNum = false;
 
     /**
+     * 活动信息
+     */
+    private NormalActivity activity;
+
+    /**
      * 营销优惠商品结算Bean
      */
     @Data
@@ -674,6 +680,26 @@ public class TradeItemVO implements Serializable, Cloneable {
          */
         @ApiModelProperty(value = "优惠金额")
         private BigDecimal reducePrice;
+
+    }
+
+
+
+
+    /**
+     * 活动信息
+     */
+    @Data
+    public static class NormalActivity {
+        /**
+         * 份数
+         */
+        private Integer num;
+
+        /**
+         * 活动展示
+         */
+        private String activityShow;
 
     }
 }

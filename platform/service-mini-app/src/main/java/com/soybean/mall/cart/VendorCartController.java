@@ -158,7 +158,11 @@ public class VendorCartController {
 
         //查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
-                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).shopCartSource(ShopCartSourceEnum.WX_MINI).build());
+                PurchaseInfoRequest.builder()
+                        .customer(customer)
+                        .inviteeId(commonUtil.getPurchaseInviteeId())
+                        .channelType(commonUtil.getTerminal().getCode())
+                        .shopCartSource(ShopCartSourceEnum.WX_MINI).build());
 
         PurchaseListResponse cartInfo = cartResponse.getContext();
         if (cartInfo == null) {
@@ -410,7 +414,10 @@ public class VendorCartController {
         CustomerVO customer = commonUtil.getCustomer();
         //统一查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
-                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
+                PurchaseInfoRequest.builder()
+                        .customer(customer)
+                        .channelType(commonUtil.getTerminal().getCode())
+                        .inviteeId(commonUtil.getPurchaseInviteeId()).build());
 
         PurchaseListResponse cartInfo = cartResponse.getContext();
         PurchasePriceResultVO resultVO = new PurchasePriceResultVO();
@@ -758,7 +765,10 @@ public class VendorCartController {
     private void handCart4FitGoods(List<PromoteFitGoodsResultVO> fitGoods, CustomerVO customer) {
         //统一查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
-                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
+                PurchaseInfoRequest.builder()
+                        .customer(customer)
+                        .channelType(commonUtil.getTerminal().getCode())
+                        .inviteeId(commonUtil.getPurchaseInviteeId()).build());
 
         PurchaseListResponse cartInfo = cartResponse.getContext();
         if (cartInfo == null || CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {

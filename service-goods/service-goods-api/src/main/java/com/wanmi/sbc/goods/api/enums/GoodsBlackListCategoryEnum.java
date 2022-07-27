@@ -25,7 +25,8 @@ public enum GoodsBlackListCategoryEnum {
     CLASSIFT_AT_BOTTOM(7, "底部分类"),
     GOODS_SESRCH_AT_INDEX(8, "首页商品搜索H5和领阅不展示"),
     GOODS_SESRCH_H5_AT_INDEX(9, "首页商品搜索H5不展示"),
-    UN_USE_GOODS_COUPON(10, "下单不可以使用优惠券");
+    UN_USE_GOODS_COUPON(10, "下单不可以使用优惠券"),
+    UN_BACK_POINT_AFTER_PAY(11, "下单支付后返回积分客户黑名单");
 
     private final Integer code;
     private final String message;

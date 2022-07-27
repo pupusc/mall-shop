@@ -48,11 +48,26 @@ public class SpuNewBookListResp {
      */
     private BigDecimal marketPrice;
 
+    /**
+     * 是否是会员 0 否 1 是
+     */
+    private Integer hasVip;
+
+    /**
+     * 是否有更多规格
+     */
+    private Boolean specMore = false;
+
 
     /**
      * 主播推荐
      */
     private String anchorRecomName;
+
+    /**
+     * 显示标签(当前只有栏目中有设置)
+     */
+    private String spuTag;
 
     /**
      * 商品主图
@@ -95,6 +110,11 @@ public class SpuNewBookListResp {
      * 促销标签
      */
     private List<MarketingLabel> marketingLabels = new ArrayList<>();
+
+    /**
+     * 活动信息
+     */
+    private List<NormalActivity> activities;
 
     /**
      * spu关联的所有sku
@@ -263,5 +283,22 @@ public class SpuNewBookListResp {
          * 活动状态
          */
         private Integer marketingStatus;
+    }
+
+    /**
+     * 活动信息
+     */
+    @Data
+    public static class NormalActivity {
+        /**
+         * 份数
+         */
+        private Integer num;
+
+        /**
+         * 活动展示
+         */
+        private String activityShow;
+
     }
 }

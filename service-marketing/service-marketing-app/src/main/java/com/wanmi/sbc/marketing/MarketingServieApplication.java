@@ -23,11 +23,11 @@ import java.net.InetAddress;
  * @Date: 2018-11-21 14:13
  */
 
-@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class}, scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class}, scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall", "com.soybean.marketing"})
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall", "com.soybean.marketing"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @ImportResource(locations = {"classpath:spring-plugin.xml"})
 @EnableJpaAuditing

@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.provider.impl.info;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
@@ -523,5 +524,28 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         List<GoodsMarketingPrice> marketingPriceByNos = goodsInfoService.findMarketingPriceByNos(request.getGoodsInfoNos(), request.getStoreId());
         return BaseResponse.success(new GoodsInfoMarketingPriceByNosResponse(KsBeanUtil.convertList(marketingPriceByNos,
                 GoodsInfoMarketingPriceDTO.class)));
+    }
+
+
+    @Override
+    public BaseResponse<GoodsInfoViewByIdsResponse> listSimpleView(@RequestBody GoodsInfoViewByIdsRequest request) {
+        GoodsInfoRequest infoRequest = goodsInfoMapper.goodsInfoViewByIdsRequestToGoodsInfoRequest(request);
+        GoodsInfoResponse goodsInfoResponse = goodsInfoService.listSimpleGoodsInfo(infoRequest);
+        GoodsInfoViewByIdsResponse response = GoodsInfoViewByIdsResponse.builder()
+                .goodsInfos(goodsInfoMapper.goodsInfosToGoodsInfoVOs(goodsInfoResponse.getGoodsInfos())).build();
+
+        //填充规格明细
+        if (Objects.equals(request.getIsHavSpecText(), DeleteFlag.YES.toValue())) {
+            goodsInfoSpecDetailRelService.fillSpecDetail(response.getGoodsInfos());
+        }
+
+        if (CollectionUtils.isNotEmpty(response.getGoodsInfos())) {
+            for (GoodsInfoVO item : response.getGoodsInfos()) {
+                if (StringUtils.isNotBlank(item.getGoodsChannelType())) {
+                    item.setGoodsChannelTypeSet(Arrays.asList(item.getGoodsChannelType().split(",")));
+                }
+            }
+        }
+        return BaseResponse.success(response);
     }
 }

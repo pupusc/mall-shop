@@ -4,19 +4,27 @@ import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -29,8 +37,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +71,12 @@ public class SpuNewSearchService {
 
     @Autowired
     private AtmosphereProvider atmosphereProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
+
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -114,12 +130,14 @@ public class SpuNewSearchService {
 //        BigDecimal salePrice = new BigDecimal("9999");
         Map<String, GoodsInfoVO> spuId2HasStockGoodsInfoVoMap = new HashMap<>();
         Map<String, GoodsInfoVO> spuId2UnHasStockGoodsInfoVoMap = new HashMap<>();
+        boolean hasCustomerVip = false;
 
         GoodsInfoListByConditionRequest request = new GoodsInfoListByConditionRequest();
         request.setGoodsIds(spuIdList);
         request.setAuditStatus(CheckStatus.CHECKED);
         request.setDelFlag(DeleteFlag.NO.toValue());
         request.setAddedFlag(AddedFlag.YES.toValue());
+        request.setShowSpecFlag(true);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(request).getContext().getGoodsInfos();
         if (!CollectionUtils.isEmpty(goodsInfos)) {
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
@@ -132,6 +150,11 @@ public class SpuNewSearchService {
             filterRequest.setGoodsInfos(goodsInfoDTOS);
             if (Objects.nonNull(customer)) {
                 filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                //获取vip信息
+                MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+                maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+                List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+                hasCustomerVip = !CollectionUtils.isEmpty(paidCardVOList);
             }
             goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
 
@@ -196,6 +219,26 @@ public class SpuNewSearchService {
             }
         }
 
+
+        //normalActivity 活动信息
+        Map<String, SkuNormalActivityResp> spuId2NormalActivityMap = new HashMap<>();
+        SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+        spuNormalActivityReq.setSpuIds(spuIdList);
+        spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+        spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+        spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+        List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+        for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+            SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(skuNormalActivityRespParam.getSpuId());
+            if (skuNormalActivityResp == null) {
+                spuId2NormalActivityMap.put(skuNormalActivityRespParam.getSpuId(), skuNormalActivityRespParam);
+            } else {
+                if (skuNormalActivityResp.getNum() < skuNormalActivityRespParam.getNum()) {
+                    spuId2NormalActivityMap.put(skuNormalActivityRespParam.getSpuId(), skuNormalActivityRespParam);
+                }
+            }
+        }
 
 
         List<SpuNewBookListResp> result = new ArrayList<>();
@@ -269,7 +312,7 @@ public class SpuNewSearchService {
                             : spuRecomBookListDTO.getSpu().getSortNum(), spuRecomBookListDTO.getBookListBusinessType()) : null;
             spuNewBookListResp.setBookList(bookList);
 
-            //获取图书信息
+            //获取图书氛围信息
             AtmosphereDTO atmosphereDTO = skuId2AtomsphereMap.get(goodsInfoVO.getGoodsInfoId());
             if (atmosphereDTO != null) {
                 SpuNewBookListResp.Atmosphere atmosphere = new SpuNewBookListResp.Atmosphere();
@@ -282,10 +325,23 @@ public class SpuNewSearchService {
                 spuNewBookListResp.setAtmosphere(atmosphere);
             }
 
+            //获取活动信息
+            SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(esSpuNewRespParam.getSpuId());
+            if (skuNormalActivityResp != null) {
+                List<SpuNewBookListResp.NormalActivity> activities = new ArrayList<>();
+                SpuNewBookListResp.NormalActivity activity = new SpuNewBookListResp.NormalActivity();
+                activity.setNum(skuNormalActivityResp.getNum());
+                activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+                activities.add(activity);
+                spuNewBookListResp.setActivities(activities);
+//                spuNewBookListResp.setSkuId(skuNormalActivityResp.getSkuId());
+            }
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
+            spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
+            spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
             result.add(spuNewBookListResp);

@@ -11,10 +11,7 @@ public class PromoteFitGoodsResultVO extends SpuNewBookListResp {
      * 规格名称
      */
     private String specText;
-    /**
-     * 是否有更多规格
-     */
-    private Boolean specMore = false;
+
     /**
      * 选购数量
      */

@@ -1,5 +1,8 @@
 package com.wanmi.sbc.coupon;
 
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -17,12 +20,14 @@ import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
@@ -52,6 +57,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -93,6 +99,9 @@ public class CouponInfoController {
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
 
     /**
@@ -334,8 +343,24 @@ public class CouponInfoController {
             List<GoodsVO> goodsVOList = goodsQueryProvider.listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsIds).build()).getContext().getGoodsVOList();
 
             //重新赋值于Page内部对象
-            Map<String, GoodsInfoVO> voMap = goodsInfoList.stream()
-                    .collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, g -> g));
+            Map<String, GoodsInfoVO> voMap = goodsInfoList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, g -> g));
+            //获取活动信息
+            Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+            if (org.apache.commons.collections.CollectionUtils.isNotEmpty(goodsIds)) {
+                SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+                spuNormalActivityReq.setSpuIds(goodsIds);
+                spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+                spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+                spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+                spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+                List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+
+
+                for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+                    skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+                }
+            }
+
             esGoodsInfoResponse.getEsGoodsInfoPage().getContent().forEach(esGoodsInfo -> {
                 GoodsInfoVO vo = voMap.get(esGoodsInfo.getGoodsInfo().getGoodsInfoId());
                 if (Objects.nonNull(vo)) {
@@ -347,6 +372,13 @@ public class CouponInfoController {
                         esGoodsInfo.setGoodsSubtitle(goodsVO.getGoodsSubtitle());
                     }
                 });
+                SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(esGoodsInfo.getId());
+                if (skuNormalActivityResp != null) {
+                    EsGoodsInfoVO.NormalActivity activity = new EsGoodsInfoVO.NormalActivity();
+                    activity.setNum(skuNormalActivityResp.getNum());
+                    activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+                    esGoodsInfo.setActivity(activity);
+                }
             });
 
             couponGoodsPageResponse.setEsGoodsInfoResponse(esGoodsInfoResponse);

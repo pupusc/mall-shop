@@ -166,4 +166,26 @@ public class EsGoodsInfoVO implements Serializable {
      * 商品渠道 1 H5 2、小程序 3、普通分类
      */
     private List<Integer> goodsChannelTypeSet;
+
+    /**
+     * 活动信息
+     */
+    private NormalActivity activity;
+
+    /**
+     * 活动信息
+     */
+    @Data
+    public static class NormalActivity {
+        /**
+         * 份数
+         */
+        private Integer num;
+
+        /**
+         * 活动展示
+         */
+        private String activityShow;
+
+    }
 }

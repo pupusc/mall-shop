@@ -142,5 +142,9 @@ public class ExternalController implements ExternalProvider {
         return externalService.createInvoice(request);
     }
 
+    @Override
+    public BaseResponse changePoint(FanDengAddPointReq request) {
+        return externalService.changePoint(request);
+    }
 
 }

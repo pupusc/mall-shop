@@ -2,6 +2,9 @@ package com.wanmi.sbc.order;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.account.bean.enums.PayType;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.account.request.PaymentRecordRequest;
@@ -60,6 +63,7 @@ import com.wanmi.sbc.distribute.DistributionCacheService;
 import com.wanmi.sbc.distribute.DistributionService;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -111,6 +115,7 @@ import com.wanmi.sbc.goods.bean.enums.GiftGiveMethod;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
 import com.wanmi.sbc.goods.bean.vo.CycleBuyGiftVO;
@@ -525,6 +530,9 @@ public class TradeBaseController {
 
     @Autowired
     private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
     /**
      * @description 商城配合知识顾问
@@ -2162,11 +2170,34 @@ public class TradeBaseController {
             blackListGoodsIdList.addAll(context.getPointNotSplitBlackListModel().getGoodsIdList());
         }
 
+        //活动信息
+        Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(skuIds)) {
+            SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+            spuNormalActivityReq.setSkuIds(skuIds);
+            spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+            spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+            spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+            spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+            List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+            for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+                skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+            }
+        }
+
+
         for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
             List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
             for (TradeItemVO tradeItem : tradeItems) {
                 if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
                     tradeItem.setInPointBlackList(true);
+                }
+                SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(tradeItem.getSkuId());
+                if (skuNormalActivityResp != null) {
+                    TradeItemVO.NormalActivity activity = new TradeItemVO.NormalActivity();
+                    activity.setNum(skuNormalActivityResp.getNum());
+                    activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+                    tradeItem.setActivity(activity);
                 }
             }
         }

@@ -5,8 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.api.enums.RecordMessageTypeEnum;
+import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
@@ -623,6 +626,9 @@ public class TradeService {
     private CustomerProvider customerProvider;
     @Autowired
     private SensorsDataService sensorsDataService;
+
+    @Autowired
+    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
 
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
@@ -4317,6 +4323,8 @@ public class TradeService {
         tradeFSMService.changeState(stateRequest);
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
         // 返换限售记录——取消订单
@@ -4324,6 +4332,7 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
 
+        
         //视频号
         if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
@@ -5236,6 +5245,14 @@ public class TradeService {
         }
         //支付成功发放优惠券
         orderCouponService.addCouponRecord(trade);
+
+        //支付成功后发送消息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes();
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
+
     }
 
     /**
@@ -5738,6 +5755,12 @@ public class TradeService {
         }
         sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
         orderCouponService.addCouponRecord(trade);
+//        //支付成功后发送消息
+//        RecordMessageMq recordMessageMq = new RecordMessageMq();
+//        recordMessageMq.setBusinessId(trade.getId());
+////        recordMessageMq.setChannelTypes();
+//        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
+//        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
         return true;
     }
 
@@ -6835,6 +6858,8 @@ public class TradeService {
 
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
 
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
@@ -6843,6 +6868,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+
+
         //小程序发送取消消息
         if (context != null) {
             wxOrderService.sendWxCancelOrderMessage(trade, context);
@@ -7632,11 +7659,14 @@ public class TradeService {
                         .flatMap(t -> t.getTradeItems().stream()).map(tradeItem ->
                         KsBeanUtil.convert(tradeItem, RestrictedRecordSimpVO.class)
                 ).collect(Collectors.toList());
-        restrictedRecordSaveProvider.batchAdd(RestrictedRecordBatchAddRequest.builder()
-                .restrictedRecordSimpVOS(restrictedRecordSimpVOS)
-                .customerId(customerId)
-                .orderTime(orderTime)
-                .build());
+        if (CollectionUtils.isNotEmpty(restrictedRecordSimpVOS)) {
+            RestrictedRecordBatchAddRequest request = new RestrictedRecordBatchAddRequest();
+            request.setRestrictedRecordSimpVOS(restrictedRecordSimpVOS);
+            request.setCustomerId(customerId);
+            request.setOrderTime(orderTime);
+            log.info("TradeService insertRestrictedRecord batchAdd param:{}", JSON.toJSONString(request));
+            restrictedRecordSaveProvider.batchAdd(request);
+        }
     }
 
     /**
@@ -8653,5 +8683,19 @@ public class TradeService {
             orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
         }
         return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 取消订单调用
+     * @param trade
+     */
+    public void cancelOrderCommon(Trade trade) {
+        //取消订单 发送 取消活动记录表信息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes(Lists.newArrayList());
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.CANCEL_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendCancelOrderGiftRecord(recordMessageMq);
     }
 }

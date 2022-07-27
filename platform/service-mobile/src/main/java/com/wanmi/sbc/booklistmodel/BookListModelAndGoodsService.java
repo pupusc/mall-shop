@@ -1,5 +1,8 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
@@ -21,6 +24,7 @@ import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.FilterRuleEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
@@ -39,6 +43,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
@@ -88,6 +93,9 @@ public class BookListModelAndGoodsService {
 
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -216,6 +224,35 @@ public class BookListModelAndGoodsService {
         if (Objects.nonNull(filterResponse) && org.apache.commons.collections4.CollectionUtils.isNotEmpty(filterResponse.getGoodsInfoVOList())) {
             result = filterResponse.getGoodsInfoVOList();
         }
+
+        //设置活动信息
+        if (!CollectionUtils.isEmpty(result)) {
+
+            //活动信息
+            Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+            SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+            spuNormalActivityReq.setSpuIds(result.stream().map(GoodsInfoVO::getGoodsId).collect(Collectors.toList()));
+            spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+            spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+            spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+            spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+            List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+            for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+                skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+            }
+            for (GoodsInfoVO goodsInfo : result) {
+                SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(goodsInfo.getGoodsInfoId());
+                if (skuNormalActivityResp == null) {
+                    continue;
+                }
+                GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
+                activity.setNum(skuNormalActivityResp.getNum());
+                activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+                goodsInfo.setActivity(activity);
+            }
+
+        }
+
 //        this.initGoodsInfoStock(filterResponse.getGoodsInfoVOList());
         return result;
     }
@@ -365,6 +402,8 @@ public class BookListModelAndGoodsService {
         String goodsInfoImg = "";
         List<String> couponLabelNameList = new ArrayList<>();
 
+        Map<String, GoodsInfoVO> spuId2NormalActivityGoodsInfoMap = new HashMap<>();
+
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
         BigDecimal currentSalePrice = new BigDecimal("100000");
@@ -442,6 +481,17 @@ public class BookListModelAndGoodsService {
                             }
                         }
                     }
+
+                    if (goodsInfoParam.getActivity() != null) {
+                        GoodsInfoVO spu2NormalActivityGoodsInfoResp = spuId2NormalActivityGoodsInfoMap.get(goodsInfoParam.getGoodsId());
+                        if (spu2NormalActivityGoodsInfoResp == null) {
+                            spuId2NormalActivityGoodsInfoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                        } else {
+                            if (spu2NormalActivityGoodsInfoResp.getActivity().getNum() < goodsInfoParam.getActivity().getNum()) {
+                                spuId2NormalActivityGoodsInfoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -514,6 +564,15 @@ public class BookListModelAndGoodsService {
                 }
                 anchorPushEnumList.add(byCode);
             }
+        }
+        //活动
+        GoodsInfoVO normalActivityGoodsInfo = spuId2NormalActivityGoodsInfoMap.get(goodsVO.getGoodsId());
+        if (normalActivityGoodsInfo != null && normalActivityGoodsInfo.getActivity() != null) {
+            GoodsCustomResponse.NormalActivity goodsCustomerNormal = new GoodsCustomResponse.NormalActivity();
+            goodsCustomerNormal.setNum(normalActivityGoodsInfo.getActivity().getNum());
+            goodsCustomerNormal.setActivityShow(normalActivityGoodsInfo.getActivity().getActivityShow());
+            esGoodsCustomResponse.setActivities(Arrays.asList(goodsCustomerNormal));
+//            esGoodsCustomResponse.setGoodsInfoId(normalActivityGoodsInfo.getGoodsInfoId());
         }
         //排序获取
         if (!CollectionUtils.isEmpty(anchorPushEnumList)) {
