@@ -248,6 +248,9 @@ public class RestrictedRecordService {
 					// 1. 判断是否有该限售记录
 					if(Objects.isNull(restrictedRecord)){
 						//没有该记录直接保存
+						if (goodsRestrictedVO.getRestrictedCycleType() == null){ //修复线上bug
+							return;
+						}
 						RestrictedRecord rr = new RestrictedRecord();
 						rr.setCustomerId(customerId);
 						rr.setPurchaseNum(skuNumMap.get(goodsRestrictedVO.getGoodsInfoId()));
