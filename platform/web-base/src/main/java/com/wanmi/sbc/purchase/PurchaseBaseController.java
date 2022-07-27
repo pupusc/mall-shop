@@ -950,6 +950,7 @@ public class PurchaseBaseController {
         return purchaseQueryProvider.purchaseInfo(PurchaseInfoRequest.builder()
                 .customer(commonUtil.getCustomer())
                 .areaId(request.getAreaId())
+                .channelType(commonUtil.getTerminal().getCode())
                 .inviteeId(commonUtil.getPurchaseInviteeId()).build());
     }
 
@@ -959,6 +960,7 @@ public class PurchaseBaseController {
     public BaseResponse<PurchaseListResponse> purchaseInfo(@RequestBody @Valid PurchaseInfoRequest request) {
         return purchaseQueryProvider.purchaseInfo(PurchaseInfoRequest.builder()
                 .goodsInfoIds(request.getGoodsInfoIds())
+                .channelType(commonUtil.getTerminal().getCode())
                 .inviteeId(commonUtil.getPurchaseInviteeId()).build());
     }
 
