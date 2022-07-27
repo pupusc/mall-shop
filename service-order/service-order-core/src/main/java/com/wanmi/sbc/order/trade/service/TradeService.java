@@ -7659,11 +7659,13 @@ public class TradeService {
                         .flatMap(t -> t.getTradeItems().stream()).map(tradeItem ->
                         KsBeanUtil.convert(tradeItem, RestrictedRecordSimpVO.class)
                 ).collect(Collectors.toList());
-        restrictedRecordSaveProvider.batchAdd(RestrictedRecordBatchAddRequest.builder()
-                .restrictedRecordSimpVOS(restrictedRecordSimpVOS)
-                .customerId(customerId)
-                .orderTime(orderTime)
-                .build());
+        if (CollectionUtils.isNotEmpty(restrictedRecordSimpVOS)) {
+            restrictedRecordSaveProvider.batchAdd(RestrictedRecordBatchAddRequest.builder()
+                    .restrictedRecordSimpVOS(restrictedRecordSimpVOS)
+                    .customerId(customerId)
+                    .orderTime(orderTime)
+                    .build());
+        }
     }
 
     /**
