@@ -833,6 +833,7 @@ public class GoodsBaseController {
         spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
         spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+        spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
         List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
             skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);

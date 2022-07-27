@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,11 +50,13 @@ public class NormalActivityController {
      */
     @PostMapping("/list/{skuId}")
     public BaseResponse listNormalActivity(@PathVariable("skuId") String skuId) {
+        String customerId = StringUtils.isEmpty(commonUtil.getOperatorId()) ? "" : commonUtil.getOperatorId();
         SpuNormalActivityReq searchReq = new SpuNormalActivityReq();
         searchReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         searchReq.setSkuIds(Collections.singletonList(skuId));
         searchReq.setStatus(StateEnum.RUNNING.getCode());
         searchReq.setPublishState(PublishState.ENABLE.toValue());
+        searchReq.setCustomerId(customerId);
         List<SkuNormalActivityResp> context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(searchReq).getContext();
 
         //进行中的订单
@@ -67,6 +70,7 @@ public class NormalActivityController {
             searchReq.setPublishState(PublishState.ENABLE.toValue());
             searchReq.setBeginTime(now);
             searchReq.setEndTime(endTime);
+            searchReq.setCustomerId(customerId);
             context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(searchReq).getContext();
             isPrepare = true;
         }

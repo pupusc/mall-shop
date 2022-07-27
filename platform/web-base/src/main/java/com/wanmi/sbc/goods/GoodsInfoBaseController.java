@@ -1248,6 +1248,7 @@ public class GoodsInfoBaseController {
             spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
             spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
             spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+            spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
             List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
 
 

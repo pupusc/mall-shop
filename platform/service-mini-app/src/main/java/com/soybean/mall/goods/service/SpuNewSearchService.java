@@ -11,9 +11,12 @@ import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
@@ -73,6 +76,9 @@ public class SpuNewSearchService {
     private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
 
     @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
+    @Autowired
     private CommonUtil commonUtil;
 
 
@@ -124,6 +130,7 @@ public class SpuNewSearchService {
 //        BigDecimal salePrice = new BigDecimal("9999");
         Map<String, GoodsInfoVO> spuId2HasStockGoodsInfoVoMap = new HashMap<>();
         Map<String, GoodsInfoVO> spuId2UnHasStockGoodsInfoVoMap = new HashMap<>();
+        boolean hasCustomerVip = false;
 
         GoodsInfoListByConditionRequest request = new GoodsInfoListByConditionRequest();
         request.setGoodsIds(spuIdList);
@@ -143,6 +150,11 @@ public class SpuNewSearchService {
             filterRequest.setGoodsInfos(goodsInfoDTOS);
             if (Objects.nonNull(customer)) {
                 filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                //获取vip信息
+                MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+                maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+                List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+                hasCustomerVip = !CollectionUtils.isEmpty(paidCardVOList);
             }
             goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
 
@@ -215,6 +227,7 @@ public class SpuNewSearchService {
         spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
         spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
         spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
         List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
             SkuNormalActivityResp skuNormalActivityResp = spuId2NormalActivityMap.get(skuNormalActivityRespParam.getSpuId());
@@ -327,7 +340,7 @@ public class SpuNewSearchService {
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
-            spuNewBookListResp.setHasVip(goodsInfoVO.getMarketPrice().compareTo(BigDecimal.ZERO) > 0 && !Objects.equals(goodsInfoVO.getSalePrice(), goodsInfoVO.getMarketPrice()) ? 1 : 0);
+            spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
             spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());

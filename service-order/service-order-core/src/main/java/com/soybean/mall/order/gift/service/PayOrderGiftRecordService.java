@@ -105,7 +105,13 @@ public abstract class PayOrderGiftRecordService {
         //获取sku信息
         List<String> skuIds = new ArrayList<>();
         for (TradeItem tradeItem : orderDetail.getTradeItems()) {
-            skuIds.add(tradeItem.getSkuId());
+            if (StringUtils.isNotBlank(tradeItem.getPackId())) {
+                if (Objects.equals(tradeItem.getSpuId(), tradeItem.getPackId())) {
+                    skuIds.add(tradeItem.getSkuId());
+                }
+            } else {
+                skuIds.add(tradeItem.getSkuId());
+            }
         }
 
         if (CollectionUtils.isEmpty(skuIds)) {
@@ -126,7 +132,7 @@ public abstract class PayOrderGiftRecordService {
      * @param skuIds
      * @return
      */
-    private List<SkuNormalActivityResp> listRunningNormalActivity(List<String> skuIds, List<Integer> channelTypes) {
+    private List<SkuNormalActivityResp> listRunningNormalActivity(List<String> skuIds, List<Integer> channelTypes, String customerId) {
         if (CollectionUtils.isEmpty(skuIds)) {
             return new ArrayList<>();
         }
@@ -135,6 +141,7 @@ public abstract class PayOrderGiftRecordService {
         spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
         spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
         spuNormalActivityReq.setChannelTypes(channelTypes);
+        spuNormalActivityReq.setCustomerId(customerId);
         List<SkuNormalActivityResp> context = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
         if (CollectionUtils.isEmpty(context)) {
             return new ArrayList<>();
@@ -228,7 +235,7 @@ public abstract class PayOrderGiftRecordService {
             return;
         }
 
-        List<SkuNormalActivityResp> skuNormalActivitys = this.listRunningNormalActivity(simpleTradeResp.getSkuIds(), recordMessageMq.getChannelTypes());
+        List<SkuNormalActivityResp> skuNormalActivitys = this.listRunningNormalActivity(simpleTradeResp.getSkuIds(), recordMessageMq.getChannelTypes(), simpleTradeResp.getCustomerId());
         if (CollectionUtils.isEmpty(skuNormalActivitys)) {
             log.info("PayOrderGiftRecordService afterCreateOrder message: {} 没有活动信息不执行返积分操作", JSON.toJSONString(recordMessageMq));
             return;

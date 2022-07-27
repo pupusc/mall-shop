@@ -1,4 +1,5 @@
 package com.soybean.marketing.activity.service;
+import java.util.Collection;
 import com.soybean.marketing.api.req.NormalActivityPointSkuSearchReq;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
@@ -14,15 +15,23 @@ import com.soybean.marketing.api.req.NormalActivitySearchReq;
 import com.soybean.marketing.api.req.NormalActivitySkuReq;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +46,14 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class NormalActivityPointSkuService extends NormalActivityService {
 
     @Autowired
     private NormalActivityPointSkuRepository normalActivityPointSkuRepository;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
     @Transactional
     public void add(NormalActivityPointSkuReq normalActivityPointSkuReq) {
@@ -245,6 +258,20 @@ public class NormalActivityPointSkuService extends NormalActivityService {
         if (CollectionUtils.isEmpty(spuNormalActivityReq.getChannelTypes())) {
             return new ArrayList<>();
         }
+
+        //判断当前用户是否在黑名单中
+        if (StringUtils.isNotBlank(spuNormalActivityReq.getCustomerId())) {
+            GoodsBlackListPageProviderRequest request = new GoodsBlackListPageProviderRequest();
+            request.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.UN_BACK_POINT_AFTER_PAY.getCode()));
+            GoodsBlackListPageProviderResponse context = goodsBlackListProvider.listNoPage(request).getContext();
+            if (context.getUnBackPointAfterPayBlackListModel() != null && CollectionUtils.isNotEmpty(context.getUnBackPointAfterPayBlackListModel().getNormalList())) {
+                if (context.getUnBackPointAfterPayBlackListModel().getNormalList().contains(spuNormalActivityReq.getCustomerId())) {
+                    log.info("NormalActivityPointSkuService ");
+                    return new ArrayList<>();
+                }
+            }
+        }
+
         NormalActivitySearchReq normalActivitySearchReq = new NormalActivitySearchReq();
         if (spuNormalActivityReq.getStatus() != null) {
             normalActivitySearchReq.setStatus(spuNormalActivityReq.getStatus());

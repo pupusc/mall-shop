@@ -50,4 +50,9 @@ public class SpuNormalActivityReq {
      * 0未开启 1开启 {@link com.wanmi.sbc.goods.bean.enums.PublishState}
      */
     private Integer publishState;
+
+    /**
+     * 客户id
+     */
+    private String customerId;
 }
