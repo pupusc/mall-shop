@@ -7660,11 +7660,12 @@ public class TradeService {
                         KsBeanUtil.convert(tradeItem, RestrictedRecordSimpVO.class)
                 ).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(restrictedRecordSimpVOS)) {
-            restrictedRecordSaveProvider.batchAdd(RestrictedRecordBatchAddRequest.builder()
-                    .restrictedRecordSimpVOS(restrictedRecordSimpVOS)
-                    .customerId(customerId)
-                    .orderTime(orderTime)
-                    .build());
+            RestrictedRecordBatchAddRequest request = new RestrictedRecordBatchAddRequest();
+            request.setRestrictedRecordSimpVOS(restrictedRecordSimpVOS);
+            request.setCustomerId(customerId);
+            request.setOrderTime(orderTime);
+            log.info("TradeService insertRestrictedRecord batchAdd param:{}", JSON.toJSONString(request));
+            restrictedRecordSaveProvider.batchAdd(request);
         }
     }
 
