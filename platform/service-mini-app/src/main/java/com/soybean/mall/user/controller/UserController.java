@@ -163,6 +163,7 @@ public class UserController {
         response.setNickName(resData.getNickName());
         response.setProfilePhoto(resData.getProfilePhoto());
         response.setUserNo(resData.getUserNo());
+        response.setUserStatus(resData.getUserStatus());
         if(resData.getVipEndTime() != null && resData.getVipStartTime() != null){
             response.setVipEndTime(Timestamp.valueOf(resData.getVipEndTime()).getTime());
             response.setVipStartTime(Timestamp.valueOf(resData.getVipStartTime()).getTime());
