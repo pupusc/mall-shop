@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.common.enums.PayAccountEnums;
 import com.soybean.mall.order.api.enums.RecordMessageTypeEnum;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
@@ -7322,25 +7323,25 @@ public class TradeService {
         }
     }
 
-    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type) {
-        // 执行业务回调
-        BaseResponse response = paidCardSaveProvider.dealPayCallBack(paidCardRedisDTO);
-        if (response.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
-            // 修改支付流水信息
-            //异步回调添加交易数据
-            PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
-            //流水号
-            payTradeRecordRequest.setTradeNo(null);
-            //商品订单号
-            payTradeRecordRequest.setBusinessId(paidCardRedisDTO.getBusinessId());
-            payTradeRecordRequest.setResult_code("SUCCESS");
-            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
-            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
-            //添加交易数据（与微信共用）
-
-            payProvider.wxPayCallBack(payTradeRecordRequest);
-        }
-    }
+//    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type) {
+//        // 执行业务回调
+//        BaseResponse response = paidCardSaveProvider.dealPayCallBack(paidCardRedisDTO);
+//        if (response.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+//            // 修改支付流水信息
+//            //异步回调添加交易数据
+//            PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
+//            //流水号
+//            payTradeRecordRequest.setTradeNo(null);
+//            //商品订单号
+//            payTradeRecordRequest.setBusinessId(paidCardRedisDTO.getBusinessId());
+//            payTradeRecordRequest.setResult_code("SUCCESS");
+//            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
+//            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
+//            //添加交易数据（与微信共用）
+//
+//            payProvider.wxPayCallBack(payTradeRecordRequest);
+//        }
+//    }
 
     /**
      * 是否是尾款订单号
@@ -7388,14 +7389,12 @@ public class TradeService {
         //商户订单号或父单号
         payTradeRecordRequest.setBusinessId(businessId);
         payTradeRecordRequest.setResult_code(wxPayResultResponse.getResult_code());
-        payTradeRecordRequest.setPracticalPrice(new BigDecimal(wxPayResultResponse.getTotal_fee()).
-                divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+        payTradeRecordRequest.setPracticalPrice(new BigDecimal(wxPayResultResponse.getTotal_fee()).divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+
         ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
         channelItemByGatewayRequest.setGatewayName(payGatewayConfig.getPayGateway().getName());
-        PayChannelItemListResponse payChannelItemListResponse =
-                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
-        List<PayChannelItemVO> payChannelItemVOList =
-                payChannelItemListResponse.getPayChannelItemVOList();
+        PayChannelItemListResponse payChannelItemListResponse = payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
+        List<PayChannelItemVO> payChannelItemVOList = payChannelItemListResponse.getPayChannelItemVOList();
         String tradeType = wxPayResultResponse.getTrade_type();
         ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
         String code = "wx_qr_code";
@@ -7414,8 +7413,9 @@ public class TradeService {
             }
         });
         //微信支付异步回调添加交易数据
+        payTradeRecordRequest.setAppId(wxPayResultResponse.getMch_id());
         payProvider.wxPayCallBack(payTradeRecordRequest);
-        //        //订单 支付单 操作信息
+        //订单 支付单 操作信息
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, isMergePay);
@@ -7438,8 +7438,7 @@ public class TradeService {
         gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.ALIPAY);
         gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
         //查询支付宝配置信息
-        PayGatewayConfigResponse payGatewayConfigResponse =
-                payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
+        PayGatewayConfigResponse payGatewayConfigResponse =payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
         //支付宝公钥
         String aliPayPublicKey = payGatewayConfigResponse.getPublicKey();
         boolean signVerified = false;
@@ -7469,7 +7468,8 @@ public class TradeService {
                 String total_amount = params.get("total_amount");
                 //支付终端类型
                 String type = params.get("passback_params");
-
+                // app_id
+                String appId = params.get("app_id");
                 boolean isMergePay = isMergePayOrder(out_trade_no);
                 log.info("-------------支付回调,单号：{}，流水：{}，交易状态：{}，金额：{}，是否合并支付：{}------------",
                         out_trade_no, trade_no, trade_status, total_amount, isMergePay);
@@ -7479,8 +7479,7 @@ public class TradeService {
                 if (!isMergePay) {
                     Trade trade = new Trade();
                     if (isTailPayOrder(out_trade_no)) {
-                        trade =
-                                tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
+                        trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
                     } else {
                         trade = tradeService.detail(out_trade_no);
                     }
@@ -7489,22 +7488,23 @@ public class TradeService {
                 } else {
                     lockName = out_trade_no;
                 }
-                Operator operator =
-                        Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.ALIPAY.name())
-                                .account(PayGatewayEnum.ALIPAY.name()).platform(Platform.THIRD).build();
+                Operator operator = Operator.builder()
+                                .ip(HttpUtil.getIpAddr()).adminId("-1")
+                                .name(PayGatewayEnum.ALIPAY.name())
+                                .account(PayGatewayEnum.ALIPAY.name())
+                                .platform(Platform.THIRD).build();
                 //redis锁，防止同一订单重复回调
                 RLock rLock = redissonClient.getFairLock(lockName);
-                rLock.lock();
-                //执行
                 try {
+                    rLock.lock();
                     List<Trade> trades = new ArrayList<>();
                     //查询交易记录
-                    TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest =
-                            new TradeRecordByOrderCodeRequest(out_trade_no);
+                    TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest = new TradeRecordByOrderCodeRequest(out_trade_no);
                     PayTradeRecordResponse recordResponse =
                             payQueryProvider.getTradeRecordByOrderCode(tradeRecordByOrderCodeRequest).getContext();
                     PayCallBackResult payCallBackResult =
                             payCallBackResultService.list(PayCallBackResultQueryRequest.builder().businessId(out_trade_no).build()).get(0);
+
                     if (isMergePay) {
                         /*
                          * 合并支付
@@ -7512,51 +7512,42 @@ public class TradeService {
                          */
                         trades = tradeService.detailsByParentId(out_trade_no);
                         //订单合并支付场景状态采样
-                        boolean paid =
-                                trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
+                        boolean paid = trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
                         boolean cancel =
                                 trades.stream().anyMatch(i -> i.getTradeState().getFlowState() == FlowState.VOID);
                         //订单的支付渠道。17、18、19是我们自己对接的支付宝渠道， 表：pay_channel_item
                         if (cancel || (paid && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
                                 != 18L && recordResponse.getChannelItemId() != 19L)) {
                             //重复支付，直接退款
+                            log.info("TradeService 订单重复支付直接退款 支付宝 合并支付 订单 {}", out_trade_no);
                             alipayRefundHandle(out_trade_no, total_amount);
                         } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                             alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
-                                    operator, trades, true, recordResponse);
+                                    operator, trades, true, recordResponse, appId);
                         }
                     } else {
                         //单笔支付
-                        //单笔支付
                         Trade trade = new Trade();
                         if (isTailPayOrder(out_trade_no)) {
-                            trade =
-                                    tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
+                            trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
                         } else {
                             trade = tradeService.detail(out_trade_no);
                         }
-                        if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
-                                .getPayState() == PayState.PAID && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
-                                != 18L && recordResponse.getChannelItemId() != 19L)) {
+                        if (trade.getTradeState().getFlowState() == FlowState.VOID
+                                || (trade.getTradeState().getPayState() == PayState.PAID
+                                    && recordResponse.getChannelItemId() != 17L
+                                    && recordResponse.getChannelItemId() != 18L
+                                    && recordResponse.getChannelItemId() != 19L)) {
                             //同一批订单重复支付或过期作废，直接退款
+                            log.info("TradeService 订单重复支付直接退款 支付宝 订单 {}", out_trade_no);
                             alipayRefundHandle(out_trade_no, total_amount);
                         } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                             trades.add(trade);
                             alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
-                                    operator, trades, false, recordResponse);
+                                    operator, trades, false, recordResponse, appId);
                         }
                     }
                     payCallBackResultService.updateStatus(out_trade_no, PayCallBackResultStatus.SUCCESS);
-                    // 判断订单类型是否是 全款销售 或 定金销售
-
-//                    Trade trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
-//                    if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
-//                        log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
-//                    }else {
-//                        log.info("ali支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
-//                        //推送ERP订单
-//                        this.pushTradeToErp(out_trade_no);
-//                    }
                     sensorsDataService.sendPaySuccessEvent(trades);
 
                     Trade trade = null;
@@ -7604,9 +7595,8 @@ public class TradeService {
 
     private void alipayCallbackHandle(String out_trade_no, String trade_no, String trade_status, String total_amount,
                                       String type, Operator operator, List<Trade> trades, boolean isMergePay,
-                                      PayTradeRecordResponse recordResponse) {
-        if (recordResponse.getApplyPrice().compareTo(new BigDecimal(total_amount)) == 0 && trade_status.equals(
-                "TRADE_SUCCESS")) {
+                                      PayTradeRecordResponse recordResponse, String appId) {
+        if (recordResponse.getApplyPrice().compareTo(new BigDecimal(total_amount)) == 0 && trade_status.equals("TRADE_SUCCESS")) {
             //异步回调添加交易数据
             PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
             //流水号
@@ -7616,7 +7606,7 @@ public class TradeService {
             payTradeRecordRequest.setResult_code("SUCCESS");
             payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
             payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
-            //添加交易数据（与微信共用）
+            payTradeRecordRequest.setAppId(appId);
             payProvider.wxPayCallBack(payTradeRecordRequest);
             payCallbackOnline(trades, operator, isMergePay);
             log.info("支付回调成功,单号：{}", out_trade_no);
@@ -8598,6 +8588,7 @@ public class TradeService {
                 List<Trade> trades =new ArrayList<>();
                 trades.add(trade);
                 if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState().getPayState() == PayState.PAID)) {
+                    log.error("TradeService 订单重复支付直接退款 视频号 订单 {}", tid);
                     //同一批订单重复支付或过期作废，直接退款
                     //wxRefundHandle(wxPayResultResponse, businessId, -1L);
                 } else {
@@ -8652,11 +8643,15 @@ public class TradeService {
                 payTradeRecordRequest.setChannelItemId(payChannelItemVO.getId());
             }
         });
-        //微信支付异步回调添加交易数据
+        //微信支付异步回调添加交易数据 视频号写死默认的
+        payTradeRecordRequest.setAppId(PayAccountEnums.WX_MINI_PROGRAM_VIDEO.getCode()); //TODO
         payProvider.wxPayCallBack(payTradeRecordRequest);
-        //        //订单 支付单 操作信息
-        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
-                .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
+        Operator operator = Operator.builder()
+                            .ip(HttpUtil.getIpAddr())
+                            .adminId("-1")
+                            .name(PayGatewayEnum.WECHAT.name())
+                            .account(PayGatewayEnum.WECHAT.name())
+                            .platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, false);
     }
 

@@ -79,4 +79,9 @@ public class PayTradeRecordRequest implements Serializable {
      */
     private String result_code;
 
+    /**
+     * appId
+     */
+    private String appId;
+
 }

@@ -140,9 +140,6 @@ public class PayCallbackController {
     private OperateLogMQUtil operateLogMQUtil;
 
     @Autowired
-    private RedissonClient redissonClient;
-
-    @Autowired
     private PayCallBackResultProvider payCallBackResultProvider;
 
     @Autowired
@@ -154,8 +151,6 @@ public class PayCallbackController {
     @Autowired
     private ProviderTradeProvider providerTradeProvider;
 
-    @Autowired
-    private AppointmentSaleGoodsProvider appointmentSaleGoodsProvider;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -193,13 +188,13 @@ public class PayCallbackController {
         return res;
     }
 
-    @ApiOperation(value = "ping++回调方法")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "body", dataType = "Map",
-                    name = "json", value = "回调报文", required = true),
-            @ApiImplicitParam(paramType = "header", dataType = "String",
-                    name = "x-pingplusplus-signature", value = "签名", required = true)
-    })
+//    @ApiOperation(value = "ping++回调方法")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "body", dataType = "Map",
+//                    name = "json", value = "回调报文", required = true),
+//            @ApiImplicitParam(paramType = "header", dataType = "String",
+//                    name = "x-pingplusplus-signature", value = "签名", required = true)
+//    })
     @RequestMapping(value = "/pingCallBack", method = RequestMethod.POST)
     @GlobalTransactional
     public ResponseEntity pingCallBack(@RequestBody Map<String, Object> json,
@@ -431,150 +426,150 @@ public class PayCallbackController {
         log.info("退款回调接收后台通知结束");
     }
 
-    /**
-     * 微信支付异步回调
-     * @param request
-     * @param response
-     */
-    @ApiOperation(value = "微信支付异步回调")
-    @RequestMapping(value = "/WXPaySuccessCallBack1/{storeId}", method = {RequestMethod.POST, RequestMethod.GET})
-    @GlobalTransactional
-    public void paySuc(HttpServletRequest request, HttpServletResponse response ,@PathVariable("storeId") Long storeId) throws Exception {
-        log.info("======================微信支付异步通知回调start======================");
-
-        PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, storeId)).getContext();
-        String apiKey = payGatewayConfig.getApiKey();
-        //支付回调结果
-        String result = WXPayConstants.SUCCESS;
-        //微信回调结果参数对象
-        WxPayResultResponse wxPayResultResponse = new WxPayResultResponse();
-        try {
-            //获取回调数据输入流
-            BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
-            String line;
-            StringBuilder retXml = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                retXml.append(line);
-            }
-            //微信支付异步回调结果xml
-            log.info("异步通知回调结果微信支付xml====" + retXml);
-            String retXmlStr = retXml.toString();
-            retXmlStr = retXmlStr.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
-            retXmlStr = retXmlStr.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
-            retXmlStr = retXmlStr.replaceAll("<coupon_fee_[0-9]{0,11}[^>]*>(.*?)</coupon_fee_[0-9]{0,11}>", "");
-
-            XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
-
-            xStream.alias("xml", WxPayResultResponse.class);
-            wxPayResultResponse = (WxPayResultResponse) xStream.fromXML(retXmlStr);
-            log.info("-------------微信支付回调,wxPayResultResponse：{}------------", wxPayResultResponse);
-            //判断当前回调是否是合并支付
-            String businessId = wxPayResultResponse.getOut_trade_no();
-            boolean isMergePay = isMergePayOrder(businessId);
-            String lockName;
-            //非组合支付，则查出该单笔订单。
-            if (!isMergePay) {
-                TradeVO tradeVO;
-                if (isTailPayOrder(businessId)) {
-                    tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(businessId).build()).build()).getContext().getTradeVOList().get(0);
-                } else {
-                    tradeVO = tradeQueryProvider.getById(new TradeGetByIdRequest(businessId)).getContext().getTradeVO();
-                }
-                // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
-                lockName = tradeVO.getParentId();
-            } else {
-                lockName = businessId;
-            }
-            //redis锁，防止同一订单重复回调
-            RLock rLock = redissonClient.getFairLock(lockName);
-            rLock.lock();
-            //执行回调
-            try {
-                //支付回调事件成功
-                if (wxPayResultResponse.getReturn_code().equals(WXPayConstants.SUCCESS) &&
-                        wxPayResultResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
-                    log.info("微信支付异步通知回调状态---成功");
-                    //微信回调参数数据map
-                    Map<String, String> params = WXPayUtil.xmlToMap(retXml.toString());
-                    String trade_type = wxPayResultResponse.getTrade_type();
-                    //app支付回调对应的api key为开放平台对应的api key
-                    if (trade_type.equals("APP")) {
-                        apiKey = payGatewayConfig.getOpenPlatformApiKey();
-                    }
-                    //微信签名校验
-                    if (WXPayUtil.isSignatureValid(params, apiKey)) {
-                        //签名正确，进行逻辑处理--对订单支付单以及操作信息进行处理并添加交易数据
-                        List<TradeVO> trades = new ArrayList<>();
-                        //查询交易记录
-                        TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest =
-                                new TradeRecordByOrderCodeRequest(businessId);
-                        PayTradeRecordResponse recordResponse =
-                                payQueryProvider.getTradeRecordByOrderCode(tradeRecordByOrderCodeRequest).getContext();
-                        if (isMergePay) {
-                            /*
-                             * 合并支付
-                             * 查询订单是否已支付或过期作废
-                             */
-                            trades = tradeQueryProvider.getOrderListByParentId(
-                                    new TradeListByParentIdRequest(businessId)).getContext().getTradeVOList();
-                            //订单合并支付场景状态采样
-                            boolean paid =
-                                    trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
-
-                            boolean cancel =
-                                    trades.stream().anyMatch(i -> i.getTradeState().getFlowState() == FlowState.VOID);
-
-
-                            if (cancel || (paid && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
-                                //同一批订单重复支付或过期作废，直接退款
-                                wxRefundHandle(wxPayResultResponse, businessId, storeId);
-                            } else {
-                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, true);
-                            }
-
-                        } else {
-                            //单笔支付
-                            TradeVO tradeVO;
-                            if (isTailPayOrder(businessId)) {
-                                tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(businessId).build()).build()).getContext().getTradeVOList().get(0);
-                            } else {
-                                tradeVO = tradeQueryProvider.getOrderById(new TradeGetByIdRequest(businessId))
-                                        .getContext().getTradeVO();
-                            }
-                            if (tradeVO.getTradeState().getFlowState() == FlowState.VOID || (tradeVO.getTradeState()
-                                    .getPayState() == PayState.PAID
-                                    && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
-                                //同一批订单重复支付或过期作废，直接退款
-                                wxRefundHandle(wxPayResultResponse, businessId, storeId);
-                            } else {
-                                trades.add(tradeVO);
-                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
-                            }
-                        }
-                    } else {
-                        log.info("微信支付异步回调验证签名结果[失败].");
-                        result = "fail";
-                    }
-                } else {
-                    log.info("微信支付异步通知回调状态---失败");
-                    result = "fail";
-                }
-                log.info("微信支付异步通知回调end---------");
-            } finally {
-                //解锁
-                rLock.unlock();
-            }
-        } catch (Exception e) {
-            log.error("微信异步通知处理失败:", e);
-            result = "fail";
-            throw e;
-        } finally {
-            // 异步消息接收后处理结果返回微信
-            wxCallbackResultHandle(response, result);
-            log.info("微信异步通知完成：结果=" + result + "，微信交易号=" + wxPayResultResponse.getTransaction_id());
-        }
-    }
+//    /**
+//     * 微信支付异步回调
+//     * @param request
+//     * @param response
+//     */
+//    @ApiOperation(value = "微信支付异步回调")
+//    @RequestMapping(value = "/WXPaySuccessCallBack1/{storeId}", method = {RequestMethod.POST, RequestMethod.GET})
+//    @GlobalTransactional
+//    public void paySuc(HttpServletRequest request, HttpServletResponse response ,@PathVariable("storeId") Long storeId) throws Exception {
+//        log.info("======================微信支付异步通知回调start======================");
+//
+//        PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
+//                GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, storeId)).getContext();
+//        String apiKey = payGatewayConfig.getApiKey();
+//        //支付回调结果
+//        String result = WXPayConstants.SUCCESS;
+//        //微信回调结果参数对象
+//        WxPayResultResponse wxPayResultResponse = new WxPayResultResponse();
+//        try {
+//            //获取回调数据输入流
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+//            String line;
+//            StringBuilder retXml = new StringBuilder();
+//            while ((line = reader.readLine()) != null) {
+//                retXml.append(line);
+//            }
+//            //微信支付异步回调结果xml
+//            log.info("异步通知回调结果微信支付xml====" + retXml);
+//            String retXmlStr = retXml.toString();
+//            retXmlStr = retXmlStr.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
+//            retXmlStr = retXmlStr.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
+//            retXmlStr = retXmlStr.replaceAll("<coupon_fee_[0-9]{0,11}[^>]*>(.*?)</coupon_fee_[0-9]{0,11}>", "");
+//
+//            XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
+//
+//            xStream.alias("xml", WxPayResultResponse.class);
+//            wxPayResultResponse = (WxPayResultResponse) xStream.fromXML(retXmlStr);
+//            log.info("-------------微信支付回调,wxPayResultResponse：{}------------", wxPayResultResponse);
+//            //判断当前回调是否是合并支付
+//            String businessId = wxPayResultResponse.getOut_trade_no();
+//            boolean isMergePay = isMergePayOrder(businessId);
+//            String lockName;
+//            //非组合支付，则查出该单笔订单。
+//            if (!isMergePay) {
+//                TradeVO tradeVO;
+//                if (isTailPayOrder(businessId)) {
+//                    tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(businessId).build()).build()).getContext().getTradeVOList().get(0);
+//                } else {
+//                    tradeVO = tradeQueryProvider.getById(new TradeGetByIdRequest(businessId)).getContext().getTradeVO();
+//                }
+//                // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
+//                lockName = tradeVO.getParentId();
+//            } else {
+//                lockName = businessId;
+//            }
+//            //redis锁，防止同一订单重复回调
+//            RLock rLock = redissonClient.getFairLock(lockName);
+//            rLock.lock();
+//            //执行回调
+//            try {
+//                //支付回调事件成功
+//                if (wxPayResultResponse.getReturn_code().equals(WXPayConstants.SUCCESS) &&
+//                        wxPayResultResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
+//                    log.info("微信支付异步通知回调状态---成功");
+//                    //微信回调参数数据map
+//                    Map<String, String> params = WXPayUtil.xmlToMap(retXml.toString());
+//                    String trade_type = wxPayResultResponse.getTrade_type();
+//                    //app支付回调对应的api key为开放平台对应的api key
+//                    if (trade_type.equals("APP")) {
+//                        apiKey = payGatewayConfig.getOpenPlatformApiKey();
+//                    }
+//                    //微信签名校验
+//                    if (WXPayUtil.isSignatureValid(params, apiKey)) {
+//                        //签名正确，进行逻辑处理--对订单支付单以及操作信息进行处理并添加交易数据
+//                        List<TradeVO> trades = new ArrayList<>();
+//                        //查询交易记录
+//                        TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest =
+//                                new TradeRecordByOrderCodeRequest(businessId);
+//                        PayTradeRecordResponse recordResponse =
+//                                payQueryProvider.getTradeRecordByOrderCode(tradeRecordByOrderCodeRequest).getContext();
+//                        if (isMergePay) {
+//                            /*
+//                             * 合并支付
+//                             * 查询订单是否已支付或过期作废
+//                             */
+//                            trades = tradeQueryProvider.getOrderListByParentId(
+//                                    new TradeListByParentIdRequest(businessId)).getContext().getTradeVOList();
+//                            //订单合并支付场景状态采样
+//                            boolean paid =
+//                                    trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
+//
+//                            boolean cancel =
+//                                    trades.stream().anyMatch(i -> i.getTradeState().getFlowState() == FlowState.VOID);
+//
+//
+//                            if (cancel || (paid && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
+//                                //同一批订单重复支付或过期作废，直接退款
+//                                wxRefundHandle(wxPayResultResponse, businessId, storeId);
+//                            } else {
+//                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, true);
+//                            }
+//
+//                        } else {
+//                            //单笔支付
+//                            TradeVO tradeVO;
+//                            if (isTailPayOrder(businessId)) {
+//                                tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(businessId).build()).build()).getContext().getTradeVOList().get(0);
+//                            } else {
+//                                tradeVO = tradeQueryProvider.getOrderById(new TradeGetByIdRequest(businessId))
+//                                        .getContext().getTradeVO();
+//                            }
+//                            if (tradeVO.getTradeState().getFlowState() == FlowState.VOID || (tradeVO.getTradeState()
+//                                    .getPayState() == PayState.PAID
+//                                    && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
+//                                //同一批订单重复支付或过期作废，直接退款
+//                                wxRefundHandle(wxPayResultResponse, businessId, storeId);
+//                            } else {
+//                                trades.add(tradeVO);
+//                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
+//                            }
+//                        }
+//                    } else {
+//                        log.info("微信支付异步回调验证签名结果[失败].");
+//                        result = "fail";
+//                    }
+//                } else {
+//                    log.info("微信支付异步通知回调状态---失败");
+//                    result = "fail";
+//                }
+//                log.info("微信支付异步通知回调end---------");
+//            } finally {
+//                //解锁
+//                rLock.unlock();
+//            }
+//        } catch (Exception e) {
+//            log.error("微信异步通知处理失败:", e);
+//            result = "fail";
+//            throw e;
+//        } finally {
+//            // 异步消息接收后处理结果返回微信
+//            wxCallbackResultHandle(response, result);
+//            log.info("微信异步通知完成：结果=" + result + "，微信交易号=" + wxPayResultResponse.getTransaction_id());
+//        }
+//    }
 
     /**
      * 微信支付异步回调
@@ -585,7 +580,7 @@ public class PayCallbackController {
     @RequestMapping(value = "/WXPaySuccessCallBack/{storeId}", method = {RequestMethod.POST, RequestMethod.GET})
     @GlobalTransactional
     public void wxPayBack(HttpServletRequest request, HttpServletResponse response ,@PathVariable("storeId") Long storeId) throws Exception {
-        log.info("======================微信支付异步通知回调start======================");
+        log.info("支付成功回调 微信支付异步通知 begin");
         //支付回调结果
         String result = WXPayConstants.SUCCESS;
         //微信回调结果参数对象
@@ -599,7 +594,7 @@ public class PayCallbackController {
                 retXml.append(line);
             }
             //微信支付异步回调结果xml
-            log.info("微信支付异步通知回调结果xml====" + retXml);
+            log.info("支付成功回调 微信支付异步通知回调结果xml====" + retXml);
             String retXmlStr = retXml.toString();
 //            String retXmlStr = "<xml><appid><![CDATA[wxb67fac0bbb6b4031]]></appid><bank_type><![CDATA[OTHERS]]></bank_type><cash_fee><![CDATA[1]]></cash_fee><fee_type><![CDATA[CNY]]></fee_type><is_subscribe><![CDATA[N]]></is_subscribe><mch_id><![CDATA[1489104242]]></mch_id><nonce_str><![CDATA[jr4itIa2Kin4j9p5VRV1UDAmZLsZGA8P]]></nonce_str><openid><![CDATA[o6wq55YZ9xrgyQwQeka6btYt5HOQ]]></openid><out_trade_no><![CDATA[O202007011444302542]]></out_trade_no><result_code><![CDATA[SUCCESS]]></result_code><return_code><![CDATA[SUCCESS]]></return_code><sign><![CDATA[DA4F5784AEA7A17B608267EF8131A87A]]></sign><time_end><![CDATA[20200701144442]]></time_end><total_fee>1</total_fee><trade_type><![CDATA[JSAPI]]></trade_type><transaction_id><![CDATA[4200000616202007015217733087]]></transaction_id></xml>";
             retXmlStr = retXmlStr.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
@@ -646,17 +641,15 @@ public class PayCallbackController {
                     }
                     // 处理付费会员回调业务
                     StringBuilder key = new StringBuilder();
-                    key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)
-                            .append("_")
-                            .append(wxPayResultResponse.getOut_trade_no());
+                    key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE).append("_").append(wxPayResultResponse.getOut_trade_no());
+
                     redisTemplate.setKeySerializer(new StringRedisSerializer());
                     redisTemplate.setValueSerializer(new StringRedisSerializer());
                     Object o = redisTemplate.opsForValue().get(key.toString());
-                    String resultO = o.toString();
-                    PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(resultO, PaidCardRedisDTO.class);
+                    PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                     paidCardRedisDTO.setPayType(0);
                     log.info("===========开始执行付费会员回调逻辑");
-                    paidCardCallBack(paidCardRedisDTO,total_amount.toString(),type);
+                    paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getMch_id());
                     log.info("===========结束执行付费会员回调逻辑");
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
@@ -685,7 +678,7 @@ public class PayCallbackController {
         } finally {
             // 异步消息接收后处理结果返回微信
             wxCallbackResultHandle(response, result);
-            log.info("微信异步通知完成：结果=" + result + "，微信交易号=" + wxPayResultResponse.getTransaction_id());
+            log.info("支付成功回调 微信支付异步通知 end result:{}, 微信交易号：{} 订单号:{}", result, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getOut_trade_no());
         }
     }
 
@@ -747,7 +740,7 @@ public class PayCallbackController {
                 if (refundCallBackResponse.getAppid().equals(payGatewayConfig.getOpenPlatformAppId())) {
                     apiKey = payGatewayConfig.getOpenPlatformApiKey();
                 }
-                log.info("refund:微信退款----返回成功");
+//                log.info("refund:微信退款----返回成功");
                 /** 以下字段在return_code为SUCCESS的时候有返回： **/
                 // 加密信息：加密信息请用商户秘钥进行解密，详见解密方式
                 String req_info = refundCallBackResponse.getReq_info();
@@ -804,15 +797,13 @@ public class PayCallbackController {
                     payTradeRecordRequest.setTradeNo(dataResponse.getRefund_id());
                     //商户订单号--业务id(商品退单号)
                     payTradeRecordRequest.setBusinessId(dataResponse.getOut_refund_no());
-                    //微信支付订单号--及流水号
-//                    payTradeRecordRequest.setTradeNo(dataResponse.getTransaction_id());
-                    //商户订单号--业务id(商品订单号)
-//                    payTradeRecordRequest.setBusinessId(dataResponse.getOut_trade_no());
+
                     payTradeRecordRequest.setResult_code(dataResponse.getRefund_status());
                     payTradeRecordRequest.setApplyPrice(new BigDecimal(dataResponse.getRefund_fee()).
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
                     payTradeRecordRequest.setPracticalPrice(new BigDecimal(dataResponse.getTotal_fee()).
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+                    //TODO duanlsh
                     payProvider.wxPayCallBack(payTradeRecordRequest);
                     returnOrderProvider.onlineRefund(
                             ReturnOrderOnlineRefundRequest.builder().operator(operator)
@@ -849,198 +840,198 @@ public class PayCallbackController {
      * @Author: Bob
      * @Date: 2019-02-26 12:00
      */
-    @ApiOperation(value = "支付宝回调方法")
-    @RequestMapping(value = "/aliPayCallBack1/{storeId}", method = RequestMethod.POST)
-    @GlobalTransactional
-    public void aliPayCallBack(HttpServletRequest request, HttpServletResponse response,@PathVariable("storeId") Long storeId) throws IOException {
-        log.info("===============支付宝回调开始==============");
-        GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
-        gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.ALIPAY);
-        gatewayConfigByGatewayRequest.setStoreId(storeId);
-        //查询支付宝配置信息
-        PayGatewayConfigResponse payGatewayConfigResponse =
-                payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
-        //支付宝公钥
-        String aliPayPublicKey = payGatewayConfigResponse.getPublicKey();
-        Map<String, String> params = new HashMap<String, String>();
-        Map<String, String[]> requestParams = request.getParameterMap();
-        //返回的参数放到params中
-        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
-            String name = iter.next();
-            String[] values = requestParams.get(name);
-            String valueStr = "";
-            for (int i = 0; i < values.length; i++) {
-                valueStr = (i == values.length - 1) ? valueStr + values[i]
-                        : valueStr + values[i] + ",";
-            }
-            params.put(name, valueStr);
-        }
+//    @ApiOperation(value = "支付宝回调方法")
+//    @RequestMapping(value = "/aliPayCallBack1/{storeId}", method = RequestMethod.POST)
+//    @GlobalTransactional
+//    public void aliPayCallBack(HttpServletRequest request, HttpServletResponse response,@PathVariable("storeId") Long storeId) throws IOException {
+//        log.info("===============支付宝回调开始==============");
+//        GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+//        gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.ALIPAY);
+//        gatewayConfigByGatewayRequest.setStoreId(storeId);
+//        //查询支付宝配置信息
+//        PayGatewayConfigResponse payGatewayConfigResponse =
+//                payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
+//        //支付宝公钥
+//        String aliPayPublicKey = payGatewayConfigResponse.getPublicKey();
+//        Map<String, String> params = new HashMap<String, String>();
+//        Map<String, String[]> requestParams = request.getParameterMap();
+//        //返回的参数放到params中
+//        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+//            String name = iter.next();
+//            String[] values = requestParams.get(name);
+//            String valueStr = "";
+//            for (int i = 0; i < values.length; i++) {
+//                valueStr = (i == values.length - 1) ? valueStr + values[i]
+//                        : valueStr + values[i] + ",";
+//            }
+//            params.put(name, valueStr);
+//        }
+//
+//        //支付和退款公用一个回调，所以要判断回调的类型
+//        if (params.containsKey("refund_fee")) {
+//            //退款只有app支付的订单有回调，退款的逻辑在同步方法中已经处理了，这儿不再做处理
+//            log.info("APP退款回调,单号：{}", params.containsKey("out_trade_no"));
+//            try {
+//                response.getWriter().print("success");
+//                response.getWriter().flush();
+//                response.getWriter().close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//
+//            boolean signVerified = false;
+//            try {
+//                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+//            } catch (AlipayApiException e) {
+//                log.error("支付宝回调签名校验异常：", e);
+//            }
+//            if (signVerified) {
+//                try {
+//                    //商户订单号
+//                    String out_trade_no = new String(request.getParameter("out_trade_no")
+//                            .getBytes("ISO-8859-1"), "UTF-8");
+//                    //支付宝交易号
+//                    String trade_no = new String(request.getParameter("trade_no")
+//                            .getBytes("ISO-8859-1"), "UTF-8");
+//                    //交易状态
+//                    String trade_status = new String(request.getParameter("trade_status")
+//                            .getBytes("ISO-8859-1"), "UTF-8");
+//                    //订单金额
+//                    String total_amount = new String(request.getParameter("total_amount")
+//                            .getBytes("ISO-8859-1"), "UTF-8");
+//                    //支付终端类型
+//                    String type = new String(request.getParameter("passback_params")
+//                            .getBytes("ISO-8859-1"), "UTF-8");
+//
+//                    boolean isMergePay = isMergePayOrder(out_trade_no);
+//                    log.info("-------------支付回调,单号：{}，流水：{}，交易状态：{}，金额：{}，是否合并支付：{}------------",
+//                            out_trade_no, trade_no, trade_status, total_amount, isMergePay);
+//                    String lockName;
+//                    //非组合支付，则查出该单笔订单。
+//                    if (!isMergePay) {
+//                        if(out_trade_no.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)){
+//                            // 说明是付费会员支付回调
+//                            lockName = out_trade_no;
+//                        }else{
+//                            TradeVO tradeVO;
+//                            if (isTailPayOrder(out_trade_no)) {
+//                                tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(out_trade_no).build()).build()).getContext().getTradeVOList().get(0);
+//                            } else {
+//                                tradeVO =
+//                                        tradeQueryProvider.getById(new TradeGetByIdRequest(out_trade_no)).getContext().getTradeVO();
+//                            }
+//                            // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
+//                            lockName = tradeVO.getParentId();
+//                        }
+//
+//                    } else {
+//                        lockName = out_trade_no;
+//                    }
+//                    Operator operator =
+//                            Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.ALIPAY.name())
+//                                    .account(PayGatewayEnum.ALIPAY.name()).platform(Platform.THIRD).build();
+//                    //redis锁，防止同一订单重复回调
+//                    RLock rLock = redissonClient.getFairLock(lockName);
+//                    rLock.lock();
+//
+//                    //执行
+//                    try {
+//                        List<TradeVO> trades = new ArrayList<>();
+//                        //查询交易记录
+//                        TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest =
+//                                new TradeRecordByOrderCodeRequest(out_trade_no);
+//                        PayTradeRecordResponse recordResponse =
+//                                payQueryProvider.getTradeRecordByOrderCode(tradeRecordByOrderCodeRequest).getContext();
+//                        if (isMergePay) {
+//                            /*
+//                             * 合并支付
+//                             * 查询订单是否已支付或过期作废
+//                             */
+//                            trades = tradeQueryProvider.getListByParentId(
+//                                    new TradeListByParentIdRequest(out_trade_no)).getContext().getTradeVOList();
+//                            //订单合并支付场景状态采样
+//                            boolean paid =
+//                                    trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
+//
+//                            boolean cancel =
+//                                    trades.stream().anyMatch(i -> i.getTradeState().getFlowState() == FlowState.VOID);
+//                            //订单的支付渠道。17、18、19是我们自己对接的支付宝渠道， 表：pay_channel_item
+//                            if (cancel || (paid && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
+//                                    != 18L && recordResponse.getChannelItemId() != 19L)) {
+//                                //重复支付，直接退款
+//                                alipayRefundHandle(out_trade_no, total_amount);
+//                            } else {
+//                                alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
+//                                        operator, trades, true, recordResponse);
+//                            }
+//
+//                        } else {
+//                            if(out_trade_no.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)){
+//                                // 处理付费会员回调业务
+//                                StringBuilder key = new StringBuilder();
+//                                key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)
+//                                        .append("_")
+//                                        .append(out_trade_no);
+//
+//                                String result = redisTemplate.opsForValue().get(key.toString()).toString();
+//                                PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(result, PaidCardRedisDTO.class);
+//                                //paidCardCallBack(paidCardRedisDTO,total_amount,type);
+//                            }else{
+//                                //单笔支付
+//                                TradeVO tradeVO;
+//                                if (isTailPayOrder(out_trade_no)) {
+//                                    tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(out_trade_no).build()).build()).getContext().getTradeVOList().get(0);
+//                                } else {
+//                                    tradeVO = tradeQueryProvider.getById(new TradeGetByIdRequest(out_trade_no)).getContext().getTradeVO();
+//                                }
+//                                if (tradeVO.getTradeState().getFlowState() == FlowState.VOID || (tradeVO.getTradeState()
+//                                        .getPayState() == PayState.PAID && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
+//                                        != 18L && recordResponse.getChannelItemId() != 19L)) {
+//                                    //同一批订单重复支付或过期作废，直接退款
+//                                    alipayRefundHandle(out_trade_no, total_amount);
+//                                } else {
+//                                    trades.add(tradeVO);
+//                                    alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
+//                                            operator, trades, false, recordResponse);
+//                                }
+//                            }
+//                        }
+//                    } finally {
+//                        //解锁
+//                        rLock.unlock();
+//                    }
+//                } catch (UnsupportedEncodingException e) {
+//                    log.error("支付宝回调字节流转码异常：", e);
+//                    throw e;
+//                } catch (Exception e) {
+//                    log.error("支付宝回调异常：", e);
+//                    throw e;
+//                }
+//                try {
+//                    response.getWriter().print("success");
+//                    response.getWriter().flush();
+//                    response.getWriter().close();
+//                    log.info("支付回调返回success");
+//                } catch (IOException e) {
+//                    log.error("支付宝回调异常", e);
+//                    throw e;
+//                }
+//            } else {//验证失败
+//                log.info("支付回调签名校验失败,单号：{}", request.getParameter("out_trade_no"));
+//                try {
+//                    response.getWriter().print("failure");
+//                    response.getWriter().flush();
+//                    response.getWriter().close();
+//                } catch (IOException e) {
+//                    log.error("支付宝回调异常", e);
+//                    throw e;
+//                }
+//            }
+//        }
+//    }
 
-        //支付和退款公用一个回调，所以要判断回调的类型
-        if (params.containsKey("refund_fee")) {
-            //退款只有app支付的订单有回调，退款的逻辑在同步方法中已经处理了，这儿不再做处理
-            log.info("APP退款回调,单号：{}", params.containsKey("out_trade_no"));
-            try {
-                response.getWriter().print("success");
-                response.getWriter().flush();
-                response.getWriter().close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-
-            boolean signVerified = false;
-            try {
-                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
-            } catch (AlipayApiException e) {
-                log.error("支付宝回调签名校验异常：", e);
-            }
-            if (signVerified) {
-                try {
-                    //商户订单号
-                    String out_trade_no = new String(request.getParameter("out_trade_no")
-                            .getBytes("ISO-8859-1"), "UTF-8");
-                    //支付宝交易号
-                    String trade_no = new String(request.getParameter("trade_no")
-                            .getBytes("ISO-8859-1"), "UTF-8");
-                    //交易状态
-                    String trade_status = new String(request.getParameter("trade_status")
-                            .getBytes("ISO-8859-1"), "UTF-8");
-                    //订单金额
-                    String total_amount = new String(request.getParameter("total_amount")
-                            .getBytes("ISO-8859-1"), "UTF-8");
-                    //支付终端类型
-                    String type = new String(request.getParameter("passback_params")
-                            .getBytes("ISO-8859-1"), "UTF-8");
-
-                    boolean isMergePay = isMergePayOrder(out_trade_no);
-                    log.info("-------------支付回调,单号：{}，流水：{}，交易状态：{}，金额：{}，是否合并支付：{}------------",
-                            out_trade_no, trade_no, trade_status, total_amount, isMergePay);
-                    String lockName;
-                    //非组合支付，则查出该单笔订单。
-                    if (!isMergePay) {
-                        if(out_trade_no.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)){
-                            // 说明是付费会员支付回调
-                            lockName = out_trade_no;
-                        }else{
-                            TradeVO tradeVO;
-                            if (isTailPayOrder(out_trade_no)) {
-                                tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(out_trade_no).build()).build()).getContext().getTradeVOList().get(0);
-                            } else {
-                                tradeVO =
-                                        tradeQueryProvider.getById(new TradeGetByIdRequest(out_trade_no)).getContext().getTradeVO();
-                            }
-                            // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
-                            lockName = tradeVO.getParentId();
-                        }
-
-                    } else {
-                        lockName = out_trade_no;
-                    }
-                    Operator operator =
-                            Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.ALIPAY.name())
-                                    .account(PayGatewayEnum.ALIPAY.name()).platform(Platform.THIRD).build();
-                    //redis锁，防止同一订单重复回调
-                    RLock rLock = redissonClient.getFairLock(lockName);
-                    rLock.lock();
-
-                    //执行
-                    try {
-                        List<TradeVO> trades = new ArrayList<>();
-                        //查询交易记录
-                        TradeRecordByOrderCodeRequest tradeRecordByOrderCodeRequest =
-                                new TradeRecordByOrderCodeRequest(out_trade_no);
-                        PayTradeRecordResponse recordResponse =
-                                payQueryProvider.getTradeRecordByOrderCode(tradeRecordByOrderCodeRequest).getContext();
-                        if (isMergePay) {
-                            /*
-                             * 合并支付
-                             * 查询订单是否已支付或过期作废
-                             */
-                            trades = tradeQueryProvider.getListByParentId(
-                                    new TradeListByParentIdRequest(out_trade_no)).getContext().getTradeVOList();
-                            //订单合并支付场景状态采样
-                            boolean paid =
-                                    trades.stream().anyMatch(i -> i.getTradeState().getPayState() == PayState.PAID);
-
-                            boolean cancel =
-                                    trades.stream().anyMatch(i -> i.getTradeState().getFlowState() == FlowState.VOID);
-                            //订单的支付渠道。17、18、19是我们自己对接的支付宝渠道， 表：pay_channel_item
-                            if (cancel || (paid && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
-                                    != 18L && recordResponse.getChannelItemId() != 19L)) {
-                                //重复支付，直接退款
-                                alipayRefundHandle(out_trade_no, total_amount);
-                            } else {
-                                alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
-                                        operator, trades, true, recordResponse);
-                            }
-
-                        } else {
-                            if(out_trade_no.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)){
-                                // 处理付费会员回调业务
-                                StringBuilder key = new StringBuilder();
-                                key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)
-                                        .append("_")
-                                        .append(out_trade_no);
-
-                                String result = redisTemplate.opsForValue().get(key.toString()).toString();
-                                PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(result, PaidCardRedisDTO.class);
-                                //paidCardCallBack(paidCardRedisDTO,total_amount,type);
-                            }else{
-                                //单笔支付
-                                TradeVO tradeVO;
-                                if (isTailPayOrder(out_trade_no)) {
-                                    tradeVO = tradeQueryProvider.listAll(TradeListAllRequest.builder().tradeQueryDTO(TradeQueryDTO.builder().tailOrderNo(out_trade_no).build()).build()).getContext().getTradeVOList().get(0);
-                                } else {
-                                    tradeVO = tradeQueryProvider.getById(new TradeGetByIdRequest(out_trade_no)).getContext().getTradeVO();
-                                }
-                                if (tradeVO.getTradeState().getFlowState() == FlowState.VOID || (tradeVO.getTradeState()
-                                        .getPayState() == PayState.PAID && recordResponse.getChannelItemId() != 17L && recordResponse.getChannelItemId()
-                                        != 18L && recordResponse.getChannelItemId() != 19L)) {
-                                    //同一批订单重复支付或过期作废，直接退款
-                                    alipayRefundHandle(out_trade_no, total_amount);
-                                } else {
-                                    trades.add(tradeVO);
-                                    alipayCallbackHandle(out_trade_no, trade_no, trade_status, total_amount, type,
-                                            operator, trades, false, recordResponse);
-                                }
-                            }
-                        }
-                    } finally {
-                        //解锁
-                        rLock.unlock();
-                    }
-                } catch (UnsupportedEncodingException e) {
-                    log.error("支付宝回调字节流转码异常：", e);
-                    throw e;
-                } catch (Exception e) {
-                    log.error("支付宝回调异常：", e);
-                    throw e;
-                }
-                try {
-                    response.getWriter().print("success");
-                    response.getWriter().flush();
-                    response.getWriter().close();
-                    log.info("支付回调返回success");
-                } catch (IOException e) {
-                    log.error("支付宝回调异常", e);
-                    throw e;
-                }
-            } else {//验证失败
-                log.info("支付回调签名校验失败,单号：{}", request.getParameter("out_trade_no"));
-                try {
-                    response.getWriter().print("failure");
-                    response.getWriter().flush();
-                    response.getWriter().close();
-                } catch (IOException e) {
-                    log.error("支付宝回调异常", e);
-                    throw e;
-                }
-            }
-        }
-    }
-
-    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type) {
+    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type, String transactionId, String appId) {
         String businessId = paidCardRedisDTO.getBusinessId();
         // 查询在流水表中是否存在
         PaidCardBuyRecordByIdResponse context = paidCardBuyRecordQueryProvider.getById(PaidCardBuyRecordByIdRequest.builder()
@@ -1057,12 +1048,13 @@ public class PayCallbackController {
            //异步回调添加交易数据
            PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
            //流水号
-           payTradeRecordRequest.setTradeNo(null);
+           payTradeRecordRequest.setTradeNo(transactionId);
            //商品订单号
            payTradeRecordRequest.setBusinessId(paidCardRedisDTO.getBusinessId());
            payTradeRecordRequest.setResult_code("SUCCESS");
            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
+           payTradeRecordRequest.setAppId(appId);
            //添加交易数据（与微信共用）
            payProvider.wxPayCallBack(payTradeRecordRequest);
        }
@@ -1074,8 +1066,7 @@ public class PayCallbackController {
     public void aliPayBack(HttpServletRequest request, HttpServletResponse response ,@PathVariable("storeId") Long storeId) throws Exception {
         try{
             //商户订单号
-            String out_trade_no = new String(request.getParameter("out_trade_no")
-                    .getBytes("ISO-8859-1"), "UTF-8");
+            String out_trade_no = new String(request.getParameter("out_trade_no").getBytes("ISO-8859-1"), "UTF-8");
             Map<String, String> params = new HashMap<String, String>();
             Map<String, String[]> requestParams = request.getParameterMap();
             //返回的参数放到params中
@@ -1084,13 +1075,12 @@ public class PayCallbackController {
                 String[] values = requestParams.get(name);
                 String valueStr = "";
                 for (int i = 0; i < values.length; i++) {
-                    valueStr = (i == values.length - 1) ? valueStr + values[i]
-                            : valueStr + values[i] + ",";
+                    valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
                 }
                 params.put(name, valueStr);
             }
             String aliPayResultStr = JSONObject.toJSONString(params);
-            log.info(" 支付宝回调 参数 param: {} out_trade_no:{}", aliPayResultStr, out_trade_no);
+            log.info("支付成功后回调 支付宝 参数 param: {} ", aliPayResultStr);
             //支付和退款公用一个回调，所以要判断回调的类型
             if (params.containsKey("refund_fee")) {
                 //退款只有app支付的订单有回调，退款的逻辑在同步方法中已经处理了，这儿不再做处理
@@ -1100,13 +1090,12 @@ public class PayCallbackController {
                     response.getWriter().flush();
                     response.getWriter().close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("PayCallBackController aliPayBack exception", e);
                 }
             } else {
                 //如果线程池队列已满，则采取拒绝策略（AbortPolicy），抛出RejectedExecutionException异常，则将对应的回调改为处理失败，然后通过定时任务处理补偿
                 try {
-
-                        addPayCallBackResult(PayCallBackResultAddRequest.builder()
+                    addPayCallBackResult(PayCallBackResultAddRequest.builder()
                                 .businessId(out_trade_no)
                                 .resultContext(aliPayResultStr)
                                 .resultStatus(PayCallBackResultStatus.HANDLING)
@@ -1115,27 +1104,28 @@ public class PayCallbackController {
                                 .build());
                     if(out_trade_no.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)){
                         //订单金额
-                        String total_amount = new String(request.getParameter("total_amount")
-                                .getBytes("ISO-8859-1"), "UTF-8");
+                        String total_amount = new String(request.getParameter("total_amount").getBytes("ISO-8859-1"), "UTF-8");
                         //支付终端类型
-                        String type = new String(request.getParameter("passback_params")
-                                .getBytes("ISO-8859-1"), "UTF-8");
+                        String type = new String(request.getParameter("passback_params").getBytes("ISO-8859-1"), "UTF-8");
+                        //支付宝交易流水
+                        String trade_no = new String(params.get("trade_no").getBytes("ISO-8859-1"), "UTF-8");
+
+                        String appId = new String(params.get("app_id").getBytes("ISO-8859-1"), "UTF-8");
+
                         // 处理付费会员回调业务
                         StringBuilder key = new StringBuilder();
-                        key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)
-                                .append("_")
-                                .append(out_trade_no);
+                        key.append(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE).append("_").append(out_trade_no);
                         redisTemplate.setKeySerializer(new StringRedisSerializer());
                         redisTemplate.setValueSerializer(new StringRedisSerializer());
                         Object o = redisTemplate.opsForValue().get(key.toString());
-                        String result = o.toString();
-                        PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(result, PaidCardRedisDTO.class);
+                        PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                         paidCardRedisDTO.setPayType(1);
-                        log.info("===========开始执行付费会员回调逻辑");
-                        paidCardCallBack(paidCardRedisDTO,total_amount,type);
-                        log.info("===========结束执行付费会员回调逻辑");
+                        log.info("支付成功后回调 支付宝 付费会员回调逻辑 begin out_trade_no:{}", out_trade_no);
+                        paidCardCallBack(paidCardRedisDTO, total_amount, type, trade_no, appId);
+                        log.info("支付成功后回调 支付宝 付费会员回调逻辑 end out_trade_no:{}", out_trade_no);
                     }else{
-                        payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.ALI)
+                        payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder()
+                                .payCallBackType(PayCallBackType.ALI)
                                 .aliPayCallBackResultStr(aliPayResultStr)
                                 .build());
                     }
@@ -1151,10 +1141,11 @@ public class PayCallbackController {
                     }
                 } catch (SbcRuntimeException e) {
                     //business_id唯一索引报错捕获，不影响流程处理
+                    log.error("PayCallBackController aliPayBack exception ", e);
                     if(!e.getErrorCode().equals(ErrorCodeConstant.PAY_CALL_BACK_RESULT_EXIT)){
                         throw e;
                     }
-                    e.printStackTrace();
+
                 } catch (RejectedExecutionException e) {
                     addPayCallBackResult(PayCallBackResultAddRequest.builder()
                             .businessId(out_trade_no)
@@ -1264,47 +1255,47 @@ public class PayCallbackController {
         }
     }
 
-    private void wxPayCallbackHandle(PayGatewayConfigResponse payGatewayConfig, WxPayResultResponse wxPayResultResponse,
-                                     String businessId, List<TradeVO> trades, boolean isMergePay) {
-        //异步回调添加交易数据
-        PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
-        //微信支付订单号--及流水号
-        payTradeRecordRequest.setTradeNo(wxPayResultResponse.getTransaction_id());
-        //商户订单号或父单号
-        payTradeRecordRequest.setBusinessId(businessId);
-        payTradeRecordRequest.setResult_code(wxPayResultResponse.getResult_code());
-        payTradeRecordRequest.setPracticalPrice(new BigDecimal(wxPayResultResponse.getTotal_fee()).
-                divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
-        ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
-        channelItemByGatewayRequest.setGatewayName(payGatewayConfig.getPayGateway().getName());
-        PayChannelItemListResponse payChannelItemListResponse =
-                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
-        List<PayChannelItemVO> payChannelItemVOList =
-                payChannelItemListResponse.getPayChannelItemVOList();
-        String tradeType = wxPayResultResponse.getTrade_type();
-        ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
-        String code = "wx_qr_code";
-        if (tradeType.equals("APP")) {
-            code = "wx_app";
-        } else if (tradeType.equals("JSAPI")) {
-            code = "js_api";
-        } else if (tradeType.equals("MWEB")) {
-            code = "wx_mweb";
-        }
-        channelItemSaveRequest.setCode(code);
-        payChannelItemVOList.forEach(payChannelItemVO -> {
-            if (channelItemSaveRequest.getCode().equals(payChannelItemVO.getCode())) {
-                //更新支付项
-                payTradeRecordRequest.setChannelItemId(payChannelItemVO.getId());
-            }
-        });
-        //微信支付异步回调添加交易数据
-        payProvider.wxPayCallBack(payTradeRecordRequest);
-        //订单 支付单 操作信息
-        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
-                .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
-        payCallbackOnline(trades, operator, isMergePay);
-    }
+//    private void wxPayCallbackHandle(PayGatewayConfigResponse payGatewayConfig, WxPayResultResponse wxPayResultResponse,
+//                                     String businessId, List<TradeVO> trades, boolean isMergePay) {
+//        //异步回调添加交易数据
+//        PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
+//        //微信支付订单号--及流水号
+//        payTradeRecordRequest.setTradeNo(wxPayResultResponse.getTransaction_id());
+//        //商户订单号或父单号
+//        payTradeRecordRequest.setBusinessId(businessId);
+//        payTradeRecordRequest.setResult_code(wxPayResultResponse.getResult_code());
+//        payTradeRecordRequest.setPracticalPrice(new BigDecimal(wxPayResultResponse.getTotal_fee()).
+//                divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+//        ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
+//        channelItemByGatewayRequest.setGatewayName(payGatewayConfig.getPayGateway().getName());
+//        PayChannelItemListResponse payChannelItemListResponse =
+//                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
+//        List<PayChannelItemVO> payChannelItemVOList =
+//                payChannelItemListResponse.getPayChannelItemVOList();
+//        String tradeType = wxPayResultResponse.getTrade_type();
+//        ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
+//        String code = "wx_qr_code";
+//        if (tradeType.equals("APP")) {
+//            code = "wx_app";
+//        } else if (tradeType.equals("JSAPI")) {
+//            code = "js_api";
+//        } else if (tradeType.equals("MWEB")) {
+//            code = "wx_mweb";
+//        }
+//        channelItemSaveRequest.setCode(code);
+//        payChannelItemVOList.forEach(payChannelItemVO -> {
+//            if (channelItemSaveRequest.getCode().equals(payChannelItemVO.getCode())) {
+//                //更新支付项
+//                payTradeRecordRequest.setChannelItemId(payChannelItemVO.getId());
+//            }
+//        });
+//        //微信支付异步回调添加交易数据
+//        payProvider.wxPayCallBack(payTradeRecordRequest);
+//        //订单 支付单 操作信息
+//        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
+//                .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
+//        payCallbackOnline(trades, operator, isMergePay);
+//    }
 
     /**
      * 线上订单支付回调
@@ -1366,26 +1357,26 @@ public class PayCallbackController {
         log.info("支付宝重复支付、超时订单退款,单号：{}", out_trade_no);
     }
 
-    private void alipayCallbackHandle(String out_trade_no, String trade_no, String trade_status, String total_amount,
-                                      String type, Operator operator, List<TradeVO> trades, boolean isMergePay,
-                                      PayTradeRecordResponse recordResponse) {
-        if (recordResponse.getApplyPrice().compareTo(new BigDecimal(total_amount)) == 0 && trade_status.equals(
-                "TRADE_SUCCESS")) {
-            //异步回调添加交易数据
-            PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
-            //流水号
-            payTradeRecordRequest.setTradeNo(trade_no);
-            //商品订单号
-            payTradeRecordRequest.setBusinessId(out_trade_no);
-            payTradeRecordRequest.setResult_code("SUCCESS");
-            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
-            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
-            //添加交易数据（与微信共用）
-            payProvider.wxPayCallBack(payTradeRecordRequest);
-            payCallbackOnline(trades, operator, isMergePay);
-            log.info("支付回调成功,单号：{}", out_trade_no);
-        }
-    }
+//    private void alipayCallbackHandle(String out_trade_no, String trade_no, String trade_status, String total_amount,
+//                                      String type, Operator operator, List<TradeVO> trades, boolean isMergePay,
+//                                      PayTradeRecordResponse recordResponse) {
+//        if (recordResponse.getApplyPrice().compareTo(new BigDecimal(total_amount)) == 0 && trade_status.equals(
+//                "TRADE_SUCCESS")) {
+//            //异步回调添加交易数据
+//            PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
+//            //流水号
+//            payTradeRecordRequest.setTradeNo(trade_no);
+//            //商品订单号
+//            payTradeRecordRequest.setBusinessId(out_trade_no);
+//            payTradeRecordRequest.setResult_code("SUCCESS");
+//            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
+//            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
+//            //添加交易数据（与微信共用）
+//            payProvider.wxPayCallBack(payTradeRecordRequest);
+//            payCallbackOnline(trades, operator, isMergePay);
+//            log.info("支付回调成功,单号：{}", out_trade_no);
+//        }
+//    }
 
     /**
      * 订单支付回调同步供应商订单状态
