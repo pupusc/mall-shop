@@ -38,4 +38,10 @@ public interface TradeRecordRepository extends JpaRepository<PayTradeRecord, Str
                                                         @Param("finishTime") LocalDateTime finishTime);
 
     int deleteByBusinessId(String businessId);
+
+    @Modifying
+    @Query("update PayTradeRecord p set " +
+            "p.appId = :appId " +
+            " where p.tradeNo = :tradeNo")
+    int updateAppIdByTradeNo(@Param("appId")String appId, @Param("tradeNo") String tradeNo);
 }

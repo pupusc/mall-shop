@@ -12,7 +12,6 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCheckoutRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodePageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeSimplePageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
-import com.wanmi.sbc.marketing.api.response.config.MarketingNacosConfigResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCheckoutResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodePageResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodeSimplePageResponse;
@@ -21,7 +20,6 @@ import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.List;
 
 /**
  *
@@ -62,11 +59,11 @@ public class CouponCodeBaseController {
     @RequestMapping(value = "/my-coupon", method = RequestMethod.POST)
     public BaseResponse<CouponCodePageResponse> listMyCouponList(@RequestBody CouponCodePageRequest request){
         request.setCustomerId(commonUtil.getOperatorId());
-        String terminal = HttpUtil.getRequest().getHeader("terminal");
-        if("MINIPROGRAM".equals(terminal)){
-            BaseResponse<MarketingNacosConfigResponse> miniAppConfig = couponCodeQueryProvider.getMiniAppConfig();
-            request.setCouponIds(miniAppConfig.getContext().getAppMiniCouponIdList());
-        }
+//        String terminal = HttpUtil.getRequest().getHeader("terminal");
+//        if("MINIPROGRAM".equals(terminal)){
+//            BaseResponse<MarketingNacosConfigResponse> miniAppConfig = couponCodeQueryProvider.getMiniAppConfig();
+//            request.setCouponIds(miniAppConfig.getContext().getAppMiniCouponIdList());
+//        }
         return couponCodeQueryProvider.page(request);
     }
 

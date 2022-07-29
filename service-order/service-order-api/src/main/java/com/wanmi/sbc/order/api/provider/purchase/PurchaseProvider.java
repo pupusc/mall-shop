@@ -1,8 +1,19 @@
 package com.wanmi.sbc.order.api.provider.purchase;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
-import com.wanmi.sbc.order.api.request.purchase.*;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseAddFollowRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseBatchSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcAmountRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseClearLoseGoodsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseDeleteRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFillBuyCountRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseMergeRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseModifyGoodsMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSyncGoodsMarketingsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseTickUpdateRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseUpdateNumRequest;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseCalcMarketingResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseFillBuyCountResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
@@ -116,5 +127,8 @@ public interface PurchaseProvider {
      */
     @PostMapping("/order/${application.order.version}/purchase/merge-purchase")
     BaseResponse mergePurchase(@RequestBody @Valid PurchaseMergeRequest request);
+
+    @PostMapping("/order/${application.order.version}/purchase/update-tick")
+    BaseResponse<Boolean> updateTick(@RequestBody @Valid PurchaseTickUpdateRequest request);
 }
 

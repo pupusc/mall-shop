@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.order.api.provider.order.OrderConfigProvider;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
+import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -326,6 +327,15 @@ public class IndexHomeController {
                             stock = 0L;
                         }
                         goodsInfo.setStock(stock);
+
+                        GoodsInfoVO.NormalActivity activity = goodsInfoVO.getActivity();
+                        if (activity != null){
+                            GoodsCustomResponse.NormalActivity normalActivity = new GoodsCustomResponse.NormalActivity();
+                            normalActivity.setNum(activity.getNum());
+                            normalActivity.setActivityShow(activity.getActivityShow());
+                            goodsInfo.setActivities(Collections.singletonList(normalActivity));
+
+                        }
                     }
                 }
         );

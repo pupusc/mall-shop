@@ -5,10 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.api.enums.RecordMessageTypeEnum;
+import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.mq.MqOrderGiftRecordProducer;
 import com.soybean.mall.order.prize.service.OrderCouponService;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
@@ -388,7 +390,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -624,6 +626,9 @@ public class TradeService {
     private CustomerProvider customerProvider;
     @Autowired
     private SensorsDataService sensorsDataService;
+
+    @Autowired
+    private MqOrderGiftRecordProducer mqOrderGiftRecordProducer;
 
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
@@ -1280,7 +1285,7 @@ public class TradeService {
     /**
      * 从购物车中删除商品信息
      */
-    protected void deletePurchaseOrder(String customerId, List<String> skuIds, DistributeChannel distributeChannel) {
+    public void deletePurchaseOrder(String customerId, List<String> skuIds, DistributeChannel distributeChannel) {
         PurchaseRequest request = PurchaseRequest.builder()
                 .customerId(customerId)
                 .goodsInfoIds(skuIds).inviteeId(getPurchaseInviteeId(distributeChannel))
@@ -2498,7 +2503,6 @@ public class TradeService {
 //        }
         return trade;
     }
-
 
     /**
      * 添加加价购商品的金额
@@ -4319,6 +4323,8 @@ public class TradeService {
         tradeFSMService.changeState(stateRequest);
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
         // 返换限售记录——取消订单
@@ -4326,6 +4332,7 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
 
+        
         //视频号
         if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
@@ -5238,6 +5245,14 @@ public class TradeService {
         }
         //支付成功发放优惠券
         orderCouponService.addCouponRecord(trade);
+
+        //支付成功后发送消息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes();
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
+
     }
 
     /**
@@ -5740,6 +5755,12 @@ public class TradeService {
         }
         sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
         orderCouponService.addCouponRecord(trade);
+//        //支付成功后发送消息
+//        RecordMessageMq recordMessageMq = new RecordMessageMq();
+//        recordMessageMq.setBusinessId(trade.getId());
+////        recordMessageMq.setChannelTypes();
+//        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.PAY_ORDER.getCode());
+//        mqOrderGiftRecordProducer.sendPayOrderGiftRecord(recordMessageMq);
         return true;
     }
 
@@ -6233,6 +6254,38 @@ public class TradeService {
     }
 
     /**
+     * 入参封装model：CalcPriceParamBO, 属性goodsIds, marketingIds, couponCodeId
+     * 出参封装model：CalcPriceResultBO, 原始价格、减去价格、支付价格、原始价明细、减去价明细
+     */
+//    @Autowired
+//    VerifyService verifyService;
+//    public Object calcTradePrice(List<String> goodsInfoIds, List<Long> marketingIds, Long couponCodeId) {
+//        //-----------------------------------------------------------------------------------------
+//        Trade calcParam = new Trade();
+//        //todo 拼装计算参数
+//        List<TradeItem> tradeItems = goodsInfoIds.stream().map(item -> TradeItem.builder().skuId(item).num(1L).build()).collect(Collectors.toList());
+//        tradeItems.forEach(tradeItem -> verifyService.calcPrice(tradeItem, goodsInfo, goods, goodsInfoResponse.getGoodsIntervalPrices()));
+//        calcParam.setTradeItems(tradeItems);
+//
+//        List<MarketingDTO> marketingDTOs = queryMarketing(marketingIds);
+//        List<TradeMarketingVO> marketingVOs = marketingDTOs.stream().map(item -> {
+//            TradeMarketingVO vo = new TradeMarketingVO();
+//            BeanUtils.copyProperties(item, vo);
+//            vo.setDiscountsAmount();
+//            return vo;
+//        }).collect(Collectors.toList());
+//        calcParam.setTradeMarketings(marketingVOs);
+//
+//        TradeCouponDTO tradeCouponDTO = queryTradeCoupon(couponCodeId);
+//        TradeCouponVO tradeCouponVO = new TradeCouponVO();
+//        BeanUtils.copyProperties(tradeCouponDTO, tradeCouponVO);
+//        calcParam.setTradeCoupon(tradeCouponVO);
+//
+//        TradePrice calcResult = calc(calcParam);
+//        //todo 拼装计算结果
+//    }
+
+    /**
      * 计算订单价格
      * 订单价格 = 商品总价 - 营销优惠总金额
      *
@@ -6356,8 +6409,6 @@ public class TradeService {
                         t.getBuyPoint() * t.getNum() : tradePrice.getBuyPoints() + t.getBuyPoint() * t.getNum());
             }
         });
-
-        System.out.println("");
     }
 
     private List<TradeItem> giftNumCheck(List<TradeItem> gifts) {
@@ -6807,6 +6858,8 @@ public class TradeService {
 
         // 退优惠券
         returnCoupon(tid);
+        //取消活动
+        this.cancelOrderCommon(trade);
 
         //取消拼团订单
         grouponOrderService.cancelGrouponOrder(trade);
@@ -6815,6 +6868,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+
+
         //小程序发送取消消息
         if (context != null) {
             wxOrderService.sendWxCancelOrderMessage(trade, context);
@@ -7604,11 +7659,14 @@ public class TradeService {
                         .flatMap(t -> t.getTradeItems().stream()).map(tradeItem ->
                         KsBeanUtil.convert(tradeItem, RestrictedRecordSimpVO.class)
                 ).collect(Collectors.toList());
-        restrictedRecordSaveProvider.batchAdd(RestrictedRecordBatchAddRequest.builder()
-                .restrictedRecordSimpVOS(restrictedRecordSimpVOS)
-                .customerId(customerId)
-                .orderTime(orderTime)
-                .build());
+        if (CollectionUtils.isNotEmpty(restrictedRecordSimpVOS)) {
+            RestrictedRecordBatchAddRequest request = new RestrictedRecordBatchAddRequest();
+            request.setRestrictedRecordSimpVOS(restrictedRecordSimpVOS);
+            request.setCustomerId(customerId);
+            request.setOrderTime(orderTime);
+            log.info("TradeService insertRestrictedRecord batchAdd param:{}", JSON.toJSONString(request));
+            restrictedRecordSaveProvider.batchAdd(request);
+        }
     }
 
     /**
@@ -8625,5 +8683,19 @@ public class TradeService {
             orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
         }
         return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 取消订单调用
+     * @param trade
+     */
+    public void cancelOrderCommon(Trade trade) {
+        //取消订单 发送 取消活动记录表信息
+        RecordMessageMq recordMessageMq = new RecordMessageMq();
+        recordMessageMq.setBusinessId(trade.getId());
+//        recordMessageMq.setChannelTypes(Lists.newArrayList());
+        recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.CANCEL_ORDER.getCode());
+        mqOrderGiftRecordProducer.sendCancelOrderGiftRecord(recordMessageMq);
     }
 }

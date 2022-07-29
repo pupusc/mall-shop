@@ -1,14 +1,13 @@
 package com.wanmi.sbc.order.api.request.purchase;
 
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 
@@ -39,5 +38,13 @@ public class PurchaseInfoRequest implements Serializable {
      * 区的区域码
      */
     private Long areaId;
+    /**
+     * 购物车来源
+     */
+    private ShopCartSourceEnum shopCartSource;
 
+    /**
+     * 渠道类型
+     */
+    private Integer channelType;
 }

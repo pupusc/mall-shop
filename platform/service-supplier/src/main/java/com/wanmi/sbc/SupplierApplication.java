@@ -21,12 +21,12 @@ import java.net.UnknownHostException;
  * Created by of628-wenzhi on 2017-06-01-上午11:10.
  */
 @EnableScheduling
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider", "com.soybean.mall"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider", "com.soybean"})
 @EnableWithStateMachine
 @EnableAsync
 @Slf4j
 @PropertySource(value = {"manage-base-application.properties", "api-application.properties"}, factory = CompositePropertySourceFactory.class)
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider", "com.soybean.mall"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider", "com.soybean"})
 @ServletComponentScan
 @EnableJpaAuditing
 public class SupplierApplication {

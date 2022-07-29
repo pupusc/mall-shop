@@ -62,6 +62,11 @@ public class RedisKeyConstant {
     public static final String KEY_UN_USE_GOODS_COUPON = "KEY_BLACK_LIST_UN_USE_GOODS_COUPON";
 
     /**
+     * 下单不返还积分
+     */
+    public static final String KEY_UN_BACK_POINT_AFTER_PAY = "KEY_BLACK_LIST_UN_BACK_POINT_AFTER_PAY";
+
+    /**
      * SPU_ID hashKey
      */
     public static final String KEY_SPU_ID = "KEY_BLACK_LIST_SPU_ID";

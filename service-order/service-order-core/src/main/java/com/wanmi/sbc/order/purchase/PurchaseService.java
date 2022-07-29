@@ -1,14 +1,27 @@
 package com.wanmi.sbc.order.purchase;
+import com.google.common.collect.Lists;
 
-import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.VASEntity;
 import com.wanmi.sbc.common.constant.VASStatus;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.SortType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.IteratorUtils;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
@@ -16,8 +29,6 @@ import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerR
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.company.CompanyInfoQueryByIdsRequest;
 import com.wanmi.sbc.customer.api.request.company.CompanyListRequest;
-import com.wanmi.sbc.customer.api.request.enterpriseinfo.EnterpriseInfoByCustomerIdRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
@@ -27,9 +38,15 @@ import com.wanmi.sbc.customer.api.response.store.StoreByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
-import com.wanmi.sbc.customer.bean.vo.*;
-import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.customer.bean.vo.MiniCompanyInfoVO;
+import com.wanmi.sbc.customer.bean.vo.MiniStoreVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.common.GoodsCommonQueryProvider;
@@ -45,19 +62,28 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsPriceAssistProvider;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.common.InfoForPurchaseRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoVerifyRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.request.info.*;
-import com.wanmi.sbc.goods.api.request.marketing.*;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoFillGoodsStatusRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.ProviderGoodsStockSyncRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingBatchAddRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingDeleteByCustomerIdRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingListByCustomerIdRequest;
+import com.wanmi.sbc.goods.api.request.marketing.GoodsMarketingModifyRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceByCustomerIdRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsPriceSetBatchByIepRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelByGoodsIdAndSkuIdRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleInProcessResponse;
-import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.common.GoodsInfoForPurchaseResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
@@ -67,8 +93,28 @@ import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResp
 import com.wanmi.sbc.goods.api.response.price.GoodsPriceSetBatchByIepResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsMarketingDTO;
-import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.EnterprisePriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoResponseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsMarketingVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
@@ -82,7 +128,11 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsGoodInf
 import com.wanmi.sbc.marketing.api.request.distribution.DistributionStoreSettingGetByStoreIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
 import com.wanmi.sbc.marketing.api.request.market.MarketingGetByIdRequest;
-import com.wanmi.sbc.marketing.api.request.plugin.*;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginByGoodsInfoListAndCustomerRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGetCustomerLevelsByStoreIdsRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGetCustomerLevelsRequest;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsDetailResponse;
 import com.wanmi.sbc.marketing.api.response.distribution.DistributionStoreSettingGetByStoreIdResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse;
@@ -90,12 +140,27 @@ import com.wanmi.sbc.marketing.bean.constant.MarketingErrorCode;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
-import com.wanmi.sbc.marketing.bean.vo.*;
+import com.wanmi.sbc.marketing.bean.vo.CouponCacheVO;
+import com.wanmi.sbc.marketing.bean.vo.GoodsInfoMarketingVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingBuyoutPriceLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingHalfPriceSecondPieceLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
+import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontMiniRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseInfoRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseMergeRequest;
-import com.wanmi.sbc.order.api.response.purchase.*;
+import com.wanmi.sbc.order.api.response.purchase.MiniPurchaseResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetGoodsMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGoodsReponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseMarketingCalcResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseResponse;
 import com.wanmi.sbc.order.bean.dto.PurchaseGoodsInfoDTO;
 import com.wanmi.sbc.order.bean.dto.PurchaseMergeDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -136,7 +201,17 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -256,7 +331,7 @@ public class PurchaseService {
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
     @Autowired
-    private GoodsBlackListProvider goodsBlackListProvider;
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
     @Autowired
     private ExternalProvider externalProvider;
 
@@ -412,17 +487,17 @@ public class PurchaseService {
         });
         if (goodsInfos.size() > 0) {
             if (goodsInfos.size() == Constants.PURCHASE_MAX_SIZE && purchaseList.size() > 0) {
-                purchaseRepository.deleteByGoodsInfoids(purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList()), customer.getCustomerId(), request.getInviteeId());
+                List<String> list = purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
             } else if ((goodsInfos.size() + purchaseList.size()) > Constants.PURCHASE_MAX_SIZE) {
                 int num = (goodsInfos.size() + purchaseList.size()) - Constants.PURCHASE_MAX_SIZE;
                 if (num >= purchaseList.size() && purchaseList.size() > 0) {
-                    purchaseRepository.deleteByGoodsInfoids(purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList()), customer.getCustomerId(), request.getInviteeId());
+                    List<String> list = purchaseList.stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                    deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
                 } else {
-                    purchaseRepository.deleteByGoodsInfoids(purchaseList.subList(purchaseList.size() - num,
-                            purchaseList.size()).stream()
-                                    .map(Purchase::getGoodsInfoId).collect(Collectors.toList()),
-                            customer.getCustomerId(),
-                            request.getInviteeId());
+                    List<String> list = purchaseList.subList(purchaseList.size() - num,
+                            purchaseList.size()).stream().map(Purchase::getGoodsInfoId).collect(Collectors.toList());
+                    deleteByGoodsInfoids(list, customer.getCustomerId(), request.getInviteeId());
                 }
             }
             LocalDateTime dateTime = LocalDateTime.now();
@@ -450,7 +525,7 @@ public class PurchaseService {
         if (Objects.nonNull(purchase)) {
             purchase.setUpdateTime(LocalDateTime.now());
             purchase.setGoodsNum(request.getGoodsNum());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
             return;
         }
         if (countNum >= Constants.PURCHASE_MAX_SIZE) {
@@ -472,7 +547,7 @@ public class PurchaseService {
         purchase.setCateId(goodsInfo.getCateId());
         purchase.setBrandId(goodsInfo.getBrandId());
         purchase.setTerminalSource(request.getTerminalSource());
-        purchaseRepository.save(purchase);
+        purchaseRepository$save(purchase);
     }
 
     /**
@@ -488,7 +563,7 @@ public class PurchaseService {
             purchase.setGoodsNum(purchase.getGoodsNum() + request.getGoodsNum());
         }
         purchase.setUpdateTime(LocalDateTime.now());
-        purchaseRepository.save(purchase);
+        purchaseRepository$save(purchase);
     }
 
     /**
@@ -1003,7 +1078,7 @@ public class PurchaseService {
                 purchase.setUpdateTime(LocalDateTime.now());
             }
             purchase.setGoodsNum(request.getGoodsNum());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
         } else {
             if (countNum >= Constants.PURCHASE_MAX_SIZE) {
                 throw new SbcRuntimeException(SiteResultCode.ERROR_050121, new Object[]{Constants.PURCHASE_MAX_SIZE});
@@ -1020,7 +1095,7 @@ public class PurchaseService {
             purchase.setCateId(goodsInfo.getCateId());
             purchase.setBrandId(goodsInfo.getBrandId());
             purchase.setTerminalSource(request.getTerminalSource());
-            purchaseRepository.save(purchase);
+            purchaseRepository$save(purchase);
         }
     }
 
@@ -1031,8 +1106,7 @@ public class PurchaseService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void delete(PurchaseRequest request) {
-        purchaseRepository.deleteByGoodsInfoids(request.getGoodsInfoIds(), request.getCustomerId(),
-                request.getInviteeId());
+        deleteByGoodsInfoids(request.getGoodsInfoIds(), request.getCustomerId(), request.getInviteeId());
         GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest = new GoodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest();
         goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest.setGoodsInfoIds(request.getGoodsInfoIds());
         goodsMarketingDeleteByCustomerIdAndGoodsInfoIdsRequest.setCustomerId(request.getCustomerId());
@@ -1082,7 +1156,7 @@ public class PurchaseService {
 
             // 非赠品才删除
             if (!queryRequest.getIsGift()) {
-                purchaseRepository.delete(info);
+                purchaseRepository$delete(info);
             }
         });
     }
@@ -1129,7 +1203,7 @@ public class PurchaseService {
                     Duration duration = Duration.between(store.getContractEndDate(), LocalDateTime.now());
                     if (goodsInfo.getAddedFlag() == 0 || goodsInfo.getDelFlag() == DeleteFlag.YES || goodsInfo.getAuditStatus() == CheckStatus.FORBADE || goodsInfo.getGoodsStatus() == GoodsStatus.INVALID
                             || store.getStoreState() == StoreState.CLOSED || duration.toMinutes() >= 0 || buildGoodsInfoVendibility(goodsInfo) == Constants.no) {
-                        purchaseRepository.delete(item);
+                        purchaseRepository$delete(item);
                     }
                 }
             }
@@ -2453,23 +2527,7 @@ public class PurchaseService {
     public PurchaseListResponse purchaseInfo(PurchaseInfoRequest request) {
         PurchaseListResponse response = new PurchaseListResponse();
         CustomerVO customer = request.getCustomer();
-//        //查询是否购买付费会员卡
-//        PaidCardVO paidCardVO = new PaidCardVO();
-//        if(Objects.nonNull(customer)) {
-//            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
-//                    .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
-//                            .customerId(customer.getCustomerId())
-//                            .delFlag(DeleteFlag.NO)
-//                            .endTimeFlag(LocalDateTime.now())
-//                            .build())
-//                    .getContext();
-//
-//            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
-//                paidCardVO = paidCardCustomerRelVOList.stream()
-//                        .map(PaidCardCustomerRelVO::getPaidCardVO)
-//                        .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
-//            }
-//        }
+
 
         List<String> goodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
@@ -2503,6 +2561,12 @@ public class PurchaseService {
         // 2.查询商品、店铺、营销相关信息
         GoodsInfoForPurchaseResponse goodsResp = goodsCommonQueryProvider.queryInfoForPurchase(
                 InfoForPurchaseRequest.builder().goodsInfoIds(request.getGoodsInfoIds()).customer(customer).areaId(request.getAreaId()).build()).getContext();
+
+        //小程序购物车处理
+        filterShopCartGoods(request.getShopCartSource(), goodsResp, buyCountMap);
+        //填充商品的勾选情况
+        fillShopCartTicks(customer.getCustomerId(), goodsResp.getGoodsInfoList());
+
         if (CollectionUtils.isEmpty(goodsResp.getGoodsList())) return response;
         List<GoodsInfoVO> goodsInfoList = goodsResp.getGoodsInfoList();
 
@@ -2575,25 +2639,24 @@ public class PurchaseService {
         // 营销优先级过滤
         boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();
         this.getGoodsLevelPrices(response, customer, goodsInfoList);
-//        List<String> unVipPriceBlackList = new ArrayList<>();
-//        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
-//            //获取黑名单
-//            GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-//            goodsBlackListPageProviderRequest.setBusinessCategoryColl(
-//                    Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
-//            BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-//            GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-//            if (context.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnVipPriceBlackListModel().getGoodsIdList())) {
-//                unVipPriceBlackList.addAll(context.getUnVipPriceBlackListModel().getGoodsIdList());
-//            }
-//        }
+
+        Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(goodsIds)) {
+            SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
+            spuNormalActivityReq.setSpuIds(goodsIds);
+            spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
+            spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
+            spuNormalActivityReq.setChannelTypes(Collections.singletonList(request.getChannelType()));
+            spuNormalActivityReq.setCustomerId(customer.getCustomerId());
+            List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+            for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+                skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
+            }
+        }
+
 
         for (GoodsInfoVO goodsInfo : goodsInfoList) {
-            //获取付费会员价
-//            logger.info("PurchaseService  goodsId:{} 黑名单为：{}", goodsInfo.getGoodsId(), JSON.toJSONString(unVipPriceBlackList));
-//            if (Objects.nonNull(paidCardVO.getDiscountRate()) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
-//                goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
-//            }
+
             // 是否积分价
             if (!isGoodsPoint) goodsInfo.setBuyPoint(null);
             boolean pointFlag = Objects.nonNull(goodsInfo.getBuyPoint()) && goodsInfo.getBuyPoint() > 0L;
@@ -2659,6 +2722,15 @@ public class PurchaseService {
                     goodsInfo.setSalePrice(goodsInfo.getEnterPrisePrice());
                 }
             }
+
+            SkuNormalActivityResp skuNormalActivityResp = skuId2NormalActivityMap.get(goodsInfo.getGoodsInfoId());
+            if (skuNormalActivityResp != null) {
+                GoodsInfoVO.NormalActivity activity = new GoodsInfoVO.NormalActivity();
+                activity.setNum(skuNormalActivityResp.getNum());
+                activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
+                goodsInfo.setActivity(activity);
+            }
+
         }
 
         // 3.合并信息至response
@@ -2730,11 +2802,11 @@ public class PurchaseService {
                     if (Objects.nonNull(goodsInfo.getGoodsMarketing())) {
                         response.getGoodsMarketings().add(goodsInfo.getGoodsMarketing());
                     } else {
-                        response.getGoodsMarketings().add(
-                                GoodsMarketingVO.builder().goodsInfoId(marketInfo.getGoodsInfoId()).marketingId(marketInfo.getMarketingViewList().get(0).getMarketingId()).build()
-                        );
+                        GoodsMarketingVO mkt = GoodsMarketingVO.builder().goodsInfoId(marketInfo.getGoodsInfoId()).marketingId(marketInfo.getMarketingViewList().get(0).getMarketingId()).build();
+                        response.getGoodsMarketings().add(mkt);
                         if (Objects.nonNull(customer) && goodsInfo.getDelFlag() != DeleteFlag.YES) {
-                            this.modifyGoodsMarketing(marketInfo.getGoodsInfoId(), marketInfo.getMarketingViewList().get(0).getMarketingId(), customer);
+                            this.modifyGoodsMarketing(marketInfo.getGoodsInfoId(), mkt.getMarketingId(), customer);
+                            goodsInfo.setGoodsMarketing(mkt);
                         }
                     }
                     // goodsMarketingMap
@@ -2756,6 +2828,37 @@ public class PurchaseService {
         if (Objects.nonNull(customer)) response.setPointsAvailable(customer.getPointsAvailable());
 
         return response;
+    }
+
+    private void fillShopCartTicks(String customerId, List<GoodsInfoVO> goodsInfoList) {
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            return;
+        }
+        List<String> ticks = purchaseCacheService.getTicks(customerId);
+        goodsInfoList.forEach(i->i.setChecked(ticks.contains(i.getGoodsInfoId())));
+    }
+
+    private void filterShopCartGoods(ShopCartSourceEnum shopCartSource, GoodsInfoForPurchaseResponse goodsResp, Map<String, Long> buyCountMap) {
+        String channel = ShopCartSourceEnum.WX_MINI.equals(shopCartSource) ? GoodsChannelTypeEnum.MALL_MINI.getCode() : GoodsChannelTypeEnum.MALL_H5.getCode();
+
+        List<String> delSpuIds = goodsResp.getGoodsList().stream()
+                .filter(spu -> StringUtils.isBlank(spu.getGoodsChannelType()) || !Arrays.asList(spu.getGoodsChannelType().split(",")).contains(channel))
+                .map(GoodsVO::getGoodsId).collect(Collectors.toList());
+
+        Iterator<GoodsVO> spuIter = goodsResp.getGoodsList().iterator();
+        while (spuIter.hasNext()) {
+            GoodsVO spu = spuIter.next();
+            if (delSpuIds.contains(spu.getGoodsId())) {
+                spuIter.remove();
+            }
+        }
+        Iterator<GoodsInfoVO> skuIter = goodsResp.getGoodsInfoList().iterator();
+        while (skuIter.hasNext()) {
+            GoodsInfoVO sku = skuIter.next();
+            if (delSpuIds.contains(sku.getGoodsId())) {
+                skuIter.remove();
+            }
+        }
     }
 
     private List<GoodsLevelPriceVO> getGoodsLevelPrices(PurchaseListResponse response, CustomerVO customer, List<GoodsInfoVO> goodsInfoList) {
@@ -2818,4 +2921,21 @@ public class PurchaseService {
         goodsInfo.setGoodsMarketing(null);
     }
 
+    @Autowired
+    private PurchaseCacheService purchaseCacheService;
+
+    private void deleteByGoodsInfoids(List<String> list, String customerId, String inviteeId) {
+        purchaseRepository.deleteByGoodsInfoids(list, customerId, inviteeId);
+        purchaseCacheService.unTicks(customerId, list);
+    }
+
+    private void purchaseRepository$save(Purchase purchase) {
+        purchaseRepository.save(purchase);
+        purchaseCacheService.doTick(purchase.getCustomerId(), purchase.getGoodsInfoId());
+    }
+
+    private void purchaseRepository$delete(Purchase info) {
+        purchaseRepository.delete(info);
+        purchaseCacheService.unTick(info.getCustomerId(), info.getGoodsInfoId());
+    }
 }

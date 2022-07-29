@@ -21,7 +21,8 @@ public enum IndexModuleEnum {
     NEW_BOOKS("new_books" , "新书上架"),
     SELL_WELL_BOOKS("sell_well_books","畅销榜"),
     SPECIAL_OFFER_BOOKS("special_offer_books","特价书"),
-    UN_SELL_WELL_BOOKS("un_sell_well_books","不畅销专区");
+    UN_SELL_WELL_BOOKS("un_sell_well_books","不畅销专区"),
+    SPU_TOPIC("spu_topic", "商品栏目信息");
 
 
     private final String code;

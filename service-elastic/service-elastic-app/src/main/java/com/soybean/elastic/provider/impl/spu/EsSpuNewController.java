@@ -2,11 +2,12 @@ package com.soybean.elastic.provider.impl.spu;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
-import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
+import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.realizer.CollectSpuFactory;
+import com.soybean.elastic.spu.service.EsNormalSpuNewService;
 import com.soybean.elastic.spu.service.EsSpuNewService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class EsSpuNewController implements EsSpuNewProvider {
     @Autowired
     private CollectSpuFactory collectSpuFactory;
 
+    @Autowired
+    private EsNormalSpuNewService esNormalSpuNewService;
+
     @Override
     public BaseResponse<CommonPageResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
         return BaseResponse.success(esSpuNewService.listKeyWorldEsSpu(req));
@@ -40,5 +44,10 @@ public class EsSpuNewController implements EsSpuNewProvider {
     public BaseResponse init(CollectJobReq collectJobReq) {
         collectSpuFactory.init(collectJobReq);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<CommonPageResp<List<EsSpuNewResp>>> listNormalEsSpuNew(EsSpuNewQueryProviderReq req) {
+        return BaseResponse.success(esNormalSpuNewService.listNormalEsSpuNew(req));
     }
 }

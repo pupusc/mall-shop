@@ -18,4 +18,11 @@ public interface OrderConfigProvider {
      */
     @PostMapping("/order/${application.order.version}/list-config")
     BaseResponse<Map<String, String>> listConfig();
+
+    /**
+     * 删除
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/list")
+    BaseResponse list();
 }

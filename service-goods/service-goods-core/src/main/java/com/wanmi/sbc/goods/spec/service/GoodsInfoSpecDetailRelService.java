@@ -3,15 +3,14 @@ package com.wanmi.sbc.goods.spec.service;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
 import com.wanmi.sbc.goods.spec.repository.GoodsInfoSpecDetailRelRepository;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.mapping;
 
 /**
  * @author: wanggang
@@ -42,6 +41,13 @@ public class GoodsInfoSpecDetailRelService {
      */
     public List<GoodsInfoSpecDetailRel> findByGoodsInfoIds(List<String> goodsInfoIds){
         return goodsInfoSpecDetailRelRepository.findByGoodsInfoIds(goodsInfoIds);
+    }
+
+    /**
+     * 根据多个SpuID查询
+     */
+    public List<GoodsInfoSpecDetailRel> findByGoodsIds(List<String> goodsIds) {
+        return goodsInfoSpecDetailRelRepository.findByGoodsIds(goodsIds);
     }
 
     /**

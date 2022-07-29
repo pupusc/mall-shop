@@ -5,6 +5,7 @@ import com.wanmi.sbc.customer.api.request.fandeng.*;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.*;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -254,4 +255,13 @@ public interface ExternalProvider {
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/submit/invoice/full")
     BaseResponse<String> createInvoice(@RequestBody @Valid FanDengFullInvoiceRequest request);
+
+
+    /**
+     * 变更积分
+     * @param request
+     * @return
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/change-point")
+    BaseResponse changePoint(@RequestBody @Validated FanDengAddPointReq request);
 }

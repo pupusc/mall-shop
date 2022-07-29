@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.configuration.jpa;
 
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
  */
 @Configuration
 @EnableMongoRepositories(basePackages = "com.wanmi.sbc.marketing.**.mongorepository")
-@EnableJpaRepositories(basePackages = "com.wanmi.sbc.marketing.**.repository")
+@EnableJpaRepositories(basePackages = {"com.wanmi.sbc.marketing.**.repository", "com.soybean.marketing.**.repository"})
+@EntityScan(basePackages = {"com.wanmi.sbc.marketing","com.soybean.marketing"})
 public class JpaConfiguration {
 }
