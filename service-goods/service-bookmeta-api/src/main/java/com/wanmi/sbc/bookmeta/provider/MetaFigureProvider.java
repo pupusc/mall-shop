@@ -1,10 +1,10 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,5 +66,4 @@ public interface MetaFigureProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaFigure/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
-
 }

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.bookmeta.bo;
+package com.wanmi.sbc.bookmeta.vo;
 
 import lombok.Data;
 
@@ -15,7 +15,8 @@ import java.util.List;
  * @since 2022-05-16 11:48:33
  */
 @Data
-public class MetaBookRcmmdByBookIdReqBO implements Serializable {
+public class MetaBookRcmmdByBookIdReqVO implements Serializable {
+    private static final long serialVersionUID = -44306547516009484L;
     /**
      * 书籍id
      */
@@ -30,22 +31,44 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
      */
     private Integer fitAgeMax;
     /**
-     * 适读对象id
+     * 适读对象
      */
-    private List<Integer> fitTargetIds = new ArrayList<>();
+    private List<Integer> fitTargetIdList = new ArrayList<>();
     /**
-     * 推荐列表
+     * 书中提到人物
      */
-    private List<MetaBookRcmmdBO> bookRcmmds = new ArrayList<>();
+    private List<MetaBookRcmmdVO> mentionList = new ArrayList<>();
+    /**
+     * 奖项推荐
+     */
+    private List<MetaBookRcmmdVO> awardList = new ArrayList<>();
+    /**
+     * 编辑推荐
+     */
+    private List<MetaBookRcmmdVO> editorList = new ArrayList<>();
+    /**
+     * 媒体推荐
+     */
+    private List<MetaBookRcmmdVO> mediaList = new ArrayList<>();
+    /**
+     * 机构推荐
+     */
+    private List<MetaBookRcmmdVO> organList = new ArrayList<>();
+    /**
+     * 名家推荐
+     */
+    private List<MetaBookRcmmdVO> expertList = new ArrayList<>();
+    /**
+     * 引用推荐
+     */
+    private List<MetaBookRcmmdVO> quoteList = new ArrayList<>();
+    /**
+     * 讲稿推荐
+     */
+    private List<MetaBookRcmmdVO> draftList = new ArrayList<>();
 
     @Data
-    public static class FitTarget {
-        private Integer id;
-        private String name;
-    }
-
-    @Data
-    public static class MetaBookRcmmdBO {
+    public static class  MetaBookRcmmdVO {
         /**
          * 主键id
          */
@@ -54,10 +77,6 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
          * 名称
          */
         private String name;
-        /**
-         * 书籍id
-         */
-        private Integer bookId;
         /**
          * 业务id
          */

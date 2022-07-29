@@ -15,7 +15,7 @@ import java.util.List;
  * @since 2022-05-16 11:48:33
  */
 @Data
-public class MetaBookRcmmdByBookIdReqBO implements Serializable {
+public class MetaBookRcmmdByBookIdResBO implements Serializable {
     /**
      * 书籍id
      */
@@ -32,7 +32,9 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
     /**
      * 适读对象id
      */
-    private List<Integer> fitTargetIds = new ArrayList<>();
+    //private List<Integer> fitTargetIds = new ArrayList<>();
+
+    private List<FitTarget> fitTargets = new ArrayList<>();
     /**
      * 推荐列表
      */

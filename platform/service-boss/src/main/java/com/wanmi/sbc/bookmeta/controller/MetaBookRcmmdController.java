@@ -1,18 +1,12 @@
 package com.wanmi.sbc.bookmeta.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdResBO;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdAddReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdByBookIdVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdEditReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdQueryByIdResVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdQueryByPageReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdQueryByPageResVO;
+import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdByBookIdReqVO;
+import com.wanmi.sbc.bookmeta.vo.MetaBookRcmmdByBookIdResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +20,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 书籍推荐(MetaBookRcmmd)表控制层
@@ -43,76 +38,76 @@ public class MetaBookRcmmdController {
     @Resource
     private MetaBookRcmmdProvider metaBookRcmmdProvider;
 
-    /**
-     * 书籍推荐-分页查询
-     *
-     * @param pageRequest 分页对象
-     * @return 查询结果
-     */
-    @PostMapping("queryByPage")
-    public BusinessResponse<List<MetaBookRcmmdQueryByPageResVO>> queryByPage(@RequestBody MetaBookRcmmdQueryByPageReqVO pageRequest) {
-        MetaBookRcmmdQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookRcmmdQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookRcmmdBO>> list = this.metaBookRcmmdProvider.queryByPage(pageReqBO);
-        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
-    }
-
-    /**
-     * 书籍推荐-主键查询
-     *
-     * @param id 主键
-     * @return 单条数据
-     */
-    @PostMapping("queryById")
-    public BusinessResponse<MetaBookRcmmdQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookRcmmdBO> resBO = this.metaBookRcmmdProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
-    }
-
-    /**
-     * 书籍推荐-新增数据
-     *
-     * @param addReqVO 实体
-     * @return 新增结果
-     */
-    @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaBookRcmmdAddReqVO addReqVO) {
-        MetaBookRcmmdBO addReqBO = new MetaBookRcmmdBO();
-        BeanUtils.copyProperties(addReqVO, addReqBO);
-        return BusinessResponse.success(this.metaBookRcmmdProvider.insert(addReqBO).getContext());
-    }
-
-    /**
-     * 书籍推荐-编辑数据
-     *
-     * @param editReqVO 实体
-     * @return 编辑结果
-     */
-    @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaBookRcmmdEditReqVO editReqVO) {
-        MetaBookRcmmdBO editReqVBO = new MetaBookRcmmdBO();
-        BeanUtils.copyProperties(editReqVO, editReqVBO);
-        this.metaBookRcmmdProvider.update(editReqVBO);
-        return BusinessResponse.success(true);
-    }
-
-    /**
-     * 书籍推荐-删除数据
-     *
-     * @param id 主键
-     * @return 删除是否成功
-     */
-    @PostMapping("deleteById")
-    public BusinessResponse<Boolean> deleteById(@RequestBody IntegerIdVO id) {
-        return this.metaBookRcmmdProvider.deleteById(id.getId());
-    }
+//    /**
+//     * 书籍推荐-分页查询
+//     *
+//     * @param pageRequest 分页对象
+//     * @return 查询结果
+//     */
+//    @PostMapping("queryByPage")
+//    public BusinessResponse<List<MetaBookRcmmdQueryByPageResVO>> queryByPage(@RequestBody MetaBookRcmmdQueryByPageReqVO pageRequest) {
+//        MetaBookRcmmdQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookRcmmdQueryByPageReqBO.class);
+//        BusinessResponse<List<MetaBookRcmmdBO>> list = this.metaBookRcmmdProvider.queryByPage(pageReqBO);
+//        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
+//    }
+//
+//    /**
+//     * 书籍推荐-主键查询
+//     *
+//     * @param id 主键
+//     * @return 单条数据
+//     */
+//    @PostMapping("queryById")
+//    public BusinessResponse<MetaBookRcmmdQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
+//        BusinessResponse<MetaBookRcmmdBO> resBO = this.metaBookRcmmdProvider.queryById(id.getId());
+//        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+//    }
+//
+//    /**
+//     * 书籍推荐-新增数据
+//     *
+//     * @param addReqVO 实体
+//     * @return 新增结果
+//     */
+//    @PostMapping("add")
+//    public BusinessResponse<Integer> add(@RequestBody MetaBookRcmmdAddReqVO addReqVO) {
+//        MetaBookRcmmdBO addReqBO = new MetaBookRcmmdBO();
+//        BeanUtils.copyProperties(addReqVO, addReqBO);
+//        return BusinessResponse.success(this.metaBookRcmmdProvider.insert(addReqBO).getContext());
+//    }
+//
+//    /**
+//     * 书籍推荐-编辑数据
+//     *
+//     * @param editReqVO 实体
+//     * @return 编辑结果
+//     */
+//    @PostMapping("edit")
+//    public BusinessResponse<Boolean> edit(@RequestBody MetaBookRcmmdEditReqVO editReqVO) {
+//        MetaBookRcmmdBO editReqVBO = new MetaBookRcmmdBO();
+//        BeanUtils.copyProperties(editReqVO, editReqVBO);
+//        this.metaBookRcmmdProvider.update(editReqVBO);
+//        return BusinessResponse.success(true);
+//    }
+//
+//    /**
+//     * 书籍推荐-删除数据
+//     *
+//     * @param id 主键
+//     * @return 删除是否成功
+//     */
+//    @PostMapping("deleteById")
+//    public BusinessResponse<Boolean> deleteById(@RequestBody IntegerIdVO id) {
+//        return this.metaBookRcmmdProvider.deleteById(id.getId());
+//    }
 
     /**
      * 书籍推荐-书籍id查询
      */
     @PostMapping("queryByBookId")
-    public BusinessResponse<MetaBookRcmmdByBookIdVO> queryByBookId(@RequestBody IntegerIdVO id) {
-        MetaBookRcmmdByBookIdReqBO boResult = this.metaBookRcmmdProvider.queryByBookId(id.getId()).getContext();
-        MetaBookRcmmdByBookIdVO voResult = new MetaBookRcmmdByBookIdVO();
+    public BusinessResponse<MetaBookRcmmdByBookIdResVO> queryByBookId(@RequestBody IntegerIdVO id) {
+        MetaBookRcmmdByBookIdResBO boResult = this.metaBookRcmmdProvider.queryByBookId(id.getId()).getContext();
+        MetaBookRcmmdByBookIdResVO voResult = new MetaBookRcmmdByBookIdResVO();
 
         if (boResult == null) {
             return BusinessResponse.success(voResult);
@@ -120,10 +115,20 @@ public class MetaBookRcmmdController {
         voResult.setBookId(id.getId());
         voResult.setFitAgeMax(boResult.getFitAgeMax());
         voResult.setFitAgeMin(boResult.getFitAgeMin());
-        voResult.setFitTargetIdList(boResult.getFitTargetIds());
 
-        for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO item : boResult.getBookRcmmds()) {
-            MetaBookRcmmdByBookIdVO.MetaBookRcmmdVO rcmmdVO = new MetaBookRcmmdByBookIdVO.MetaBookRcmmdVO();
+        //适读对象
+        if (boResult.getFitTargets() != null) {
+            List<MetaBookRcmmdByBookIdResVO.FitTarget> fitTargets = boResult.getFitTargets().stream().map(item -> {
+                MetaBookRcmmdByBookIdResVO.FitTarget fitTarget = new MetaBookRcmmdByBookIdResVO.FitTarget();
+                fitTarget.setId(item.getId());
+                fitTarget.setName(item.getName());
+                return fitTarget;
+            }).collect(Collectors.toList());
+            voResult.setFitTargets(fitTargets);
+        }
+        //推荐信息
+        for (MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO item : boResult.getBookRcmmds()) {
+            MetaBookRcmmdByBookIdResVO.MetaBookRcmmdVO rcmmdVO = new MetaBookRcmmdByBookIdResVO.MetaBookRcmmdVO();
             rcmmdVO.setId(item.getId());
             rcmmdVO.setBizId(item.getBizId());
             rcmmdVO.setBizType(item.getBizType());
@@ -144,7 +149,10 @@ public class MetaBookRcmmdController {
                 voResult.getQuoteList().add(rcmmdVO);
             } else if (BookRcmmdTypeEnum.DRAFT.getCode().equals(item.getBizType())) {
                 voResult.getDraftList().add(rcmmdVO);
-            } else {
+            } else if (BookRcmmdTypeEnum.MENTION.getCode().equals(item.getBizType())) {
+                voResult.getMentionList().add(rcmmdVO);
+            }
+            else {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());
             }
         }
@@ -156,7 +164,7 @@ public class MetaBookRcmmdController {
      * 书籍推荐-编辑数据
      */
     @PostMapping("editByBookId")
-    public BusinessResponse<Boolean> editByBookId(@RequestBody @Valid MetaBookRcmmdByBookIdVO editReqVO) {
+    public BusinessResponse<Boolean> editByBookId(@RequestBody @Valid MetaBookRcmmdByBookIdReqVO editReqVO) {
         MetaBookRcmmdByBookIdReqBO editBO = new MetaBookRcmmdByBookIdReqBO();
         editBO.setBookId(editReqVO.getBookId());
         editBO.setBookRcmmds(new ArrayList<>());
@@ -171,16 +179,17 @@ public class MetaBookRcmmdController {
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.EXPERT.getCode(), editReqVO.getExpertList(), boList);
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.QUOTE.getCode(), editReqVO.getQuoteList(), boList);
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.DRAFT.getCode(), editReqVO.getDraftList(), boList);
+        wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.MENTION.getCode(), editReqVO.getMentionList(), boList);
 
         this.metaBookRcmmdProvider.editByBookId(editBO);
         return BusinessResponse.success(true);
     }
 
-    private void wrapEditBO(Integer bookId, Integer type, List<MetaBookRcmmdByBookIdVO.MetaBookRcmmdVO> voList, List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> boList) {
+    private void wrapEditBO(Integer bookId, Integer type, List<MetaBookRcmmdByBookIdReqVO.MetaBookRcmmdVO> voList, List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> boList) {
         if (CollectionUtils.isEmpty(voList)) {
             return;
         }
-        for (MetaBookRcmmdByBookIdVO.MetaBookRcmmdVO vo : voList) {
+        for (MetaBookRcmmdByBookIdReqVO.MetaBookRcmmdVO vo : voList) {
             MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO bo = new MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO();
             BeanUtils.copyProperties(vo, bo);
             bo.setBookId(bookId);

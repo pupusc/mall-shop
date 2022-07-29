@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaZoneMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaZone" id="MetaZoneMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询指定行数据-->
+    <select id="queryList" resultMap="MetaZoneMap">
+        select
+          *
+        from meta_zone
+        <where>
+            <if test="metaZone.id != null">
+                and id = #{metaZone.id}
+            </if>
+            <if test="metaZone.type != null">
+                and type = #{metaZone.type}
+            </if>
+            <if test="metaZone.name != null and metaZone.name != ''">
+                and name = #{metaZone.name}
+            </if>
+            <if test="metaZone.status != null">
+                and status = #{metaZone.status}
+            </if>
+            <if test="metaZone.delFlag != null">
+                and del_flag = #{metaZone.delFlag}
+            </if>
+            <if test="metaZone.createTime != null">
+                and create_time = #{metaZone.createTime}
+            </if>
+            <if test="metaZone.updateTime != null">
+                and update_time = #{metaZone.updateTime}
+            </if>
+            <if test="metaZone.descr != null and metaZone.descr != ''">
+                and descr = #{metaZone.descr}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="queryCount" resultType="java.lang.Integer">
+        select count(1)
+        from meta_zone
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+</mapper>
+

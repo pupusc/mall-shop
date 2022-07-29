@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookClumpBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookClumpQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
+import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import com.wanmi.sbc.bookmeta.service.MetaBookClumpService;
 import com.wanmi.sbc.bookmeta.service.ParamValidator;
@@ -12,6 +14,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +37,8 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
     private MetaBookClumpMapper metaBookClumpMapper;
     @Resource
     private MetaBookClumpService metaBookClumpService;
+    @Autowired
+    private MetaPublisherMapper metaPublisherMapper;
 
     /**
      * 通过ID查询单条数据
@@ -43,7 +48,12 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<MetaBookClumpBO> queryById(Integer id) {
-        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookClumpMapper.queryById(id), MetaBookClumpBO.class));
+        MetaBookClumpBO bookClumpBO = DO2BOUtils.objA2objB(this.metaBookClumpMapper.queryById(id), MetaBookClumpBO.class);
+        if (bookClumpBO.getPublisherId() != null) {
+            MetaPublisher metaPublisher = this.metaPublisherMapper.selectByPrimaryKey(bookClumpBO.getPublisherId());
+            bookClumpBO.setPublisherName(metaPublisher == null ? null : metaPublisher.getName());
+        }
+        return BusinessResponse.success(bookClumpBO);
     }
 
     /**
