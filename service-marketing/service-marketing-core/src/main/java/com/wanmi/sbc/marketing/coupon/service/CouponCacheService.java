@@ -13,6 +13,7 @@ import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.brand.ContractBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
@@ -506,7 +507,7 @@ public class CouponCacheService {
 
         List<CouponCode> couponCodeList = couponCodeService.listCouponCodeByCondition(CouponCodeQueryRequest.builder()
                 .customerId(customerId).delFlag(DeleteFlag.NO).useStatus(DefaultFlag.NO)
-                .couponId(couponId).activityId(activityId).build());
+                .couponId(couponId).activityId(activityId).state(StateEnum.RUNNING.getCode()).build());
 
         if (CollectionUtils.isEmpty(couponCodeList)) {
             throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NOT_EXIST);

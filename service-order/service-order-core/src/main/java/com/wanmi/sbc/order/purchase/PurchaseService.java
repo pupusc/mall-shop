@@ -2647,7 +2647,7 @@ public class PurchaseService {
             spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
             spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
             spuNormalActivityReq.setChannelTypes(Collections.singletonList(request.getChannelType()));
-            spuNormalActivityReq.setCustomerId(customer.getCustomerId());
+            spuNormalActivityReq.setCustomerId(customer == null ? "" : customer.getCustomerId());
             List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
             for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
                 skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);

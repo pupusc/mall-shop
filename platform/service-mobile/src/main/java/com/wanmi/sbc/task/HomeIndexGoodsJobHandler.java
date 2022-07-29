@@ -220,6 +220,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
      */
     private List<SortGoodsCustomResponse> traneserSortGoodsCustomResponseByHotGoodsDto(List<String> goodIds, String goodsChannelTypeName) {
         List<SortGoodsCustomResponse> goodList = new ArrayList<>();
+        List<Integer> goodsChannelTypes = Collections.singletonList(TerminalSource.getTerminalSource(goodsChannelTypeName, null).getCode());
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
         queryRequest.setPageNum(0);
@@ -232,11 +233,11 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
-        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(goodsChannelTypeName, null).getCode()));
+        queryRequest.setGoodsChannelTypeSet(goodsChannelTypes);
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, null);
+        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, null, goodsChannelTypes);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
             GoodsVO goods = spuId2GoodsVoMap.get(goodsVo.getId());
             if(goods == null){
