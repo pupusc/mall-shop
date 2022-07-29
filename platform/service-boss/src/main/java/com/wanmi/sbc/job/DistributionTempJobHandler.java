@@ -81,6 +81,8 @@ import java.util.stream.Collectors;
 
 
 /**
+ *
+ * 作废7月29日 by duanlsh
  * 定时任务Handler
  * 处理分销临时订单发放邀新奖励、分销佣金
  */

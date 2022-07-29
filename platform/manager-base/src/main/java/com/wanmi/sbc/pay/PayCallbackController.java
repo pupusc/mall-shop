@@ -1206,35 +1206,35 @@ public class PayCallbackController {
         return businessId.startsWith(GeneratorService._PREFIX_TRADE_TAIL_ID);
     }
 
-    private void wxRefundHandle(WxPayResultResponse wxPayResultResponse, String businessId, Long storeId) {
-        WxPayRefundInfoRequest refundInfoRequest = new WxPayRefundInfoRequest();
-
-        refundInfoRequest.setStoreId(storeId);
-        refundInfoRequest.setOut_refund_no(businessId);
-        refundInfoRequest.setOut_trade_no(businessId);
-        refundInfoRequest.setTotal_fee(wxPayResultResponse.getTotal_fee());
-        refundInfoRequest.setRefund_fee(wxPayResultResponse.getTotal_fee());
-        String tradeType = wxPayResultResponse.getTrade_type();
-        if (!tradeType.equals("APP")) {
-            tradeType = "PC/H5/JSAPI";
-        }
-        refundInfoRequest.setPay_type(tradeType);
-        //重复支付进行退款处理标志
-        refundInfoRequest.setRefund_type("REPEATPAY");
-        BaseResponse<WxPayRefundResponse> wxPayRefund =
-                wxPayProvider.wxPayRefund(refundInfoRequest);
-        WxPayRefundResponse wxPayRefundResponse = wxPayRefund.getContext();
-        if (wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS) &&
-                wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
-            //重复支付退款成功处理逻辑
-            operateLogMQUtil.convertAndSend("微信支付", "重复支付退款成功",
-                    "订单号：" + wxPayResultResponse.getOut_trade_no());
-        } else {
-            //重复支付退款失败处理逻辑
-            operateLogMQUtil.convertAndSend("微信支付", "重复支付退款失败",
-                    "订单号：" + wxPayResultResponse.getOut_trade_no());
-        }
-    }
+//    private void wxRefundHandle(WxPayResultResponse wxPayResultResponse, String businessId, Long storeId) {
+//        WxPayRefundInfoRequest refundInfoRequest = new WxPayRefundInfoRequest();
+//
+//        refundInfoRequest.setStoreId(storeId);
+//        refundInfoRequest.setOut_refund_no(businessId);
+//        refundInfoRequest.setOut_trade_no(businessId);
+//        refundInfoRequest.setTotal_fee(wxPayResultResponse.getTotal_fee());
+//        refundInfoRequest.setRefund_fee(wxPayResultResponse.getTotal_fee());
+//        String tradeType = wxPayResultResponse.getTrade_type();
+//        if (!tradeType.equals("APP")) {
+//            tradeType = "PC/H5/JSAPI";
+//        }
+//        refundInfoRequest.setPay_type(tradeType);
+//        //重复支付进行退款处理标志
+//        refundInfoRequest.setRefund_type("REPEATPAY");
+//        BaseResponse<WxPayRefundResponse> wxPayRefund =
+//                wxPayProvider.wxPayRefund(refundInfoRequest);
+//        WxPayRefundResponse wxPayRefundResponse = wxPayRefund.getContext();
+//        if (wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS) &&
+//                wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
+//            //重复支付退款成功处理逻辑
+//            operateLogMQUtil.convertAndSend("微信支付", "重复支付退款成功",
+//                    "订单号：" + wxPayResultResponse.getOut_trade_no());
+//        } else {
+//            //重复支付退款失败处理逻辑
+//            operateLogMQUtil.convertAndSend("微信支付", "重复支付退款失败",
+//                    "订单号：" + wxPayResultResponse.getOut_trade_no());
+//        }
+//    }
 
     private void wxCallbackResultHandle(HttpServletResponse response, String result) throws IOException {
         if (result.equals(WXPayConstants.SUCCESS)) {
@@ -1341,18 +1341,18 @@ public class PayCallbackController {
      * @param out_trade_no
      * @param total_amount
      */
-    private void alipayRefundHandle(String out_trade_no, String total_amount) {
-        //调用退款接口。直接退款。不走退款流程，没有交易对账，只记了操作日志
-        AliPayRefundResponse aliPayRefundResponse =
-                aliPayProvider.aliPayRefund(AliPayRefundRequest.builder().businessId(out_trade_no)
-                        .amount(new BigDecimal(total_amount)).description("重复支付退款").build()).getContext();
-
-        if (aliPayRefundResponse.getAlipayTradeRefundResponse().isSuccess()) {
-            operateLogMQUtil.convertAndSend("支付宝退款", "重复支付、超时订单退款",
-                    "订单号：" + out_trade_no);
-        }
-        log.info("支付宝重复支付、超时订单退款,单号：{}", out_trade_no);
-    }
+//    private void alipayRefundHandle(String out_trade_no, String total_amount) {
+//        //调用退款接口。直接退款。不走退款流程，没有交易对账，只记了操作日志
+//        AliPayRefundResponse aliPayRefundResponse =
+//                aliPayProvider.aliPayRefund(AliPayRefundRequest.builder().businessId(out_trade_no)
+//                        .amount(new BigDecimal(total_amount)).description("重复支付退款").build()).getContext();
+//
+//        if (aliPayRefundResponse.getAlipayTradeRefundResponse().isSuccess()) {
+//            operateLogMQUtil.convertAndSend("支付宝退款", "重复支付、超时订单退款",
+//                    "订单号：" + out_trade_no);
+//        }
+//        log.info("支付宝重复支付、超时订单退款,单号：{}", out_trade_no);
+//    }
 
 //    private void alipayCallbackHandle(String out_trade_no, String trade_no, String trade_status, String total_amount,
 //                                      String type, Operator operator, List<TradeVO> trades, boolean isMergePay,

@@ -58,6 +58,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ *
+ * 作废7月29日 by duanlsh
  * 定时任务Handler
  * 根据分销设置的奖励规则补发邀请奖励
  */
