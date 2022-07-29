@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.goods;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.common.util.WebConstantUtil;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -92,6 +93,7 @@ import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -123,6 +125,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @Validated
+@Slf4j
 public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
@@ -314,11 +317,11 @@ public class GoodsQueryController implements GoodsQueryProvider {
      */
     @Override
     public BaseResponse<GoodsViewByIdResponse> getCacheViewById(@RequestBody @Valid GoodsCacheInfoByIdRequest request) {
+        log.info("GoodsQueryController getCacheViewById param:{}", JSON.toJSONString(request));
         if(StringUtils.isEmpty(request.getGoodsId()) && StringUtils.isEmpty(request.getGoodsInfoId())){
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         String goodsId = WebConstantUtil.filterSpecialCharacter(request.getGoodsId());
-
         if(StringUtils.isEmpty(goodsId)){
             GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
             if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
