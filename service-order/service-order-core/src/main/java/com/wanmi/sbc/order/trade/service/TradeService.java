@@ -787,121 +787,121 @@ public class TradeService {
     }
 
 
-    /**
-     * C端下单 TODO 作废啦
-     */
-    @Transactional
-    @GlobalTransactional
-    public List<TradeCommitResult> commit(TradeCommitRequest tradeCommitRequest) {
-
-        // 验证用户
-        CustomerSimplifyOrderCommitVO customer =
-                verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
-        tradeCommitRequest.setCustomer(customer);
-
-        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
-            throw new SbcRuntimeException("K-050215");
-        }
-
-        Operator operator = tradeCommitRequest.getOperator();
-        List<TradeItemGroup> tradeItemGroups = tradeItemService.find(tradeCommitRequest.getTerminalToken());
-        // 组合购标记
-        boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE,
-                s.getSuitMarketingFlag()));
-
-        // 预售商品
-        boolean isBookingSaleGoods =
-                tradeItemGroups.stream().flatMap(s -> s.getTradeItems().stream()).anyMatch(s -> Objects.equals(Boolean.TRUE,
-                        s.getIsBookingSaleGoods()));
-        // 预约
-        boolean isAppointmentSaleGoods =
-                tradeItemGroups.stream().flatMap(s -> s.getTradeItems().stream()).anyMatch(s -> Objects.equals(Boolean.TRUE,
-                        s.getIsAppointmentSaleGoods()));
-
-        Boolean isCommonGoods = ChannelType.PC_MALL.equals(tradeCommitRequest.getDistributeChannel().getChannelType())
-                || suitMarketingFlag || isBookingSaleGoods || isAppointmentSaleGoods;
-        // 如果为PC商城下单，将分销商品变为普通商品
-        if (isCommonGoods) {
-            tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).forEach(tradeItem -> {
-                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
-            });
-        }
-
-        // 拼团订单--验证
-        TradeGrouponCommitForm grouponForm = tradeItemGroups.get(NumberUtils.INTEGER_ZERO).getGrouponForm();
-        if (Objects.nonNull(grouponForm)) {
-            validGroupon(tradeCommitRequest, tradeItemGroups);
-        }
-
-
-        // 1.查询快照中的购物清单
-        // list转map,方便获取
-        Map<Long, TradeItemGroup> tradeItemGroupsMap = tradeItemGroups.stream().collect(
-                Collectors.toMap(g -> g.getSupplier().getStoreId(), Function.identity()));
-
-        List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
-
-        Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
-                new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
-
-
-        // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
-        verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
-        // 校验组合购活动信息
-        // 2.按店铺包装多个订单信息、订单组信息
-        TradeWrapperListRequest tradeWrapperListRequest = new TradeWrapperListRequest();
-        tradeWrapperListRequest.setStoreLevelMap(storeLevelMap);
-        tradeWrapperListRequest.setStoreVOList(storeVOList);
-        tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
-        tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
-        List<Trade> trades = this.wrapperTradeList(tradeWrapperListRequest);
-        TradeGroup tradeGroup = tradeGroupService.wrapperTradeGroup(trades, tradeCommitRequest, grouponForm);
-        if (suitMarketingFlag) {
-            trades.parallelStream().flatMap(trade -> trade.getTradeItems().stream()).forEach(tradeItem -> {
-                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
-            });
-        }
-        // 处理积分抵扣
-        dealPoints(trades, tradeCommitRequest);
-        // 预售补充尾款价格
-        dealTailPrice(trades, tradeCommitRequest);
-        //打包价格
-        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
-        // 3.批量提交订单
-        List<TradeCommitResult> successResults;
-        if (tradeGroup != null) {
-            successResults = this.createBatchWithGroup(trades, tradeGroup, operator);
-        } else {
-            successResults = this.createBatch(trades, null, operator);
-        }
-
-        try {
-            // 4.订单提交成功，删除关联的采购单商品
-//            trades.forEach(
-//                    trade -> {
-//                        List<String> tradeSkuIds =
-//                                trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
-//                        deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
-//                                tradeCommitRequest.getDistributeChannel());
-//                    }
+//    /**
+//     * C端下单 TODO 作废啦
+//     */
+//    @Transactional
+//    @GlobalTransactional
+//    public List<TradeCommitResult> commit(TradeCommitRequest tradeCommitRequest) {
+//
+//        // 验证用户
+//        CustomerSimplifyOrderCommitVO customer =
+//                verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
+//        tradeCommitRequest.setCustomer(customer);
+//
+//        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+//            throw new SbcRuntimeException("K-050215");
+//        }
+//
+//        Operator operator = tradeCommitRequest.getOperator();
+//        List<TradeItemGroup> tradeItemGroups = tradeItemService.find(tradeCommitRequest.getTerminalToken());
+//        // 组合购标记
+//        boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE,
+//                s.getSuitMarketingFlag()));
+//
+//        // 预售商品
+//        boolean isBookingSaleGoods =
+//                tradeItemGroups.stream().flatMap(s -> s.getTradeItems().stream()).anyMatch(s -> Objects.equals(Boolean.TRUE,
+//                        s.getIsBookingSaleGoods()));
+//        // 预约
+//        boolean isAppointmentSaleGoods =
+//                tradeItemGroups.stream().flatMap(s -> s.getTradeItems().stream()).anyMatch(s -> Objects.equals(Boolean.TRUE,
+//                        s.getIsAppointmentSaleGoods()));
+//
+//        Boolean isCommonGoods = ChannelType.PC_MALL.equals(tradeCommitRequest.getDistributeChannel().getChannelType())
+//                || suitMarketingFlag || isBookingSaleGoods || isAppointmentSaleGoods;
+//        // 如果为PC商城下单，将分销商品变为普通商品
+//        if (isCommonGoods) {
+//            tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).forEach(tradeItem -> {
+//                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
+//                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
+//            });
+//        }
+//
+//        // 拼团订单--验证
+//        TradeGrouponCommitForm grouponForm = tradeItemGroups.get(NumberUtils.INTEGER_ZERO).getGrouponForm();
+//        if (Objects.nonNull(grouponForm)) {
+//            validGroupon(tradeCommitRequest, tradeItemGroups);
+//        }
+//
+//
+//        // 1.查询快照中的购物清单
+//        // list转map,方便获取
+//        Map<Long, TradeItemGroup> tradeItemGroupsMap = tradeItemGroups.stream().collect(
+//                Collectors.toMap(g -> g.getSupplier().getStoreId(), Function.identity()));
+//
+//        List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
+//
+//        Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
+//                new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
+//
+//
+//        // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
+//        verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
+//        // 校验组合购活动信息
+//        // 2.按店铺包装多个订单信息、订单组信息
+//        TradeWrapperListRequest tradeWrapperListRequest = new TradeWrapperListRequest();
+//        tradeWrapperListRequest.setStoreLevelMap(storeLevelMap);
+//        tradeWrapperListRequest.setStoreVOList(storeVOList);
+//        tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
+//        tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
+//        List<Trade> trades = this.wrapperTradeList(tradeWrapperListRequest);
+//        TradeGroup tradeGroup = tradeGroupService.wrapperTradeGroup(trades, tradeCommitRequest, grouponForm);
+//        if (suitMarketingFlag) {
+//            trades.parallelStream().flatMap(trade -> trade.getTradeItems().stream()).forEach(tradeItem -> {
+//                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
+//                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
+//            });
+//        }
+//        // 处理积分抵扣
+//        dealPoints(trades, tradeCommitRequest);
+//        // 预售补充尾款价格
+//        dealTailPrice(trades, tradeCommitRequest);
+//        //打包价格
+//        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
+//        // 3.批量提交订单
+//        List<TradeCommitResult> successResults;
+//        if (tradeGroup != null) {
+//            successResults = this.createBatchWithGroup(trades, tradeGroup, operator);
+//        } else {
+//            successResults = this.createBatch(trades, null, operator);
+//        }
+//
+//        try {
+//            // 4.订单提交成功，删除关联的采购单商品
+////            trades.forEach(
+////                    trade -> {
+////                        List<String> tradeSkuIds =
+////                                trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+////                        deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
+////                                tradeCommitRequest.getDistributeChannel());
+////                    }
+////            );
+//            // 5.订单提交成功，删除订单商品快照
+//            tradeItemService.remove(tradeCommitRequest.getTerminalToken());
+//            // 6.订单提交成功，增加限售记录
+//            this.insertRestrictedRecord(trades);
+//        } catch (Exception e) {
+//            log.error("Delete the trade sku list snapshot or the purchase order exception," +
+//                            "trades={}," +
+//                            "customer={}",
+//                    JSONObject.toJSONString(trades),
+//                    customer,
+//                    e
 //            );
-            // 5.订单提交成功，删除订单商品快照
-            tradeItemService.remove(tradeCommitRequest.getTerminalToken());
-            // 6.订单提交成功，增加限售记录
-            this.insertRestrictedRecord(trades);
-        } catch (Exception e) {
-            log.error("Delete the trade sku list snapshot or the purchase order exception," +
-                            "trades={}," +
-                            "customer={}",
-                    JSONObject.toJSONString(trades),
-                    customer,
-                    e
-            );
-        }
-        return successResults;
-    }
+//        }
+//        return successResults;
+//    }
 
 
     protected void dealTailPrice(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {

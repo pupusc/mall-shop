@@ -594,7 +594,7 @@ public class PayCallbackController {
                 retXml.append(line);
             }
             //微信支付异步回调结果xml
-            log.info("支付成功回调 微信支付异步通知回调结果xml====" + retXml);
+            log.info("支付回调 微信支付异步通知回调结果 {} ", retXml);
             String retXmlStr = retXml.toString();
 //            String retXmlStr = "<xml><appid><![CDATA[wxb67fac0bbb6b4031]]></appid><bank_type><![CDATA[OTHERS]]></bank_type><cash_fee><![CDATA[1]]></cash_fee><fee_type><![CDATA[CNY]]></fee_type><is_subscribe><![CDATA[N]]></is_subscribe><mch_id><![CDATA[1489104242]]></mch_id><nonce_str><![CDATA[jr4itIa2Kin4j9p5VRV1UDAmZLsZGA8P]]></nonce_str><openid><![CDATA[o6wq55YZ9xrgyQwQeka6btYt5HOQ]]></openid><out_trade_no><![CDATA[O202007011444302542]]></out_trade_no><result_code><![CDATA[SUCCESS]]></result_code><return_code><![CDATA[SUCCESS]]></return_code><sign><![CDATA[DA4F5784AEA7A17B608267EF8131A87A]]></sign><time_end><![CDATA[20200701144442]]></time_end><total_fee>1</total_fee><trade_type><![CDATA[JSAPI]]></trade_type><transaction_id><![CDATA[4200000616202007015217733087]]></transaction_id></xml>";
             retXmlStr = retXmlStr.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
@@ -605,6 +605,7 @@ public class PayCallbackController {
             XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
             xStream.alias("xml", WxPayResultResponse.class);
             wxPayResultResponse = (WxPayResultResponse) xStream.fromXML(retXmlStr);
+            log.info("支付回调 微信支付异步通知回调结果解析信息：{}", JSON.toJSONString(wxPayResultResponse));
             //如果线程池队列已满，则采取拒绝策略（AbortPolicy），抛出RejectedExecutionException异常，则将对应的回调改为处理失败，然后通过定时任务处理补偿
             try {
                 addPayCallBackResult(PayCallBackResultAddRequest.builder()
@@ -648,9 +649,7 @@ public class PayCallbackController {
                     Object o = redisTemplate.opsForValue().get(key.toString());
                     PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                     paidCardRedisDTO.setPayType(0);
-                    log.info("===========开始执行付费会员回调逻辑");
                     paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getMch_id());
-                    log.info("===========结束执行付费会员回调逻辑");
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
                             .wxPayCallBackResultStr(retXmlStr)
@@ -724,10 +723,9 @@ public class PayCallbackController {
             while ((len = inStream.read(buffer)) != -1) {
                 outSteam.write(buffer, 0, len);
             }
-            log.info("refund:微信退款----start----");
             // 获取微信调用我们notify_url的返回信息
             String result = new String(outSteam.toByteArray(), "utf-8");
-            log.info("refund:微信退款----result----=" + result);
+            log.info("支付退款回调 微信支付异步通知回调结果 {} ", result);
             // 关闭流
             outSteam.close();
             inStream.close();
@@ -736,6 +734,7 @@ public class PayCallbackController {
             Map<String, String> map = WXPayUtil.xmlToMap(result);
             WxPayRefundCallBackResponse refundCallBackResponse = (WxPayRefundCallBackResponse) WXPayUtil.
                     mapToObject(map, WxPayRefundCallBackResponse.class);
+            log.info("支付退款回调 微信支付异步通知回调结果解析信息 {} ", JSON.toJSONString(refundCallBackResponse));
             if (WXPayConstants.SUCCESS.equalsIgnoreCase(refundCallBackResponse.getReturn_code())) {
                 if (refundCallBackResponse.getAppid().equals(payGatewayConfig.getOpenPlatformAppId())) {
                     apiKey = payGatewayConfig.getOpenPlatformApiKey();
@@ -804,6 +803,7 @@ public class PayCallbackController {
                     payTradeRecordRequest.setPracticalPrice(new BigDecimal(dataResponse.getTotal_fee()).
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
                     //TODO duanlsh
+                    payTradeRecordRequest.setAppId(dataResponse.getRefund_account());
                     payProvider.wxPayCallBack(payTradeRecordRequest);
                     returnOrderProvider.onlineRefund(
                             ReturnOrderOnlineRefundRequest.builder().operator(operator)
@@ -811,12 +811,11 @@ public class PayCallbackController {
                                     .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
 
                 }
-
             } else {
-                log.error("refund:支付失败,错误信息：" + refundCallBackResponse.getReturn_msg());
+                log.error("支付退款回调 微信支付异步通知失败" + refundCallBackResponse.getReturn_msg());
             }
         } catch (Exception e) {
-            log.error("refund:微信退款回调发布异常：", e);
+            log.error("支付退款回调 微信支付异步通知解析异常", e);
         } finally {
             wxCallbackResultHandle(response, refund_status);
         }
@@ -1080,11 +1079,10 @@ public class PayCallbackController {
                 params.put(name, valueStr);
             }
             String aliPayResultStr = JSONObject.toJSONString(params);
-            log.info("支付成功后回调 支付宝 参数 param: {} ", aliPayResultStr);
             //支付和退款公用一个回调，所以要判断回调的类型
             if (params.containsKey("refund_fee")) {
                 //退款只有app支付的订单有回调，退款的逻辑在同步方法中已经处理了，这儿不再做处理
-                log.info("APP退款回调,单号：{}", params.containsKey("out_trade_no"));
+                log.info("支付退款回调 支付宝支付异步通知回调结果解析信息 {}", params.containsKey("out_trade_no"));
                 try {
                     response.getWriter().print("success");
                     response.getWriter().flush();
@@ -1093,6 +1091,7 @@ public class PayCallbackController {
                     log.error("PayCallBackController aliPayBack exception", e);
                 }
             } else {
+                log.info("支付回调 支付宝支付异步通知回调结果解析信息 {}", aliPayResultStr);
                 //如果线程池队列已满，则采取拒绝策略（AbortPolicy），抛出RejectedExecutionException异常，则将对应的回调改为处理失败，然后通过定时任务处理补偿
                 try {
                     addPayCallBackResult(PayCallBackResultAddRequest.builder()
@@ -1134,14 +1133,13 @@ public class PayCallbackController {
                         response.getWriter().print("success");
                         response.getWriter().flush();
                         response.getWriter().close();
-                        log.info("支付回调返回success");
                     } catch (IOException e) {
-                        log.error("支付宝回调异常", e);
+                        log.error("支付回调 支付宝支付异步通知异常", e);
                         throw e;
                     }
                 } catch (SbcRuntimeException e) {
                     //business_id唯一索引报错捕获，不影响流程处理
-                    log.error("PayCallBackController aliPayBack exception ", e);
+                    log.error("支付回调 支付宝支付异步通知回调执行异常 ", e);
                     if(!e.getErrorCode().equals(ErrorCodeConstant.PAY_CALL_BACK_RESULT_EXIT)){
                         throw e;
                     }
@@ -1158,21 +1156,20 @@ public class PayCallbackController {
                         response.getWriter().print("success");
                         response.getWriter().flush();
                         response.getWriter().close();
-                        log.info("支付回调返回success");
                     } catch (IOException iOE) {
-                        log.error("支付宝回调异常", iOE);
+                        log.error("支付回调 支付宝支付异步通知写入异常", iOE);
                         throw e;
                     }
                 }
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("支付回调 支付宝支付异步通知回调异常信息", e);
             try {
                 response.getWriter().print("failure");
                 response.getWriter().flush();
                 response.getWriter().close();
             } catch (IOException iOE) {
-                log.error("支付宝回调异常", iOE);
+                log.error("支付回调 支付宝支付异步通知回调写入异常", iOE);
                 throw e;
             }
         }
@@ -1377,27 +1374,27 @@ public class PayCallbackController {
 //            log.info("支付回调成功,单号：{}", out_trade_no);
 //        }
 //    }
-
-    /**
-     * 订单支付回调同步供应商订单状态
-     * @param trades
-     */
-    private void providerTradePayCallBack(List<TradeVO> trades) {
-        if (CollectionUtils.isNotEmpty(trades)) {
-            trades.forEach(parentTradeVO -> {
-                String parentId = parentTradeVO.getId();
-                BaseResponse<TradeListByParentIdResponse> supplierListByParentId =
-                        providerTradeQueryProvider.getProviderListByParentId(TradeListByParentIdRequest.builder().parentTid(parentId).build());
-                if (Objects.nonNull(supplierListByParentId.getContext()) && CollectionUtils.isNotEmpty(supplierListByParentId.getContext().getTradeVOList())) {
-                    supplierListByParentId.getContext().getTradeVOList().forEach(childTradeVO->{
-                        childTradeVO.getTradeState().setPayState(PayState.PAID);
-                        TradeUpdateRequest tradeUpdateRequest = new TradeUpdateRequest(KsBeanUtil.convert(childTradeVO, TradeUpdateDTO.class));
-                        providerTradeProvider.providerUpdate(tradeUpdateRequest);
-                    });
-                }
-            });
-        }
-    }
+//
+//    /**
+//     * 订单支付回调同步供应商订单状态
+//     * @param trades
+//     */
+//    private void providerTradePayCallBack(List<TradeVO> trades) {
+//        if (CollectionUtils.isNotEmpty(trades)) {
+//            trades.forEach(parentTradeVO -> {
+//                String parentId = parentTradeVO.getId();
+//                BaseResponse<TradeListByParentIdResponse> supplierListByParentId =
+//                        providerTradeQueryProvider.getProviderListByParentId(TradeListByParentIdRequest.builder().parentTid(parentId).build());
+//                if (Objects.nonNull(supplierListByParentId.getContext()) && CollectionUtils.isNotEmpty(supplierListByParentId.getContext().getTradeVOList())) {
+//                    supplierListByParentId.getContext().getTradeVOList().forEach(childTradeVO->{
+//                        childTradeVO.getTradeState().setPayState(PayState.PAID);
+//                        TradeUpdateRequest tradeUpdateRequest = new TradeUpdateRequest(KsBeanUtil.convert(childTradeVO, TradeUpdateDTO.class));
+//                        providerTradeProvider.providerUpdate(tradeUpdateRequest);
+//                    });
+//                }
+//            });
+//        }
+//    }
 
     @ApiOperation(value = "获取未支付订单，拼装对应支付报文信息")
     @RequestMapping(value = "/getNotPaidTrade", method = {RequestMethod.POST, RequestMethod.GET})
