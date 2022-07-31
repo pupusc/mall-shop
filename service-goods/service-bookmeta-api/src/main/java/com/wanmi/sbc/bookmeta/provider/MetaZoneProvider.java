@@ -2,10 +2,10 @@ package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaZoneAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneByIdResBO;
+import com.wanmi.sbc.bookmeta.bo.MetaZoneByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEnableReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaZone;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,7 +39,7 @@ public interface MetaZoneProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaZone/queryByPage")
-    BusinessResponse<List<MetaZone>> queryByPage(@RequestBody @Valid MetaZoneQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaZoneByPageResBO>> queryByPage(@RequestBody @Valid MetaZoneQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据

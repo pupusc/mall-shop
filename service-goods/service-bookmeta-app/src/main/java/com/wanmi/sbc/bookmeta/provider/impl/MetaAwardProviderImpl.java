@@ -12,6 +12,10 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Signature;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +31,11 @@ import java.util.List;
  * @author Liang Jun
  * @since 2022-05-13 22:20:01
  */
+
+@Intercepts({@Signature(
+        type= Executor.class,
+        method = "update",
+        args = {MappedStatement.class,Object.class})})
 @Validated
 @RestController
 public class MetaAwardProviderImpl implements MetaAwardProvider {

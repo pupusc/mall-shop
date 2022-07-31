@@ -1,8 +1,8 @@
 package com.wanmi.sbc.bookmeta.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 图书分区(MetaZone)实体类

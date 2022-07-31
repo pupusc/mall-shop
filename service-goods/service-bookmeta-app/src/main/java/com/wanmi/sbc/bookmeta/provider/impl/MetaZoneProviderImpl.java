@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneByIdResBO$Book;
+import com.wanmi.sbc.bookmeta.bo.MetaZoneByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEnableReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneQueryByPageReqBO;
@@ -99,7 +100,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaZone>> queryByPage(@Valid MetaZoneQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaZoneByPageResBO>> queryByPage(@Valid MetaZoneQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaZone metaZone = JSON.parseObject(JSON.toJSONString(pageRequest), MetaZone.class);
         metaZone.setDelFlag(0);
@@ -108,7 +109,9 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaZoneMapper.queryList(metaZone, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaZone> dtos = this.metaZoneMapper.queryList(metaZone, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(dtos, MetaZoneByPageResBO.class), page);
     }
 
     /**
