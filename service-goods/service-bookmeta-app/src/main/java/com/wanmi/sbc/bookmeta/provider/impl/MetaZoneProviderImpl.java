@@ -167,7 +167,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
         MetaZoneBook deleteBook = new MetaZoneBook();
         deleteBook.setZoneId(metaZone.getId());
         this.metaZoneBookMapper.delete(deleteBook);
-        if (metaZone.getBooks() != null) {
+        if (CollectionUtils.isNotEmpty(metaZone.getBooks())) {
             List<MetaZoneBook> books = new ArrayList<>();
             for (Integer bookId : metaZone.getBooks()) {
                 MetaZoneBook book = new MetaZoneBook();
