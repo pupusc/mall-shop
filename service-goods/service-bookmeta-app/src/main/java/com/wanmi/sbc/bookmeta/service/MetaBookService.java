@@ -106,13 +106,17 @@ public class MetaBookService {
             queryAuthor.setFigureType(BookFigureTypeEnum.AUTHOR.getCode());
             queryAuthor.setDelFlag(0);
             List<MetaBookFigure> bookFigures = this.metaBookFigureMapper.select(queryAuthor);
-            List<Integer> authorIds = bookFigures.stream().map(MetaBookFigure::getId).distinct().collect(Collectors.toList());
+            List<Integer> authorIds = bookFigures.stream().map(MetaBookFigure::getFigureId).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(authorIds)) {
                 Example exampleFigure = new Example(MetaFigure.class);
                 exampleFigure.createCriteria().andEqualTo("delFlag", 0).andIn("id", authorIds);
                 List<MetaFigure> figures = metaFigureMapper.selectByExample(exampleFigure);
                 Map<Integer, MetaFigure> figureM = figures.stream().collect(Collectors.toMap(MetaFigure::getId, i->i, (a, b)->a));
-                authorIds.forEach(authorId->result.getAuthors().add(figureM.get(authorId)));
+                for (Integer authorId : authorIds) {
+                    if (figureM.get(authorId) != null) {
+                        result.getAuthors().add(figureM.get(authorId));
+                    }
+                }
             }
         }
         //填充出版社信息
