@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneByIdResBO$Book;
+import com.wanmi.sbc.bookmeta.bo.MetaZoneByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneEnableReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaZoneQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaZone;
 import com.wanmi.sbc.bookmeta.provider.MetaZoneProvider;
+import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaZoneAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaZoneEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaZoneEnableReqVO;
@@ -52,11 +53,11 @@ public class MetaZoneController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaZoneQueryByPageResVO>> queryByPage(@RequestBody MetaZoneQueryByPageReqVO pageRequest) {
         MetaZoneQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaZoneQueryByPageReqBO.class);
-        BusinessResponse<List<MetaZone>> pageResult = this.metaZoneProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaZoneByPageResBO>> pageResult = this.metaZoneProvider.queryByPage(pageReqBO);
 
         List<MetaZoneQueryByPageResVO> voList = new ArrayList<>();
         if (pageResult.getContext() != null) {
-            for (MetaZone bo : pageResult.getContext()) {
+            for (MetaZoneByPageResBO bo : pageResult.getContext()) {
                 MetaZoneQueryByPageResVO vo = new MetaZoneQueryByPageResVO();
                 BeanUtils.copyProperties(bo, vo);
                 voList.add(vo);
