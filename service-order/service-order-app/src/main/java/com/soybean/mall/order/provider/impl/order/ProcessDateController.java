@@ -85,9 +85,9 @@ public class ProcessDateController implements ProcessDateProvider {
                     SAXReader saxReader = new SAXReader();
                     Document read = saxReader.read(new ByteArrayInputStream(payCallBackResult.getResultContext().getBytes(StandardCharsets.UTF_8)));
                     Element rootElement = read.getRootElement();
-                    Element mch_id = rootElement.element("mch_id");
+                    Element appid = rootElement.element("appid");
                     Element transaction_id = rootElement.element("transaction_id");
-                    appId = mch_id.getStringValue();
+                    appId = appid.getStringValue();
                     transaction_idStr = transaction_id.getStringValue();
                 }
             } catch (Exception ex) {

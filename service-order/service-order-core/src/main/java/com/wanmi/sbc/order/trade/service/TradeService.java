@@ -347,6 +347,7 @@ import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import com.wanmi.sbc.pay.api.response.WxPayOrderDetailReponse;
 import com.wanmi.sbc.pay.api.response.WxPayRefundResponse;
 import com.wanmi.sbc.pay.api.response.WxPayResultResponse;
+import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
@@ -7162,9 +7163,10 @@ public class TradeService {
     public void wxPayOnlineCallBack(TradePayOnlineCallBackRequest tradePayOnlineCallBackRequest) throws Exception {
         String businessId = "";
         try {
-            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, tradePayOnlineCallBackRequest.getStoreId())).getContext();
-            String apiKey = payGatewayConfig.getApiKey();
+//            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
+//                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, tradePayOnlineCallBackRequest.getStoreId())).getContext();
+
+
             XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
             xStream.alias("xml", WxPayResultResponse.class);
             WxPayResultResponse wxPayResultResponse =
@@ -7172,6 +7174,14 @@ public class TradeService {
             log.info("-------------微信支付回调,wxPayResultResponse：{}------------", wxPayResultResponse);
             //判断当前回调是否是合并支付
             businessId = wxPayResultResponse.getOut_trade_no();
+            GatewayConfigByGatewayRequest request = new GatewayConfigByGatewayRequest();
+            request.setGatewayEnum(PayGatewayEnum.WECHAT);
+            request.setStoreId(tradePayOnlineCallBackRequest.getStoreId());
+            request.setAppId(wxPayResultResponse.getAppid());
+            PayGatewayConfigResponse payGatewayConfigResponse =payQueryProvider.queryConfigByAppIdAndStoreId(request).getContext();
+            String apiKey = payGatewayConfigResponse.getApiKey();
+
+
             boolean isMergePay = isMergePayOrder(businessId);
             String lockName;
             //非组合支付，则查出该单笔订单。
@@ -7206,7 +7216,7 @@ public class TradeService {
                     String trade_type = wxPayResultResponse.getTrade_type();
                     //app支付回调对应的api key为开放平台对应的api key
                     if (trade_type.equals("APP")) {
-                        apiKey = payGatewayConfig.getOpenPlatformApiKey();
+                        apiKey = payGatewayConfigResponse.getOpenPlatformApiKey();
                     }
                     //微信签名校验
                     if (WXPayUtil.isSignatureValid(params, apiKey)) {
@@ -7234,13 +7244,12 @@ public class TradeService {
                                 //同一批订单重复支付或过期作废，直接退款
                                 wxRefundHandle(wxPayResultResponse, businessId, -1L);
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
-                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, true);
+                                wxPayCallbackHandle(payGatewayConfigResponse, wxPayResultResponse, businessId, trades, true);
                             }
                         } else {
                             Trade trade = new Trade();
                             if (isTailPayOrder(businessId)) {
-                                trade =
-                                        tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(businessId).build()).get(0);
+                                trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(businessId).build()).get(0);
                             } else {
                                 trade = tradeService.detail(businessId);
                             }
@@ -7251,7 +7260,7 @@ public class TradeService {
                                 //同一批订单重复支付或过期作废，直接退款
                                 wxRefundHandle(wxPayResultResponse, businessId,tradePayOnlineCallBackRequest.getStoreId());
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
-                                wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
+                                wxPayCallbackHandle(payGatewayConfigResponse, wxPayResultResponse, businessId, trades, false);
                             }
                             //单笔支付
                            /* if (businessId.startsWith(PaidCardConstant.PAID_CARD_BUY_RECORD_PAY_CODE_PRE)) {
@@ -7413,7 +7422,7 @@ public class TradeService {
             }
         });
         //微信支付异步回调添加交易数据
-        payTradeRecordRequest.setAppId(wxPayResultResponse.getMch_id());
+        payTradeRecordRequest.setAppId(wxPayResultResponse.getAppid());
         payProvider.wxPayCallBack(payTradeRecordRequest);
         //订单 支付单 操作信息
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
@@ -7434,23 +7443,29 @@ public class TradeService {
     @GlobalTransactional
     public void aliPayOnlineCallBack(TradePayOnlineCallBackRequest tradePayOnlineCallBackRequest) throws IOException {
         log.info("===============支付宝回调开始==============");
-        GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
-        gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.ALIPAY);
-        gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
-        //查询支付宝配置信息
-        PayGatewayConfigResponse payGatewayConfigResponse =payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
-        //支付宝公钥
-        String aliPayPublicKey = payGatewayConfigResponse.getPublicKey();
+
+
+
         boolean signVerified = false;
         Map<String, String> params =
                 JSONObject.parseObject(tradePayOnlineCallBackRequest.getAliPayCallBackResultStr(), Map.class);
         //商户订单号
         String out_trade_no = params.get("out_trade_no");
+        // app_id
+        String appId = params.get("app_id");
+
         try {
             if (Objects.equals(whiteOrder, out_trade_no)) {
                 log.info("订单：{} 不走签名验证", out_trade_no);
                 signVerified = true;
             } else {
+                //支付宝公钥
+                GatewayConfigByGatewayRequest request = new GatewayConfigByGatewayRequest();
+                request.setGatewayEnum(PayGatewayEnum.ALIPAY);
+                request.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+                request.setAppId(appId);
+                PayGatewayConfigResponse payGatewayConfigResponse =payQueryProvider.queryConfigByAppIdAndStoreId(request).getContext();
+                String aliPayPublicKey = payGatewayConfigResponse.getPublicKey();
                 signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
             }
             log.info("{} 验证签名返回的结果为：{}" ,out_trade_no, signVerified);
@@ -7468,8 +7483,7 @@ public class TradeService {
                 String total_amount = params.get("total_amount");
                 //支付终端类型
                 String type = params.get("passback_params");
-                // app_id
-                String appId = params.get("app_id");
+
                 boolean isMergePay = isMergePayOrder(out_trade_no);
                 log.info("-------------支付回调,单号：{}，流水：{}，交易状态：{}，金额：{}，是否合并支付：{}------------",
                         out_trade_no, trade_no, trade_status, total_amount, isMergePay);

@@ -211,8 +211,10 @@ public class PayCallbackController {
             /*
              * 签名校验
              */
-            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                    GatewayConfigByGatewayRequest(PayGatewayEnum.PING, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+            GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.PING);
+            gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
             byte[] signatureBytes = Base64.decodeBase64(signatureStr);
             Signature signature = Signature.getInstance("SHA256withRSA");
             PublicKey publicKey = getPubKey(payGatewayConfig.getPublicKey());
@@ -649,7 +651,7 @@ public class PayCallbackController {
                     Object o = redisTemplate.opsForValue().get(key.toString());
                     PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                     paidCardRedisDTO.setPayType(0);
-                    paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getMch_id());
+                    paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getAppid());
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
                             .wxPayCallBackResultStr(retXmlStr)
@@ -710,9 +712,10 @@ public class PayCallbackController {
     @RequestMapping(value = "/WXPayRefundSuccessCallBack/{storeId}", method = {RequestMethod.POST, RequestMethod.GET})
     @GlobalTransactional
     public void wxPayRefundSuccessCallBack(HttpServletRequest request, HttpServletResponse response, @PathVariable("storeId") Long storeId) throws IOException {
-        PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, storeId)).getContext();
-        String apiKey = payGatewayConfig.getApiKey();
+//
+//        PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
+//                GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, storeId)).getContext();
+//        String apiKey = payGatewayConfig.getApiKey();
         InputStream inStream;
         String refund_status = "";
         try {
@@ -734,6 +737,14 @@ public class PayCallbackController {
             Map<String, String> map = WXPayUtil.xmlToMap(result);
             WxPayRefundCallBackResponse refundCallBackResponse = (WxPayRefundCallBackResponse) WXPayUtil.
                     mapToObject(map, WxPayRefundCallBackResponse.class);
+
+            GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
+            gatewayConfigByGatewayRequest.setStoreId(storeId);
+            gatewayConfigByGatewayRequest.setAppId(refundCallBackResponse.getAppid());
+            PayGatewayConfigResponse payGatewayConfig =payQueryProvider.queryConfigByAppIdAndStoreId(gatewayConfigByGatewayRequest).getContext();
+            String apiKey = payGatewayConfig.getApiKey();
+
             log.info("支付退款回调 微信支付异步通知回调结果解析信息 {} ", JSON.toJSONString(refundCallBackResponse));
             if (WXPayConstants.SUCCESS.equalsIgnoreCase(refundCallBackResponse.getReturn_code())) {
                 if (refundCallBackResponse.getAppid().equals(payGatewayConfig.getOpenPlatformAppId())) {
@@ -1335,12 +1346,12 @@ public class PayCallbackController {
 
     }
 
-    /**
-     * 支付宝退款处理
-     *
-     * @param out_trade_no
-     * @param total_amount
-     */
+//    /**
+//     * 支付宝退款处理
+//     *
+//     * @param out_trade_no
+//     * @param total_amount
+//     */
 //    private void alipayRefundHandle(String out_trade_no, String total_amount) {
 //        //调用退款接口。直接退款。不走退款流程，没有交易对账，只记了操作日志
 //        AliPayRefundResponse aliPayRefundResponse =

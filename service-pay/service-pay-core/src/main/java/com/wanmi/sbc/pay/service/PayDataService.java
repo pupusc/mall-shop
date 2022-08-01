@@ -333,4 +333,25 @@ public class PayDataService {
     public void saveAppId(String appId, String tradeNo)  {
         tradeRecordRepository.updateAppIdByTradeNo(appId, tradeNo);
     }
+
+
+
+    /**
+     * 根据网关名称获取网关配置
+     *
+     * @return
+     */
+    public List<PayGatewayConfig> queryConfigByAppIdAndStoreId(String appId, Long storeId) {
+        return gatewayConfigRepository.queryConfigByAppIdAndStoreId(appId, storeId);
+    }
+
+
+//    /**
+//     * 根据网关名称获取网关配置
+//     *
+//     * @return
+//     */
+//    public List<PayGatewayConfig> queryConfigByAccountAndStoreId(String account, Long storeId) {
+//        return gatewayConfigRepository.queryConfigByAccountAndStoreId(account, storeId);
+//    }
 }

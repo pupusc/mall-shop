@@ -226,4 +226,19 @@ public interface PayQueryProvider {
      */
     @PostMapping("/pay/${application.pay.version}/get-all-channel-item")
     BaseResponse<List<PayChannelItemVO>> getAllChannelItem();
+
+
+//    /**
+//     * 获取支付配置信息
+//     * @param req
+//     * @return
+//     */
+//    BaseResponse<PayGatewayConfigResponse> queryConfigByAccountAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
+
+    /**
+     * 获取支付配置信息
+     * @param req
+     * @return
+     */
+    BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
 }
