@@ -240,5 +240,6 @@ public interface PayQueryProvider {
      * @param req
      * @return
      */
+    @PostMapping("/pay/${application.pay.version}/query-config-by-appId-storeId")
     BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
 }
