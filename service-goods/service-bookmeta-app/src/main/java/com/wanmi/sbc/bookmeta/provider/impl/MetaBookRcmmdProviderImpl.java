@@ -287,6 +287,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
                 figureList.add(item);
             } else if (BookRcmmdTypeEnum.EXPERT.getCode().equals(item.getBizType())) {
                 figureList.add(item);
+            } else if (BookRcmmdTypeEnum.MENTION.getCode().equals(item.getBizType())) {
+                figureList.add(item);
             } else if (BookRcmmdTypeEnum.QUOTE.getCode().equals(item.getBizType())) {
                 bookList.add(item);
             } else if (BookRcmmdTypeEnum.DRAFT.getCode().equals(item.getBizType())) {
