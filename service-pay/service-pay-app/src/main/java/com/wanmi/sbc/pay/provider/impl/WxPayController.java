@@ -1,24 +1,32 @@
 package com.wanmi.sbc.pay.provider.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
 import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.*;
+import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
+import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
+import com.wanmi.sbc.pay.repository.GatewayRepository;
 import com.wanmi.sbc.pay.service.PayDataService;
 import com.wanmi.sbc.pay.service.WxPayService;
+import com.wanmi.sbc.pay.utils.PayValidates;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +51,9 @@ public class WxPayController implements WxPayProvider {
 
     @Autowired
     private PayDataService payDataService;
+
+    @Resource
+    private GatewayRepository gatewayRepository;
 
     /**
      * 统一下单接口--native扫码支付
@@ -88,16 +99,28 @@ public class WxPayController implements WxPayProvider {
      */
     @Override
     public BaseResponse<WxPayForMWebResponse> wxPayForMWeb(@RequestBody WxPayForMWebRequest mWebRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId());
-        mWebRequest.setAppid(payGatewayConfig.getAppId());
-        mWebRequest.setMch_id(payGatewayConfig.getAccount());
+
+        // 获取网关
+        List<PayGateway> gateways = gatewayRepository.queryByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId(), IsOpen.YES);
+//        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId());
+        log.info("WxPayService wxPayForMWeb storeId:{} result:{}", mWebRequest.getStoreId(), JSON.toJSONString(gateways));
+        if (CollectionUtils.isEmpty(gateways)) {
+            throw new SbcRuntimeException("K-999999", "获取微信支付网关失败");
+        }
+
+        PayGateway payGateway = gateways.get(0);
+        PayValidates.verifyGateway(payGateway);
+
+
+        mWebRequest.setAppid(payGateway.getConfig().getAppId());
+        mWebRequest.setMch_id(payGateway.getConfig().getAccount());
         mWebRequest.setNonce_str(WXPayUtil.generateNonceStr());
-        mWebRequest.setNotify_url(getNotifyUrl(payGatewayConfig));
+        mWebRequest.setNotify_url(getNotifyUrl(payGateway.getConfig()));
         try {
             Map<String,String> mwebMap = WXPayUtil.objectToMap(mWebRequest);
             mwebMap.remove("storeId");
             //获取签名
-            String sign = WXPayUtil.generateSignature(mwebMap,payGatewayConfig.getApiKey());
+            String sign = WXPayUtil.generateSignature(mwebMap,payGateway.getConfig().getApiKey());
             mWebRequest.setSign(sign);
         } catch (Exception e) {
             log.info("wxPayForMWeb exception", e);
