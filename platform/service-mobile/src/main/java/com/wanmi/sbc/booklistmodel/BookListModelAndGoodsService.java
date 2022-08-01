@@ -201,6 +201,18 @@ public class BookListModelAndGoodsService {
      * @return
      */
     public List<GoodsInfoVO> packageGoodsInfoList(List<EsGoodsVO> esGoodsVOList, CustomerVO customer) {
+        return this.packageGoodsInfoList(esGoodsVOList, customer, Collections.singletonList(commonUtil.getTerminal().getCode()));
+    }
+
+
+    /**
+     * 兼容版本
+     * @param esGoodsVOList
+     * @param customer
+     * @param channelTypeSet
+     * @return
+     */
+    public List<GoodsInfoVO> packageGoodsInfoList(List<EsGoodsVO> esGoodsVOList, CustomerVO customer, List<Integer> channelTypeSet) {
         List<GoodsInfoVO> result = new ArrayList<>();
         List<GoodsInfoVO> goodsInfoList = esGoodsVOList.stream().map(EsGoodsVO::getGoodsInfos)
                 .flatMap(Collection::stream).map(goods -> {
@@ -234,8 +246,8 @@ public class BookListModelAndGoodsService {
             spuNormalActivityReq.setSpuIds(result.stream().map(GoodsInfoVO::getGoodsId).collect(Collectors.toList()));
             spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
             spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
-            spuNormalActivityReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
-            spuNormalActivityReq.setCustomerId(commonUtil.getOperatorId());
+            spuNormalActivityReq.setChannelTypes(channelTypeSet);
+            spuNormalActivityReq.setCustomerId(customer == null ? "" : customer.getCustomerId());
             List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
             for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
                 skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
@@ -252,8 +264,6 @@ public class BookListModelAndGoodsService {
             }
 
         }
-
-//        this.initGoodsInfoStock(filterResponse.getGoodsInfoVOList());
         return result;
     }
 

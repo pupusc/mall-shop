@@ -62,6 +62,11 @@ public class CouponCodeQueryRequest extends BaseQueryRequest  {
     private Boolean notExpire;
 
     /**
+     * 进行中的 1 表示进行中的状态
+     */
+    private Integer state;
+
+    /**
      * 删除标记
      */
     @ApiModelProperty(value = "是否已删除")

@@ -22,6 +22,7 @@ import com.wanmi.sbc.customer.api.response.level.CustomerLevelByCustomerIdAndSto
 import com.wanmi.sbc.customer.api.response.store.ListStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
@@ -255,6 +256,15 @@ public class CouponCodeService {
             // 过期标识
             if (Objects.nonNull(request.getNotExpire())) {
                 predicates.add(cbuild.greaterThan(root.get("endTime"), LocalDateTime.now()));
+            }
+
+            //状态
+            if (request.getState() != null) {
+                LocalDateTime now = LocalDateTime.now();
+                if (Objects.equals(request.getState(), StateEnum.RUNNING.getCode())) {
+                    predicates.add(cbuild.lessThanOrEqualTo(root.get("startTime"), now));
+                    predicates.add(cbuild.greaterThan(root.get("endTime"), now));
+                }
             }
 
             //获取优惠券的时间，大于开始时间
