@@ -55,7 +55,7 @@ public class MetaFigureController {
 
         //打通人物=1作者/译者/绘画人/作序人；2编辑；3名家；
         Integer type = pageReqBO.getType();
-        if (FigureTypeEnum.AUTHOR.equals(type) || FigureTypeEnum.EDITOR.equals(type) || FigureTypeEnum.FAMOUS.equals(type)) {
+        if (FigureTypeEnum.AUTHOR.getCode().equals(type) || FigureTypeEnum.EDITOR.getCode().equals(type) || FigureTypeEnum.FAMOUS.getCode().equals(type)) {
             pageReqBO.setTypeIn(Arrays.asList(FigureTypeEnum.FAMOUS.getCode(), FigureTypeEnum.AUTHOR.getCode()));
             pageReqBO.setType(null);
         }
