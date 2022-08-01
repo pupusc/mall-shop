@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -87,7 +88,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
                 bookBO.setIsbn(bookInfo.getIsbn());
                 bookBO.setName(bookInfo.getName());
                 if (bookInfo.getAuthors() != null) {
-                    bookBO.setAuthorName(bookInfo.getAuthors().stream().map(MetaFigure::getName).collect(Collectors.joining("/")));
+                    bookBO.setAuthorName(bookInfo.getAuthors().stream().map(MetaFigure::getName).filter(Objects::nonNull).collect(Collectors.joining("/")));
                 }
             }
             resBO.getBooks().add(bookBO);
