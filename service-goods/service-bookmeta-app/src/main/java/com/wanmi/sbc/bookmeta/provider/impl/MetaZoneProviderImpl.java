@@ -22,6 +22,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -134,7 +135,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "图书分区新增失败");
         }
         //分区关联图书
-        if (metaZone.getBooks() != null) {
+        if (CollectionUtils.isNotEmpty(metaZone.getBooks())) {
             List<MetaZoneBook> books = new ArrayList<>();
             for (Integer bookId : metaZone.getBooks()) {
                 MetaZoneBook book = new MetaZoneBook();
