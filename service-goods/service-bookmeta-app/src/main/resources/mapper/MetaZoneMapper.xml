@@ -26,7 +26,7 @@
                 and type = #{metaZone.type}
             </if>
             <if test="metaZone.name != null and metaZone.name != ''">
-                and name = #{metaZone.name}
+                and name like concat('%', #{metaZone.name}, '%')
             </if>
             <if test="metaZone.status != null">
                 and status = #{metaZone.status}
@@ -60,7 +60,7 @@
                 and type = #{type}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="status != null">
                 and status = #{status}
