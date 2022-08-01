@@ -102,8 +102,10 @@ public class WechatSetService {
 
         //填充H5/app的appId、密钥
         if (terminalTypes.contains(TerminalType.H5) || terminalTypes.contains(TerminalType.APP)) {
-            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+            GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
+            gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
             response.setMobileAppId(payGatewayConfig.getAppId());
             response.setMobileAppSecret(payGatewayConfig.getSecret());
             response.setAppAppId(payGatewayConfig.getOpenPlatformAppId());

@@ -104,8 +104,10 @@ public class PayBaseController {
     @ApiOperation(value = "查询银联企业支付配置")
     @RequestMapping("/queryUnionB2bConfig")
     public BaseResponse<PayGatewayConfigResponse> queryUnionB2bConfig() {
-        PayGatewayConfigResponse payGatewayConfigResponse = payQueryProvider.getGatewayConfigByGateway(
-                new GatewayConfigByGatewayRequest(PayGatewayEnum.UNIONB2B, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+        GatewayConfigByGatewayRequest request = new GatewayConfigByGatewayRequest();
+        request.setGatewayEnum(PayGatewayEnum.UNIONB2B);
+        request.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+        PayGatewayConfigResponse payGatewayConfigResponse = payQueryProvider.getGatewayConfigByGateway(request).getContext();
         return BaseResponse.success(payGatewayConfigResponse);
     }
 
