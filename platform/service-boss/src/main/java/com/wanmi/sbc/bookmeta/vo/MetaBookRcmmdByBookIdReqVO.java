@@ -33,7 +33,8 @@ public class MetaBookRcmmdByBookIdReqVO implements Serializable {
     /**
      * 适读对象
      */
-    private List<Integer> fitTargetIdList = new ArrayList<>();
+    //private List<Integer> fitTargetIdList = new ArrayList<>();
+    private List<FitTarget> fitTargets = new ArrayList<>();
     /**
      * 书中提到人物
      */
@@ -93,6 +94,11 @@ public class MetaBookRcmmdByBookIdReqVO implements Serializable {
          * 描述信息：推荐语、获奖理由
          */
         private String descr;
+    }
+    @Data
+    public static class FitTarget {
+        private Integer id;
+        private String name;
     }
 }
 

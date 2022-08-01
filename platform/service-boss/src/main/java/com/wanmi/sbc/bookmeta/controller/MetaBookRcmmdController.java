@@ -170,7 +170,7 @@ public class MetaBookRcmmdController {
         editBO.setBookRcmmds(new ArrayList<>());
         editBO.setFitAgeMax(editReqVO.getFitAgeMax());
         editBO.setFitAgeMin(editReqVO.getFitAgeMin());
-        editBO.setFitTargetIds(editReqVO.getFitTargetIdList());
+        editBO.setFitTargetIds(editReqVO.getFitTargets().stream().map(MetaBookRcmmdByBookIdReqVO.FitTarget::getId).distinct().collect(Collectors.toList()));
         List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> boList = editBO.getBookRcmmds();
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.AWARD.getCode(), editReqVO.getAwardList(), boList);
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.EDITOR.getCode(), editReqVO.getEditorList(), boList);
