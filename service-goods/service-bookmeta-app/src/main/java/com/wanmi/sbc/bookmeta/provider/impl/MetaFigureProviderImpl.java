@@ -107,6 +107,7 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
     public BusinessResponse<List<MetaFigureBO>> queryByPage(@Valid MetaFigureQueryByPageReqBO pageRequest) {
         Example example = new Example(MetaFigure.class);
         Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("delFlag", 0);
         if (pageRequest.getType() != null) {
             criteria.andEqualTo("type", pageRequest.getType());
         }
