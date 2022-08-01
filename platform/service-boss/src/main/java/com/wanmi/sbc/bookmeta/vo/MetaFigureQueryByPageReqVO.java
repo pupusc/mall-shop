@@ -2,8 +2,8 @@ package com.wanmi.sbc.bookmeta.vo;
 
 import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
-import lombok.NonNull;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -20,7 +20,7 @@ public class MetaFigureQueryByPageReqVO implements Serializable {
     /**
      * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
      */
-    @NonNull
+    @NotNull
     private Integer type;
     /**
      * 名称
