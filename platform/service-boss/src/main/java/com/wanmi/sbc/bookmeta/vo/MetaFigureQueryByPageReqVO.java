@@ -15,8 +15,7 @@ import java.util.Date;
  */
 @Data
 public class MetaFigureQueryByPageReqVO implements Serializable {
-    private static final long serialVersionUID = -60820779973927756L;
-    
+
     private Integer id;
     /**
      * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；

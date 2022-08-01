@@ -32,6 +32,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -135,16 +136,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "图书分区新增失败");
         }
         //分区关联图书
-        if (CollectionUtils.isNotEmpty(metaZone.getBooks())) {
-            List<MetaZoneBook> books = new ArrayList<>();
-            for (Integer bookId : metaZone.getBooks()) {
-                MetaZoneBook book = new MetaZoneBook();
-                book.setZoneId(oprateDTO.getId());
-                book.setBookId(bookId);
-                books.add(book);
-            }
-            this.metaZoneBookMapper.insertBatch(books);
-        }
+        insertMetaZoneBook(oprateDTO.getId(), metaZone.getBooks());
         return BusinessResponse.success(oprateDTO.getId());
     }
 
@@ -154,6 +146,7 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
      * @param metaZone 实例对象
      * @return 实例对象
      */
+    @Transactional
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaZoneEditReqBO metaZone) {
         //更新主题
@@ -167,17 +160,26 @@ public class MetaZoneProviderImpl implements MetaZoneProvider {
         MetaZoneBook deleteBook = new MetaZoneBook();
         deleteBook.setZoneId(metaZone.getId());
         this.metaZoneBookMapper.delete(deleteBook);
-        if (CollectionUtils.isNotEmpty(metaZone.getBooks())) {
-            List<MetaZoneBook> books = new ArrayList<>();
-            for (Integer bookId : metaZone.getBooks()) {
-                MetaZoneBook book = new MetaZoneBook();
-                book.setZoneId(oprateDTO.getId());
-                book.setBookId(bookId);
-                books.add(book);
-            }
-            this.metaZoneBookMapper.insertBatch(books);
-        }
+        insertMetaZoneBook(oprateDTO.getId(), metaZone.getBooks());
         return BusinessResponse.success(true);
+    }
+
+    private void insertMetaZoneBook(Integer zoneId, List<Integer> bookIds) {
+        if (CollectionUtils.isEmpty(bookIds)) {
+            return;
+        }
+        Date now = new Date();
+        List<MetaZoneBook> books = new ArrayList<>();
+        for (Integer bookId : bookIds) {
+            MetaZoneBook book = new MetaZoneBook();
+            book.setZoneId(zoneId);
+            book.setBookId(bookId);
+            book.setDelFlag(0);
+            book.setCreateTime(now);
+            book.setUpdateTime(now);
+            books.add(book);
+        }
+        this.metaZoneBookMapper.insertBatch(books);
     }
 
     /**
