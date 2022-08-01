@@ -165,13 +165,22 @@ public class WxPayController implements WxPayProvider {
      */
     @Override
     public BaseResponse<Map<String,String>> wxPayForLittleProgram(@RequestBody WxPayForJSApiRequest jsApiRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,jsApiRequest.getStoreId());
-        wxSignCommon(jsApiRequest, payGatewayConfig);
+        // 获取网关
+        List<PayGateway> gateways = gatewayRepository.queryByNameAndStoreId(PayGatewayEnum.WECHAT,jsApiRequest.getStoreId(), IsOpen.YES);
+        log.info("WxPayController wxPayForLittleProgram storeId:{} result:{}", jsApiRequest.getStoreId(), JSON.toJSONString(gateways));
+
+        if (CollectionUtils.isEmpty(gateways)) {
+            throw new SbcRuntimeException("K-999999", "获取微信小程序支付网关失败");
+        }
+
+        PayGateway payGateway = gateways.get(0);
+        PayValidates.verifyGateway(payGateway);
+        wxSignCommon(jsApiRequest, payGateway.getConfig());
         log.info("小程序支付[JSApi]统一下单接口入参:{}", jsApiRequest);
         //调用统一下单接口
         WxPayForJSApiResponse response = wxPayService.wxPayForJSApi(jsApiRequest);
         if("SUCCESS".equals(response.getReturn_code()) && "SUCCESS".equals(response.getResult_code())){
-            return getSignResultCommon(jsApiRequest.getAppid(), payGatewayConfig.getApiKey(), response.getPrepay_id());
+            return getSignResultCommon(jsApiRequest.getAppid(), payGateway.getConfig().getApiKey(), response.getPrepay_id());
         }
         log.error("小程序支付[小程序]统一下单接口调用失败,入参:{},返回结果为:{}", jsApiRequest, response);
         this.throwErrMsg(response.getErr_code(), response.getErr_code_des());

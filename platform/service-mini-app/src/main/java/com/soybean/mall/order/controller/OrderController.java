@@ -411,7 +411,7 @@ public class OrderController {
             if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
                 //生成预支付订单
                 WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
-                req.setAppid(appId);
+                req.setAppid(appId);//作废
                 BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
                 if(prepayResult == null || prepayResult.getContext().isEmpty()){
                     return wxOrderPaymentVO;
