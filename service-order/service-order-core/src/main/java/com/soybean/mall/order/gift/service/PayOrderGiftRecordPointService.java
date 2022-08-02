@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -98,7 +99,8 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.UN_BACK_POINT_AFTER_PAY.getCode()));
         GoodsBlackListPageProviderResponse context = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
-        return context.getUnBackPointAfterPayBlackListModel().getNormalList();
+        List<String> normalList = context.getUnBackPointAfterPayBlackListModel().getNormalList();
+        return CollectionUtils.isEmpty(normalList) ? new ArrayList<>() : normalList;
     }
 
     @Override
