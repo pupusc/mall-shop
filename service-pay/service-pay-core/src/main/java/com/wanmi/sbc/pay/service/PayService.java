@@ -2,6 +2,7 @@ package com.wanmi.sbc.pay.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.wanmi.sbc.common.constant.ErrorCodeConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -35,6 +36,7 @@ import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -199,7 +201,7 @@ public class PayService {
 
         Long storeId = request.getStoreId();
         request.setStoreId(storeId);
-        PayChannelItem item = getPayChannelItem(payRecord.getChannelItemId(),storeId);
+        PayChannelItem item = getPayChannelItemNew(payRecord.getAppId(),storeId);
         log.info("PayService refund payRecord :{} item: {}", JSON.toJSONString(payRecord), JSON.toJSONString(item));
         if (payRecord.getChannelItemId().equals(11L)) {
             //银联企业支付退款
@@ -752,6 +754,22 @@ public class PayService {
         item.setGateway(gateway);
         return item;
     }
+
+    private PayChannelItem getPayChannelItemNew(String appId,Long storeId) {
+        List<PayChannelItem> items = channelItemRepository.findPayChannelItemByAppIdStoreId(appId, storeId);
+        if (CollectionUtils.isEmpty(items)) {
+            log.error("PayService getPayChannelItemNew appId:{} storeId:{} 对应的支付渠道为空 ", appId, storeId);
+            throw new SbcRuntimeException("K-999999", "appid和storeId对应的支付渠道信息不存在");
+        }
+        PayChannelItem payChannelItem = items.get(0);
+        PayValidates.verfiyPayChannelItem(payChannelItem);
+//        // 获取网关
+//        PayGateway gateway = gatewayRepository.queryByNameAndStoreId(payChannelItem.getGatewayName(),storeId);
+//        item.setGateway(gateway);
+        return payChannelItem;
+    }
+
+
 
     private void savePayRecord(PayRequest request, PayResult result) {
         PayTradeRecord record = new PayTradeRecord();
