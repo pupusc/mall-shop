@@ -6,7 +6,10 @@ import com.soybean.mall.order.api.provider.order.OrderConfigProvider;
 import com.soybean.mall.order.api.provider.order.PayOrderGiftRecordProvider;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.api.request.record.OrderGiftRecordMqReq;
+import com.soybean.mall.order.api.request.record.OrderGiftRecordSearchReq;
+import com.soybean.mall.order.api.response.record.OrderGiftRecordResp;
 import com.soybean.mall.order.config.OrderConfigProperties;
+import com.soybean.mall.order.gift.model.OrderGiftRecord;
 import com.soybean.mall.order.gift.service.PayOrderGiftRecordPointService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.trade.model.entity.value.Pay;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,4 +66,8 @@ public class PayOrderGiftRecordController implements PayOrderGiftRecordProvider 
 //    }
 
 
+    @Override
+    public BaseResponse<List<OrderGiftRecordResp>> listNoPage(OrderGiftRecordSearchReq req) {
+        return BaseResponse.success(payOrderGiftRecordPointService.listNoPage(req));
+    }
 }

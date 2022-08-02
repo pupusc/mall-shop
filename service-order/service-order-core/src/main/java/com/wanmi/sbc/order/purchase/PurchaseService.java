@@ -2,6 +2,10 @@ package com.wanmi.sbc.order.purchase;
 import com.google.common.collect.Lists;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.mall.order.api.provider.order.PayOrderGiftRecordProvider;
+import com.soybean.mall.order.api.request.record.OrderGiftRecordSearchReq;
+import com.soybean.mall.order.api.response.record.OrderGiftRecordResp;
+import com.soybean.marketing.api.enums.ActivityCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
@@ -150,6 +154,7 @@ import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingHalfPriceSecondPieceLevelVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
+import com.wanmi.sbc.order.api.enums.RecordStateEnum;
 import com.wanmi.sbc.order.api.enums.ShopCartSourceEnum;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontMiniRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontRequest;
@@ -334,6 +339,9 @@ public class PurchaseService {
     private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
     @Autowired
     private ExternalProvider externalProvider;
+
+    @Autowired
+    private PayOrderGiftRecordProvider payOrderGiftRecordProvider;
 
     /**
      * 新增采购单
@@ -2642,14 +2650,39 @@ public class PurchaseService {
 
         Map<String, SkuNormalActivityResp> skuId2NormalActivityMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(goodsIds)) {
+            String customerId = customer == null ? "" : customer.getCustomerId();
             SpuNormalActivityReq spuNormalActivityReq = new SpuNormalActivityReq();
             spuNormalActivityReq.setSpuIds(goodsIds);
             spuNormalActivityReq.setStatus(StateEnum.RUNNING.getCode());
             spuNormalActivityReq.setPublishState(PublishState.ENABLE.toValue());
             spuNormalActivityReq.setChannelTypes(Collections.singletonList(request.getChannelType()));
-            spuNormalActivityReq.setCustomerId(customer == null ? "" : customer.getCustomerId());
+            spuNormalActivityReq.setCustomerId(customerId);
             List<SkuNormalActivityResp> skuNormalActivityResps = normalActivityPointSkuProvider.listSpuRunningNormalActivity(spuNormalActivityReq).getContext();
+
+            //获取已经返还积分的商品列表
+            Map<String, OrderGiftRecordResp> activityIdSkuId2RecordMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(skuNormalActivityResps) && StringUtils.isNotBlank(customerId)) {
+                List<String> activityIds = skuNormalActivityResps.stream().map(ex -> String.valueOf(ex.getNormalActivityId())).distinct().collect(Collectors.toList());
+                List<String> activitySkuIds = skuNormalActivityResps.stream().map(SkuNormalActivityResp::getSkuId).distinct().collect(Collectors.toList());
+
+                OrderGiftRecordSearchReq orderGiftRecordSearchReq = new OrderGiftRecordSearchReq();
+                orderGiftRecordSearchReq.setCustomerId(customerId);
+                orderGiftRecordSearchReq.setRecordCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+                orderGiftRecordSearchReq.setActivityIds(activityIds);
+                orderGiftRecordSearchReq.setRecordStatus(Arrays.asList(RecordStateEnum.LOCK.getCode(), RecordStateEnum.SUCCESS.getCode()));
+                orderGiftRecordSearchReq.setQuoteIds(activitySkuIds);
+                List<OrderGiftRecordResp> orderGiftRecordResps = payOrderGiftRecordProvider.listNoPage(orderGiftRecordSearchReq).getContext();
+                for (OrderGiftRecordResp orderGiftRecordResp : orderGiftRecordResps) {
+                    String key = orderGiftRecordResp.getActivityId() + "_" + orderGiftRecordResp.getQuoteId();
+                    activityIdSkuId2RecordMap.put(key, orderGiftRecordResp);
+                }
+            }
+
             for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
+                String key = skuNormalActivityRespParam.getSkuId() + "_" + skuNormalActivityRespParam.getSkuId();
+                if (activityIdSkuId2RecordMap.get(key) != null) {
+                    continue;
+                }
                 skuId2NormalActivityMap.put(skuNormalActivityRespParam.getSkuId(), skuNormalActivityRespParam);
             }
         }
