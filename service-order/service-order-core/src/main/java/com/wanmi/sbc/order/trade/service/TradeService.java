@@ -1810,9 +1810,9 @@ public class TradeService {
                 GoodsPackDetailResponse mainGoodsPackDetailTmp = null;
                 for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
                     if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
-                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,2, RoundingMode.HALF_UP);
-                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
-                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
+                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,2, RoundingMode.DOWN);
+                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.DOWN);
+                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.DOWN);
 
                         surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
                         surplusPoint = surplusPoint.subtract(pointsTmp);
@@ -1836,7 +1836,7 @@ public class TradeService {
                         }
 
                         BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
-                        tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
+                        tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.DOWN));
                         tradeItem.setPackId(goodsPackDetailTmp.getPackId());
                         tradeItemListTmp.add(tradeItem); // add1
                         log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItem.getSpuId(), tradeItem.getPackId());
@@ -1851,15 +1851,15 @@ public class TradeService {
                 tradeItemParam.setKnowledge(surplusKnowledge.longValue());
 
                 if (tradeItemParam.getPoints() > 0) {
-                    tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100")));
+                    tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100"), 2, RoundingMode.DOWN));
                 } else if (tradeItemParam.getKnowledge() > 0) {
-                    tradeItemParam.setPointsPrice(surplusKnowledge.divide(new BigDecimal("100")));
+                    tradeItemParam.setPointsPrice(surplusKnowledge.divide(new BigDecimal("100"), 2, RoundingMode.DOWN));
                 } else {
                     tradeItemParam.setPointsPrice(BigDecimal.ZERO);
                 }
 
                 BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
-                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));  //此处计算不正确
+                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.DOWN));  //此处计算不正确
                 tradeItemParam.setPackId(mainGoodsPackDetailTmp == null ? tradeItemParam.getSpuId() : mainGoodsPackDetailTmp.getPackId());
 
                 log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItemParam.getSpuId(), tradeItemParam.getPackId());
