@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
+ * 作废7月29日 by duanlsh
  * 定时任务Handler
  * 根据分销设置的奖励规则补发邀请奖励
  */

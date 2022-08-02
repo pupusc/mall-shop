@@ -2,6 +2,7 @@ package com.wanmi.sbc.callback.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.common.enums.PayAccountEnums;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
@@ -173,6 +174,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         payTradeRecordRequest.setChannelItemId(channelId);
         payTradeRecordRequest.setApplyPrice(returnOrderVO.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payTradeRecordRequest.setPracticalPrice(tradeVO.getTradePrice().getTotalPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+        payTradeRecordRequest.setAppId(PayAccountEnums.WX_MINI_PROGRAM_VIDEO.getCode());
         payProvider.wxPayCallBack(payTradeRecordRequest);
         BaseResponse baseResponse = returnOrderProvider.onlineRefund(
                 ReturnOrderOnlineRefundRequest.builder().operator(operator)

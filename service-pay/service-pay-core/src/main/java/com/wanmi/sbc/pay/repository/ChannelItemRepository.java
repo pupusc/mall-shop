@@ -21,4 +21,9 @@ public interface ChannelItemRepository extends JpaRepository<PayChannelItem, Lon
 
     @Query("select p from PayChannelItem p where p.gatewayName = ?1 and p.isOpen = 1 and p.terminal = ?2 and p.id > 0")
     List<PayChannelItem> findOpenItemByGatewayName(PayGatewayEnum gatewayName, TerminalType terminalType);
+
+
+
+    @Query("select p from PayChannelItem p where p.gateway.config.appId = ?1 and p.gateway.storeId = ?2")
+    List<PayChannelItem> findPayChannelItemByAppIdStoreId(String appId, Long storeId);
 }
