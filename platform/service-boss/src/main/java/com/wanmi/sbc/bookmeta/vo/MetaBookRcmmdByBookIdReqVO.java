@@ -15,7 +15,7 @@ import java.util.List;
  * @since 2022-05-16 11:48:33
  */
 @Data
-public class MetaBookRcmmdByBookIdVO implements Serializable {
+public class MetaBookRcmmdByBookIdReqVO implements Serializable {
     private static final long serialVersionUID = -44306547516009484L;
     /**
      * 书籍id
@@ -31,9 +31,14 @@ public class MetaBookRcmmdByBookIdVO implements Serializable {
      */
     private Integer fitAgeMax;
     /**
-     * 适读对象id
+     * 适读对象
      */
-    private List<Integer> fitTargetIdList = new ArrayList<>();
+    //private List<Integer> fitTargetIdList = new ArrayList<>();
+    private List<FitTarget> fitTargets = new ArrayList<>();
+    /**
+     * 书中提到人物
+     */
+    private List<MetaBookRcmmdVO> mentionList = new ArrayList<>();
     /**
      * 奖项推荐
      */
@@ -64,7 +69,7 @@ public class MetaBookRcmmdByBookIdVO implements Serializable {
     private List<MetaBookRcmmdVO> draftList = new ArrayList<>();
 
     @Data
-    public static class MetaBookRcmmdVO {
+    public static class  MetaBookRcmmdVO {
         /**
          * 主键id
          */
@@ -89,6 +94,11 @@ public class MetaBookRcmmdByBookIdVO implements Serializable {
          * 描述信息：推荐语、获奖理由
          */
         private String descr;
+    }
+    @Data
+    public static class FitTarget {
+        private Integer id;
+        private String name;
     }
 }
 

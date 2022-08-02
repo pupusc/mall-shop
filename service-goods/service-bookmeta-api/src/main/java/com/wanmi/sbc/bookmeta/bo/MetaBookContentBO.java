@@ -1,8 +1,9 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 书籍内容描述(MetaBookContent)实体类
@@ -27,6 +28,10 @@ public class MetaBookContentBO implements Serializable {
      * 关联的人物
      */     
     private Integer figureId;
+    /**
+     * 关联的人物名称
+     */
+    private String figureName;
     /**
      * 内容
      */     

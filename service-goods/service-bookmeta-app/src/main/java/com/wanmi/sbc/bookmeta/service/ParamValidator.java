@@ -23,7 +23,7 @@ public class ParamValidator {
         }
         int count = mapper.selectCountByExample(example);
         if (count > 0) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, propName + "属性已经存在");
+            throw new SbcRuntimeException(CommonErrorCode.DATA_HAS_EXISTS, propName + "属性已经存在");
         }
     }
 }

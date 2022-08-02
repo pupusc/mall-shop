@@ -27,6 +27,10 @@ public class MetaFigureAddReqVO implements Serializable {
      */
     private String name;
     /**
+     * 是否验证重名：true验证；false不验证（默认）；
+     */
+    private boolean checkName;
+    /**
      * 外文名
      */
     private String englishName;

@@ -19,6 +19,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
+import com.wanmi.sbc.bookmeta.service.MetaBookInfoParam;
+import com.wanmi.sbc.bookmeta.service.MetaBookInfoResult;
 import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.bookmeta.service.MetaLabelService;
@@ -268,12 +270,32 @@ public class MetaBookProviderImpl implements MetaBookProvider {
 
     @Override
     public BusinessResponse<MetaBookQueryPublishInfoResBO> queryPublishInfo(Integer id) {
-        MetaBook metaBook = this.metaBookMapper.queryById(id);
-        if (metaBook == null) {
-            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        MetaBookInfoParam param = new MetaBookInfoParam();
+        param.setId(id);
+        param.setQueryBookClump(true); //查询丛书信息
+        param.setQueryPublisher(true); //查询出版社
+        param.setQueryProducer(true); //查询出品方
+        MetaBookInfoResult packInfo = this.metaBookService.getPackInfoById(param);
+
+        if (packInfo == null) {
+            return BusinessResponse.success(null);
         }
+
         MetaBookQueryPublishInfoResBO resultBO = new MetaBookQueryPublishInfoResBO();
-        BeanUtils.copyProperties(metaBook, resultBO);
+        BeanUtils.copyProperties(packInfo, resultBO);
+        //丛书名称
+        if (packInfo.getMetaBookClump() != null) {
+            resultBO.setBookClumpName(packInfo.getMetaBookClump().getName());
+        }
+        //出版社名称
+        if (packInfo.getPublisher() != null) {
+            resultBO.setPublisherName(packInfo.getPublisher().getName());
+        }
+        //出品方名称
+        if (packInfo.getProducer() != null) {
+            resultBO.setProducerName(packInfo.getProducer().getName());
+        }
+
         return BusinessResponse.success(resultBO);
     }
 

@@ -1,11 +1,11 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import lombok.Data;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.io.Serializable;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * 丛书(MetaBookClump)实体类
@@ -22,6 +22,10 @@ public class MetaBookClumpQueryByIdResVO implements Serializable {
      * 出版社id
      */
     private Integer publisherId;
+    /**
+     * 出版社名称
+     */
+    private String publisherName;
     /**
      * 名称
      */

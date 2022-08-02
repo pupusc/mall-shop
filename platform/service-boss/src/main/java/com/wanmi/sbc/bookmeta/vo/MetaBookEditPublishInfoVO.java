@@ -21,9 +21,17 @@ public class MetaBookEditPublishInfoVO implements Serializable {
      */
     private Integer publisherId;
     /**
+     * 出版社名称
+     */
+    private String publisherName;
+    /**
      * 出品方
      */
     private Integer producerId;
+    /**
+     * 出品方名称
+     */
+    private String producerName;
     /**
      * 数组
      */
@@ -92,6 +100,10 @@ public class MetaBookEditPublishInfoVO implements Serializable {
      * 丛书id
      */
     private Integer bookClumpId;
+    /**
+     * 丛书名称
+     */
+    private String bookClumpName;
     /**
      * 书组说明
      */

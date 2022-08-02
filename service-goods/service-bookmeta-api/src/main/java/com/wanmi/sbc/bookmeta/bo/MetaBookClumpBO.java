@@ -2,7 +2,6 @@ package com.wanmi.sbc.bookmeta.bo;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -21,6 +20,10 @@ public class MetaBookClumpBO implements Serializable {
      * 出版社id
      */     
     private Integer publisherId;
+    /**
+     * 出版社名称
+     */
+    private String publisherName;
     /**
      * 名称
      */     
