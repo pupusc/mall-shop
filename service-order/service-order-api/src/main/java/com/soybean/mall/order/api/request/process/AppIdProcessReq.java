@@ -20,4 +20,6 @@ public class AppIdProcessReq {
     private Long maxId;
 
     private int size = 100;
+
+    private String businessId;
 }

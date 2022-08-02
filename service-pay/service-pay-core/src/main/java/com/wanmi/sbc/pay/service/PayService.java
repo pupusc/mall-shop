@@ -244,6 +244,7 @@ public class PayService {
                 //更新记录
                 data.setChargeId(request.getRefundBusinessId());
                 data.setTradeNo(refundResponse.getTradeNo());
+                data.setAppId(refundResponse.getOpenId());
                 data.setFinishTime(LocalDateTime.now());
                 data.setStatus(TradeStatus.SUCCEED);
                 data.setCallbackTime(LocalDateTime.now());
@@ -758,6 +759,8 @@ public class PayService {
     private PayChannelItem getPayChannelItemNew(String appId,Long storeId) {
         List<PayChannelItem> items = channelItemRepository.findPayChannelItemByAppIdStoreId(appId, storeId);
         if (CollectionUtils.isEmpty(items)) {
+            //兼容原来的功能
+
             log.error("PayService getPayChannelItemNew appId:{} storeId:{} 对应的支付渠道为空 ", appId, storeId);
             throw new SbcRuntimeException("K-999999", "appid和storeId对应的支付渠道信息不存在");
         }

@@ -17,4 +17,13 @@ public interface ProcessDateProvider {
      */
     @PostMapping("/order/${application.order.version}/process/appId")
     BaseResponse processAppId(@RequestBody AppIdProcessReq appIdProcessReq);
+
+
+    /**
+     *  根据businessId获取
+     * @param appIdProcessReq
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/process/appId/businessId")
+    BaseResponse processAppIdByBusinessId(@RequestBody AppIdProcessReq appIdProcessReq);
 }
