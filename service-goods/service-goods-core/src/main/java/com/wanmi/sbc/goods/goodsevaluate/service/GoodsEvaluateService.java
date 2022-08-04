@@ -4,7 +4,12 @@ import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateEditRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateCountRequset;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateQueryRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.EvaluateImgUpdateIsShowReq;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageQueryRequest;
 import com.wanmi.sbc.goods.api.request.goodstobeevaluate.GoodsTobeEvaluateQueryRequest;
@@ -19,18 +24,15 @@ import com.wanmi.sbc.goods.goodstobeevaluate.model.root.GoodsTobeEvaluate;
 import com.wanmi.sbc.goods.goodstobeevaluate.repository.GoodsTobeEvaluateRepository;
 import com.wanmi.sbc.goods.goodstobeevaluate.service.GoodsTobeEvaluateWhereCriteriaBuilder;
 import com.wanmi.sbc.goods.images.service.GoodsImageService;
-import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.info.reponse.GoodsInfoEditResponse;
-import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.info.reponse.GoodsInfoEditResponse;
 import com.wanmi.sbc.goods.info.service.GoodsInfoService;
+import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.mq.GoodsEvaluateNumMqService;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -254,9 +257,25 @@ public class GoodsEvaluateService {
      * @author liutao
      */
     public Page<GoodsEvaluate> page(GoodsEvaluateQueryRequest queryReq) {
-        return goodsEvaluateRepository.findAll(
+        Page<GoodsEvaluate> result = goodsEvaluateRepository.findAll(
                 GoodsEvaluateWhereCriteriaBuilder.build(queryReq),
                 queryReq.getPageRequest());
+
+        if (CollectionUtils.isEmpty(result.getContent())) {
+            return result;
+        }
+
+        //填充图片
+        List<GoodsEvaluate> evaluates = result.getContent();
+        List<GoodsEvaluateImage> images = goodsEvaluateImageService.getByEvaluateIds(evaluates.stream().map(GoodsEvaluate::getEvaluateId).collect(Collectors.toList()));
+        Map<String, List<GoodsEvaluateImage>> imageM = images.stream().collect(Collectors.groupingBy(GoodsEvaluateImage::getEvaluateId));
+        for (GoodsEvaluate evaluate : evaluates) {
+            if (imageM.containsKey(evaluate.getEvaluateId())) {
+                evaluate.setGoodsEvaluateImages(imageM.get(evaluate.getEvaluateId()));
+            }
+        }
+        
+        return result;
     }
 
     /**
