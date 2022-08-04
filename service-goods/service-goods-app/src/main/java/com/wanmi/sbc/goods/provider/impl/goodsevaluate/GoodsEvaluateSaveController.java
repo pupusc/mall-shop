@@ -1,9 +1,17 @@
 package com.wanmi.sbc.goods.provider.impl.goodsevaluate;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.IPUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateSaveProvider;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateEditRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAddListRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAddRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateDelByIdListRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateDelByIdRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateModifyRequest;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateAddResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateAnswerResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateModifyResponse;
@@ -41,6 +49,7 @@ public class GoodsEvaluateSaveController implements GoodsEvaluateSaveProvider {
 	public BaseResponse<GoodsEvaluateAddResponse> add(@RequestBody @Valid GoodsEvaluateAddRequest goodsEvaluateAddRequest) {
 		GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
 		KsBeanUtil.copyPropertiesThird(goodsEvaluateAddRequest, goodsEvaluate);
+		goodsEvaluate.setClientPlace(IPUtils.getIpPlace(goodsEvaluate.getClientIp()));
 		return BaseResponse.success(new GoodsEvaluateAddResponse(
 				goodsEvaluateService.wrapperVo(goodsEvaluateService.add(goodsEvaluate))));
 	}
@@ -63,6 +72,7 @@ public class GoodsEvaluateSaveController implements GoodsEvaluateSaveProvider {
 		goodsEvaluateAddListRequest.getGoodsEvaluateAddList().forEach(goodsEvaluateAddRequest -> {
 			GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
 			KsBeanUtil.copyPropertiesThird(goodsEvaluateAddRequest, goodsEvaluate);
+			goodsEvaluate.setClientPlace(IPUtils.getIpPlace(goodsEvaluate.getClientIp()));
 			goodsEvaluateList.add(goodsEvaluate);
 		});
 		goodsEvaluateService.addList(goodsEvaluateList);
@@ -73,6 +83,7 @@ public class GoodsEvaluateSaveController implements GoodsEvaluateSaveProvider {
 	public BaseResponse<GoodsEvaluateModifyResponse> modify(@RequestBody @Valid GoodsEvaluateModifyRequest goodsEvaluateModifyRequest) {
 		GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
 		KsBeanUtil.copyPropertiesThird(goodsEvaluateModifyRequest, goodsEvaluate);
+		goodsEvaluate.setClientPlace(IPUtils.getIpPlace(goodsEvaluate.getClientIp()));
 		return BaseResponse.success(new GoodsEvaluateModifyResponse(
 				goodsEvaluateService.wrapperVo(goodsEvaluateService.modify(goodsEvaluate))));
 	}
