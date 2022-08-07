@@ -765,7 +765,9 @@ public class PayService {
             throw new SbcRuntimeException("K-999999", "appid和storeId对应的支付渠道信息不存在");
         }
         PayChannelItem payChannelItem = items.get(0);
-        PayValidates.verfiyPayChannelItem(payChannelItem);
+        if(Objects.isNull(payChannelItem)){
+            throw new SbcRuntimeException("K-100001");
+        }
 //        // 获取网关
 //        PayGateway gateway = gatewayRepository.queryByNameAndStoreId(payChannelItem.getGatewayName(),storeId);
 //        item.setGateway(gateway);
