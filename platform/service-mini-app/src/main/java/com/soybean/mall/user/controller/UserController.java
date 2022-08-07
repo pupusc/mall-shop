@@ -3,12 +3,18 @@ package com.soybean.mall.user.controller;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.common.LoginResponse;
 import com.soybean.mall.user.mq.WebBaseProducerService;
+import com.soybean.mall.wx.mini.user.bean.request.WxGetOpenIdReq;
+import com.soybean.mall.wx.mini.user.bean.request.WxGetPhoneOldReq;
+import com.soybean.mall.wx.mini.user.bean.request.WxGetPhoneReq;
 import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest;
 import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
+import com.soybean.mall.wx.mini.user.bean.response.WxUserOpenIdResp;
+import com.soybean.mall.wx.mini.user.bean.response.WxUserPhoneResp;
 import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -89,51 +95,112 @@ public class UserController {
     @RequestMapping(value = "/wxAuthLogin", method = RequestMethod.POST)
 //    @MultiSubmit
 //    @GlobalTransactional
-    public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest) {
-        String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
-        wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
-        BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+    public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest request) {
 
-        if (StringUtils.isBlank(phoneAndOpenid.getContext().getPhoneNumber())) {
+        //重新获取 openId和unionId
+        WxGetOpenIdReq wxGetOpenIdReq = new WxGetOpenIdReq();
+        wxGetOpenIdReq.setCodeForOpenid(request.getCodeForOpenid());
+        WxUserOpenIdResp wxUserOpenIdResp = wxUserApiController.getOpenid(wxGetOpenIdReq).getContext();
+        if (StringUtils.isBlank(wxUserOpenIdResp.getOpenId()) || StringUtils.isBlank(wxUserOpenIdResp.getUnionId())) {
+            throw new SbcRuntimeException("K-220001", "微信授权失败");
+        }
+
+        WxUserPhoneResp context = null;
+        if (StringUtils.isNotBlank(request.getCodeForPhone())) {
+            WxGetPhoneReq wxGetPhoneReq = new WxGetPhoneReq();
+            wxGetPhoneReq.setCodeForPhone(request.getCodeForPhone());
+            context = wxUserApiController.getPhoneNumber(wxGetPhoneReq).getContext();
+        } else if (StringUtils.isNotBlank(request.getEncryptedData()) && StringUtils.isNotBlank(request.getIv()) && StringUtils.isNotBlank(wxUserOpenIdResp.getSessionKey())) {
+            WxGetPhoneOldReq wxGetPhoneOldReq = new WxGetPhoneOldReq();
+            wxGetPhoneOldReq.setEncryptedData(request.getEncryptedData());
+            wxGetPhoneOldReq.setIv(request.getIv());
+            wxGetPhoneOldReq.setSessionKey(wxUserOpenIdResp.getSessionKey());
+            context = wxUserApiController.getPhoneNumberOld(wxGetPhoneOldReq).getContext();
+        }
+
+        if (context == null || StringUtils.isBlank(context.getPhoneNumber())) {
             throw new SbcRuntimeException("K-220001", "微信授权电话获取失败");
         }
 
+
+        //获取客户信息
         NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
-        accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
+        accountRequest.setCustomerAccount(context.getPhoneNumber());
         NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
 
-        String openId, unionId;
-        boolean newUser = false;
-        if(newCustomerVO == null){
-            //如果是新用户，就调微信接口获取opeid
-            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
-            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
-            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
-            unionId = phoneAndOpenid2.getContext().getUnionId();
-            openId = phoneAndOpenid2.getContext().getOpenId();
-            newUser = true;
-        }else {
-            unionId = newCustomerVO.getWxMiniUnionId();
-            openId = newCustomerVO.getWxMiniOpenId();
+        //如果不是是新用户 暂时这里处理，后续梳理好逻辑则此处删除
+        if (newCustomerVO != null && (!Objects.equals(wxUserOpenIdResp.getOpenId(), newCustomerVO.getWxMiniOpenId())
+                                    || !Objects.equals(wxUserOpenIdResp.getUnionId(), newCustomerVO.getWxMiniUnionId()))) {
+            log.info("UserController wxAuthLogin customer hisOpenId:{} hisUnionId:{} openId:{} unionId:{}",
+                    newCustomerVO.getWxMiniOpenId(), newCustomerVO.getWxMiniUnionId(), wxUserOpenIdResp.getOpenId(), wxUserOpenIdResp.getUnionId());
+            BaseResponse baseResponse =
+                    customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), wxUserOpenIdResp.getOpenId(), wxUserOpenIdResp.getUnionId());
+            if (!Objects.equals(baseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                throw new SbcRuntimeException("K-220001", "更新用户信息失败");
+            }
         }
-        if(!newUser && (StringUtils.isBlank(openId) || StringUtils.isBlank(unionId))){
-            // 如果不是新用户，但是没有openid，先调微信获取，再保存到用户信息中
-            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
-            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
-            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
-            unionId = phoneAndOpenid2.getContext().getUnionId();
-            openId = phoneAndOpenid2.getContext().getOpenId();
-            customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
-        }
-        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
-                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).serviceType(101).build();
-        BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
-        LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
 
+        //从平台获取用户信息
+        FanDengWxAuthLoginRequest fanDengRequest = new FanDengWxAuthLoginRequest();
+        fanDengRequest.setOpenId(wxUserOpenIdResp.getOpenId());
+        fanDengRequest.setUnionId(wxUserOpenIdResp.getUnionId());
+        fanDengRequest.setAreaCode("+86");
+        fanDengRequest.setRegisterSource("IntegralMall");
+        fanDengRequest.setMobile(context.getPhoneNumber());
+        fanDengRequest.setServiceType(101);
+        FanDengWxAuthLoginResponse.WxAuthLoginData fandengAuthLoginData = externalProvider.wxAuthLogin(fanDengRequest).getContext();
+        LoginResponse loginResponse = afterWxAuthLogin(fandengAuthLoginData, context.getPhoneNumber(), wxUserOpenIdResp.getOpenId(), wxUserOpenIdResp.getUnionId());
         //会员信息
         loginResponse.setVipInfo(vipInfo(loginResponse.getCustomerId()));
 
         return BaseResponse.success(loginResponse);
+
+
+//        String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
+//
+//        wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
+//        BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+//
+//        if (StringUtils.isBlank(phoneAndOpenid.getContext().getPhoneNumber())) {
+//            throw new SbcRuntimeException("K-220001", "微信授权电话获取失败");
+//        }
+//
+//        NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
+//        accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
+//        NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
+//
+//        String openId, unionId;
+//        boolean newUser = false;
+//        if(newCustomerVO == null){
+//            //如果是新用户，就调微信接口获取opeid
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
+//            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+//            unionId = phoneAndOpenid2.getContext().getUnionId();
+//            openId = phoneAndOpenid2.getContext().getOpenId();
+//            newUser = true;
+//        }else {
+//            unionId = newCustomerVO.getWxMiniUnionId();
+//            openId = newCustomerVO.getWxMiniOpenId();
+//        }
+//        if(!newUser && (StringUtils.isBlank(openId) || StringUtils.isBlank(unionId))){
+//            // 如果不是新用户，但是没有openid，先调微信获取，再保存到用户信息中
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
+//            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+//            unionId = phoneAndOpenid2.getContext().getUnionId();
+//            openId = phoneAndOpenid2.getContext().getOpenId();
+//            customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
+//        }
+//        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
+//                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).serviceType(101).build();
+//        BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
+//        LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
+//
+//        //会员信息
+//        loginResponse.setVipInfo(vipInfo(loginResponse.getCustomerId()));
+//
+//        return BaseResponse.success(loginResponse);
     }
 
     private LoginResponse.VipInfo vipInfo(String customerId) {
