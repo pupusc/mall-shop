@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -66,7 +67,7 @@ public interface MetaBookRcmmdProvider {
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
 
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/queryByBookId")
-    BusinessResponse<MetaBookRcmmdByBookIdReqBO> queryByBookId(@RequestBody @NotNull Integer bookId);
+    BusinessResponse<MetaBookRcmmdByBookIdResBO> queryByBookId(@RequestBody @NotNull Integer bookId);
 
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/editByBookId")
     BusinessResponse<Boolean> editByBookId(@RequestBody MetaBookRcmmdByBookIdReqBO editBO);

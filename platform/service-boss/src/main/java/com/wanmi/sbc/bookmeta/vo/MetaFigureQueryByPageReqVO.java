@@ -1,9 +1,11 @@
 package com.wanmi.sbc.bookmeta.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 人物(MetaFigure)实体类
@@ -13,12 +15,12 @@ import lombok.Data;
  */
 @Data
 public class MetaFigureQueryByPageReqVO implements Serializable {
-    private static final long serialVersionUID = -60820779973927756L;
-    
+
     private Integer id;
     /**
      * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
      */
+    @NotNull
     private Integer type;
     /**
      * 名称

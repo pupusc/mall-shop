@@ -54,6 +54,10 @@ public class MetaBookContentByBookIdVO implements Serializable {
          */
         private Integer figureId;
         /**
+         * 关联的人物名称
+         */
+        private String figureName;
+        /**
          * 内容
          */
         private String content;

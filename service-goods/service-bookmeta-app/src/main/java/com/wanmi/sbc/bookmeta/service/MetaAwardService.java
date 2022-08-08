@@ -1,14 +1,19 @@
 package com.wanmi.sbc.bookmeta.service;
 
+import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
 import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaAwardMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureAwardMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Liang Jun
@@ -38,5 +43,15 @@ public class MetaAwardService {
         metaBookRcmmd.setBizType(BookRcmmdTypeEnum.AWARD.getCode());
         metaBookRcmmd.setBizId(id);
         this.metaBookRcmmdMapper.delete(metaBookRcmmd);
+    }
+
+    public List<MetaAward> listEntityByIds(List<Integer> awardIds) {
+        if (CollectionUtils.isEmpty(awardIds)) {
+            return Collections.EMPTY_LIST;
+        }
+
+        Example example = new Example(MetaAward.class);
+        example.createCriteria().andEqualTo("delFlag", 0).andIn("id", awardIds);
+        return this.metaAwardMapper.selectByExample(example);
     }
 }

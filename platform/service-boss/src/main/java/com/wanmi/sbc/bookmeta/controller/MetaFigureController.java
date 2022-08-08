@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +42,28 @@ public class MetaFigureController {
      */
     @Resource
     private MetaFigureProvider metaFigureProvider;
+
+    /**
+     * 人物-下拉框查询
+     *
+     * @param pageRequest 分页对象
+     * @return 查询结果
+     */
+    @PostMapping("downList")
+    public BusinessResponse<List<MetaFigureQueryByPageResVO>> downList(@RequestBody @Valid MetaFigureQueryByPageReqVO pageRequest) {
+        MetaFigureQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigureQueryByPageReqBO.class);
+
+        //打通人物=1作者/译者/绘画人/作序人；2编辑；3名家；
+        Integer type = pageReqBO.getType();
+        if (FigureTypeEnum.AUTHOR.getCode().equals(type) || FigureTypeEnum.EDITOR.getCode().equals(type) || FigureTypeEnum.FAMOUS.getCode().equals(type)) {
+            pageReqBO.setTypeIn(Arrays.asList(FigureTypeEnum.AUTHOR.getCode(), FigureTypeEnum.EDITOR.getCode(), FigureTypeEnum.FAMOUS.getCode()));
+            pageReqBO.setType(null);
+        }
+
+        BusinessResponse<List<MetaFigureBO>> list = this.metaFigureProvider.queryByPage(pageReqBO);
+        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
+    }
+
 
     /**
      * 人物-分页查询

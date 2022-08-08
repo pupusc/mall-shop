@@ -39,6 +39,12 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
     private List<MetaBookRcmmdBO> bookRcmmds = new ArrayList<>();
 
     @Data
+    public static class FitTarget {
+        private Integer id;
+        private String name;
+    }
+
+    @Data
     public static class MetaBookRcmmdBO {
         /**
          * 主键id

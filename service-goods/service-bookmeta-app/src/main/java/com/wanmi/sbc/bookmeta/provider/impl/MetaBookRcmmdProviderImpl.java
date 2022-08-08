@@ -3,7 +3,9 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
@@ -14,8 +16,8 @@ import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
+import com.wanmi.sbc.bookmeta.service.MetaAwardService;
 import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.bookmeta.service.MetaLabelService;
@@ -38,6 +40,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,8 +58,6 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
     @Resource
     private MetaBookLabelMapper metaBookLabelMapper;
     @Resource
-    private MetaLabelMapper metaLabelMapper;
-    @Resource
     private MetaBookMapper metaBookMapper;
     @Resource
     private MetaFigureService metaFigureService;
@@ -64,6 +65,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
     private MetaBookService metaBookService;
     @Resource
     private MetaLabelService metaLabelService;
+    @Resource
+    private MetaAwardService metaAwardService;
 
     /**
      * 通过ID查询单条数据
@@ -130,26 +133,27 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
     }
 
     @Override
-    public BusinessResponse<MetaBookRcmmdByBookIdReqBO> queryByBookId(Integer bookId) {
+    public BusinessResponse<MetaBookRcmmdByBookIdResBO> queryByBookId(Integer bookId) {
         MetaBook metaBook = metaBookMapper.queryById(bookId);
         if (metaBook == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
         }
 
-        MetaBookRcmmdByBookIdReqBO result = new MetaBookRcmmdByBookIdReqBO();
+        MetaBookRcmmdByBookIdResBO result = new MetaBookRcmmdByBookIdResBO();
         result.setBookId(bookId);
         //适读年龄
         result.setFitAgeMax(metaBook.getFitAgeMax());
         result.setFitAgeMin(metaBook.getFitAgeMin());
         //适读对象
-        result.setFitTargetIds(getEnableFitIdsByBookId(bookId));
+        //result.setFitTargetIds(getEnableFitIdsByBookId(bookId));
+        result.setFitTargets(getEnableFitsByBookId(bookId));
         //推荐信息
         MetaBookRcmmd queryBookRcmmd = new MetaBookRcmmd();
         queryBookRcmmd.setBookId(bookId);
         queryBookRcmmd.setDelFlag(0);
         List<MetaBookRcmmd> rcmmdDOs = this.metaBookRcmmdMapper.select(queryBookRcmmd);
-        List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> rcmmdBOs = rcmmdDOs.stream().map(item -> {
-            MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO rcmmdBO = new MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO();
+        List<MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO> rcmmdBOs = rcmmdDOs.stream().map(item -> {
+            MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO rcmmdBO = new MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO();
             BeanUtils.copyProperties(item, rcmmdBO);
             return rcmmdBO;
         }).collect(Collectors.toList());
@@ -197,16 +201,28 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         return BusinessResponse.success(true);
     }
 
-    private List<Integer> getEnableFitIdsByBookId(Integer bookId) {
+    private List<MetaBookRcmmdByBookIdResBO.FitTarget> getEnableFitsByBookId(Integer bookId) {
+        //书籍关联标签
         List<MetaBookLabel> bookLabels = getBookLabels(bookId);
         if (CollectionUtils.isEmpty(bookLabels)) {
             return Collections.EMPTY_LIST;
         }
+
         //适读对象标签
-        List<Integer> labelIds = metaLabelService.getFitTargetLabels().stream()
+        Map<Integer, MetaLabel> labelMap = metaLabelService.getFitTargetLabels().stream()
                 .filter(item-> LabelStatusEnum.ENABLE.getCode().equals(item.getStatus()))
-                .map(MetaLabel::getId).collect(Collectors.toList());
-        return bookLabels.stream().map(MetaBookLabel::getLabelId).filter(item->labelIds.contains(item)).collect(Collectors.toList());
+                .collect(Collectors.toMap(MetaLabel::getId, i->i, (a,b)->a));
+
+        List<MetaBookRcmmdByBookIdResBO.FitTarget> fitTargets = bookLabels.stream()
+                .map(item -> labelMap.get(item.getLabelId()))
+                .filter(Objects::nonNull).map(metaLabel-> {
+                    MetaBookRcmmdByBookIdResBO.FitTarget fitTarget = new MetaBookRcmmdByBookIdResBO.FitTarget();
+                    fitTarget.setId(metaLabel.getId());
+                    fitTarget.setName(metaLabel.getName());
+                    return fitTarget;
+                }).collect(Collectors.toList());
+
+        return fitTargets;
     }
 
     private void updateFitIdsByBookId(Integer bookId, List<Integer> fitTargetIds) {
@@ -253,15 +269,16 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         return metaBookLabelMapper.select(query);
     }
 
-    private void fillRcmmdName(List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> rcmmdBOs) {
+    private void fillRcmmdName(List<MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO> rcmmdBOs) {
         if (CollectionUtils.isEmpty(rcmmdBOs)) {
             return;
         }
-        List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> figureList = new ArrayList<>();
-        List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> bookList = new ArrayList<>();
-        for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO item : rcmmdBOs) {
+        List<MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO> awardList = new ArrayList<>();
+        List<MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO> figureList = new ArrayList<>();
+        List<MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO> bookList = new ArrayList<>();
+        for (MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO item : rcmmdBOs) {
             if (BookRcmmdTypeEnum.AWARD.getCode().equals(item.getBizType())) {
-                figureList.add(item);
+                awardList.add(item);
             } else if (BookRcmmdTypeEnum.EDITOR.getCode().equals(item.getBizType())) {
                 figureList.add(item);
             } else if (BookRcmmdTypeEnum.MEDIA.getCode().equals(item.getBizType())) {
@@ -269,6 +286,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
             } else if (BookRcmmdTypeEnum.ORGAN.getCode().equals(item.getBizType())) {
                 figureList.add(item);
             } else if (BookRcmmdTypeEnum.EXPERT.getCode().equals(item.getBizType())) {
+                figureList.add(item);
+            } else if (BookRcmmdTypeEnum.MENTION.getCode().equals(item.getBizType())) {
                 figureList.add(item);
             } else if (BookRcmmdTypeEnum.QUOTE.getCode().equals(item.getBizType())) {
                 bookList.add(item);
@@ -278,10 +297,19 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());
             }
         }
+        if (!awardList.isEmpty()) {
+            List<Integer> awardIds = awardList.stream().map(item -> item.getBizId()).distinct().collect(Collectors.toList());
+            Map<Integer, MetaAward> awardMap = this.metaAwardService.listEntityByIds(awardIds).stream().collect(Collectors.toMap(MetaAward::getId, item -> item, (a, b) -> a));
+            for (MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO rcmmdBO : awardList) {
+                if (awardMap.get(rcmmdBO.getBizId()) != null) {
+                    rcmmdBO.setName(awardMap.get(rcmmdBO.getBizId()).getName());
+                }
+            }
+        }
         if (!figureList.isEmpty()) {
             List<Integer> figureIds = figureList.stream().map(item -> item.getBizId()).distinct().collect(Collectors.toList());
             Map<Integer, MetaFigure> figureMap = this.metaFigureService.listFigureByIds(figureIds).stream().collect(Collectors.toMap(MetaFigure::getId, item -> item, (a, b) -> a));
-            for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO rcmmdBO : figureList) {
+            for (MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO rcmmdBO : figureList) {
                 if (figureMap.get(rcmmdBO.getBizId()) != null) {
                     rcmmdBO.setName(figureMap.get(rcmmdBO.getBizId()).getName());
                 }
@@ -290,7 +318,7 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         if (!bookList.isEmpty()) {
             List<Integer> bookIds = bookList.stream().map(item -> item.getBizId()).collect(Collectors.toList());
             Map<Integer, MetaBook> bookMap = this.metaBookService.listEntityByIds(bookIds).stream().collect(Collectors.toMap(MetaBook::getId, item -> item, (a, b) -> a));
-            for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO rcmmdBO : bookList) {
+            for (MetaBookRcmmdByBookIdResBO.MetaBookRcmmdBO rcmmdBO : bookList) {
                 if (bookMap.get(rcmmdBO.getBizId()) != null) {
                     rcmmdBO.setName(bookMap.get(rcmmdBO.getBizId()).getName());
                 }

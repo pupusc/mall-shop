@@ -32,7 +32,7 @@ public final class DO2BOUtils {
 
     public static <D, B> List<B> objA2objB4List(List<D> objDOs, Class<B> bClass) {
         if (objDOs == null) {
-            return null;
+            return new ArrayList<>();
         }
         List<B> objBOs = new ArrayList<>();
         for (D objDO : objDOs) {

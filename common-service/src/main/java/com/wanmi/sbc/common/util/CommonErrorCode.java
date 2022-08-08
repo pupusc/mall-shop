@@ -44,6 +44,11 @@ public final class CommonErrorCode {
     public final static String DATA_NOT_EXISTS = "K-000003";
 
     /**
+     * 资源已存在
+     */
+    public final static String DATA_HAS_EXISTS = "K-000033";
+
+    /**
      * 账号已被禁用
      */
     public final static String EMPLOYEE_DISABLE = "K-000005";

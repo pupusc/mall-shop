@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaZoneBookMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaZoneBook" id="MetaZoneBookMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="zoneId" column="zone_id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaZoneBookMap">
+        select
+          id, zone_id, book_id, del_flag, create_time, update_time
+        from meta_zone_book
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaZoneBookMap">
+        select
+          id, zone_id, book_id, del_flag, create_time, update_time
+        from meta_zone_book
+        <where>
+            <if test="metaZoneBook.id != null">
+                and id = #{metaZoneBook.id}
+            </if>
+            <if test="metaZoneBook.zoneId != null">
+                and zone_id = #{metaZoneBook.zoneId}
+            </if>
+            <if test="metaZoneBook.bookId != null">
+                and book_id = #{metaZoneBook.bookId}
+            </if>
+            <if test="metaZoneBook.delFlag != null">
+                and del_flag = #{metaZoneBook.delFlag}
+            </if>
+            <if test="metaZoneBook.createTime != null">
+                and create_time = #{metaZoneBook.createTime}
+            </if>
+            <if test="metaZoneBook.updateTime != null">
+                and update_time = #{metaZoneBook.updateTime}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_zone_book
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="zoneId != null">
+                and zone_id = #{zoneId}
+            </if>
+            <if test="bookId != null">
+                and book_id = #{bookId}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_zone_book(zone_id, book_id, del_flag, create_time, update_time)
+        values (#{zoneId}, #{bookId}, #{delFlag}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_zone_book(zone_id, book_id, del_flag, create_time, update_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.zoneId}, #{entity.bookId}, #{entity.delFlag}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_zone_book(zone_id, book_id, del_flag, create_time, update_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.zoneId}, #{entity.bookId}, #{entity.delFlag}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+        on duplicate key update
+        zone_id = values(zone_id),
+        book_id = values(book_id),
+        del_flag = values(del_flag),
+        create_time = values(create_time),
+        update_time = values(update_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_zone_book
+        <set>
+            <if test="zoneId != null">
+                zone_id = #{zoneId},
+            </if>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_zone_book set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

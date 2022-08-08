@@ -43,68 +43,68 @@ public class MetaBookContentController {
     @Resource
     private MetaBookContentProvider metaBookContentProvider;
 
-    /**
-     * 书籍内容描述-分页查询
-     *
-     * @param pageRequest 分页对象
-     * @return 查询结果
-     */
-    @PostMapping("queryByPage")
-    public BusinessResponse<List<MetaBookContentQueryByPageResVO>> queryByPage(@RequestBody MetaBookContentQueryByPageReqVO pageRequest) {
-        MetaBookContentQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookContentQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookContentBO>> list = this.metaBookContentProvider.queryByPage(pageReqBO);
-        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
-    }
-
-    /**
-     * 书籍内容描述-主键查询
-     *
-     * @param id 主键
-     * @return 单条数据
-     */
-    @PostMapping("queryById")
-    public BusinessResponse<MetaBookContentQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookContentBO> resBO = this.metaBookContentProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
-    }
-
-    /**
-     * 书籍内容描述-新增数据
-     *
-     * @param addReqVO 实体
-     * @return 新增结果
-     */
-    @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaBookContentAddReqVO addReqVO) {
-        MetaBookContentBO addReqBO = new MetaBookContentBO();
-        BeanUtils.copyProperties(addReqVO, addReqBO);
-        return BusinessResponse.success(this.metaBookContentProvider.insert(addReqBO).getContext());
-    }
-
-    /**
-     * 书籍内容描述-编辑数据
-     *
-     * @param editReqVO 实体
-     * @return 编辑结果
-     */
-    @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaBookContentEditReqVO editReqVO) {
-        MetaBookContentBO editReqVBO = new MetaBookContentBO();
-        BeanUtils.copyProperties(editReqVO, editReqVBO);
-        this.metaBookContentProvider.update(editReqVBO);
-        return BusinessResponse.success(true);
-    }
-
-    /**
-     * 书籍内容描述-删除数据
-     *
-     * @param id 主键
-     * @return 删除是否成功
-     */
-    @PostMapping("deleteById")
-    public BusinessResponse<Boolean> deleteById(@RequestBody IntegerIdVO id) {
-        return this.metaBookContentProvider.deleteById(id.getId());
-    }
+//    /**
+//     * 书籍内容描述-分页查询
+//     *
+//     * @param pageRequest 分页对象
+//     * @return 查询结果
+//     */
+//    @PostMapping("queryByPage")
+//    public BusinessResponse<List<MetaBookContentQueryByPageResVO>> queryByPage(@RequestBody MetaBookContentQueryByPageReqVO pageRequest) {
+//        MetaBookContentQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookContentQueryByPageReqBO.class);
+//        BusinessResponse<List<MetaBookContentBO>> list = this.metaBookContentProvider.queryByPage(pageReqBO);
+//        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
+//    }
+//
+//    /**
+//     * 书籍内容描述-主键查询
+//     *
+//     * @param id 主键
+//     * @return 单条数据
+//     */
+//    @PostMapping("queryById")
+//    public BusinessResponse<MetaBookContentQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
+//        BusinessResponse<MetaBookContentBO> resBO = this.metaBookContentProvider.queryById(id.getId());
+//        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+//    }
+//
+//    /**
+//     * 书籍内容描述-新增数据
+//     *
+//     * @param addReqVO 实体
+//     * @return 新增结果
+//     */
+//    @PostMapping("add")
+//    public BusinessResponse<Integer> add(@RequestBody MetaBookContentAddReqVO addReqVO) {
+//        MetaBookContentBO addReqBO = new MetaBookContentBO();
+//        BeanUtils.copyProperties(addReqVO, addReqBO);
+//        return BusinessResponse.success(this.metaBookContentProvider.insert(addReqBO).getContext());
+//    }
+//
+//    /**
+//     * 书籍内容描述-编辑数据
+//     *
+//     * @param editReqVO 实体
+//     * @return 编辑结果
+//     */
+//    @PostMapping("edit")
+//    public BusinessResponse<Boolean> edit(@RequestBody MetaBookContentEditReqVO editReqVO) {
+//        MetaBookContentBO editReqVBO = new MetaBookContentBO();
+//        BeanUtils.copyProperties(editReqVO, editReqVBO);
+//        this.metaBookContentProvider.update(editReqVBO);
+//        return BusinessResponse.success(true);
+//    }
+//
+//    /**
+//     * 书籍内容描述-删除数据
+//     *
+//     * @param id 主键
+//     * @return 删除是否成功
+//     */
+//    @PostMapping("deleteById")
+//    public BusinessResponse<Boolean> deleteById(@RequestBody IntegerIdVO id) {
+//        return this.metaBookContentProvider.deleteById(id.getId());
+//    }
 
 
     /**
@@ -124,6 +124,7 @@ public class MetaBookContentController {
             MetaBookContentByBookIdVO.MetaBookContentVO content = new MetaBookContentByBookIdVO.MetaBookContentVO();
             content.setId(item.getId());
             content.setFigureId(item.getFigureId());
+            content.setFigureName(item.getFigureName());
             content.setType(item.getType());
             content.setContent(item.getContent());
             if (BookContentTypeEnum.INTRODUCE.getCode().equals(item.getType()) && voResult.getIntroduce() == null) {

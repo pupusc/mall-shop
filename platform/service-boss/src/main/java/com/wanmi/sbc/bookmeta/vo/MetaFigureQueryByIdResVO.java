@@ -102,6 +102,10 @@ public class MetaFigureQueryByIdResVO implements Serializable {
          */
         private Integer awardId;
         /**
+         * 奖项名称
+         */
+        private String awardName;
+        /**
          * 获奖时间
          */
         private Date awardTime;
