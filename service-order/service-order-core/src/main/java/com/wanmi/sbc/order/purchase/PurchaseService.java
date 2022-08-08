@@ -2679,7 +2679,7 @@ public class PurchaseService {
             }
 
             for (SkuNormalActivityResp skuNormalActivityRespParam : skuNormalActivityResps) {
-                String key = skuNormalActivityRespParam.getSkuId() + "_" + skuNormalActivityRespParam.getSkuId();
+                String key = skuNormalActivityRespParam.getNormalActivityId() + "_" + skuNormalActivityRespParam.getSkuId();
                 if (activityIdSkuId2RecordMap.get(key) != null) {
                     continue;
                 }
