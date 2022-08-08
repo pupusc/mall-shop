@@ -3,11 +3,11 @@ package com.soybean.mall.wx.mini.util;
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.wx.mini.user.bean.response.WxBizDataResp;
 import lombok.extern.slf4j.Slf4j;
-import sun.misc.BASE64Decoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 
 /**
  * Description:
@@ -39,7 +39,6 @@ public class WXBizDataCrypt {
     public WxBizDataResp decrypt(String encryptedData, String iv) {
         WxBizDataResp wxBizDataResp = null;
         try {
-            BASE64Decoder base64Decoder = new BASE64Decoder();
             /**
              * 小程序加密数据解密算法
              * https://developers.weixin.qq.com/miniprogram/dev/api/signature.html#wxchecksessionobject
@@ -47,9 +46,9 @@ public class WXBizDataCrypt {
              * 2.对称解密秘钥 aeskey = Base64_Decode(session_key), aeskey 是16字节。
              * 3.对称解密算法初始向量 为Base64_Decode(iv)，其中iv由数据接口返回。
              */
-            byte[] encryptedByte = base64Decoder.decodeBuffer(encryptedData);
-            byte[] sessionKeyByte = base64Decoder.decodeBuffer(this.sessionKey);
-            byte[] ivByte = base64Decoder.decodeBuffer(iv);
+            byte[] encryptedByte = Base64.getDecoder().decode(encryptedData);
+            byte[] sessionKeyByte = Base64.getDecoder().decode(this.sessionKey);
+            byte[] ivByte = Base64.getDecoder().decode(iv);
             /**
              * 以下为AES-128-CBC解密算法
              */

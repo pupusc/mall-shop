@@ -20,6 +20,7 @@ import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,7 +109,7 @@ public class WxService {
         if(wxGetOPenIdResponse.isSuccess()){
             return wxGetOPenIdResponse;
         }
-        return null;
+        throw new SbcRuntimeException("K-999999", wxGetOPenIdResponse.getErrmsg());
     }
 
     public WxAddProductResponse uploadGoodsToWx(WxAddProductRequest addProductRequest){
