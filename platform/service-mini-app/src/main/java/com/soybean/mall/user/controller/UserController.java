@@ -101,7 +101,7 @@ public class UserController {
         WxGetOpenIdReq wxGetOpenIdReq = new WxGetOpenIdReq();
         wxGetOpenIdReq.setCodeForOpenid(request.getCodeForOpenid());
         WxUserOpenIdResp wxUserOpenIdResp = wxUserApiController.getOpenid(wxGetOpenIdReq).getContext();
-        if (StringUtils.isBlank(wxUserOpenIdResp.getOpenId()) || StringUtils.isBlank(wxUserOpenIdResp.getUnionId())) {
+        if (wxUserOpenIdResp == null || StringUtils.isBlank(wxUserOpenIdResp.getOpenId()) || StringUtils.isBlank(wxUserOpenIdResp.getUnionId())) {
             throw new SbcRuntimeException("K-220001", "微信授权失败");
         }
 

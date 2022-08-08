@@ -29,7 +29,7 @@ public class WxUserApiControllerImpl implements WxUserApiController {
         WXBizDataCrypt wxBizDataCrypt = new WXBizDataCrypt(request.getSessionKey());
         WxBizDataResp wxBizDataResp = wxBizDataCrypt.decrypt(request.getEncryptedData(), request.getIv());
         if (wxBizDataResp != null) {
-            wxUserPhoneResp.setPhoneNumber(wxUserPhoneResp.getPhoneNumber());
+            wxUserPhoneResp.setPhoneNumber(wxBizDataResp.getPhoneNumber());
         }
         return BaseResponse.success(wxUserPhoneResp);
     }
