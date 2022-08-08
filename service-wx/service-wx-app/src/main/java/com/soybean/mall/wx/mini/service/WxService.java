@@ -92,14 +92,24 @@ public class WxService {
     private RedisTemplate redisTemplate;
 
 
-    public String getPhoneNumber(String code){
+//    public String getPhoneNumber(String code){
+//        String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
+//        HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", defaultHeader);
+//        WxGetPhoneNumberResponse wxGetPhoneNumberResponse = sendRequest(url, HttpMethod.POST, entity, WxGetPhoneNumberResponse.class);
+//        if(wxGetPhoneNumberResponse.isSuccess()){
+//            return wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber();
+//        }
+//        return null;
+//    }
+
+    public WxGetPhoneNumberResponse getPhoneNumber(String code){
         String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
         HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", defaultHeader);
         WxGetPhoneNumberResponse wxGetPhoneNumberResponse = sendRequest(url, HttpMethod.POST, entity, WxGetPhoneNumberResponse.class);
         if(wxGetPhoneNumberResponse.isSuccess()){
-            return wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber();
+            return wxGetPhoneNumberResponse;
         }
-        return null;
+        throw new SbcRuntimeException("K-999999", wxGetPhoneNumberResponse.getErrmsg());
     }
 
     public WxGetOPenIdResponse getOpenId(String code){

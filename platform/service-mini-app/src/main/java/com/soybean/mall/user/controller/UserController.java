@@ -118,7 +118,7 @@ public class UserController {
             context = wxUserApiController.getPhoneNumberOld(wxGetPhoneOldReq).getContext();
         }
 
-        if (context == null || StringUtils.isBlank(context.getPhoneNumber())) {
+        if (context == null || StringUtils.isBlank(context.getPurePhoneNumber()) || StringUtils.isBlank(context.getCountryCode())) {
             throw new SbcRuntimeException("K-220001", "微信授权电话获取失败");
         }
 
@@ -144,9 +144,9 @@ public class UserController {
         FanDengWxAuthLoginRequest fanDengRequest = new FanDengWxAuthLoginRequest();
         fanDengRequest.setOpenId(wxUserOpenIdResp.getOpenId());
         fanDengRequest.setUnionId(wxUserOpenIdResp.getUnionId());
-        fanDengRequest.setAreaCode("+86");
+        fanDengRequest.setAreaCode(context.getCountryCode());
         fanDengRequest.setRegisterSource("IntegralMall");
-        fanDengRequest.setMobile(context.getPhoneNumber());
+        fanDengRequest.setMobile(context.getPurePhoneNumber());
         fanDengRequest.setServiceType(101);
         FanDengWxAuthLoginResponse.WxAuthLoginData fandengAuthLoginData = externalProvider.wxAuthLogin(fanDengRequest).getContext();
         LoginResponse loginResponse = afterWxAuthLogin(fandengAuthLoginData, context.getPhoneNumber(), wxUserOpenIdResp.getOpenId(), wxUserOpenIdResp.getUnionId());

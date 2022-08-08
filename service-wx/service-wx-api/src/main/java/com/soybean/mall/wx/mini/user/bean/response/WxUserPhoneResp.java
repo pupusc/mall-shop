@@ -12,5 +12,18 @@ import lombok.Data;
 @Data
 public class WxUserPhoneResp {
 
+    /**
+     * +6598577225
+     */
     private String phoneNumber;
+
+    /**
+     * 98577225
+     */
+    private String purePhoneNumber;
+
+    /**
+     * 65
+     */
+    private String countryCode;
 }

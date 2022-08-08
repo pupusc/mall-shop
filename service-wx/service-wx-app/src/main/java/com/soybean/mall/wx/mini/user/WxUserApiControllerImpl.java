@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.user;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxGetOPenIdResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetPhoneNumberResponse;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.soybean.mall.wx.mini.user.bean.request.WxGetOpenIdReq;
 import com.soybean.mall.wx.mini.user.bean.request.WxGetPhoneOldReq;
@@ -13,6 +14,7 @@ import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,7 +31,7 @@ public class WxUserApiControllerImpl implements WxUserApiController {
         WXBizDataCrypt wxBizDataCrypt = new WXBizDataCrypt(request.getSessionKey());
         WxBizDataResp wxBizDataResp = wxBizDataCrypt.decrypt(request.getEncryptedData(), request.getIv());
         if (wxBizDataResp != null) {
-            wxUserPhoneResp.setPhoneNumber(wxBizDataResp.getPhoneNumber());
+            BeanUtils.copyProperties(wxBizDataResp, wxBizDataCrypt);
         }
         return BaseResponse.success(wxUserPhoneResp);
     }
@@ -39,10 +41,11 @@ public class WxUserApiControllerImpl implements WxUserApiController {
     public BaseResponse<WxUserPhoneResp> getPhoneNumber(WxGetPhoneReq request){
         //获取电话
         WxUserPhoneResp wxUserPhoneResp = new WxUserPhoneResp();
-        String phoneNumber = "";
         if (StringUtils.isNotBlank(request.getCodeForPhone())) {
-            phoneNumber = wxService.getPhoneNumber(request.getCodeForPhone());
-            wxUserPhoneResp.setPhoneNumber(phoneNumber);
+            WxGetPhoneNumberResponse wxGetPhoneNumberResponse = wxService.getPhoneNumber(request.getCodeForPhone());
+            wxUserPhoneResp.setPhoneNumber(wxGetPhoneNumberResponse.getPhoneInfo().getPhoneNumber());
+            wxUserPhoneResp.setPurePhoneNumber(wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber());
+            wxUserPhoneResp.setCountryCode(wxGetPhoneNumberResponse.getPhoneInfo().getCountryCode());
         }
         return BaseResponse.success(wxUserPhoneResp);
     }
