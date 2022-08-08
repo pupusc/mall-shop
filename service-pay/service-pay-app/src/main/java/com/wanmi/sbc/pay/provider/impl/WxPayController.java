@@ -291,46 +291,46 @@ public class WxPayController implements WxPayProvider {
 
     }
 
-    /**
-     * 微信退款
-     * @param refundInfoRequest
-     * @return
-     */
-    @Override
-    public BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,refundInfoRequest.getStoreId());
-        String appId = payGatewayConfig.getAppId();
-        String account = payGatewayConfig.getAccount();
-        String apiKey = payGatewayConfig.getApiKey();
-        if(refundInfoRequest.getPay_type().equals("APP")){
-            appId = payGatewayConfig.getOpenPlatformAppId();
-            account = payGatewayConfig.getOpenPlatformAccount();
-            apiKey = payGatewayConfig.getOpenPlatformApiKey();
-        }
-        WxPayRefundRequest refundRequest = new WxPayRefundRequest();
-        refundRequest.setAppid(appId);
-        refundRequest.setMch_id(account);
-        refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
-        refundRequest.setOut_refund_no(refundInfoRequest.getOut_refund_no());
-        refundRequest.setOut_trade_no(refundInfoRequest.getOut_trade_no());
-        refundRequest.setTotal_fee(refundInfoRequest.getTotal_fee());
-        refundRequest.setRefund_fee(refundInfoRequest.getRefund_fee());
-        //重复支付退款不需要异步回调地址
-        if(StringUtils.isNotBlank(refundInfoRequest.getRefund_type()) && !refundInfoRequest.getRefund_type().equals("REPEATPAY")){
-            refundRequest.setNotify_url(payGatewayConfig.getBossBackUrl()+WXREFUNDSUCCCALLBACK+refundInfoRequest.getStoreId());
-        }
-        try {
-            Map<String,String> refundMap = WXPayUtil.objectToMap(refundRequest);
-            //获取签名
-            String sign = WXPayUtil.generateSignature(refundMap,apiKey);
-            refundRequest.setSign(sign);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest,
-                refundInfoRequest.getPay_type(), refundInfoRequest.getStoreId());
-        return BaseResponse.success(wxPayRefundResponse);
-    }
+//    /**
+//     * 微信退款
+//     * @param refundInfoRequest
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest){
+//        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,refundInfoRequest.getStoreId());
+//        String appId = payGatewayConfig.getAppId();
+//        String account = payGatewayConfig.getAccount();
+//        String apiKey = payGatewayConfig.getApiKey();
+//        if(refundInfoRequest.getPay_type().equals("APP")){
+//            appId = payGatewayConfig.getOpenPlatformAppId();
+//            account = payGatewayConfig.getOpenPlatformAccount();
+//            apiKey = payGatewayConfig.getOpenPlatformApiKey();
+//        }
+//        WxPayRefundRequest refundRequest = new WxPayRefundRequest();
+//        refundRequest.setAppid(appId);
+//        refundRequest.setMch_id(account);
+//        refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
+//        refundRequest.setOut_refund_no(refundInfoRequest.getOut_refund_no());
+//        refundRequest.setOut_trade_no(refundInfoRequest.getOut_trade_no());
+//        refundRequest.setTotal_fee(refundInfoRequest.getTotal_fee());
+//        refundRequest.setRefund_fee(refundInfoRequest.getRefund_fee());
+//        //重复支付退款不需要异步回调地址
+//        if(StringUtils.isNotBlank(refundInfoRequest.getRefund_type()) && !refundInfoRequest.getRefund_type().equals("REPEATPAY")){
+//            refundRequest.setNotify_url(payGatewayConfig.getBossBackUrl()+WXREFUNDSUCCCALLBACK+refundInfoRequest.getStoreId());
+//        }
+//        try {
+//            Map<String,String> refundMap = WXPayUtil.objectToMap(refundRequest);
+//            //获取签名
+//            String sign = WXPayUtil.generateSignature(refundMap,apiKey);
+//            refundRequest.setSign(sign);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest,
+//                refundInfoRequest.getPay_type(), refundInfoRequest.getStoreId());
+//        return BaseResponse.success(wxPayRefundResponse);
+//    }
 
     /**
      * 微信支付--微信企业付款到零钱

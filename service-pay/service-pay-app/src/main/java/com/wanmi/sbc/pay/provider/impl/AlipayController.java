@@ -41,19 +41,19 @@ public class AlipayController implements AliPayProvider {
         return BaseResponse.success(new AliPayFormResponse(alipayService.pay(request)));
     }
 
-    @Override
-    public BaseResponse<AliPayRefundResponse> aliPayRefund(@RequestBody @Valid AliPayRefundRequest refundRequest) {
-        // Todo Saas独立收款
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.ALIPAY,Constants.BOSS_DEFAULT_STORE_ID);
-        if (Objects.nonNull(payGatewayConfig)) {
-            refundRequest.setAppid(payGatewayConfig.getAppId());
-            refundRequest.setAliPayPublicKey(payGatewayConfig.getPublicKey());
-            refundRequest.setAppPrivateKey(payGatewayConfig.getPrivateKey());
-        } else {
-            throw new SbcRuntimeException("K-100205");
-        }
-        AliPayRefundResponse aliPayRefundResponse = new AliPayRefundResponse();
-        aliPayRefundResponse.setAlipayTradeRefundResponse(alipayService.tradeRefund(refundRequest));
-        return BaseResponse.success(aliPayRefundResponse);
-    }
+//    @Override
+//    public BaseResponse<AliPayRefundResponse> aliPayRefund(@RequestBody @Valid AliPayRefundRequest refundRequest) {
+//        // Todo Saas独立收款
+//        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.ALIPAY,Constants.BOSS_DEFAULT_STORE_ID);
+//        if (Objects.nonNull(payGatewayConfig)) {
+//            refundRequest.setAppid(payGatewayConfig.getAppId());
+//            refundRequest.setAliPayPublicKey(payGatewayConfig.getPublicKey());
+//            refundRequest.setAppPrivateKey(payGatewayConfig.getPrivateKey());
+//        } else {
+//            throw new SbcRuntimeException("K-100205");
+//        }
+//        AliPayRefundResponse aliPayRefundResponse = new AliPayRefundResponse();
+//        aliPayRefundResponse.setAlipayTradeRefundResponse(alipayService.tradeRefund(refundRequest));
+//        return BaseResponse.success(aliPayRefundResponse);
+//    }
 }
