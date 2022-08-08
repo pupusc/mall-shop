@@ -12,7 +12,17 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -340,4 +350,9 @@ public class GoodsEvaluate implements Serializable {
 	@Column(name = "is_recommend")
 	private Integer isRecommend;
 
+	@Column(name = "client_ip")
+	private String clientIp;
+
+	@Column(name = "client_place")
+	private String clientPlace;
 }

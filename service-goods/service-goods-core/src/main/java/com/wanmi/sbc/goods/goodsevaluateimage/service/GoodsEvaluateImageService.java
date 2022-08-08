@@ -1,6 +1,5 @@
 package com.wanmi.sbc.goods.goodsevaluateimage.service;
 
-import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.EvaluateImgUpdateIsShowReq;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageDelByEvaluateIdRequest;
@@ -10,11 +9,14 @@ import com.wanmi.sbc.goods.bean.vo.GoodsEvaluateImageVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsEvaluateVO;
 import com.wanmi.sbc.goods.goodsevaluateimage.model.root.GoodsEvaluateImage;
 import com.wanmi.sbc.goods.goodsevaluateimage.repository.GoodsEvaluateImageRepository;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -146,4 +148,10 @@ public class GoodsEvaluateImageService {
 		return goodsEvaluateImageRepository.updateIsShowByGoodsId(req.getIsShow(), req.getEvaluateId());
 	}
 
+	public List<GoodsEvaluateImage> getByEvaluateIds(List<String> evaluateIds) {
+		if (evaluateIds==null || evaluateIds.isEmpty()) {
+			return Collections.EMPTY_LIST;
+		}
+		return goodsEvaluateImageRepository.findAllByIds(evaluateIds);
+	}
 }

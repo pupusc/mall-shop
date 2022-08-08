@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * @date 2019-02-25 15:17:42
  */
 @Data
-public class GoodsEvaluateAddRequest implements Serializable {
+public class GoodsEvaluateAddRequest extends GoodsEvaluateBaseBO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
