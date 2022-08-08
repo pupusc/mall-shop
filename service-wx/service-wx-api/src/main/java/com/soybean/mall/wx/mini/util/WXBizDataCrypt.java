@@ -60,6 +60,7 @@ public class WXBizDataCrypt {
             String jsonStr = new String(original);
             log.info("WxBizDataCrypt decrypt jsonStr:{}", jsonStr);
             wxBizDataResp = JSON.parseObject(jsonStr, WxBizDataResp.class);
+            log.info("WxBizDataCrypt decrypt Obj :{}" JSON.toJSONString(wxBizDataResp));
         } catch (Exception ex) {
             log.error("WXBizDataCrypt ", ex);
         }
