@@ -144,7 +144,8 @@ public class UserController {
         FanDengWxAuthLoginRequest fanDengRequest = new FanDengWxAuthLoginRequest();
         fanDengRequest.setOpenId(wxUserOpenIdResp.getOpenId());
         fanDengRequest.setUnionId(wxUserOpenIdResp.getUnionId());
-        fanDengRequest.setAreaCode(context.getCountryCode());
+        String areaCode = StringUtils.isBlank(context.getCountryCode()) ? "+86" : "+" +  context.getCountryCode().replace("+", "");
+        fanDengRequest.setAreaCode(areaCode);
         fanDengRequest.setRegisterSource("IntegralMall");
         fanDengRequest.setMobile(context.getPurePhoneNumber());
         fanDengRequest.setServiceType(101);
