@@ -98,8 +98,10 @@ public class WeChatPublicPlatformController {
                 gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
                 gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
                 PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest).getContext();
-                appId = payGatewayConfig.getAppId();
-                appSecret = payGatewayConfig.getSecret();
+                if (payGatewayConfig != null) {
+                    appId = payGatewayConfig.getAppId();
+                    appSecret = payGatewayConfig.getSecret();
+                }
             }
         } else {
             WechatShareSetInfoResponse infoResponse = wechatShareSetQueryProvider.getInfo(WechatShareSetInfoRequest.builder().
