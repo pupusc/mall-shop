@@ -813,8 +813,7 @@ public class PayCallbackController {
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
                     payTradeRecordRequest.setPracticalPrice(new BigDecimal(dataResponse.getTotal_fee()).
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
-                    //TODO duanlsh
-                    payTradeRecordRequest.setAppId(dataResponse.getRefund_account());
+                    payTradeRecordRequest.setAppId(refundCallBackResponse.getAppid());
                     payProvider.wxPayCallBack(payTradeRecordRequest);
                     returnOrderProvider.onlineRefund(
                             ReturnOrderOnlineRefundRequest.builder().operator(operator)
