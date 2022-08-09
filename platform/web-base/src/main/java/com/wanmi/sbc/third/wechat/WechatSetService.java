@@ -105,7 +105,7 @@ public class WechatSetService {
             GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
             gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
             gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
-            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest).getContext();
+            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
             if (payGatewayConfig != null) {
                 response.setMobileAppId(payGatewayConfig.getAppId());
                 response.setMobileAppSecret(payGatewayConfig.getSecret());

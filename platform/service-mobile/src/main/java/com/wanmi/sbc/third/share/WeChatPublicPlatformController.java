@@ -97,7 +97,7 @@ public class WeChatPublicPlatformController {
                 GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
                 gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
                 gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
-                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
+                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest).getContext();
                 appId = payGatewayConfig.getAppId();
                 appSecret = payGatewayConfig.getSecret();
             }
