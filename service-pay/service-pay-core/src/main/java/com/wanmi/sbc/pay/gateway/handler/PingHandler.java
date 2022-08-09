@@ -15,6 +15,7 @@ import com.wanmi.sbc.pay.model.entity.PayResult;
 import com.wanmi.sbc.pay.model.entity.RefundRecordResult;
 import com.wanmi.sbc.pay.model.entity.RefundResult;
 import com.wanmi.sbc.pay.model.root.PayChannelItem;
+import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
 import com.wanmi.sbc.pay.model.root.PayTradeRecord;
 import com.wanmi.sbc.pay.utils.CommonUtils;
@@ -83,11 +84,11 @@ public class PingHandler implements GatewayHandler {
     }
 
     @Override
-    public RefundResult refund(RefundRequest request, PayChannelItem channelItem) {
-        Map<String, Object> paramMap = buildRefundParamMap(request, channelItem);
+    public RefundResult refund(RefundRequest request, PayGateway payGateway) {
+        Map<String, Object> paramMap = buildRefundParamMap(request, payGateway);
         try {
-            Pingpp.apiKey = channelItem.getGateway().getConfig().getApiKey();
-            Pingpp.privateKey = channelItem.getGateway().getConfig().getPrivateKey();
+            Pingpp.apiKey = payGateway.getConfig().getApiKey();
+            Pingpp.privateKey = payGateway.getConfig().getPrivateKey();
             Refund refund = Refund.create(request.getPayObjectId(), paramMap);
             if ("failed".equals(refund.getStatus())) {
                 log.error("Execute the refund operation from payment gateway [Ping] a has error information," +
@@ -100,7 +101,7 @@ public class PingHandler implements GatewayHandler {
                         refund.getFailureMsg(),
                         refund,
                         request,
-                        channelItem
+                        payGateway
                 );
                 throw new SbcRuntimeException("K-000001");
             }
@@ -116,7 +117,7 @@ public class PingHandler implements GatewayHandler {
                             "request={}," +
                             "channelItem={}",
                     request,
-                    channelItem,
+                    payGateway,
                     e
             );
             throw new SbcRuntimeException("K-000001");
@@ -230,7 +231,7 @@ public class PingHandler implements GatewayHandler {
         return paramMap;
     }
 
-    private Map<String, Object> buildRefundParamMap(RefundRequest request, PayChannelItem channelItem) {
+    private Map<String, Object> buildRefundParamMap(RefundRequest request, PayGateway payGateway) {
         Map<String, Object> map = new HashMap<>();
         map.put("amount", request.getAmount().multiply(new BigDecimal(100)));
         map.put("description", request.getDescription());
