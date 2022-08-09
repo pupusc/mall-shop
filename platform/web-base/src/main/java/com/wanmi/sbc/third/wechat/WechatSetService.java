@@ -105,11 +105,13 @@ public class WechatSetService {
             GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
             gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
             gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
-            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
-            response.setMobileAppId(payGatewayConfig.getAppId());
-            response.setMobileAppSecret(payGatewayConfig.getSecret());
-            response.setAppAppId(payGatewayConfig.getOpenPlatformAppId());
-            response.setAppAppSecret(payGatewayConfig.getOpenPlatformSecret());
+            PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest).getContext();
+            if (payGatewayConfig != null) {
+                response.setMobileAppId(payGatewayConfig.getAppId());
+                response.setMobileAppSecret(payGatewayConfig.getSecret());
+                response.setAppAppId(payGatewayConfig.getOpenPlatformAppId());
+                response.setAppAppSecret(payGatewayConfig.getOpenPlatformSecret());
+            }
         }
 
         //填充小程序的appId、密钥、开关

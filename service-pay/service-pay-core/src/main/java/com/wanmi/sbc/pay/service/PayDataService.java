@@ -185,6 +185,20 @@ public class PayDataService {
         return payGatewayConfigs.get(0);
     }
 
+    /**
+     * 根据网关名称获取网关配置
+     *
+     * @return
+     */
+    public PayGatewayConfig getGatewayConfigByGatewayUnException(PayGatewayEnum payGatewayEnum,Long storeId) {
+        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(payGatewayEnum, storeId);
+//        return gatewayConfigRepository.queryConfigByNameAndStoreId(payGatewayEnum,storeId);
+        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+             return null;
+        }
+        return payGatewayConfigs.get(0);
+    }
+
 
     // /**
     //  * 根据网关名称获取网关配置

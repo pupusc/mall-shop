@@ -162,6 +162,16 @@ public class PayQueryController implements PayQueryProvider {
         return BaseResponse.success(wraperResponseForGatewayConfig(config));
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public BaseResponse<PayGatewayConfigResponse> getGatewayConfigByGatewayUnException(@RequestBody @Valid
+                                                                                    GatewayConfigByGatewayRequest
+                                                                                    gatewayConfigByGatewayRequest) {
+        PayGatewayConfig config = payDataService.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest.getGatewayEnum(),gatewayConfigByGatewayRequest.getStoreId());
+        return BaseResponse.success(wraperResponseForGatewayConfig(config));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public BaseResponse<PayGatewayConfigResponse> getGatewayConfigByGatewayId(@RequestBody @Valid
