@@ -20,6 +20,7 @@ import com.wanmi.sbc.pay.repository.TradeRecordRepository;
 import com.wanmi.sbc.pay.utils.GeneratorUtils;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -41,6 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyStore;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -463,7 +465,12 @@ public class WxPayService {
      */
     private void initCert(String machId, String type, Long storeId) throws Exception {
 
-        PayGatewayConfig payGatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT, storeId);
+        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, storeId);
+        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
+        }
+
+        PayGatewayConfig payGatewayConfig = payGatewayConfigs.get(0);
 //        log.info("加载证书开始：{}",payGatewayConfig);
         // 证书密码,默认为商户ID
         String key = machId;
