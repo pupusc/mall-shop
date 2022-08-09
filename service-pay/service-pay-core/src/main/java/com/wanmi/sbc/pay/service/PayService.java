@@ -206,7 +206,7 @@ public class PayService {
         if (payRecord.getChannelItemId().equals(11L)) {
             //银联企业支付退款
 //            PayValidates.verifyGateway(payGateway);
-            PayTradeRecord record = saveRefundRecord(request, payRecord.getChannelItemId());
+            PayTradeRecord record = saveRefundRecord(request, payRecord.getChannelItemId(), payRecord.getAppId());
 //            payRecord.setBusinessId(record.getBusinessId());
             record.setTradeNo(payRecord.getTradeNo());
             PayGatewayConfig gatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.UNIONB2B, storeId);
@@ -229,7 +229,7 @@ public class PayService {
             return wxPayRefundForApp(payRecord.getChannelItemId(), request, payRecord);
         } else if (payRecord.getChannelItemId() == 17L || payRecord.getChannelItemId() == 18L || payRecord.getChannelItemId() == 19L) {
             //支付宝退款
-            PayTradeRecord data = saveRefundRecord(request, payRecord.getChannelItemId());
+            PayTradeRecord data = saveRefundRecord(request, payRecord.getChannelItemId(), payRecord.getAppId());
             AliPayRefundRequest aliPayRefundRequest = KsBeanUtil.convert(request, AliPayRefundRequest.class);
             aliPayRefundRequest.setAppid(payGateway.getConfig().getAppId());
             aliPayRefundRequest.setAppPrivateKey(payGateway.getConfig().getPrivateKey());
@@ -249,6 +249,7 @@ public class PayService {
                 data.setStatus(TradeStatus.SUCCEED);
                 data.setCallbackTime(LocalDateTime.now());
                 data.setPracticalPrice(new BigDecimal(refundResponse.getRefundFee()));
+                data.setAppId(payRecord.getAppId());
                 recordRepository.save(data);
             } else {
                 throw new SbcRuntimeException("K-100211", new Object[]{refundResponse.getSubMsg()});
@@ -256,11 +257,11 @@ public class PayService {
             return aliPayRefundResponse;
         } else if (payRecord.getChannelItemId() == 21L || payRecord.getChannelItemId() == 22L || payRecord.getChannelItemId() == 23L) {
             //余额支付退款操作
-            return balanceRefund(payRecord.getChannelItemId(), request);
+            return balanceRefund(payRecord.getChannelItemId(), request, payRecord.getAppId());
         } else {
             request.setPayObjectId(payRecord.getChargeId());
 //            PayValidates.verifyGateway(payGateway);
-            PayTradeRecord data = saveRefundRecord(request, payRecord.getChannelItemId());
+            PayTradeRecord data = saveRefundRecord(request, payRecord.getChannelItemId(), payRecord.getAppId());
             RefundResult result = proxy.refund(request, payGateway);
             try {
                 //更新记录
@@ -287,8 +288,8 @@ public class PayService {
      * @Date 15:59 2019/7/11
      * @Param [item, request, payRecord]
      **/
-    private BalanceRefundResponse balanceRefund(Long channelItemId, RefundRequest request) {
-        PayTradeRecord data = saveRefundRecord(request, channelItemId);
+    private BalanceRefundResponse balanceRefund(Long channelItemId, RefundRequest request, String appId) {
+        PayTradeRecord data = saveRefundRecord(request, channelItemId, appId);
         //更新记录
         data.setChargeId(request.getRefundBusinessId());
         data.setFinishTime(LocalDateTime.now());
@@ -304,14 +305,13 @@ public class PayService {
     /**
      * 微信支付--PC、H5、JSAPI支付对应付退款
      *
-     * @param item
      * @param request
      * @param payRecord
      * @return
      */
     private WxPayRefundResponse wxPayRefundForPcH5Jsapi(Long channelItemId, RefundRequest request, PayTradeRecord payRecord) {
 //        PayValidates.verifyGateway(item.getGateway());
-        PayTradeRecord record = saveRefundRecord(request, channelItemId);
+        PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
         PayGatewayConfig gatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,
                 request.getStoreId());
@@ -360,7 +360,6 @@ public class PayService {
     /**
      * 微信支付退款--app支付退款
      *
-     * @param item
      * @param request
      * @param payRecord
      * @return
@@ -368,7 +367,7 @@ public class PayService {
     private WxPayRefundResponse wxPayRefundForApp( Long channelItemId, RefundRequest request, PayTradeRecord payRecord) {
         //微信支付退款
 //        PayValidates.verifyGateway(item.getGateway());
-        PayTradeRecord record = saveRefundRecord(request, channelItemId);
+        PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
         PayGatewayConfig gatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
@@ -416,8 +415,8 @@ public class PayService {
     /**
      * 根据退单与相关订单号号查询退单退款状态
      *
-     * @param rid 业务退单号
-     * @param tid 业务订单号
+     * @param  业务退单号
+     * @param  业务订单号
      * @return null-无退款记录 | TradeStatus-退款状态
      */
     @Transactional
@@ -796,7 +795,7 @@ public class PayService {
         recordRepository.save(record);
     }
 
-    private PayTradeRecord saveRefundRecord(RefundRequest request, Long channelItemId) {
+    private PayTradeRecord saveRefundRecord(RefundRequest request, Long channelItemId, String appId) {
         PayTradeRecord record = new PayTradeRecord();
         record.setId(GeneratorUtils.generatePT());
         record.setApplyPrice(request.getAmount());
@@ -806,6 +805,7 @@ public class PayService {
         record.setTradeType(TradeType.REFUND);
         record.setStatus(TradeStatus.PROCESSING);
         record.setCreateTime(LocalDateTime.now());
+        record.setAppId(appId);
         //删除失败或未成功获取到退款对象的记录
         recordRepository.deleteByBusinessId(request.getRefundBusinessId());
         record = recordRepository.save(record);
