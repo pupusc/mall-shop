@@ -32,7 +32,12 @@ import com.wanmi.sbc.goods.api.provider.goodsevaluateimage.GoodsEvaluateImageSav
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateSaveProvider;
 import com.wanmi.sbc.goods.api.provider.storetobeevaluate.StoreTobeEvaluateSaveProvider;
 import com.wanmi.sbc.goods.api.request.customergoodsevaluatepraise.CustomerGoodsEvaluatePraiseQueryRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateByIdRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateCountRequset;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateListRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateModifyRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateQueryRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageAddRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageDelByEvaluateIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageListRequest;
@@ -65,11 +70,16 @@ import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -261,6 +271,7 @@ public class GoodsEvaluateController {
         goodsEvaluateModifyRequest.setUpdatePerson(operator.getUserId());
         goodsEvaluateModifyRequest.setUpdateTime(LocalDateTime.now());
         modifyRequest.setGoodsEvaluateModifyRequest(goodsEvaluateModifyRequest);
+        goodsEvaluateModifyRequest.setClientIp(RequestUtils.getClientIp());
         goodsEvaluateSaveProvider.modify(goodsEvaluateModifyRequest);
         //晒单
         List<GoodsEvaluateImageAddRequest> imageAddRequestList = modifyRequest.getGoodsEvaluateImageAddRequestList();

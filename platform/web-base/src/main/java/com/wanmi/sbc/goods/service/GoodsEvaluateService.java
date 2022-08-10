@@ -1,8 +1,5 @@
 package com.wanmi.sbc.goods.service;
 
-import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateAddResponse;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
-import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -16,6 +13,7 @@ import com.wanmi.sbc.customer.api.request.growthvalue.CustomerGrowthValueAddRequ
 import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.storeevaluate.StoreEvaluateAddRequest;
 import com.wanmi.sbc.customer.api.request.storeevaluate.StoreEvaluateListRequest;
+import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateAddResponse;
 import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateListResponse;
 import com.wanmi.sbc.customer.bean.enums.GrowthValueServiceType;
 import com.wanmi.sbc.customer.bean.enums.OperateType;
@@ -41,7 +39,8 @@ import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.evaluateratio.EvaluateRatioQueryProvider;
 import com.wanmi.sbc.setting.bean.vo.EvaluateRatioVO;
 import com.wanmi.sbc.util.CommonUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.wanmi.sbc.util.RequestUtils;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -170,8 +169,8 @@ public class GoodsEvaluateService {
                 goodsEvaluateAddRequest.setIsUpload(1);
             }
 
-            GoodsEvaluateVO goodsEvaluateVO =
-                    goodsEvaluateSaveProvider.add(goodsEvaluateAddRequest).getContext().getGoodsEvaluateVO();
+            goodsEvaluateAddRequest.setClientIp(RequestUtils.getClientIp());
+            GoodsEvaluateVO goodsEvaluateVO = goodsEvaluateSaveProvider.add(goodsEvaluateAddRequest).getContext().getGoodsEvaluateVO();
 
             //服务评价订单购买时间
             storeEvaluateAddRequest.setBuyTime(goodsEvaluateVO.getBuyTime());
