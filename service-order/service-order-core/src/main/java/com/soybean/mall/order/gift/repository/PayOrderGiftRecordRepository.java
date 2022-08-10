@@ -49,6 +49,9 @@ public interface PayOrderGiftRecordRepository extends JpaRepository<OrderGiftRec
                 if (StringUtils.isNotBlank(req.getActivityId())) {
                     conditionList.add(criteriaBuilder.equal(root.get("activityId"), req.getActivityId()));
                 }
+                if (CollectionUtils.isNotEmpty(req.getActivityIds())) {
+                    conditionList.add(root.get("activityId").in(req.getActivityIds()));
+                }
                 if (req.getRecordCategory() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("recordCategory"), req.getRecordCategory()));
                 }

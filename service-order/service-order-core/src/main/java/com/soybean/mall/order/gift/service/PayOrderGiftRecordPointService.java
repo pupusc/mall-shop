@@ -2,6 +2,7 @@ package com.soybean.mall.order.gift.service;
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.api.request.mq.RecordMessageMq;
 import com.soybean.mall.order.api.response.mq.SimpleTradeResp;
+import com.soybean.mall.order.api.response.record.OrderGiftRecordResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.order.api.enums.RecordStateEnum;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -143,26 +145,42 @@ public class PayOrderGiftRecordPointService extends PayOrderGiftRecordService {
 
 
 
-    @GlobalTransactional
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void runTest() {
-        OrderGiftRecord orderGiftRecord = new OrderGiftRecord();
-        orderGiftRecord.setName("返积分活动");
-        orderGiftRecord.setCustomerId("customer_id123");
-        orderGiftRecord.setOrderId("orderId_1234");
-        orderGiftRecord.setActivityId("activityId_1234");
-        orderGiftRecord.setPer(100);
-        orderGiftRecord.setQuoteId("quoteId_13123");
-        orderGiftRecord.setQuoteName("goods_info");
-        orderGiftRecord.setRecordCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
-        orderGiftRecord.setRecordStatus(RecordStateEnum.CREATE.getCode());
-        orderGiftRecord.setCreateTime(LocalDateTime.now());
-        orderGiftRecord.setUpdateTime(LocalDateTime.now());
-        orderGiftRecord.setDelFlag(DeleteFlag.NO);
+//    @GlobalTransactional
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void runTest() {
+//        OrderGiftRecord orderGiftRecord = new OrderGiftRecord();
+//        orderGiftRecord.setName("返积分活动");
+//        orderGiftRecord.setCustomerId("customer_id123");
+//        orderGiftRecord.setOrderId("orderId_1234");
+//        orderGiftRecord.setActivityId("activityId_1234");
+//        orderGiftRecord.setPer(100);
+//        orderGiftRecord.setQuoteId("quoteId_13123");
+//        orderGiftRecord.setQuoteName("goods_info");
+//        orderGiftRecord.setRecordCategory(ActivityCategoryEnum.ACTIVITY_POINT.getCode());
+//        orderGiftRecord.setRecordStatus(RecordStateEnum.CREATE.getCode());
+//        orderGiftRecord.setCreateTime(LocalDateTime.now());
+//        orderGiftRecord.setUpdateTime(LocalDateTime.now());
+//        orderGiftRecord.setDelFlag(DeleteFlag.NO);
+//
+//        OrderGiftRecord save = payOrderGiftRecordRepository.save(orderGiftRecord);
+//        System.out.println(orderGiftRecord.getId());
+//        System.out.println(JSON.toJSONString(save));
+//        System.out.println("-------------end-------------");
+//    }
 
-        OrderGiftRecord save = payOrderGiftRecordRepository.save(orderGiftRecord);
-        System.out.println(orderGiftRecord.getId());
-        System.out.println(JSON.toJSONString(save));
-        System.out.println("-------------end-------------");
+    /**
+     * 获取返回记录列表
+     * @param req
+     * @return
+     */
+    public List<OrderGiftRecordResp> listNoPage(OrderGiftRecordSearchReq req) {
+        List<OrderGiftRecordResp> result = new ArrayList<>();
+        List<OrderGiftRecord> orderGiftRecords = payOrderGiftRecordRepository.findAll(payOrderGiftRecordRepository.packageWhere(req));
+        for (OrderGiftRecord orderGiftRecord : orderGiftRecords) {
+            OrderGiftRecordResp orderGiftRecordResp = new OrderGiftRecordResp();
+            BeanUtils.copyProperties(orderGiftRecord, orderGiftRecordResp);
+            result.add(orderGiftRecordResp);
+        }
+        return result;
     }
 }
