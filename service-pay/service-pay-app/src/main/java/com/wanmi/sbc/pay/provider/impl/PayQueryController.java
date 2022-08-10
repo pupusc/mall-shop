@@ -1,6 +1,7 @@
 package com.wanmi.sbc.pay.provider.impl;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
@@ -158,6 +159,16 @@ public class PayQueryController implements PayQueryProvider {
                                                                                     GatewayConfigByGatewayRequest
                                                                                     gatewayConfigByGatewayRequest) {
         PayGatewayConfig config = payDataService.queryConfigByNameAndStoreId(gatewayConfigByGatewayRequest.getGatewayEnum(),gatewayConfigByGatewayRequest.getStoreId());
+        return BaseResponse.success(wraperResponseForGatewayConfig(config));
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public BaseResponse<PayGatewayConfigResponse> getGatewayConfigByGatewayUnException(@RequestBody @Valid
+                                                                                    GatewayConfigByGatewayRequest
+                                                                                    gatewayConfigByGatewayRequest) {
+        PayGatewayConfig config = payDataService.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest.getGatewayEnum(),gatewayConfigByGatewayRequest.getStoreId());
         return BaseResponse.success(wraperResponseForGatewayConfig(config));
     }
 
@@ -384,5 +395,27 @@ public class PayQueryController implements PayQueryProvider {
     public BaseResponse<List<PayChannelItemVO>> getAllChannelItem() {
         List<PayChannelItemVO> list =  this.payService.getAllChannelItem();
         return BaseResponse.success(list);
+    }
+
+
+//    @Override
+//    public BaseResponse<PayGatewayConfigResponse> queryConfigByAccountAndStoreId(GatewayConfigByGatewayRequest req) {
+//        List<PayGatewayConfig> configs = payDataService.queryConfigByAccountAndStoreId(req.getAccount(), req.getStoreId());
+//        if (CollectionUtils.isEmpty(configs)) {
+//            log.info("PayQueryController queryConfigByAccountAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAccount(), req.getStoreId());
+//            throw new SbcRuntimeException("K-99999", String.format("account:%s storeId:%s 对应的配置信息不存在", req.getAccount(), req.getStoreId()));
+//        }
+//        return BaseResponse.success(wraperResponseForGatewayConfig(configs.get(0)));
+//    }
+
+
+    @Override
+    public BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(GatewayConfigByGatewayRequest req) {
+        List<PayGatewayConfig> configs = payDataService.queryConfigByAppIdAndStoreId(req.getAppId(), req.getStoreId());
+        if (CollectionUtils.isEmpty(configs)) {
+            log.info("PayQueryController queryConfigByAccountAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAppId(), req.getStoreId());
+            throw new SbcRuntimeException("K-99999", String.format("account:%s storeId:%s 对应的配置信息不存在", req.getAppId(), req.getStoreId()));
+        }
+        return BaseResponse.success(wraperResponseForGatewayConfig(configs.get(0)));
     }
 }

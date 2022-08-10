@@ -94,10 +94,14 @@ public class WeChatPublicPlatformController {
         } else if (TerminalType.H5.equals(terminalType)) { //H5
             WechatLoginSetResponse setResponse = wechatLoginSetQueryProvider.getInfo().getContext();
             if (setResponse != null && DefaultFlag.YES.equals(setResponse.getMobileServerStatus())) {
-                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(
-                        new GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
-                appId = payGatewayConfig.getAppId();
-                appSecret = payGatewayConfig.getSecret();
+                GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+                gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
+                gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGatewayUnException(gatewayConfigByGatewayRequest).getContext();
+                if (payGatewayConfig != null) {
+                    appId = payGatewayConfig.getAppId();
+                    appSecret = payGatewayConfig.getSecret();
+                }
             }
         } else {
             WechatShareSetInfoResponse infoResponse = wechatShareSetQueryProvider.getInfo(WechatShareSetInfoRequest.builder().

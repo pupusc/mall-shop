@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ *
+ * 作废7月29日 by duanlsh
  * <p>分销业绩月报表生成，暂配置为每月1日凌晨3点执行</p>
  * Created by of628-wenzhi on 2019-04-24-16:04.
  */

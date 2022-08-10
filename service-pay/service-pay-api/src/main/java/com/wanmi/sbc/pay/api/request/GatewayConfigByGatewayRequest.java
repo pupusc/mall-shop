@@ -33,4 +33,6 @@ public class GatewayConfigByGatewayRequest extends PayBaseRequest{
     @ApiModelProperty(value = "店铺id")
     @NotNull
     private Long storeId;
+
+    private String appId;
 }

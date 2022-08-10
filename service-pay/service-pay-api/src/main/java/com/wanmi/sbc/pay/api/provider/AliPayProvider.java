@@ -28,13 +28,13 @@ public interface AliPayProvider {
     @PostMapping("/pay/${application.pay.version}/get-payForm")
     BaseResponse<AliPayFormResponse> getPayForm(@RequestBody @Valid PayExtraRequest request);
 
-    /*
-     * @Description: 退款接口，直接退款，不涉及业务
-     * @Param:  request 支付请求对象
-     * @Author: Bob
-     * @Date: 2019-01-28 16:25
-     */
-    @PostMapping("/pay/${application.pay.version}/aliPayRefund")
-    BaseResponse<AliPayRefundResponse> aliPayRefund(@RequestBody @Valid AliPayRefundRequest refundRequest);
+//    /*
+//     * @Description: 退款接口，直接退款，不涉及业务
+//     * @Param:  request 支付请求对象
+//     * @Author: Bob
+//     * @Date: 2019-01-28 16:25
+//     */
+//    @PostMapping("/pay/${application.pay.version}/aliPayRefund")
+//    BaseResponse<AliPayRefundResponse> aliPayRefund(@RequestBody @Valid AliPayRefundRequest refundRequest);
 
 }

@@ -51,9 +51,9 @@ public final class GatewayProxy implements InitializingBean {
      *
      * @return 退款结果
      */
-    public RefundResult refund(RefundRequest refundRequest, PayChannelItem channelItem) {
-        Function<GatewayHandler, RefundResult> refundCall = (g) -> g.refund(refundRequest, channelItem);
-        return execute(refundCall, channelItem.getGateway());
+    public RefundResult refund(RefundRequest refundRequest, PayGateway payGateway) {
+        Function<GatewayHandler, RefundResult> refundCall = (g) -> g.refund(refundRequest, payGateway);
+        return execute(refundCall, payGateway);
     }
 
     /**

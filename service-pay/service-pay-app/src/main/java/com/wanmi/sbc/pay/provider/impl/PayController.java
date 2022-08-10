@@ -1,12 +1,15 @@
 package com.wanmi.sbc.pay.provider.impl;
 
+import com.soybean.common.util.RedisLockKeyUtil;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
 import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.PayResponse;
 import com.wanmi.sbc.pay.api.response.RefundResponse;
 import com.wanmi.sbc.pay.bean.enums.IsOpen;
+import com.wanmi.sbc.pay.bean.enums.TradeType;
 import com.wanmi.sbc.pay.model.root.PayChannelItem;
 import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
@@ -17,6 +20,9 @@ import com.wanmi.sbc.pay.service.PayService;
 import com.wanmi.sbc.pay.unionpay.acp.sdk.AcpService;
 import com.wanmi.sbc.pay.utils.GeneratorUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +32,7 @@ import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>支付操作接口实现</p>
@@ -41,6 +48,9 @@ public class PayController implements PayProvider {
 
     @Autowired
     private PayDataService payDataService;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
 
     @Override
@@ -141,16 +151,44 @@ public class PayController implements PayProvider {
      */
     @Override
     public BaseResponse wxPayCallBack(@RequestBody PayTradeRecordRequest request) {
+        //因为当前是查询和新增在一起有并发问题，所以这要添加锁信息
+
         PayTradeRecord payTradeRecord = payDataService.queryByBusinessId(request.getBusinessId());
         if (payTradeRecord == null) {
-            payTradeRecord = new PayTradeRecord();
-            payTradeRecord.setId(GeneratorUtils.generatePT());
-            payTradeRecord.setBusinessId(request.getBusinessId());
-            payTradeRecord.setCreateTime(LocalDateTime.now());
+            RLock rLock = redissonClient.getFairLock(RedisLockKeyUtil.PAY_TRADE_RECORD_LOCK_PREFIX + request.getBusinessId());
+            try {
+                if (rLock.tryLock(3, 3, TimeUnit.SECONDS)) {
+                    payTradeRecord = payDataService.queryByBusinessId(request.getBusinessId());
+                    if (payTradeRecord == null) {
+                        payTradeRecord = new PayTradeRecord();
+                        payTradeRecord.setId(GeneratorUtils.generatePT());
+                        payTradeRecord.setBusinessId(request.getBusinessId());
+                        payTradeRecord.setCreateTime(LocalDateTime.now());
+                    }
+                }  else {
+                    throw new SbcRuntimeException("K-000001", "操作频繁");
+                }
+            } catch (InterruptedException ex) {
+                log.error("PayController wxPayCallBack interruptedException error", ex);
+                throw new SbcRuntimeException("K-000001", "操作频繁");
+            } catch (Exception ex) {
+                log.error("PayController wxPayCallBack error", ex);
+                throw ex;
+            } finally {
+                rLock.unlock();
+            }
         }
         if (request.getChannelItemId() != null) {
             //更新支付记录支付项字段
             payTradeRecord.setChannelItemId(request.getChannelItemId());
+        }
+        //设置appid
+        if (StringUtils.isNotBlank(request.getAppId())) {
+            payTradeRecord.setAppId(request.getAppId());
+        }
+
+        if (payTradeRecord.getTradeType() == null && request.getTradeType() != null) {
+            payTradeRecord.setTradeType(request.getTradeType());
         }
         payService.wxPayCallBack(request, payTradeRecord);
         return BaseResponse.SUCCESSFUL();

@@ -1,25 +1,20 @@
-package com.soybean.mall.order.api.request.process;
+package com.soybean.mall.wx.mini.user.bean.response;
 
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/7/22 6:24 下午
+ * Date       : 2022/8/3 10:44 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class AppIdProcessReq {
+public class WxUserOpenIdResp {
 
-    private List<Long> ids;
+    private String openId;
 
+    private String unionId;
 
-    private Long maxId;
-
-    private int size = 100;
-
-    private String businessId;
+    private String sessionKey;
 }

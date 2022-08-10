@@ -1174,12 +1174,13 @@ public class TradePushERPService {
      */
     public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList,Integer allDelivery) {
         List<TradeDeliverVO> tradeDeliverVOList = new ArrayList<>();
-        TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
+//        TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
+        Trade trade = tradeService.detail(providerTrade.getParentId());
 
         //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
-        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(tradeVO.getId());
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
         if (CollectionUtils.isEmpty(providerTrades)) {
-            log.error(" TradePushERPService fillERPTradeDelivers providerTrade {} not exists ", tradeVO.getId());
+            log.error(" TradePushERPService fillERPTradeDelivers providerTrade {} not exists ", trade.getId());
             return;
         }
 
@@ -1189,7 +1190,7 @@ public class TradePushERPService {
             //只是处理 全部发货 或者部分发货
             if (!deliveryStatus.equals(DeliveryStatus.DELIVERY_COMPLETE)
                     && !deliveryStatus.equals(DeliveryStatus.PART_DELIVERY)) {
-                log.info("TradePushERPService fillERPTradeDelivers providerTrade {} deliveryInfoVO {} 存在非全部发货和部分发货的数据",tradeVO.getId(), JSON.toJSONString(deliveryInfoVO));
+                log.info("TradePushERPService fillERPTradeDelivers providerTrade {} deliveryInfoVO {} 存在非全部发货和部分发货的数据",trade.getId(), JSON.toJSONString(deliveryInfoVO));
                 continue;
             }
 
@@ -1366,36 +1367,36 @@ public class TradePushERPService {
                 if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && allDelivery == 1)) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-                    tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                    tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+                    trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                    trade.getTradeState().setFlowState(FlowState.DELIVERED);
 
                     //设置发货时间
                     TradeDeliverVO tradeDeliver = tradeDeliverVOList.get(0);
                     providerTrade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
-                    tradeVO.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
+                    trade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
                     //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
                     if (CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
-                        tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                        tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                        tradeVO.getTradeState().setDeliverTime(null);
+                        trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                        trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                        trade.getTradeState().setDeliverTime(null);
                     }
                     if (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && providerTrade.getTradeItems().stream().anyMatch(p -> p.getDeliverStatus() != DeliverStatus.SHIPPED)) {
                         providerTrade.getTradeState().setVirtualAllDelivery(1);
-                        tradeVO.getTradeState().setVirtualAllDelivery(1);
+                        trade.getTradeState().setVirtualAllDelivery(1);
                     }
                 } else if (totalDeliverStatusList.get(0) == DeliverStatus.PART_SHIPPED) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                    tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                    tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                    trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                    trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                 }
             } else if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.stream().anyMatch(deliverStatus ->
                     deliverStatus.getStatusId().equals(DeliverStatus.PART_SHIPPED.getStatusId()) ||
                             deliverStatus.getStatusId().equals(DeliverStatus.NOT_YET_SHIPPED.getStatusId()))) {
                 providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                 providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
 
                 //如果为管易云 商品，则查询订单信息
                 if (!providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)) {
@@ -1424,12 +1425,12 @@ public class TradePushERPService {
                         providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                         //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
                         if (CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
-                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                            tradeVO.getTradeState().setDeliverTime(null);
+                            trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                            trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                            trade.getTradeState().setDeliverTime(null);
                         } else {
-                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+                            trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                            trade.getTradeState().setFlowState(FlowState.DELIVERED);
                         }
                     }
                 } else {
@@ -1452,7 +1453,7 @@ public class TradePushERPService {
 
 
             // 主单 按照物流信息填充
-            Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
+//            Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
             Map<String, TradeDeliver> tradeDeliverMap = new HashMap<>();
             for (TradeDeliver tradeDeliverParam : trade.getTradeDelivers()) {
                 if (tradeDeliverParam.getLogistics() == null) {
@@ -1515,8 +1516,8 @@ public class TradePushERPService {
             trade.appendTradeEventLog(tradeEventLog);
 
             //如果全部发货，则更新发货数量
-            if (DeliverStatus.SHIPPED.equals(tradeVO.getTradeState().getDeliverStatus())
-                    && FlowState.DELIVERED.equals(tradeVO.getTradeState().getFlowState())) {
+            if (DeliverStatus.SHIPPED.equals(trade.getTradeState().getDeliverStatus())
+                    && FlowState.DELIVERED.equals(trade.getTradeState().getFlowState())) {
                 for (TradeItem tradeItem : trade.getTradeItems()) {
                     tradeItem.setDeliveredNumHis(tradeItem.getDeliveredNum());
                     if (tradeItem.getNum() > tradeItem.getDeliveredNum()) {

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.pay.service;
 
 import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -10,10 +11,12 @@ import com.alipay.api.request.*;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.wanmi.sbc.common.constant.ErrorCodeConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.pay.api.request.AliPayRefundRequest;
 import com.wanmi.sbc.pay.api.request.PayExtraRequest;
 import com.wanmi.sbc.pay.api.request.PayRequest;
+import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.TerminalType;
 import com.wanmi.sbc.pay.bean.enums.TradeStatus;
 import com.wanmi.sbc.pay.bean.enums.TradeType;
@@ -29,10 +32,12 @@ import com.wanmi.sbc.pay.utils.PayValidates;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -223,8 +228,12 @@ public class AlipayService {
         PayChannelItem item = channelItemRepository.findById(channelItemId).get();
         PayValidates.verfiyPayChannelItem(item);
         // 获取网关
-        PayGateway gateway = gatewayRepository.queryByNameAndStoreId(item.getGatewayName(),storeId);
-        item.setGateway(gateway);
+        List<PayGateway> gateways = gatewayRepository.queryByNameAndStoreId(item.getGatewayName(),storeId, IsOpen.YES);
+        log.info("AliPayService getPayChannelItem channelItemId:{} storeId:{} result:{}", channelItemId, storeId, JSON.toJSONString(gateways));
+       if (CollectionUtils.isEmpty(gateways)) {
+           throw new SbcRuntimeException("K-999999", "获取支付宝支付网关失败");
+       }
+        item.setGateway(gateways.get(0));
         return item;
     }
 

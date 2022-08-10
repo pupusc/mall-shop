@@ -942,7 +942,7 @@ public class PurchaseBaseController {
     }
 
     /**
-     * 获取购物车信息
+     * 获取购物车信息[H5购物车代码]
      */
     @ApiOperation(value = "获取购物车信息")
     @RequestMapping(value = "/purchaseInfo", method = RequestMethod.POST)

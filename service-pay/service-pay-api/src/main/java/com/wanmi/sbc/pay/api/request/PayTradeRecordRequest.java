@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.pay.bean.enums.TradeType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -78,5 +79,12 @@ public class PayTradeRecordRequest implements Serializable {
      * 业务结果
      */
     private String result_code;
+
+    /**
+     * appId
+     */
+    private String appId;
+
+    private TradeType tradeType;
 
 }

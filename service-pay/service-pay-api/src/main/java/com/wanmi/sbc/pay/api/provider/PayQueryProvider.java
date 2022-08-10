@@ -154,6 +154,16 @@ public interface PayQueryProvider {
                                                                              gatewayConfigByGatewayRequest);
 
     /**
+     * 根据网关名称查询支付网关配置
+     *
+     * @param gatewayConfigByGatewayRequest 包含支付网关枚举 {@link GatewayConfigByGatewayRequest}
+     * @return 支付网关配置信息 {@link PayGatewayConfigResponse}
+     */
+    @PostMapping("/pay/${application.pay.version}/get-gateway-config-by-gateway-un-exception")
+    BaseResponse<PayGatewayConfigResponse> getGatewayConfigByGatewayUnException(@RequestBody @Valid GatewayConfigByGatewayRequest
+                                                                             gatewayConfigByGatewayRequest);
+
+    /**
      * 根据网关id查询支付网关配置
      *
      * @param gatewayConfigByGatewayIdRequest 包含支付网关枚举 {@link GatewayConfigByGatewayIdRequest}
@@ -226,4 +236,20 @@ public interface PayQueryProvider {
      */
     @PostMapping("/pay/${application.pay.version}/get-all-channel-item")
     BaseResponse<List<PayChannelItemVO>> getAllChannelItem();
+
+
+//    /**
+//     * 获取支付配置信息
+//     * @param req
+//     * @return
+//     */
+//    BaseResponse<PayGatewayConfigResponse> queryConfigByAccountAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
+
+    /**
+     * 获取支付配置信息
+     * @param req
+     * @return
+     */
+    @PostMapping("/pay/${application.pay.version}/query-config-by-appId-storeId")
+    BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
 }

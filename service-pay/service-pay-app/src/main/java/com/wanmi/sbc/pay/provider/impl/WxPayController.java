@@ -1,24 +1,32 @@
 package com.wanmi.sbc.pay.provider.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
 import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.*;
+import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
+import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
+import com.wanmi.sbc.pay.repository.GatewayRepository;
 import com.wanmi.sbc.pay.service.PayDataService;
 import com.wanmi.sbc.pay.service.WxPayService;
+import com.wanmi.sbc.pay.utils.PayValidates;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +51,9 @@ public class WxPayController implements WxPayProvider {
 
     @Autowired
     private PayDataService payDataService;
+
+    @Resource
+    private GatewayRepository gatewayRepository;
 
     /**
      * 统一下单接口--native扫码支付
@@ -88,16 +99,28 @@ public class WxPayController implements WxPayProvider {
      */
     @Override
     public BaseResponse<WxPayForMWebResponse> wxPayForMWeb(@RequestBody WxPayForMWebRequest mWebRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId());
-        mWebRequest.setAppid(payGatewayConfig.getAppId());
-        mWebRequest.setMch_id(payGatewayConfig.getAccount());
+
+        // 获取网关
+        List<PayGateway> gateways = gatewayRepository.queryByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId(), IsOpen.YES);
+//        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,mWebRequest.getStoreId());
+        log.info("WxPayService wxPayForMWeb storeId:{} result:{}", mWebRequest.getStoreId(), JSON.toJSONString(gateways));
+        if (CollectionUtils.isEmpty(gateways)) {
+            throw new SbcRuntimeException("K-999999", "获取微信支付网关失败");
+        }
+
+        PayGateway payGateway = gateways.get(0);
+        PayValidates.verifyGateway(payGateway);
+
+
+        mWebRequest.setAppid(payGateway.getConfig().getAppId());
+        mWebRequest.setMch_id(payGateway.getConfig().getAccount());
         mWebRequest.setNonce_str(WXPayUtil.generateNonceStr());
-        mWebRequest.setNotify_url(getNotifyUrl(payGatewayConfig));
+        mWebRequest.setNotify_url(getNotifyUrl(payGateway.getConfig()));
         try {
             Map<String,String> mwebMap = WXPayUtil.objectToMap(mWebRequest);
             mwebMap.remove("storeId");
             //获取签名
-            String sign = WXPayUtil.generateSignature(mwebMap,payGatewayConfig.getApiKey());
+            String sign = WXPayUtil.generateSignature(mwebMap,payGateway.getConfig().getApiKey());
             mWebRequest.setSign(sign);
         } catch (Exception e) {
             log.info("wxPayForMWeb exception", e);
@@ -142,13 +165,22 @@ public class WxPayController implements WxPayProvider {
      */
     @Override
     public BaseResponse<Map<String,String>> wxPayForLittleProgram(@RequestBody WxPayForJSApiRequest jsApiRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,jsApiRequest.getStoreId());
-        wxSignCommon(jsApiRequest, payGatewayConfig);
+        // 获取网关
+        List<PayGateway> gateways = gatewayRepository.queryByNameAndStoreId(PayGatewayEnum.WECHAT,jsApiRequest.getStoreId(), IsOpen.YES);
+        log.info("WxPayController wxPayForLittleProgram storeId:{} result:{}", jsApiRequest.getStoreId(), JSON.toJSONString(gateways));
+
+        if (CollectionUtils.isEmpty(gateways)) {
+            throw new SbcRuntimeException("K-999999", "获取微信小程序支付网关失败");
+        }
+
+        PayGateway payGateway = gateways.get(0);
+        PayValidates.verifyGateway(payGateway);
+        wxSignCommon(jsApiRequest, payGateway.getConfig());
         log.info("小程序支付[JSApi]统一下单接口入参:{}", jsApiRequest);
         //调用统一下单接口
         WxPayForJSApiResponse response = wxPayService.wxPayForJSApi(jsApiRequest);
         if("SUCCESS".equals(response.getReturn_code()) && "SUCCESS".equals(response.getResult_code())){
-            return getSignResultCommon(jsApiRequest.getAppid(), payGatewayConfig.getApiKey(), response.getPrepay_id());
+            return getSignResultCommon(jsApiRequest.getAppid(), payGateway.getConfig().getApiKey(), response.getPrepay_id());
         }
         log.error("小程序支付[小程序]统一下单接口调用失败,入参:{},返回结果为:{}", jsApiRequest, response);
         this.throwErrMsg(response.getErr_code(), response.getErr_code_des());
@@ -259,46 +291,46 @@ public class WxPayController implements WxPayProvider {
 
     }
 
-    /**
-     * 微信退款
-     * @param refundInfoRequest
-     * @return
-     */
-    @Override
-    public BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest){
-        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,refundInfoRequest.getStoreId());
-        String appId = payGatewayConfig.getAppId();
-        String account = payGatewayConfig.getAccount();
-        String apiKey = payGatewayConfig.getApiKey();
-        if(refundInfoRequest.getPay_type().equals("APP")){
-            appId = payGatewayConfig.getOpenPlatformAppId();
-            account = payGatewayConfig.getOpenPlatformAccount();
-            apiKey = payGatewayConfig.getOpenPlatformApiKey();
-        }
-        WxPayRefundRequest refundRequest = new WxPayRefundRequest();
-        refundRequest.setAppid(appId);
-        refundRequest.setMch_id(account);
-        refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
-        refundRequest.setOut_refund_no(refundInfoRequest.getOut_refund_no());
-        refundRequest.setOut_trade_no(refundInfoRequest.getOut_trade_no());
-        refundRequest.setTotal_fee(refundInfoRequest.getTotal_fee());
-        refundRequest.setRefund_fee(refundInfoRequest.getRefund_fee());
-        //重复支付退款不需要异步回调地址
-        if(StringUtils.isNotBlank(refundInfoRequest.getRefund_type()) && !refundInfoRequest.getRefund_type().equals("REPEATPAY")){
-            refundRequest.setNotify_url(payGatewayConfig.getBossBackUrl()+WXREFUNDSUCCCALLBACK+refundInfoRequest.getStoreId());
-        }
-        try {
-            Map<String,String> refundMap = WXPayUtil.objectToMap(refundRequest);
-            //获取签名
-            String sign = WXPayUtil.generateSignature(refundMap,apiKey);
-            refundRequest.setSign(sign);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest,
-                refundInfoRequest.getPay_type(), refundInfoRequest.getStoreId());
-        return BaseResponse.success(wxPayRefundResponse);
-    }
+//    /**
+//     * 微信退款
+//     * @param refundInfoRequest
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest){
+//        PayGatewayConfig payGatewayConfig = payDataService.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT,refundInfoRequest.getStoreId());
+//        String appId = payGatewayConfig.getAppId();
+//        String account = payGatewayConfig.getAccount();
+//        String apiKey = payGatewayConfig.getApiKey();
+//        if(refundInfoRequest.getPay_type().equals("APP")){
+//            appId = payGatewayConfig.getOpenPlatformAppId();
+//            account = payGatewayConfig.getOpenPlatformAccount();
+//            apiKey = payGatewayConfig.getOpenPlatformApiKey();
+//        }
+//        WxPayRefundRequest refundRequest = new WxPayRefundRequest();
+//        refundRequest.setAppid(appId);
+//        refundRequest.setMch_id(account);
+//        refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
+//        refundRequest.setOut_refund_no(refundInfoRequest.getOut_refund_no());
+//        refundRequest.setOut_trade_no(refundInfoRequest.getOut_trade_no());
+//        refundRequest.setTotal_fee(refundInfoRequest.getTotal_fee());
+//        refundRequest.setRefund_fee(refundInfoRequest.getRefund_fee());
+//        //重复支付退款不需要异步回调地址
+//        if(StringUtils.isNotBlank(refundInfoRequest.getRefund_type()) && !refundInfoRequest.getRefund_type().equals("REPEATPAY")){
+//            refundRequest.setNotify_url(payGatewayConfig.getBossBackUrl()+WXREFUNDSUCCCALLBACK+refundInfoRequest.getStoreId());
+//        }
+//        try {
+//            Map<String,String> refundMap = WXPayUtil.objectToMap(refundRequest);
+//            //获取签名
+//            String sign = WXPayUtil.generateSignature(refundMap,apiKey);
+//            refundRequest.setSign(sign);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest,
+//                refundInfoRequest.getPay_type(), refundInfoRequest.getStoreId());
+//        return BaseResponse.success(wxPayRefundResponse);
+//    }
 
     /**
      * 微信支付--微信企业付款到零钱

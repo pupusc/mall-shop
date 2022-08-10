@@ -41,7 +41,7 @@ public class OrderConfigController implements OrderConfigProvider {
     @Override
     public BaseResponse list() {
         String message = "{\"channelTypes\":[1],\"orderId\":\"O202207181807389611146\"}";
-        payOrderGiftRecordPointService.runTest();
+//        payOrderGiftRecordPointService.runTest();
         return BaseResponse.SUCCESSFUL();
     }
 }

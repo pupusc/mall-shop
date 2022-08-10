@@ -245,8 +245,10 @@ public class CustomerDrawCashController {
             String secret;
             // APP提现
             if (DrawCashSource.APP == customerDrawCashAddRequest.getDrawCashSource()) {
-                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                        GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+                GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
+                gatewayConfigByGatewayRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
+                gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
+                PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(gatewayConfigByGatewayRequest).getContext();
                 appId = payGatewayConfig.getOpenPlatformAppId();
                 secret = payGatewayConfig.getOpenPlatformSecret();
                 // 使用code换取access_token和openId
