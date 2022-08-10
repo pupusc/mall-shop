@@ -6811,7 +6811,7 @@ public class TradeService {
         WxVideoOrderDetailResponse context = null;
         if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             context = wxOrderService.getWechatVideoOrder(trade);
-            if (context != null) {
+            if (context != null && context.getOrder() != null) {
                 WxVideoOrderDetailResponse.PayInfo payInfo = context.getOrder().getOrderDetail().getPayInfo();
                 if (payInfo != null) {
                     log.info("==========视频号订单超时未支付取消，订单已支付取消失败，订单Id为：{}", baseTid);
