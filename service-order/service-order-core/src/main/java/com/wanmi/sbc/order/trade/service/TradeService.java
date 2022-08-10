@@ -6884,7 +6884,7 @@ public class TradeService {
 
 
         //小程序发送取消消息
-        if (context != null) {
+        if (context != null && context.getOrder() != null) {
             wxOrderService.sendWxCancelOrderMessage(trade, context);
         }
     }
