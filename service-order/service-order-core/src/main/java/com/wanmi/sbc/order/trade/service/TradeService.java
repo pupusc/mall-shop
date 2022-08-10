@@ -5118,6 +5118,7 @@ public class TradeService {
                         }
                     }
                 } catch (Exception e) {
+                    log.error("TradeService payCallBack exception ", e);
                     // 保存积分订单抵扣异常信息
                     if (Objects.nonNull(exceptionOfTradePoints)) {
                         //存在则更新，更新错误信息及处理状态
@@ -5146,10 +5147,19 @@ public class TradeService {
                         exceptionOfTradePoints.setCreateTime(LocalDateTime.now());
                     }
                 } finally {
-                    //发送积分订单异常消息
-                    if (Objects.nonNull(exceptionOfTradePoints)) {
-                        resolver.resolveDestination(JmsDestinationConstants.Q_ORDER_MODIFY_OR_ADD_TRADE_POINTS_EXCEPTION)
-                                .send(new GenericMessage<>(JSONObject.toJSONString(exceptionOfTradePoints)));
+                    try {
+                        //发送积分订单异常消息
+                        if (Objects.nonNull(exceptionOfTradePoints)) {
+                            if (StringUtils.isBlank(exceptionOfTradePoints.getErrorCode())) {
+                                log.error("TradeService payCallBack exception exceptionOfTradePoints:{}", JSON.toJSONString(exceptionOfTradePoints));
+                                exceptionOfTradePoints.setErrorCode("K-123456");
+                            }
+                            resolver.resolveDestination(JmsDestinationConstants.Q_ORDER_MODIFY_OR_ADD_TRADE_POINTS_EXCEPTION)
+                                    .send(new GenericMessage<>(JSONObject.toJSONString(exceptionOfTradePoints)));
+                        }
+                    } catch (Exception ex ) {
+                        log.error("TradeService payCallBack exception save:", ex);
+
                     }
                 }
             }
