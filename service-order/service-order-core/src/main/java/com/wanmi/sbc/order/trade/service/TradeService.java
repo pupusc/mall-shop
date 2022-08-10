@@ -349,6 +349,7 @@ import com.wanmi.sbc.pay.api.response.WxPayRefundResponse;
 import com.wanmi.sbc.pay.api.response.WxPayResultResponse;
 import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
+import com.wanmi.sbc.pay.bean.enums.TradeType;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
@@ -8645,6 +8646,9 @@ public class TradeService {
         payTradeRecordRequest.setBusinessId(businessId);
         payTradeRecordRequest.setResult_code("success");
         payTradeRecordRequest.setPracticalPrice(trades.get(0).getTradePrice().getTotalPrice());
+        payTradeRecordRequest.setApplyPrice(trades.get(0).getTradePrice().getTotalPrice());
+        payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
+        payTradeRecordRequest.setTradeType(TradeType.PAY);
         ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
         channelItemByGatewayRequest.setGatewayName(PayGatewayEnum.WECHAT);
         PayChannelItemListResponse payChannelItemListResponse =
