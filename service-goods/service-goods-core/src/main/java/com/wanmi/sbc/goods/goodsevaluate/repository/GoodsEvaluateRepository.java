@@ -67,7 +67,7 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
     @Query("update GoodsEvaluate set goodNum = goodNum - 1 where evaluateId = :evaluateId")
     void subGoodsEvaluateGoodNum(@Param("evaluateId") String evaluateId);
 
-    @EntityGraph(value = "goodsEvaluate.all",type= EntityGraph.EntityGraphType.FETCH)
+//    @EntityGraph(value = "goodsEvaluate.all",type= EntityGraph.EntityGraphType.FETCH)
     Page<GoodsEvaluate> findAll(@Nullable Specification<GoodsEvaluate> var1, Pageable var2);
 
     @Query("select goodsId, count(1) from GoodsEvaluate where goodsId in (:goodsIds) and delFlag = 0 and isShow = 1 group by goodsId")

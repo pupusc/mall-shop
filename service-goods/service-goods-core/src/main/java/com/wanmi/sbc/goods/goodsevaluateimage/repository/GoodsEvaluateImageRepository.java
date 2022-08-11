@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * <p>商品评价图片DAO</p>
  * @author liutao
@@ -27,5 +29,7 @@ public interface GoodsEvaluateImageRepository extends JpaRepository<GoodsEvaluat
     @Modifying
     @Query("update GoodsEvaluateImage g set g.isShow = :isShow where g.evaluateId = :evaluateId")
     int updateIsShowByGoodsId(@Param("isShow") int isShow, @Param("evaluateId") String evaluateId);
-	
+
+    @Query(value = "select * from goods_evaluate_image where del_flag = 0  and evaluate_id in ?1", nativeQuery = true)
+    List<GoodsEvaluateImage> findAllByIds(List<String> evaluateIds);
 }

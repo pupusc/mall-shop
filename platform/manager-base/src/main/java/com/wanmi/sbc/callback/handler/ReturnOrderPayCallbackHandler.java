@@ -40,6 +40,7 @@ import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
 import com.wanmi.sbc.pay.api.response.PayChannelItemListResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
+import com.wanmi.sbc.pay.bean.enums.TradeType;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -138,7 +139,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 
 
 
-        Long channelId = 20L;
+        Long channelId = 16L;
         ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
         channelItemByGatewayRequest.setGatewayName(PayGatewayEnum.WECHAT);
         PayChannelItemListResponse payChannelItemListResponse =
@@ -172,9 +173,10 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         payTradeRecordRequest.setBusinessId(returnOrderVO.getId());
         payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
         payTradeRecordRequest.setChannelItemId(channelId);
+        payTradeRecordRequest.setAppId(PayAccountEnums.WX_MINI_PROGRAM_VIDEO.getCode());
         payTradeRecordRequest.setApplyPrice(returnOrderVO.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payTradeRecordRequest.setPracticalPrice(tradeVO.getTradePrice().getTotalPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
-        payTradeRecordRequest.setAppId(PayAccountEnums.WX_MINI_PROGRAM_VIDEO.getCode());
+        payTradeRecordRequest.setTradeType(TradeType.REFUND);
         payProvider.wxPayCallBack(payTradeRecordRequest);
         BaseResponse baseResponse = returnOrderProvider.onlineRefund(
                 ReturnOrderOnlineRefundRequest.builder().operator(operator)

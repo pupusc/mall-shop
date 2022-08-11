@@ -32,6 +32,6 @@ public interface PayCallBackResultRepository extends JpaRepository<PayCallBackRe
     @Query(value = "select * from pay_call_back_result where id > ?1 order by id asc limit ?2", nativeQuery = true)
     List<PayCallBackResult> listByMaxId(int from, int size);
 
-    @Query(value = "select * from pay_call_back_result where business_id  ?1 and result_status = ?2", nativeQuery = true)
+    @Query(value = "select * from pay_call_back_result where business_id = ?1 and result_status = ?2", nativeQuery = true)
     List<PayCallBackResult> list(String businessId, Integer resultStatus);
 }

@@ -9,6 +9,7 @@ import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.PayResponse;
 import com.wanmi.sbc.pay.api.response.RefundResponse;
 import com.wanmi.sbc.pay.bean.enums.IsOpen;
+import com.wanmi.sbc.pay.bean.enums.TradeType;
 import com.wanmi.sbc.pay.model.root.PayChannelItem;
 import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
@@ -184,6 +185,10 @@ public class PayController implements PayProvider {
         //设置appid
         if (StringUtils.isNotBlank(request.getAppId())) {
             payTradeRecord.setAppId(request.getAppId());
+        }
+
+        if (payTradeRecord.getTradeType() == null && request.getTradeType() != null) {
+            payTradeRecord.setTradeType(request.getTradeType());
         }
         payService.wxPayCallBack(request, payTradeRecord);
         return BaseResponse.SUCCESSFUL();

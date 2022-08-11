@@ -9,6 +9,7 @@ import com.wanmi.sbc.pay.model.entity.PayResult;
 import com.wanmi.sbc.pay.model.entity.RefundRecordResult;
 import com.wanmi.sbc.pay.model.entity.RefundResult;
 import com.wanmi.sbc.pay.model.root.PayChannelItem;
+import com.wanmi.sbc.pay.model.root.PayGateway;
 import com.wanmi.sbc.pay.model.root.PayGatewayConfig;
 import com.wanmi.sbc.pay.model.root.PayTradeRecord;
 
@@ -38,10 +39,10 @@ public interface GatewayHandler {
      * 退款
      *
      * @param request      请求参数
-     * @param channelItem  支付渠道项，包含网关及配置信息a
+     * @param payGateway  支付渠道项，包含网关及配置信息a
      * @return
      */
-    RefundResult refund(RefundRequest request, PayChannelItem channelItem);
+    RefundResult refund(RefundRequest request, PayGateway payGateway);
 
     /**
      * 查询支付信息

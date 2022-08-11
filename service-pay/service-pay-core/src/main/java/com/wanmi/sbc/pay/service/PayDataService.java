@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.service;
 
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.handler.aop.MasterRouteOnly;
 import com.wanmi.sbc.pay.api.request.PayGatewaySaveByTerminalTypeRequest;
 import com.wanmi.sbc.pay.api.request.PayGatewaySaveRequest;
@@ -14,6 +15,7 @@ import com.wanmi.sbc.pay.repository.ChannelItemRepository;
 import com.wanmi.sbc.pay.repository.GatewayConfigRepository;
 import com.wanmi.sbc.pay.repository.GatewayRepository;
 import com.wanmi.sbc.pay.repository.TradeRecordRepository;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -175,7 +177,26 @@ public class PayDataService {
      * @return
      */
     public PayGatewayConfig queryConfigByNameAndStoreId(PayGatewayEnum payGatewayEnum,Long storeId) {
-        return gatewayConfigRepository.queryConfigByNameAndStoreId(payGatewayEnum,storeId);
+        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(payGatewayEnum, storeId);
+//        return gatewayConfigRepository.queryConfigByNameAndStoreId(payGatewayEnum,storeId);
+        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
+        }
+        return payGatewayConfigs.get(0);
+    }
+
+    /**
+     * 根据网关名称获取网关配置
+     *
+     * @return
+     */
+    public PayGatewayConfig getGatewayConfigByGatewayUnException(PayGatewayEnum payGatewayEnum,Long storeId) {
+        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(payGatewayEnum, storeId);
+//        return gatewayConfigRepository.queryConfigByNameAndStoreId(payGatewayEnum,storeId);
+        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+             return null;
+        }
+        return payGatewayConfigs.get(0);
     }
 
 

@@ -20,6 +20,7 @@ import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,14 +92,24 @@ public class WxService {
     private RedisTemplate redisTemplate;
 
 
-    public String getPhoneNumber(String code){
+//    public String getPhoneNumber(String code){
+//        String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
+//        HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", defaultHeader);
+//        WxGetPhoneNumberResponse wxGetPhoneNumberResponse = sendRequest(url, HttpMethod.POST, entity, WxGetPhoneNumberResponse.class);
+//        if(wxGetPhoneNumberResponse.isSuccess()){
+//            return wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber();
+//        }
+//        return null;
+//    }
+
+    public WxGetPhoneNumberResponse getPhoneNumber(String code){
         String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
         HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", defaultHeader);
         WxGetPhoneNumberResponse wxGetPhoneNumberResponse = sendRequest(url, HttpMethod.POST, entity, WxGetPhoneNumberResponse.class);
         if(wxGetPhoneNumberResponse.isSuccess()){
-            return wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber();
+            return wxGetPhoneNumberResponse;
         }
-        return null;
+        throw new SbcRuntimeException("K-999999", wxGetPhoneNumberResponse.getErrmsg());
     }
 
     public WxGetOPenIdResponse getOpenId(String code){
@@ -108,7 +119,7 @@ public class WxService {
         if(wxGetOPenIdResponse.isSuccess()){
             return wxGetOPenIdResponse;
         }
-        return null;
+        throw new SbcRuntimeException("K-999999", wxGetOPenIdResponse.getErrmsg());
     }
 
     public WxAddProductResponse uploadGoodsToWx(WxAddProductRequest addProductRequest){

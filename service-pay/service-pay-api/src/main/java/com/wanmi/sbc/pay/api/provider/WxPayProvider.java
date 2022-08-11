@@ -33,8 +33,8 @@ public interface WxPayProvider {
     @PostMapping("/pay/${application.pay.version}/get-wx-pay-order-detail")
     BaseResponse<WxPayOrderDetailReponse> getWxPayOrderDetail(@RequestBody WxPayOrderDetailRequest request);
 
-    @PostMapping("/pay/${application.pay.version}/wx-pay-refund")
-    BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest);
+//    @PostMapping("/pay/${application.pay.version}/wx-pay-refund")
+//    BaseResponse<WxPayRefundResponse> wxPayRefund(@RequestBody WxPayRefundInfoRequest refundInfoRequest);
 
     @PostMapping("/pay/${application.pay.version}/wx-pay-company-payment")
     BaseResponse<WxPayCompanyPaymentRsponse> wxPayCompanyPayment(@RequestBody WxPayCompanyPaymentInfoRequest request);

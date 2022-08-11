@@ -19,7 +19,7 @@ import java.util.List;
  * @date 2019-02-25 15:14:16
  */
 @Data
-public class GoodsEvaluateVO implements Serializable {
+public class GoodsEvaluateVO extends GoodsEvaluateBaseVO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -279,4 +279,12 @@ public class GoodsEvaluateVO implements Serializable {
 	 * 是否推荐 0 不推荐 1推荐
 	 */
 	private Integer isRecommend;
+	/**
+	 * 客户端ip
+	 */
+	private String clientIp;
+	/**
+	 * 客户端位置
+	 */
+	private String clientPlace;
 }
