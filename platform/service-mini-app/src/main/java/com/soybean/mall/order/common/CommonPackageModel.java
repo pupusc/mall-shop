@@ -72,7 +72,13 @@ public class CommonPackageModel {
                 }
             }
             //获取总定价
-            BigDecimal marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : (tradeItem.getMarketPrice().multiply(new BigDecimal(tradeItem.getNum() + "")));
+            BigDecimal marketPrice = BigDecimal.ZERO;
+            if (tradeItem.getMarketPrice() == null && tradeItem.getOriginalPrice() != null) {
+                //兼容购物车
+                marketPrice = tradeItem.getOriginalPrice();
+            }
+
+            marketPrice = marketPrice.multiply(new BigDecimal(tradeItem.getNum() + ""));
             sumMarketPriceTmp = sumMarketPriceTmp.add(marketPrice);
             sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPropPrice() == null ? marketPrice : new BigDecimal(tradeItem.getPropPrice()+"").multiply( new BigDecimal(tradeItem.getNum() + "")));
         }
