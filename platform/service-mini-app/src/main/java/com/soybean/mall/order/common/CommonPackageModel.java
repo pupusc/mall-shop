@@ -76,6 +76,8 @@ public class CommonPackageModel {
             if (tradeItem.getMarketPrice() == null && tradeItem.getOriginalPrice() != null) {
                 //兼容购物车
                 marketPrice = tradeItem.getOriginalPrice();
+            } else {
+                marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : tradeItem.getMarketPrice();
             }
 
             marketPrice = marketPrice.multiply(new BigDecimal(tradeItem.getNum() + ""));
