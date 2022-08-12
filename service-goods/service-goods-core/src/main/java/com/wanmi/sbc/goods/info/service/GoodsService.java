@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.util.WebConstantUtil;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -1165,7 +1166,8 @@ public class GoodsService {
      */
     public GoodsDetailResponse findGoodsDetail(String skuId, String spuId) {
         String goodsId = spuId;
-        if (StringUtils.isEmpty(spuId)) {
+        goodsId = WebConstantUtil.filterSpecialCharacter(goodsId);
+        if (StringUtils.isEmpty(goodsId)) {
             List<GoodsInfo> goodsInfo = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(skuId));
             if (CollectionUtils.isNotEmpty(goodsInfo)) {
                 goodsId = goodsInfo.get(0).getGoodsId();
