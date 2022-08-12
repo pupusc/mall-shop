@@ -558,18 +558,26 @@ public class WxOrderService {
         result.setExpireTime(trade.getOrderTimeOut().toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
-        trade.getTradeItems().forEach(tradeItem -> {
+        for (TradeItem tradeItem : trade.getTradeItems()) {
+            int salePrice = tradeItem.getSplitPrice().multiply(new BigDecimal(100)).divide(new BigDecimal(tradeItem.getNum()), 2, BigDecimal.ROUND_DOWN).intValue();
+            if (salePrice <= 0) {
+                continue;
+            }
             productInfoDTOS.add(WxProductInfoDTO.builder()
                     .outProductId(tradeItem.getSpuId())
                     .outSkuId(tradeItem.getSkuId())
                     .productNum(tradeItem.getNum())
-                    .salePrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).divide(new BigDecimal(tradeItem.getNum()),2,BigDecimal.ROUND_DOWN).intValue())
-                    .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).divide(new BigDecimal(tradeItem.getNum()),2,BigDecimal.ROUND_DOWN).intValue())
+                    .salePrice(salePrice)
+                    .realPrice(salePrice)
                     .skuRealPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
                     .title(tradeItem.getSkuName())
                     .path(goodsDetailUrl + tradeItem.getSpuId())
                     .headImg(StringUtils.isEmpty(tradeItem.getPic()) ? defaultImageUrl : tradeItem.getPic()).build());
-        });
+        }
+        if (CollectionUtils.isEmpty(productInfoDTOS)) {
+            throw new SbcRuntimeException("K-999999", "有效商品为空");
+        }
+
         detail.setProductInfos(productInfoDTOS);
 
         detail.setPayInfo(WxPayInfoDTO.builder().payMethodType(0)

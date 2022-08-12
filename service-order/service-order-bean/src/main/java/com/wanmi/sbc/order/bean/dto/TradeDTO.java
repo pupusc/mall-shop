@@ -13,6 +13,8 @@ import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.EvaluateStatus;
 import com.wanmi.sbc.order.bean.enums.OrderSource;
 import com.wanmi.sbc.order.bean.enums.PaymentOrder;
+import com.wanmi.sbc.order.bean.vo.MiniProgramVO;
+import com.wanmi.sbc.order.bean.vo.TradePointsCouponItemVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -136,6 +138,11 @@ public class TradeDTO implements Serializable {
     private List<TradeItemDTO> tradeItems = new ArrayList<>();
 
     /**
+     * 积分订单优惠券
+     */
+    private TradePointsCouponItemVO tradeCouponItem;
+
+    /**
      * 发货单
      */
     @ApiModelProperty(value = "发货单")
@@ -173,6 +180,11 @@ public class TradeDTO implements Serializable {
      */
     @ApiModelProperty(value = "订单所属第三方平台类型")
     private ThirdPlatformType thirdPlatformType;
+
+    /**
+     * 第三方平台支付失败状态  true:失败 false:成功
+     */
+    private Boolean thirdPlatformPayErrorFlag;
 
     /**
      * 订单所属第三方平台的订单id
@@ -377,6 +389,12 @@ public class TradeDTO implements Serializable {
     private Long canReturnPoints;
 
     /**
+     * 可退知豆 TODO 确定什么时候使用
+     */
+    @ApiModelProperty(value = "可退知豆")
+    private Long canReturnKnowledge;
+
+    /**
      * 已退金额
      */
     @ApiModelProperty(value = "已退金额")
@@ -477,7 +495,50 @@ public class TradeDTO implements Serializable {
     private TradeCycleBuyInfoDTO tradeCycleBuyInfo;
 
     /**
+     * 小程序相关信息，有时间单独建表处理
+     */
+    private MiniProgramVO miniProgram;
+
+    /**
      * 小程序订单场景1小程序2视频号
      */
     private Integer miniProgramScene;
+
+    /**
+     * 组合购场景
+     */
+    private Integer suitScene;
+
+    /**
+     * cps推广人用户id
+     */
+    private String promoteUserId;
+
+
+    /**
+     * cps来源
+     */
+    private String source;
+
+    private String emallSessionId;
+
+    /**
+     * 更新时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime updateTime;
+
+    /**
+     * 外部交易编号
+     */
+    private String outTradeNo;
+    /**
+     * 外部交易平台：FDDS:樊登读书
+     */
+    private String outTradePlat;
+    /**
+     * 标签
+     */
+    private List<String> tags;
 }

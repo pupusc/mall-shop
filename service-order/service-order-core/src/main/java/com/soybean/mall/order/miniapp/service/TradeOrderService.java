@@ -272,20 +272,19 @@ public class TradeOrderService {
         }
         log.info("微信小程序订单创建并获取支付参数start,tid:{}",tid);
         WxCreateOrderRequest wxCreateOrderRequest = null;
-        try {
-
-            wxCreateOrderRequest = wxOrderService.buildRequest(trade);
-            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
-            log.info("微信小程序订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
-            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
-                wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("微信小程序创建订单失败，tid：{}", tid, e);
-            wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-            return null;
+//        try {
+        wxCreateOrderRequest = wxOrderService.buildRequest(trade);
+        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
+        log.info("微信小程序订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
+        if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
+//            wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+            throw new SbcRuntimeException("K-99999", orderResult == null ? "下单失败" : StringUtils.isBlank(orderResult.getMessage()) ? "下单失败，网络异常" : orderResult.getMessage());
         }
+//        } catch (Exception e) {
+//            log.error("微信小程序创建订单失败，tid：{}", tid, e);
+//            wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+//            return null;
+//        }
         log.info("微信小程序订单创建成功，获取支付参数start,tid:{}",tid);
         return wxOrderService.getPaymentParams(trade.getBuyer().getOpenId(), trade.getId());
 
