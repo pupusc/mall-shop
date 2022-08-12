@@ -7472,6 +7472,10 @@ public class TradeService {
                 log.info("订单：{} 不走签名验证", out_trade_no);
                 signVerified = true;
             } else {
+                for (String key : params.keySet()) {
+                    String value = params.get(key);
+                    params.put(key, value.replaceAll("&quot;", "\""));
+                }
                 //支付宝公钥
                 GatewayConfigByGatewayRequest request = new GatewayConfigByGatewayRequest();
                 request.setGatewayEnum(PayGatewayEnum.ALIPAY);
