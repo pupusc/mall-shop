@@ -84,9 +84,9 @@ public class CommonPackageModel {
             }
 
             //营销价格
-            if (CollectionUtils.isNotEmpty(tradeItem.getCouponSettlements())) {
-                for (TradeItemVO.CouponSettlementVO couponSettlement : tradeItem.getCouponSettlements()) {
-                    BigDecimal tmpMarketingPrice = tradeItem.getPrice().subtract(couponSettlement.getSplitPrice() == null ? BigDecimal.ZERO : couponSettlement.getSplitPrice());
+            if (CollectionUtils.isNotEmpty(tradeItem.getMarketingSettlements())) {
+                for (TradeItemVO.MarketingSettlementVO marketingSettlementVO : tradeItem.getMarketingSettlements()) {
+                    BigDecimal tmpMarketingPrice = tradeItem.getPrice().subtract(marketingSettlementVO.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlementVO.getSplitPrice());
                     sumMarketingPriceTmp = sumMarketingPriceTmp.add(tmpMarketingPrice);
                 }
             }
