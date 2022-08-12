@@ -86,7 +86,8 @@ public class CommonPackageModel {
             //营销价格
             if (CollectionUtils.isNotEmpty(tradeItem.getMarketingSettlements())) {
                 for (TradeItemVO.MarketingSettlementVO marketingSettlementVO : tradeItem.getMarketingSettlements()) {
-                    BigDecimal tmpMarketingPrice = tradeItem.getPrice().subtract(marketingSettlementVO.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlementVO.getSplitPrice());
+                    BigDecimal tmpPrice = tradeItem.getPrice().multiply(new BigDecimal(tradeItem.getNum()+""));
+                    BigDecimal tmpMarketingPrice = tmpPrice.subtract(marketingSettlementVO.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlementVO.getSplitPrice());
                     sumMarketingPriceTmp = sumMarketingPriceTmp.add(tmpMarketingPrice);
                 }
             }
