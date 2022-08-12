@@ -564,4 +564,50 @@ public class TradeVO implements Serializable {
      * 小程序订单场景1小程序2视频号
      */
     private Integer miniProgramScene;
+
+
+    /**
+     * 开店礼包邀请人id
+     */
+    private String storeBagsInviteeId;
+
+
+    /**
+     * 正在进行的退单数量
+     */
+    private Integer returnOrderNum = 0;
+
+    /**
+     * 分享人id
+     */
+    private String shareUserId;
+
+    /**
+     * 是否是秒杀抢购商品订单
+     */
+    private Boolean isFlashSaleGoods;
+
+    /**
+     * cps推广人用户id
+     */
+    private String promoteUserId;
+
+    /**
+     * cps来源
+     */
+    private String source;
+
+    private String emallSessionId;
+
+    /**
+     * 组合购场景
+     */
+    private Integer suitScene;
+
+    /**
+     * 更新时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime updateTime;
 }
