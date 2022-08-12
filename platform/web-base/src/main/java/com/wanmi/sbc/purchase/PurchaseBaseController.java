@@ -702,7 +702,7 @@ public class PurchaseBaseController {
         if (StringUtils.isBlank(request.getCustomerId()) || CollectionUtils.isEmpty(request.getGoodsInfos())) {
             throw new SbcRuntimeException(SiteResultCode.ERROR_000009);
         }
-        List<String> goodsInfoIds = request.getGoodsInfos().stream().map(GoodsInfoDTO::getGoodsInfoId).collect(Collectors.toList());
+        List<String> goodsInfoIds = request.getGoodsInfos().stream().map(GoodsInfoDTO::getGoodsInfoId).filter(StringUtils::isNotBlank).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(goodsInfoIds)) {
             throw new SbcRuntimeException(SiteResultCode.ERROR_000009);
         }
