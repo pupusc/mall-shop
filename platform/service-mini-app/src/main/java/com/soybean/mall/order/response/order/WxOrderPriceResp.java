@@ -40,6 +40,11 @@ public class WxOrderPriceResp {
     private BigDecimal pointsPrice;
 
     /**
+     * 促销价
+     */
+    private BigDecimal marketingPrice;
+
+    /**
      * 运费
      */
     private BigDecimal freightPrice;

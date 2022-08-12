@@ -9,6 +9,7 @@ import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -64,6 +65,8 @@ public class CommonPackageModel {
         BigDecimal sumOriginPriceTmp = BigDecimal.ZERO;
         //原始售价
         BigDecimal sumMarketPriceTmp = BigDecimal.ZERO;
+        //促销价格
+        BigDecimal sumMarketingPriceTmp = BigDecimal.ZERO;
         for (TradeItemVO tradeItem : tradeVO.getTradeItems()) {
             //如果是打包商品；
             if (StringUtils.isNotBlank(tradeItem.getPackId())) {
@@ -78,6 +81,14 @@ public class CommonPackageModel {
                 marketPrice = tradeItem.getOriginalPrice();
             } else {
                 marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : tradeItem.getMarketPrice();
+            }
+
+            //营销价格
+            if (CollectionUtils.isNotEmpty(tradeItem.getCouponSettlements())) {
+                for (TradeItemVO.CouponSettlementVO couponSettlement : tradeItem.getCouponSettlements()) {
+                    BigDecimal tmpMarketingPrice = tradeItem.getPrice().subtract(couponSettlement.getSplitPrice() == null ? BigDecimal.ZERO : couponSettlement.getSplitPrice());
+                    sumMarketingPriceTmp = sumMarketingPriceTmp.add(tmpMarketingPrice);
+                }
             }
 
             marketPrice = marketPrice.multiply(new BigDecimal(tradeItem.getNum() + ""));
@@ -102,7 +113,7 @@ public class CommonPackageModel {
             wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? BigDecimal.ZERO : tradePrice.getCouponPrice());
             wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice());
             wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? BigDecimal.ZERO : tradePrice.getPointsPrice());
-
+            wxOrderPriceResp.setMarketingPrice(sumMarketingPriceTmp);
             wxOrderResp.setPayPrice(wxOrderPriceResp);
         }
 
