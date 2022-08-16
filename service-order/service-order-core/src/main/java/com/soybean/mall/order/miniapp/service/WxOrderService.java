@@ -457,7 +457,7 @@ public class WxOrderService {
      * @param context
      */
     public void releaseWechatVideoStock(WxVideoOrderDetailResponse context) {
-        if (context == null) {
+        if (context == null || context.getOrder() == null) {
             return;
         }
 
@@ -498,7 +498,7 @@ public class WxOrderService {
         request.setOpenid(trade.getBuyer().getOpenId());
         BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
         WxVideoOrderDetailResponse context = detail.getContext();
-        log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
+        log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(context));
         return context;
     }
 
