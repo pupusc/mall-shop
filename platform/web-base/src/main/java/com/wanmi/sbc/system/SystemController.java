@@ -170,9 +170,9 @@ public class SystemController {
                 if (aliyunChatObj != null) {
                     String aliyunChat = aliyunChatObj.toString();
                     String nickName = StringUtils.isNotEmpty(customer.getCustomerName()) ? customer.getCustomerName() : "匿名用户";
+                    nickName = URLEncoder.encode(nickName, "UTF-8");
                     String visitorId = customer.getCustomerId().replace("-", "");
                     url = aliyunChat.concat("&nickName=").concat(nickName).concat("&visitorId=").concat(visitorId);
-                    url = URLEncoder.encode(url, "UTF-8");
                 }
             }
         } catch (Exception e){
