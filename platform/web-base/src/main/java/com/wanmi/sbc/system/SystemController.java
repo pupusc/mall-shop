@@ -20,10 +20,12 @@ import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import com.wanmi.sbc.system.request.OnlineServiceUrlRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -86,11 +88,52 @@ public class SystemController {
         return BaseResponse.success(System.currentTimeMillis());
     }
 
-    /**
-     *  查询阿里云客服配置
-     * @return
-     */
-    @ApiOperation(value = "查询阿里云客服配置")
+//    /**
+//     *  查询阿里云客服配置
+//     * @return
+//     */
+//    @ApiOperation(value = "查询阿里云客服配置")
+//    @PostMapping("/aliyun/detail")
+//    public BaseResponse queryAliyun(@RequestBody OnlineServiceUrlRequest onlineServiceUrlRequest){
+//        String url = "";
+//        try {
+//            SystemConfigResponse response =
+//                    systemConfigQueryProvider.list(SystemConfigQueryRequest.builder().configKey(ConfigKey.ONLINESERVICE.toValue())
+//                            .configType(ConfigType.ALIYUN_ONLINE_SERVICE.toValue()).delFlag(DeleteFlag.NO).status(1).build()).getContext();
+//            if (!response.getSystemConfigVOList().isEmpty()){
+//                String context = response.getSystemConfigVOList().get(0).getContext();
+//
+//                Map obj = JSONObject.parseObject(context);
+//
+//                //根据用户id查询用户的信息
+//                CustomerDetailGetCustomerIdResponse customer = customerDetailQueryProvider.getCustomerDetailByCustomerId(
+//                        CustomerDetailByCustomerIdRequest.builder().customerId(onlineServiceUrlRequest.getCustomerId()).build())
+//                        .getContext();
+//                if (customer.getCustomerId() == null) {
+//                    return BaseResponse.error("客户不存在！");
+//                }
+//                // 还原公钥
+//                PublicKey publicKey = getPubKey(obj.get("key").toString());
+//                // 封装请求体
+//                JSONObject extInfo = new JSONObject();
+//                extInfo.put("userId", onlineServiceUrlRequest.getCustomerId());
+//                extInfo.put("userName",onlineServiceUrlRequest.getCustomerName());
+//                JSONObject cinfo = new JSONObject();
+//                cinfo.put("userId", onlineServiceUrlRequest.getCustomerId());
+//                cinfo.put("extInfo", extInfo);
+//                Map<String, String> map = CustomerInfoCryptoUtil.encryptByPublicKey(cinfo.toString(), publicKey);
+//                String params = "&key=" + map.get("key") + "&cinfo=" + map.get("text");
+//
+//                String aliyunChat = obj.get("aliyunChat").toString();
+//                url = aliyunChat.concat(params);
+//            }
+//        } catch (Exception e){
+//            return BaseResponse.FAILED();
+//        }
+//        return BaseResponse.success(url);
+//    }
+
+    @ApiOperation(value = "合力")
     @PostMapping("/aliyun/detail")
     public BaseResponse queryAliyun(@RequestBody OnlineServiceUrlRequest onlineServiceUrlRequest){
         String url = "";
@@ -105,25 +148,32 @@ public class SystemController {
 
                 //根据用户id查询用户的信息
                 CustomerDetailGetCustomerIdResponse customer = customerDetailQueryProvider.getCustomerDetailByCustomerId(
-                        CustomerDetailByCustomerIdRequest.builder().customerId(onlineServiceUrlRequest.getCustomerId()).build())
+                                CustomerDetailByCustomerIdRequest.builder().customerId(onlineServiceUrlRequest.getCustomerId()).build())
                         .getContext();
                 if (customer.getCustomerId() == null) {
                     return BaseResponse.error("客户不存在！");
                 }
-                // 还原公钥
-                PublicKey publicKey = getPubKey(obj.get("key").toString());
-                // 封装请求体
-                JSONObject extInfo = new JSONObject();
-                extInfo.put("userId", onlineServiceUrlRequest.getCustomerId());
-                extInfo.put("userName",onlineServiceUrlRequest.getCustomerName());
-                JSONObject cinfo = new JSONObject();
-                cinfo.put("userId", onlineServiceUrlRequest.getCustomerId());
-                cinfo.put("extInfo", extInfo);
-                Map<String, String> map = CustomerInfoCryptoUtil.encryptByPublicKey(cinfo.toString(), publicKey);
-                String params = "&key=" + map.get("key") + "&cinfo=" + map.get("text");
+//                // 还原公钥
+//                PublicKey publicKey = getPubKey(obj.get("key").toString());
+//                // 封装请求体
+//                JSONObject extInfo = new JSONObject();
+//                extInfo.put("userId", onlineServiceUrlRequest.getCustomerId());
+//                extInfo.put("userName",onlineServiceUrlRequest.getCustomerName());
+//                JSONObject cinfo = new JSONObject();
+//                cinfo.put("userId", onlineServiceUrlRequest.getCustomerId());
+//                cinfo.put("extInfo", extInfo);
+//                Map<String, String> map = CustomerInfoCryptoUtil.encryptByPublicKey(cinfo.toString(), publicKey);
+//                String params = "&key=" + map.get("key") + "&cinfo=" + map.get("text");
 
-                String aliyunChat = obj.get("aliyunChat").toString();
-                url = aliyunChat.concat(params);
+                Object aliyunChatObj = obj.get("aliyunChat");
+
+                if (aliyunChatObj != null) {
+                    String aliyunChat = aliyunChatObj.toString();
+                    String nickName = StringUtils.isNotEmpty(customer.getCustomerName()) ? customer.getCustomerName() : "匿名用户";
+                    nickName = URLEncoder.encode(nickName, "UTF-8");
+                    String visitorId = customer.getCustomerId().replace("-", "");
+                    url = aliyunChat.concat("&nickName=").concat(nickName).concat("&visitorId=").concat(visitorId);
+                }
             }
         } catch (Exception e){
             return BaseResponse.FAILED();
