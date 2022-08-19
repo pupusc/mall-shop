@@ -85,7 +85,8 @@ public class NormalActivityController {
             if (isPrepare) {
                 String date = skuNormalActivityResp.getBeginTime().getMonthValue() + "月"
                         + skuNormalActivityResp.getBeginTime().getDayOfMonth() + "日 "
-                        + skuNormalActivityResp.getBeginTime().getHour() + "点";
+                        + skuNormalActivityResp.getBeginTime().getHour() + "点"
+                        + skuNormalActivityResp.getBeginTime().getMinute() + "分";
                 payAfterActivityResp.setShowTitle(String.format("返积分预告：%s 下单返%s积分", date, skuNormalActivityResp.getNum()));
             } else {
                 String beginTime = skuNormalActivityResp.getBeginTime().getMonthValue() + "."
