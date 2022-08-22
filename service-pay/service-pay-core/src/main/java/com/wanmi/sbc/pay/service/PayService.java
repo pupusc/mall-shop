@@ -419,8 +419,8 @@ public class PayService {
     /**
      * 根据退单与相关订单号号查询退单退款状态
      *
-     * @param  业务退单号
-     * @param  业务订单号
+     * @param
+     * @param  
      * @return null-无退款记录 | TradeStatus-退款状态
      */
     @Transactional
@@ -761,7 +761,7 @@ public class PayService {
 
     private PayGateway getPayGatewayNew(String appId,Long storeId) {
 
-        List<PayGateway> gateways = gatewayRepository.queryPayGatewayByCondition(appId, storeId);
+        List<PayGateway> gateways = gatewayRepository.queryPayGatewayByCondition(appId);
 
 //        List<PayChannelItem> items = channelItemRepository.findPayChannelItemByAppIdStoreId(appId, storeId);
         if (CollectionUtils.isEmpty(gateways)) {

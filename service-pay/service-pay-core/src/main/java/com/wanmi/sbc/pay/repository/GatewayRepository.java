@@ -30,8 +30,8 @@ public interface GatewayRepository extends JpaRepository<PayGateway, Long>, JpaS
     @Query("select p from PayGateway p where p.name=?1  and p.storeId = ?2 and p.isOpen =?3 ")
     List<PayGateway> queryByNameAndStoreId(PayGatewayEnum payGatewayEnum, Long storeId, IsOpen isOpen);
 
-    @Query("select p from PayGateway p where p.config.appId=?1  and p.storeId = ?2 ")
-    List<PayGateway> queryPayGatewayByCondition(String appId, Long storeId);
+    @Query("select p from PayGateway p where p.config.appId=?1")
+    List<PayGateway> queryPayGatewayByCondition(String appId);
 
     List<PayGateway> findByStoreId(Long storeId);
 }
