@@ -313,12 +313,15 @@ public class PayService {
 //        PayValidates.verifyGateway(item.getGateway());
         PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
-        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
-        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+//        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
+//        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+//            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
+//        }
+        PayGateway payGatewayNew = this.getPayGatewayNew(payRecord.getTradeNo(), request.getStoreId());
+        if (payGatewayNew == null) {
             throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
         }
-        
-        PayGatewayConfig gatewayConfig = payGatewayConfigs.get(0);
+        PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
         refundRequest.setAppid(gatewayConfig.getAppId());
         refundRequest.setMch_id(gatewayConfig.getAccount());
@@ -373,7 +376,8 @@ public class PayService {
 //        PayValidates.verifyGateway(item.getGateway());
         PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
-        PayGatewayConfig gatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
+        PayGateway payGatewayNew = this.getPayGatewayNew(payRecord.getTradeNo(), request.getStoreId());
+        PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
         refundRequest.setAppid(gatewayConfig.getOpenPlatformAppId());
         refundRequest.setMch_id(gatewayConfig.getOpenPlatformAccount());
