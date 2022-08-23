@@ -339,7 +339,7 @@ public class PayService {
             e.printStackTrace();
         }
 //        log.info(">>>>>>>>>>>>>>>>>>调用微信退款入参:{}" ,refundRequest);
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYATYPE, request.getStoreId());
+        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYATYPE, gatewayConfig);
 //        log.info(">>>>>>>>>>>>>>>>>>调用微信退款返回值:{}" ,wxPayRefundResponse);
         if (wxPayRefundResponse.getReturn_code().equals(WXPayConstants.SUCCESS) &&
                 wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
@@ -395,7 +395,7 @@ public class PayService {
         } catch (Exception e) {
             log.error("PayService wxPayRefundForApp singin exception", e);
         }
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYAPPTYPE, request.getStoreId());
+        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYAPPTYPE, gatewayConfig);
         log.info("PayService wxPayRefundForApp wxPayRefundResponse :{}", JSON.toJSONString(wxPayRefundResponse));
         if (Objects.nonNull(wxPayRefundResponse) && wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
             record.setTradeNo(wxPayRefundResponse.getTransaction_id());

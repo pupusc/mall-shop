@@ -341,7 +341,7 @@ public class WxPayService {
      * @param refundRequest
      * @param type          微信退款类型--（App：app支付退款）
      */
-    public WxPayRefundResponse wxPayRefund(WxPayRefundRequest refundRequest, String type, Long storeId) {
+    public WxPayRefundResponse wxPayRefund(WxPayRefundRequest refundRequest, String type, PayGatewayConfig gatewayConfig) {
 //        log.info("开始调用微信退款接口：{}",refundRequest);
         //将订单对象转为xml格式
         XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
@@ -351,7 +351,7 @@ public class WxPayService {
         try {
             //带证书的post
             // 加载证书
-            initCert(refundRequest.getMch_id(), type, storeId);
+            initCert(refundRequest.getMch_id(), type, gatewayConfig);
             String resXml = postData(WXPAYREFUNDURL, refundXmlStr);
             //解析xml为集合,请打断点查看resXml详细信息
             Map<String, String> refundResultMap = WXPayUtil.xmlToMap(resXml);
@@ -407,7 +407,7 @@ public class WxPayService {
         //带证书的post
         // 加载证书
         try {
-            initCert(account, request.getPayType().toString(), request.getStoreId());
+            initCert(account, request.getPayType().toString(), payGatewayConfig);
             String resXml = postData(WXPAYCOMPANYPAYMENTURL, refundXmlStr);
             //解析xml为集合,请打断点查看resXml详细信息
             Map<String, String> refundResultMap = WXPayUtil.xmlToMap(resXml);
@@ -463,35 +463,35 @@ public class WxPayService {
      * @param machId
      * @throws Exception
      */
-    private void initCert(String machId, String type, Long storeId) throws Exception {
+    private void initCert(String machId, String type, PayGatewayConfig gatewayConfig) throws Exception {
 
-        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, storeId);
-        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
-            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
-        }
+//        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, storeId);
+//        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+//            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
+//        }
 
-        PayGatewayConfig payGatewayConfig = payGatewayConfigs.get(0);
+//        PayGatewayConfig payGatewayConfig = payGatewayConfigs.get(0);
 //        log.info("加载证书开始：{}",payGatewayConfig);
         // 证书密码,默认为商户ID
-        String key = machId;
+//        String key = machId;
         // 指定读取证书格式为PKCS12
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         // 读取PKCS12证书文件
-        InputStream instream = new ByteArrayInputStream(payGatewayConfig.getWxPayCertificate());
+        InputStream instream = new ByteArrayInputStream(gatewayConfig.getWxPayCertificate());
         //如果退款为app支付，则证书用对应微信开放平台参数
         if (type.equals(WXPAYAPPTYPE)) {
-            instream = new ByteArrayInputStream(payGatewayConfig.getWxOpenPayCertificate());
+            instream = new ByteArrayInputStream(gatewayConfig.getWxOpenPayCertificate());
         }
         try {
             // 指定PKCS12的密码(商户ID)
-            keyStore.load(instream, key.toCharArray());
+            keyStore.load(instream, machId.toCharArray());
         }catch (Exception e){
             e.printStackTrace();
             log.error("WxPayService initCert 指定PKCS12的密码失败", e);
         }finally {
             instream.close();
         }
-        SSLContext sslcontext = SSLContexts.custom().loadKeyMaterial(keyStore, key.toCharArray())
+        SSLContext sslcontext = SSLContexts.custom().loadKeyMaterial(keyStore, machId.toCharArray())
                 .build();
         // 指定TLS版本
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, new String[]{"TLSv1"},
