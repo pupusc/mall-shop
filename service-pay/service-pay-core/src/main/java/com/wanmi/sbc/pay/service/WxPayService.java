@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.service;
 
+import com.alibaba.fastjson.JSON;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -475,6 +476,7 @@ public class WxPayService {
         // 证书密码,默认为商户ID
 //        String key = machId;
         // 指定读取证书格式为PKCS12
+        log.info("WxPayService initCert machId:{} type:{} payGatewayConfig:{}", machId, type, JSON.toJSONString(gatewayConfig));
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         // 读取PKCS12证书文件
         InputStream instream = new ByteArrayInputStream(gatewayConfig.getWxPayCertificate());
@@ -486,7 +488,6 @@ public class WxPayService {
             // 指定PKCS12的密码(商户ID)
             keyStore.load(instream, machId.toCharArray());
         }catch (Exception e){
-            e.printStackTrace();
             log.error("WxPayService initCert 指定PKCS12的密码失败", e);
         }finally {
             instream.close();
