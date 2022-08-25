@@ -738,6 +738,7 @@ public class PayCallbackController {
             WxPayRefundCallBackResponse refundCallBackResponse = (WxPayRefundCallBackResponse) WXPayUtil.
                     mapToObject(map, WxPayRefundCallBackResponse.class);
 
+            log.info("支付退款回调 微信支付异步通知回调结果 map:{} refundCallBackResponse:{}", map, JSON.toJSONString(refundCallBackResponse));
             GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
 //            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
 //            gatewayConfigByGatewayRequest.setStoreId(storeId);
