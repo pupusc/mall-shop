@@ -418,4 +418,11 @@ public class PayQueryController implements PayQueryProvider {
         }
         return BaseResponse.success(wraperResponseForGatewayConfig(configs.get(0)));
     }
+
+
+    @Override
+    public BaseResponse<PayGatewayConfigResponse> queryConfigByAppId(GatewayConfigByGatewayRequest req) {
+        PayGateway payGatewayNew = payService.getPayGatewayNew(req.getAppId(), req.getStoreId());
+        return BaseResponse.success(wraperResponseForGatewayConfig(payGatewayNew.getConfig()));
+    }
 }

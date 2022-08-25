@@ -252,4 +252,12 @@ public interface PayQueryProvider {
      */
     @PostMapping("/pay/${application.pay.version}/query-config-by-appId-storeId")
     BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(@RequestBody GatewayConfigByGatewayRequest req);
+
+    /**
+     * 获取支付配置信息
+     * @param req
+     * @return
+     */
+    @PostMapping("/pay/${application.pay.version}/query-config-by-appId")
+    BaseResponse<PayGatewayConfigResponse> queryConfigByAppId(GatewayConfigByGatewayRequest req)
 }

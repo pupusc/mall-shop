@@ -760,7 +760,7 @@ public class PayService {
         return item;
     }
 
-    private PayGateway getPayGatewayNew(String appId,Long storeId) {
+    public PayGateway getPayGatewayNew(String appId,Long storeId) {
 
         List<PayGateway> gateways = gatewayRepository.queryPayGatewayByCondition(appId);
 
