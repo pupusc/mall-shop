@@ -740,8 +740,8 @@ public class PayCallbackController {
 
             GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
 //            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
-            gatewayConfigByGatewayRequest.setStoreId(storeId);
-//            gatewayConfigByGatewayRequest.setAppId(refundCallBackResponse.getAppid());
+//            gatewayConfigByGatewayRequest.setStoreId(storeId);
+            gatewayConfigByGatewayRequest.setAppId(refundCallBackResponse.getAppid());
             PayGatewayConfigResponse payGatewayConfig =payQueryProvider.queryConfigByAppId(gatewayConfigByGatewayRequest).getContext();
             String apiKey = payGatewayConfig.getApiKey();
 
