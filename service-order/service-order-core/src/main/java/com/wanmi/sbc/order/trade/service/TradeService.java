@@ -5766,7 +5766,12 @@ public class TradeService {
             //推送订单到ERP系统()
             providerTradeService.defalutPayOrderAsycToERP(tid);
         }
-        sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+        try {
+            //如果埋点有误，不应该影响主要流程
+            sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+        } catch (Exception ex) {
+            log.error("TradeService sendPaySuccessEvent error", ex);
+        }
         orderCouponService.addCouponRecord(trade);
 //        //支付成功后发送消息
 //        RecordMessageMq recordMessageMq = new RecordMessageMq();

@@ -313,12 +313,12 @@ public class PayService {
 //        PayValidates.verifyGateway(item.getGateway());
         PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
-        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
-        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
-            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
-        }
-        
-        PayGatewayConfig gatewayConfig = payGatewayConfigs.get(0);
+//        List<PayGatewayConfig> payGatewayConfigs = gatewayConfigRepository.queryConfigOpenByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
+//        if (CollectionUtils.isEmpty(payGatewayConfigs)) {
+//            throw new SbcRuntimeException("K-999999", "没有获取到对应的支付配置信息");
+//        }
+        PayGateway payGatewayNew = this.getPayGatewayNew(payRecord.getAppId(), request.getStoreId());
+        PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
         refundRequest.setAppid(gatewayConfig.getAppId());
         refundRequest.setMch_id(gatewayConfig.getAccount());
@@ -339,7 +339,7 @@ public class PayService {
             e.printStackTrace();
         }
 //        log.info(">>>>>>>>>>>>>>>>>>调用微信退款入参:{}" ,refundRequest);
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYATYPE, request.getStoreId());
+        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYATYPE, gatewayConfig);
 //        log.info(">>>>>>>>>>>>>>>>>>调用微信退款返回值:{}" ,wxPayRefundResponse);
         if (wxPayRefundResponse.getReturn_code().equals(WXPayConstants.SUCCESS) &&
                 wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
@@ -373,7 +373,8 @@ public class PayService {
 //        PayValidates.verifyGateway(item.getGateway());
         PayTradeRecord record = saveRefundRecord(request, channelItemId, payRecord.getAppId());
         record.setTradeNo(payRecord.getTradeNo());
-        PayGatewayConfig gatewayConfig = gatewayConfigRepository.queryConfigByNameAndStoreId(PayGatewayEnum.WECHAT, request.getStoreId());
+        PayGateway payGatewayNew = this.getPayGatewayNew(payRecord.getAppId(), request.getStoreId());
+        PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
         refundRequest.setAppid(gatewayConfig.getOpenPlatformAppId());
         refundRequest.setMch_id(gatewayConfig.getOpenPlatformAccount());
@@ -394,7 +395,7 @@ public class PayService {
         } catch (Exception e) {
             log.error("PayService wxPayRefundForApp singin exception", e);
         }
-        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYAPPTYPE, request.getStoreId());
+        WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYAPPTYPE, gatewayConfig);
         log.info("PayService wxPayRefundForApp wxPayRefundResponse :{}", JSON.toJSONString(wxPayRefundResponse));
         if (Objects.nonNull(wxPayRefundResponse) && wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
             record.setTradeNo(wxPayRefundResponse.getTransaction_id());
@@ -419,8 +420,8 @@ public class PayService {
     /**
      * 根据退单与相关订单号号查询退单退款状态
      *
-     * @param  业务退单号
-     * @param  业务订单号
+     * @param
+     * @param  
      * @return null-无退款记录 | TradeStatus-退款状态
      */
     @Transactional
@@ -759,9 +760,9 @@ public class PayService {
         return item;
     }
 
-    private PayGateway getPayGatewayNew(String appId,Long storeId) {
+    public PayGateway getPayGatewayNew(String appId,Long storeId) {
 
-        List<PayGateway> gateways = gatewayRepository.queryPayGatewayByCondition(appId, storeId);
+        List<PayGateway> gateways = gatewayRepository.queryPayGatewayByCondition(appId);
 
 //        List<PayChannelItem> items = channelItemRepository.findPayChannelItemByAppIdStoreId(appId, storeId);
         if (CollectionUtils.isEmpty(gateways)) {

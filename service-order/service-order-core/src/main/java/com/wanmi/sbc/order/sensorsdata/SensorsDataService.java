@@ -5,7 +5,9 @@ import com.soybean.common.util.IntegerEncryptTool;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.mq.OrderProducerService;
@@ -42,10 +44,13 @@ public class SensorsDataService {
         List<SensorsMessageDto> sensorsMessageDtos = new ArrayList<>();
         log.info("支付成功埋点数据:{}", JSON.toJSONString(trades));
         for (Trade trade : trades) {
-            NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
-            request.setCustomerAccount(trade.getBuyer().getAccount());
-            BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
-            String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
+//            NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
+//            request.setCustomerAccount(trade.getBuyer().getAccount());
+            CustomerGetByIdRequest customerGetByIdRequest = new CustomerGetByIdRequest();
+            customerGetByIdRequest.setCustomerId(trade.getBuyer().getId());
+            BaseResponse<CustomerGetByIdResponse> customerById = customerQueryProvider.getCustomerById(customerGetByIdRequest);
+//            BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
+            String fandengUserNo = customerById.getContext().getFanDengUserNo();
 
             if (StringUtils.isNotBlank(fandengUserNo)) {
                 String fanDengUserNoEncrypt = "";
