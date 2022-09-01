@@ -8,9 +8,12 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.crm.api.provider.crmgroup.CrmGroupProvider;
 import com.wanmi.sbc.crm.api.request.crmgroup.CrmGroupRequest;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerDetailPageRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerListCustomerIdByPageableRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelQueryRequest;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailForPageVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.quartz.enums.TaskBizType;
 import com.wanmi.sbc.quartz.enums.TaskStatus;
 import com.wanmi.sbc.quartz.model.entity.TaskInfo;
@@ -38,8 +41,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @PersistJobDataAfterExecution
@@ -65,6 +70,9 @@ public class MessageSendJob implements Job {
 
     @Autowired
     private CrmGroupProvider crmGroupProvider;
+
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -129,6 +137,8 @@ public class MessageSendJob implements Job {
 
         Integer pageNum = NumberUtils.INTEGER_ZERO;
         Integer pageSize = 1000;
+        int maxTmpId = 0;
+        LocalDateTime now = LocalDateTime.now();
         while(Boolean.TRUE){
             List<String> customerIds;
             //指定用户
@@ -143,15 +153,37 @@ public class MessageSendJob implements Job {
             }
             //全部用户
             if(MessageSendType.ALL.equals(messageSendVO.getSendType())){
-                CustomerDetailPageRequest request = new CustomerDetailPageRequest();
+
+//                //获取365会员卡信息
+//                Optional<FdPaidCast> fdPaidCast = fdPaidCastRepository.findByFdPayTypeAndDelFlag(userStatus, DeleteFlag.NO);
+                PaidCardCustomerRelQueryRequest request = new PaidCardCustomerRelQueryRequest();
+                request.setMaxTmpId(maxTmpId);
+                request.setCurrentTime(now);
+                request.setPaidCardIdList(Arrays.asList("47ca4b34aff245cb886effb167554804")); //此处暂时写死等后续确定好再处理 
                 request.setPageSize(pageSize);
-                request.setPageNum(pageNum);
-                List<CustomerDetailForPageVO> detailResponseList = customerQueryProvider.page(request).getContext().getDetailResponseList();
-                if(CollectionUtils.isNotEmpty(detailResponseList)){
-                    customerIds = detailResponseList.stream().map(CustomerDetailForPageVO::getCustomerId).collect(Collectors.toList());
-                }else{
+                List<PaidCardCustomerRelVO> context = paidCardCustomerRelQueryProvider.pageByMaxAutoId(request).getContext();
+                if (CollectionUtils.isEmpty(context)) {
                     customerIds = null;
+                } else {
+                    List<String> customerIdsTmp = new ArrayList<>();
+                    for (PaidCardCustomerRelVO paidCardCustomerRelVO : context) {
+                        customerIdsTmp.add(paidCardCustomerRelVO.getCustomerId());
+                        if (paidCardCustomerRelVO.getMaxTmpId() > maxTmpId) {
+                            maxTmpId = paidCardCustomerRelVO.getMaxTmpId();
+                        }
+                    }
+                    customerIds = customerIdsTmp;
                 }
+//
+//                CustomerDetailPageRequest request = new CustomerDetailPageRequest();
+//                request.setPageSize(pageSize);
+//                request.setPageNum(pageNum);
+//                List<CustomerDetailForPageVO> detailResponseList = customerQueryProvider.page(request).getContext().getDetailResponseList();
+//                if(CollectionUtils.isNotEmpty(detailResponseList)){
+//                    customerIds = detailResponseList.stream().map(CustomerDetailForPageVO::getCustomerId).collect(Collectors.toList());
+//                }else{
+//                    customerIds = null;
+//                }
 
             }else if(MessageSendType.LEVEL.equals(messageSendVO.getSendType())){
                 //指定等级
