@@ -454,7 +454,7 @@ public class GoodsStockService {
                 }
                 for (ERPGoodsInfoVO erpGoodsInfoParam : erpGoodsInfoVOListTmp) {
                     long erpStockQty = 0L;
-                    if (Arrays.asList("1", "3", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
+                    if (Arrays.asList("1", "3", "2", "4").contains(erpGoodsInfoParam.getStockStatusCode())) {
                         erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
                                 ? 0L: Long.parseLong(erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()).toString());
                     } else if (Objects.equals("0", erpGoodsInfoParam.getStockStatusCode())) {
