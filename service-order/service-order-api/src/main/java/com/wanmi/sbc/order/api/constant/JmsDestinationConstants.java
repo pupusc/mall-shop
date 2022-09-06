@@ -121,7 +121,7 @@ public interface JmsDestinationConstants {
 
     String PROVIDER_TRADE_ORDER_PUSH = "provider.trade.order.push";
 
-    String PROVIDER_TRADE_DELIVERY_STATUS_SYNC = "provider.trade.delivery.status.sync";
+//    String PROVIDER_TRADE_DELIVERY_STATUS_SYNC = "provider.trade.delivery.status.sync";
 
     String PROVIDER_TRADE_ORDER_PUSH_CONFIRM="provider.trade.order.push.confirm";
 

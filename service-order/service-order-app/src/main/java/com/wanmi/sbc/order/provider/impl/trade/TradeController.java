@@ -182,18 +182,18 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
 
-    /**
-     * 移动端提交积分商品订单
-     *
-     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
-     * @return
-     */
-    @Override
-    public BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest) {
-        PointsTradeCommitResult result = tradeService.pointsCommit(pointsTradeCommitRequest);
-        return BaseResponse.success(new PointsTradeCommitResponse(KsBeanUtil.convert(result,
-                PointsTradeCommitResultVO.class)));
-    }
+//    /**
+//     * 移动端提交积分商品订单
+//     *
+//     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest) {
+//        PointsTradeCommitResult result = tradeService.pointsCommit(pointsTradeCommitRequest);
+//        return BaseResponse.success(new PointsTradeCommitResponse(KsBeanUtil.convert(result,
+//                PointsTradeCommitResultVO.class)));
+//    }
 
     /**
      * 移动端提交积分优惠券订单

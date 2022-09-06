@@ -750,44 +750,44 @@ public class TradePushERPService {
         }
     }
 
-    /**
-     * 非erp发货状态更新，消息
-     * @param providerTrade
-     */
-    public void syncDeliveryStatusProduct(ProviderTrade providerTrade){
-        try {
-            //周期购订单和普通订单分开处理
-            if (providerTrade.getCycleBuyFlag()) {
-                //todo 周期购同步
-                this.sendMQForCycleDeliveryStatus(providerTrade);
-            } else {
-                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
-                deliveryQueryRequest.setTid(providerTrade.getId());
-                providerTradeOrderService.sendMQForDeliveryStatus(deliveryQueryRequest);
-            }
-        } catch (Exception e) {
-            log.error("#批量同步发货状态异常:{}", e);
-        }
+//    /**
+//     * 非erp发货状态更新，消息
+//     * @param providerTrade
+//     */
+//    public void syncDeliveryStatusProduct(ProviderTrade providerTrade){
+//        try {
+//            //周期购订单和普通订单分开处理
+//            if (providerTrade.getCycleBuyFlag()) {
+//                //todo 周期购同步
+//                this.sendMQForCycleDeliveryStatus(providerTrade);
+//            } else {
+//                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
+//                deliveryQueryRequest.setTid(providerTrade.getId());
+//                providerTradeOrderService.sendMQForDeliveryStatus(deliveryQueryRequest);
+//            }
+//        } catch (Exception e) {
+//            log.error("#批量同步发货状态异常:{}", e);
+//        }
+//
+//    }
 
-    }
-
-    private void sendMQForCycleDeliveryStatus(ProviderTrade providerTrade){
-        List<DeliverCalendar> deliverCalendars = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar();
-        if (CollectionUtils.isNotEmpty(deliverCalendars)) {
-            //筛选已推送的发货日历
-            List<DeliverCalendar> deliveryList =
-                    deliverCalendars.stream()
-                            .filter(deliverCalendar ->
-                                    deliverCalendar.getCycleDeliverStatus().equals(CycleDeliverStatus.PUSHED) && Objects.nonNull(deliverCalendar.getErpTradeCode()))
-                            .collect(Collectors.toList());
-            deliveryList.forEach(deliverCalendar -> {
-                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
-                deliveryQueryRequest.setTid(providerTrade.getId());
-                providerTradeOrderService.sendMQForDeliveryStatus(deliveryQueryRequest);
-            });
-        }
-
-    }
+//    private void sendMQForCycleDeliveryStatus(ProviderTrade providerTrade){
+//        List<DeliverCalendar> deliverCalendars = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar();
+//        if (CollectionUtils.isNotEmpty(deliverCalendars)) {
+//            //筛选已推送的发货日历
+//            List<DeliverCalendar> deliveryList =
+//                    deliverCalendars.stream()
+//                            .filter(deliverCalendar ->
+//                                    deliverCalendar.getCycleDeliverStatus().equals(CycleDeliverStatus.PUSHED) && Objects.nonNull(deliverCalendar.getErpTradeCode()))
+//                            .collect(Collectors.toList());
+//            deliveryList.forEach(deliverCalendar -> {
+//                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
+//                deliveryQueryRequest.setTid(providerTrade.getId());
+//                providerTradeOrderService.sendMQForDeliveryStatus(deliveryQueryRequest);
+//            });
+//        }
+//
+//    }
 
 
 

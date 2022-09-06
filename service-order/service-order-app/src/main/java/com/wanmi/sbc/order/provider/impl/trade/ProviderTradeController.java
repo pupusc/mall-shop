@@ -157,9 +157,9 @@ public class ProviderTradeController implements ProviderTradeProvider {
         return BaseResponse.success(providerTradeService.changeTradeProvider(request));
     }
 
-    @Override
-    public BaseResponse resetPushCount(ProviderTradeErpRequest request) {
-        providerTradeService.batchResetPushCount(request);
-        return BaseResponse.SUCCESSFUL();
-    }
+//    @Override
+//    public BaseResponse resetPushCount(ProviderTradeErpRequest request) {
+//        providerTradeService.batchResetPushCount(request);
+//        return BaseResponse.SUCCESSFUL();
+//    }
 }

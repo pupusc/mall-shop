@@ -35,14 +35,14 @@ public class ProviderTradeOrderService {
 
     }
 
-    /**
-     * 状态查询MQ消息
-     * @param request
-     */
-    public void sendMQForDeliveryStatus(DeliveryQueryRequest request) {
-        resolver.resolveDestination(JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC).send(new GenericMessage<>(JSONObject.toJSONString(request)));
-
-    }
+//    /**
+//     * 状态查询MQ消息
+//     * @param request
+//     */
+//    public void sendMQForDeliveryStatus(DeliveryQueryRequest request) {
+//        resolver.resolveDestination(JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC).send(new GenericMessage<>(JSONObject.toJSONString(request)));
+//
+//    }
 }
 
 

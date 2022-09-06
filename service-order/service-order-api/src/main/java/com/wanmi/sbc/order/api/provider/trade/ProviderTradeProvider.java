@@ -101,11 +101,11 @@ public interface ProviderTradeProvider {
     @PostMapping("/order/${application.order.version}/provider/trade/change-trade-provider")
     BaseResponse<String> changeTradeProvider(@RequestBody ChangeTradeProviderRequest request);
 
-    /**
-     * 更新供应商，作废原订单并重新生成发货单
-     * @param request
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/provider/trade/reset-pushcount")
-    BaseResponse resetPushCount(@RequestBody ProviderTradeErpRequest request);
+//    /**
+//     * 更新供应商，作废原订单并重新生成发货单
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/provider/trade/reset-pushcount")
+//    BaseResponse resetPushCount(@RequestBody ProviderTradeErpRequest request);
 }

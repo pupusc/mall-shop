@@ -219,14 +219,14 @@ public class ProviderTradeService {
         providerTradeRepository.saveAll(tradeList);
     }
 
-    /**
-     * 删除文档
-     *
-     * @param tid
-     */
-    public void deleteProviderTrade(String tid) {
-        providerTradeRepository.deleteById(tid);
-    }
+//    /**
+//     * 删除文档
+//     *
+//     * @param tid
+//     */
+//    public void deleteProviderTrade(String tid) {
+//        providerTradeRepository.deleteById(tid);
+//    }
 
     /**
      * 根据父订单号查询供货商订单
@@ -1074,103 +1074,103 @@ public class ProviderTradeService {
     }
 
 
-    /**
-     * 补偿推送普通订单
-     */
-    public void batchPushOrder(int pageSize, String ptid) {
-        RLock lock = redissonClient.getLock(BATCH_PUSH_NORMAL_ORDER_LOCKS);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            if (pageSize <= 0) {
-                pageSize = 200;
-            }
-
-
-            List<Criteria> criterias = new ArrayList<>();
-            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-
-            criterias.add(Criteria.where("tradeState.pushCount").lte(3));
-            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-            criterias.add(Criteria.where("cycleBuyFlag").is(false));
-            criterias.add(Criteria.where("yzTid").exists(false));
-            criterias.add(Criteria.where("grouponFlag").is(false));
-
-
-            //补偿推送已成团的订单
-            List<Criteria> grouponCriterias = new ArrayList<>();
-            grouponCriterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            grouponCriterias.add(Criteria.where("tradeState.pushCount").lte(3));
-            grouponCriterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-            grouponCriterias.add(Criteria.where("cycleBuyFlag").is(false));
-            grouponCriterias.add(Criteria.where("yzTid").exists(false));
-            grouponCriterias.add(Criteria.where("grouponFlag").is(true));
-            grouponCriterias.add(Criteria.where("tradeGroupon.grouponOrderStatus").is(GrouponOrderStatus.COMPLETE));
-
-
-            //单个订单推送
-            if (StringUtils.isNoneBlank(ptid)) {
-                criterias.add(Criteria.where("id").is(ptid));
-                grouponCriterias.add(Criteria.where("id").is(ptid));
-            } else {
-                //默认获取半年内的数据
-                LocalDateTime localDateTime = LocalDateTime.now().plusDays(-7);
-                criterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
-                criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
-                criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
-
-                grouponCriterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
-                grouponCriterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
-                grouponCriterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
-
-            }
-
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start("补偿推送周期购订单获取StopWatch");
-
-            Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
-            Query grouponQuery = new Query(grouponCriteria).limit(pageSize);
-            grouponQuery.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> grouponQueryProviderTrades = mongoTemplate.find(grouponQuery, ProviderTrade.class);
-
-            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} ", grouponQuery);
-            stopWatch.stop();
-
-
-
-            stopWatch.start("补偿推送普通订单获取StopWatch");
-            Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-            Query query = new Query(newCriteria).limit(pageSize);
-            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-            log.info("ProviderTradeService.batchPushOrder criterias query:{}", query);
-            stopWatch.stop();
-
-
-            List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
-
-            stopWatch.start("补偿推送订单 StopWatch");
-            for (ProviderTrade providerTrade : totalProviderTradeList) {
-                log.info("================普通订单补偿推送erp=====:{}", providerTrade);
-                // 推送订单
-                tradePushERPService.pushOrderToERP(providerTrade);
-            }
-            stopWatch.stop();
-
-//            log.info("ProviderTradeService.batchPushOrder StopWatch statistics {}", stopWatch.prettyPrint());
-            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
-                log.info("ProviderTradeService.batchPushOrder StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
-            }
-        } catch (Exception e) {
-            log.error("#订单推送失败", e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    /**
+//     * 补偿推送普通订单
+//     */
+//    public void batchPushOrder(int pageSize, String ptid) {
+//        RLock lock = redissonClient.getLock(BATCH_PUSH_NORMAL_ORDER_LOCKS);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            if (pageSize <= 0) {
+//                pageSize = 200;
+//            }
+//
+//
+//            List<Criteria> criterias = new ArrayList<>();
+//            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//
+//            criterias.add(Criteria.where("tradeState.pushCount").lte(3));
+//            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//            criterias.add(Criteria.where("cycleBuyFlag").is(false));
+//            criterias.add(Criteria.where("yzTid").exists(false));
+//            criterias.add(Criteria.where("grouponFlag").is(false));
+//
+//
+//            //补偿推送已成团的订单
+//            List<Criteria> grouponCriterias = new ArrayList<>();
+//            grouponCriterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//            grouponCriterias.add(Criteria.where("tradeState.pushCount").lte(3));
+//            grouponCriterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//            grouponCriterias.add(Criteria.where("cycleBuyFlag").is(false));
+//            grouponCriterias.add(Criteria.where("yzTid").exists(false));
+//            grouponCriterias.add(Criteria.where("grouponFlag").is(true));
+//            grouponCriterias.add(Criteria.where("tradeGroupon.grouponOrderStatus").is(GrouponOrderStatus.COMPLETE));
+//
+//
+//            //单个订单推送
+//            if (StringUtils.isNoneBlank(ptid)) {
+//                criterias.add(Criteria.where("id").is(ptid));
+//                grouponCriterias.add(Criteria.where("id").is(ptid));
+//            } else {
+//                //默认获取半年内的数据
+//                LocalDateTime localDateTime = LocalDateTime.now().plusDays(-7);
+//                criterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
+//                criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+//                criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//
+//                grouponCriterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
+//                grouponCriterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+//                grouponCriterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//
+//            }
+//
+//            StopWatch stopWatch = new StopWatch();
+//            stopWatch.start("补偿推送周期购订单获取StopWatch");
+//
+//            Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
+//            Query grouponQuery = new Query(grouponCriteria).limit(pageSize);
+//            grouponQuery.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
+//            List<ProviderTrade> grouponQueryProviderTrades = mongoTemplate.find(grouponQuery, ProviderTrade.class);
+//
+//            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} ", grouponQuery);
+//            stopWatch.stop();
+//
+//
+//
+//            stopWatch.start("补偿推送普通订单获取StopWatch");
+//            Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+//            Query query = new Query(newCriteria).limit(pageSize);
+//            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+//            log.info("ProviderTradeService.batchPushOrder criterias query:{}", query);
+//            stopWatch.stop();
+//
+//
+//            List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
+//
+//            stopWatch.start("补偿推送订单 StopWatch");
+//            for (ProviderTrade providerTrade : totalProviderTradeList) {
+//                log.info("================普通订单补偿推送erp=====:{}", providerTrade);
+//                // 推送订单
+//                tradePushERPService.pushOrderToERP(providerTrade);
+//            }
+//            stopWatch.stop();
+//
+////            log.info("ProviderTradeService.batchPushOrder StopWatch statistics {}", stopWatch.prettyPrint());
+//            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
+//                log.info("ProviderTradeService.batchPushOrder StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
+//            }
+//        } catch (Exception e) {
+//            log.error("#订单推送失败", e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
 
     /**
@@ -1611,38 +1611,38 @@ public class ProviderTradeService {
         providerTrade.setTradePrice(tradePrice);
     }
 
-    /**
-     * 重置推送次数
-     *
-     * @param request
-     */
-    public void batchResetPushCount(ProviderTradeErpRequest request) {
-        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_PUSH_COUNT);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            /**
-             * 查询所有推送次数为4的数据
-             */
-            Query query = this.queryProviderTradePushCountCondition(request);
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-
-            if (CollectionUtils.isNotEmpty(providerTrades)) {
-                providerTrades.forEach(providerTrade -> {
-                    providerTrade.getTradeState().setPushCount(ScanCount.COUNT_ZERO.toValue());
-                });
-                this.updateProviderTradeList(providerTrades);
-            }
-        } catch (Exception e) {
-            log.error("Error message ： #批量重置推送次数失败:{}", e.getMessage(), e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    /**
+//     * 重置推送次数
+//     *
+//     * @param request
+//     */
+//    public void batchResetPushCount(ProviderTradeErpRequest request) {
+//        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_PUSH_COUNT);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            /**
+//             * 查询所有推送次数为4的数据
+//             */
+//            Query query = this.queryProviderTradePushCountCondition(request);
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+//
+//            if (CollectionUtils.isNotEmpty(providerTrades)) {
+//                providerTrades.forEach(providerTrade -> {
+//                    providerTrade.getTradeState().setPushCount(ScanCount.COUNT_ZERO.toValue());
+//                });
+//                this.updateProviderTradeList(providerTrades);
+//            }
+//        } catch (Exception e) {
+//            log.error("Error message ： #批量重置推送次数失败:{}", e.getMessage(), e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
     public Query queryProviderTradePushCountCondition(ProviderTradeErpRequest request) {
         List<Criteria> criterias = new ArrayList<>();

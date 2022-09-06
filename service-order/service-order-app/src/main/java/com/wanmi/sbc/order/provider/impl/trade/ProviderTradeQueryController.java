@@ -203,16 +203,16 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
         return BaseResponse.SUCCESSFUL();
     }
 
-    /**
-     * 批量补偿推送erp普通订单
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse batchPushOrder(@Valid ProviderTradeErpRequest request) {
-        providerTradeService.batchPushOrder(request.getPageSize(),request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 批量补偿推送erp普通订单
+//     * @param request
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse batchPushOrder(@Valid ProviderTradeErpRequest request) {
+//        providerTradeService.batchPushOrder(request.getPageSize(),request.getPtid());
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
     /**
      * 批量重置订单扫描次数

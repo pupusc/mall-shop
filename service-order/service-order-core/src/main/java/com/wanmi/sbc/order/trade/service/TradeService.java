@@ -1146,33 +1146,33 @@ public class TradeService {
     }
 
 
-    /**
-     * 移动端积分商品下单
-     */
-    @Transactional
-    @GlobalTransactional
-    public PointsTradeCommitResult pointsCommit(PointsTradeCommitRequest commitRequest) {
-        // 1.验证用户
-        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(commitRequest.getOperator().getUserId());
-        commitRequest.setCustomer(customer);
-
-        // 2.包装积分订单信息
-        Trade trade = this.wrapperPointsTrade(commitRequest);
-
-        //填充linkedMall类型
-        if (Objects.isNull(trade.getThirdPlatformType())) {
-            if (trade.getTradeItems().stream().anyMatch(i -> ThirdPlatformType.LINKED_MALL.equals(i.getThirdPlatformType()))) {
-                //验证linkedMall是否开启
-                if ((!linkedMallTradeService.isOpen())) {
-                    throw new SbcRuntimeException("K-050117");
-                }
-                trade.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
-            }
-        }
-
-        // 3.提交积分订单
-        return this.createPointsTrade(trade,commitRequest);
-    }
+//    /**
+//     * 移动端积分商品下单
+//     */
+//    @Transactional
+//    @GlobalTransactional
+//    public PointsTradeCommitResult pointsCommit(PointsTradeCommitRequest commitRequest) {
+//        // 1.验证用户
+//        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(commitRequest.getOperator().getUserId());
+//        commitRequest.setCustomer(customer);
+//
+//        // 2.包装积分订单信息
+//        Trade trade = this.wrapperPointsTrade(commitRequest);
+//
+//        //填充linkedMall类型
+//        if (Objects.isNull(trade.getThirdPlatformType())) {
+//            if (trade.getTradeItems().stream().anyMatch(i -> ThirdPlatformType.LINKED_MALL.equals(i.getThirdPlatformType()))) {
+//                //验证linkedMall是否开启
+//                if ((!linkedMallTradeService.isOpen())) {
+//                    throw new SbcRuntimeException("K-050117");
+//                }
+//                trade.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
+//            }
+//        }
+//
+//        // 3.提交积分订单
+//        return this.createPointsTrade(trade,commitRequest);
+//    }
 
     /**
      * 拼团订单--验证
@@ -3826,81 +3826,81 @@ public class TradeService {
     }
 
 
-    /**
-     * 提交积分订单
-     *
-     * @param trade    积分订单
-     * @param commitRequest 请求参数
-     * @return 订单提交结果
-     */
-    @Transactional
-    @GlobalTransactional
-    public PointsTradeCommitResult createPointsTrade(Trade trade, PointsTradeCommitRequest commitRequest) {
-        Operator operator = commitRequest.getOperator();
-        //linkedMall验证
-        linkedMallTradeService.verify(Collections.singletonList(trade));
-        PointsTradeCommitResult commitResult = null;
-
-        //创建订单
-        try {
-            Trade result = createPoints(trade, operator);
-            this.splitProvideTrade(trade);
-            commitResult = new PointsTradeCommitResult(result.getId(), result.getTradePrice().getPoints());
-        } catch (Exception e) {
-            log.error("commit points trade error,trade={}", trade, e);
-            if (e instanceof SbcRuntimeException) {
-                throw e;
-            } else {
-                throw new SbcRuntimeException("K-020010");
-            }
-        }
-
-        //linkedMall订单同步
-        if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
-            LinkedMallTradeResult result = linkedMallTradeService.add(trade.getId());
-            if (CollectionUtils.isNotEmpty(result.getAutoRefundTrades())) {
-                throw new SbcRuntimeException("K-020010");
-            }
-            if (CollectionUtils.isNotEmpty(result.getSuccessTrades())) {
-                for (Trade tmpTrade : result.getSuccessTrades()) {
-                    try {
-                        int res = linkedMallTradeService.pay(tmpTrade.getId());
-                        if (res != 0) {
-                            throw new SbcRuntimeException("K-020010");
-                        }
-                    } catch (Exception e) {
-                        throw new SbcRuntimeException("K-020010");
-                    }
-                }
-            }
-        }
-
-        // 增加客户积分明细 扣除积分
-/*        customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
-                .customerId(trade.getBuyer().getId())
-                .type(OperateType.DEDUCT)
-                .serviceType(PointsServiceType.POINTS_EXCHANGE)
-                .points(trade.getTradePrice().getPoints())
-                .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
-                .build());*/
-        // 调用积分锁定 然后直接扣除，积分兑换 不需要支付回调修改状态
-        String deductCode = externalProvider.pointLock(FanDengPointLockRequest.builder()
-                .desc("提交订单锁定(订单号:"+trade.getId()+")")
-                .point(trade.getTradePrice().getPoints())
-                .userNo(commitRequest.
-                        getCustomer().getFanDengUserNo())
-                .sourceId(trade.getId())
-                .sourceType(NumberUtils.INTEGER_ONE)
-                .build()).getContext().getDeductionCode();
-        externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
-                .deductCode(deductCode).build());
-
-        // 扣除商品库存、积分商品可兑换数量
-        pointsGoodsSaveProvider.minusStock(PointsGoodsMinusStockRequest.builder().stock(trade.getTradeItems().get(0)
-                .getNum()).pointsGoodsId(trade.getTradeItems().get(0).getPointsGoodsId()).build());
-
-        return commitResult;
-    }
+//    /**
+//     * 提交积分订单
+//     *
+//     * @param trade    积分订单
+//     * @param commitRequest 请求参数
+//     * @return 订单提交结果
+//     */
+//    @Transactional
+//    @GlobalTransactional
+//    public PointsTradeCommitResult createPointsTrade(Trade trade, PointsTradeCommitRequest commitRequest) {
+//        Operator operator = commitRequest.getOperator();
+//        //linkedMall验证
+//        linkedMallTradeService.verify(Collections.singletonList(trade));
+//        PointsTradeCommitResult commitResult = null;
+//
+//        //创建订单
+//        try {
+//            Trade result = createPoints(trade, operator);
+//            this.splitProvideTrade(trade);
+//            commitResult = new PointsTradeCommitResult(result.getId(), result.getTradePrice().getPoints());
+//        } catch (Exception e) {
+//            log.error("commit points trade error,trade={}", trade, e);
+//            if (e instanceof SbcRuntimeException) {
+//                throw e;
+//            } else {
+//                throw new SbcRuntimeException("K-020010");
+//            }
+//        }
+//
+//        //linkedMall订单同步
+//        if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
+//            LinkedMallTradeResult result = linkedMallTradeService.add(trade.getId());
+//            if (CollectionUtils.isNotEmpty(result.getAutoRefundTrades())) {
+//                throw new SbcRuntimeException("K-020010");
+//            }
+//            if (CollectionUtils.isNotEmpty(result.getSuccessTrades())) {
+//                for (Trade tmpTrade : result.getSuccessTrades()) {
+//                    try {
+//                        int res = linkedMallTradeService.pay(tmpTrade.getId());
+//                        if (res != 0) {
+//                            throw new SbcRuntimeException("K-020010");
+//                        }
+//                    } catch (Exception e) {
+//                        throw new SbcRuntimeException("K-020010");
+//                    }
+//                }
+//            }
+//        }
+//
+//        // 增加客户积分明细 扣除积分
+///*        customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
+//                .customerId(trade.getBuyer().getId())
+//                .type(OperateType.DEDUCT)
+//                .serviceType(PointsServiceType.POINTS_EXCHANGE)
+//                .points(trade.getTradePrice().getPoints())
+//                .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
+//                .build());*/
+//        // 调用积分锁定 然后直接扣除，积分兑换 不需要支付回调修改状态
+//        String deductCode = externalProvider.pointLock(FanDengPointLockRequest.builder()
+//                .desc("提交订单锁定(订单号:"+trade.getId()+")")
+//                .point(trade.getTradePrice().getPoints())
+//                .userNo(commitRequest.
+//                        getCustomer().getFanDengUserNo())
+//                .sourceId(trade.getId())
+//                .sourceType(NumberUtils.INTEGER_ONE)
+//                .build()).getContext().getDeductionCode();
+//        externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
+//                .deductCode(deductCode).build());
+//
+//        // 扣除商品库存、积分商品可兑换数量
+//        pointsGoodsSaveProvider.minusStock(PointsGoodsMinusStockRequest.builder().stock(trade.getTradeItems().get(0)
+//                .getNum()).pointsGoodsId(trade.getTradeItems().get(0).getPointsGoodsId()).build());
+//
+//        return commitResult;
+//    }
 
     /**
      * 创建订单和订单组

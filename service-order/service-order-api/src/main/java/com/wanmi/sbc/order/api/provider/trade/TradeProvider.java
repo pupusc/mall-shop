@@ -128,14 +128,14 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/commit-tail")
     BaseResponse<TradeCommitResponse> commitTail(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
-    /**
-     * 移动端提交积分商品订单
-     *
-     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/points-commit")
-    BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest);
+//    /**
+//     * 移动端提交积分商品订单
+//     *
+//     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/points-commit")
+//    BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest);
 
     /**
      * 移动端提交积分优惠券订单

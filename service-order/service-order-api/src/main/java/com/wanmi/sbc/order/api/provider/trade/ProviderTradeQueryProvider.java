@@ -86,12 +86,12 @@ public interface ProviderTradeQueryProvider {
     @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status")
     BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
-    /**
-     * 定时任务推送周期购订单
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-push-order")
-    BaseResponse batchPushOrder(@RequestBody @Valid ProviderTradeErpRequest request);
+//    /**
+//     * 定时任务推送周期购订单
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-push-order")
+//    BaseResponse batchPushOrder(@RequestBody @Valid ProviderTradeErpRequest request);
 
     /**
      * 批量重置扫描次数（已发货，推送次数达到3次）
