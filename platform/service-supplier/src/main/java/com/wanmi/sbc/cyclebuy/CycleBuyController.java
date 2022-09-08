@@ -2,27 +2,23 @@ package com.wanmi.sbc.cyclebuy;
 
 
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.sbc.wanmi.erp.bean.vo.MetaStockInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
-import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.spu.EsSpuQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.standard.EsStandardProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteByIdsRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoModifyAddedStatusRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoListRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsListRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
-import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
+import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
 import com.wanmi.sbc.goods.GoodsController;
@@ -40,20 +36,25 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
-import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
-import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandByIdsRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
-import com.wanmi.sbc.goods.api.request.cyclebuy.*;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyAddRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByIdRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyDelByIdRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyModifyRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyPageRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuySaleRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAddedStatusRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewPageRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
-import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleNotEndResponse;
-import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleNotEndResponse;
 import com.wanmi.sbc.goods.api.response.cyclebuy.CycleBuyAddResponse;
 import com.wanmi.sbc.goods.api.response.cyclebuy.CycleBuyByIdResponse;
 import com.wanmi.sbc.goods.api.response.cyclebuy.CycleBuyModifyResponse;
@@ -63,16 +64,19 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
-import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByGoodsResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewPageResponse;
-import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByGoodsResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
-import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyGiftVO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -82,12 +86,22 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.ls.LSInput;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -156,6 +170,8 @@ public class CycleBuyController {
 
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+    @Autowired
+    private ShopCenterProvider shopCenterProvider;
 
     @Autowired
     private OsUtil osUtil;
@@ -193,13 +209,14 @@ public class CycleBuyController {
         cycleBuyAddRequest.setSendDateRule(null);
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-        if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+        List<MetaStockInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+
+        if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyAddRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
-                    }
+                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException("K-800002");
+                }
 
             });
         } else {
@@ -248,14 +265,15 @@ public class CycleBuyController {
         CycleBuyVO cycleBuyVO = cycleBuyQueryProvider.getById(CycleBuyByIdRequest.builder().id(cycleBuyModifyRequest.getId()).build()).getContext().getCycleBuyVO();
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-        if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
-                    }
-                });
+        List<MetaStockInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+
+        if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+            cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
+                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException("K-800002");
+                }
+            });
         } else {
             throw new SbcRuntimeException("K-800003");
         }

@@ -1,5 +1,9 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.sbc.wanmi.erp.bean.vo.MetaStockInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DefaultFlag;
@@ -8,6 +12,7 @@ import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.constant.CustomerErrorCode;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -24,7 +29,10 @@ import com.wanmi.sbc.elastic.api.request.groupon.EsGrouponActivityPageRequest;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
+import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
+import com.wanmi.sbc.erp.api.response.MetaStockResponse;
 import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsQueryProvider;
@@ -84,6 +92,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -93,6 +103,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -165,6 +176,9 @@ public class StoreGoodsInfoController {
     @Autowired
     private GuanyierpProvider guanyierpProvider;
     @Autowired
+    private ShopCenterProvider shopCenterProvider;
+
+    @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
     @Value("${fdds.provider.id}")
@@ -172,6 +186,7 @@ public class StoreGoodsInfoController {
 
     /**
      * 根据erp Spu编码查询sku列表
+     *
      * @param request
      * @return 商品详情
      */
@@ -179,6 +194,18 @@ public class StoreGoodsInfoController {
     @RequestMapping(value = "/erp/goods/syncGoodsInfo", method = RequestMethod.POST)
     public BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody SynGoodsInfoRequest request) {
         return guanyierpProvider.syncGoodsInfo(request);
+    }
+
+    /**
+     * 根据 商品码查询sku
+     *
+     * @param request
+     * @return 商品详情
+     */
+    @ApiOperation(value = "根据 商品码查询sku")
+    @RequestMapping(value = "/shopcenter/goods/searchGoodsInfo", method = RequestMethod.POST)
+    public BaseResponse<MetaStockResponse> searchGoodsInfo(@RequestBody NewGoodsInfoRequest request) {
+        return shopCenterProvider.searchGoodsInfo(request);
     }
 
     /**
