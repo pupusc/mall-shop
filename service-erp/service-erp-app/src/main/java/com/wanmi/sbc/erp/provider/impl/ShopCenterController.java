@@ -25,9 +25,9 @@ public class ShopCenterController implements ShopCenterProvider {
 	@Override
 	public BaseResponse<NewGoodsResponse> searchGoodsInfo(NewGoodsInfoRequest request) {
 		try {
-			String host = "https://gateway-api.dushu365.com";
+			String host = "http://callback-test.dushu365.com";
 			//TODO 商品接口 改router接口，有baseResponse
-			String url = "/product-meta/newGoods/goodsInfoList";
+			String url = "/product-meta/newGoods/goodsInfoList/arcticfoxenv/test35";
 			JSONObject param = new JSONObject();
 			param.put("goodsCode", request.getMetaGoodsCode());
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
@@ -58,9 +58,9 @@ public class ShopCenterController implements ShopCenterProvider {
 		param.put("shelfFlag", 1); // 上架状态库存
 
 		try {
-			String host = "https://gateway-api.dushu365.com";
+			String host = "http://callback-test.dushu365.com";
 			//TODO 库存接口 改router接口，有baseResponse
-			String url = "/product-meta/newGoods/stockList";
+			String url = "/product-meta/newGoods/stockList/arcticfoxenv/test35";
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
 			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);

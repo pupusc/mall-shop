@@ -193,7 +193,7 @@ public class StoreGoodsInfoController {
         BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(request.getSpuCode()).build());
         List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
         ArrayList<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(erpGoodsInfoVOList)){
+        if (CollectionUtils.isEmpty(infoList)){
             return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(Collections.emptyList()).build());
         }
         for (NewGoodsInfoVO vo : infoList) {
