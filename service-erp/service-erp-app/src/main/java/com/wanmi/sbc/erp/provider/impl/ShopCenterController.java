@@ -9,8 +9,10 @@ import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -20,17 +22,20 @@ import java.util.Objects;
 @Slf4j
 @RestController
 public class ShopCenterController implements ShopCenterProvider {
+	@Value("${shopCenter.searchGoodsInfo.host}")
+	private String host;
+	@Value("${shopCenter.searchGoodsInfo.url}")
+	private String url;
 
 	@Override
 	public BaseResponse<NewGoodsResponse> searchGoodsInfo(NewGoodsInfoRequest request) {
 		try {
-			String host = "http://callback-test.dushu365.com";
+			host = StringUtils.isNotEmpty(host) ? host : "http://callback-test.dushu365.com";
 			//TODO 商品接口 改router接口，有baseResponse
-//			String url = "/platform-router/productMeta/newGoods/list/arcticfoxenv/test35";
-			String url = "/product-meta/newGoods/list/arcticfoxenv/test35";
+			url = StringUtils.isNotEmpty(url) ? url : "/product-meta/newGoods/list/arcticfoxenv/test35";
 			JSONObject param = new JSONObject();
 			// TODO 查询商城
-//			param.put("saleChannelId", 21);
+			param.put("saleChannelId", 21);
 			param.put("goodsCode", request.getGoodsCode());
 			if (Objects.nonNull(request.getValidFlag())) {
 				param.put("validFlag", request.getValidFlag());
