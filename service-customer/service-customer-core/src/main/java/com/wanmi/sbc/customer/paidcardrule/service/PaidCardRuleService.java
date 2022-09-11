@@ -29,7 +29,7 @@ import com.wanmi.sbc.customer.paidcardcustomerrel.repository.PaidCardCustomerRel
 import com.wanmi.sbc.customer.paidcardrule.model.root.PaidCardRule;
 import com.wanmi.sbc.customer.paidcardrule.repository.PaidCardRuleRepository;
 import com.wanmi.sbc.customer.util.PaidSmsSendUtil;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+//import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.PushTradeRequest;
 import com.wanmi.sbc.setting.api.provider.baseconfig.BaseConfigQueryProvider;
 import com.wanmi.sbc.setting.api.response.baseconfig.BaseConfigRopResponse;
@@ -72,8 +72,8 @@ public class PaidCardRuleService {
 	@Autowired
 	private BaseConfigQueryProvider baseConfigQueryProvider;
 
-	@Autowired
-	private GuanyierpProvider guanyierpProvider;
+//	@Autowired
+//	private GuanyierpProvider guanyierpProvider;
 
 	
 	/** 
@@ -373,7 +373,7 @@ public class PaidCardRuleService {
 				.build();
 //		guanyierpProvider.autoPushTrade(pushTradeRequest);
 		new Thread(() -> {
-			guanyierpProvider.autoPushTradeDelivered(pushTradeRequest);
+//			guanyierpProvider.autoPushTradeDelivered(pushTradeRequest);
 		}).start();
 	}
 }
