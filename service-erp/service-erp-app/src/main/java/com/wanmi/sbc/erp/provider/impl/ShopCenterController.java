@@ -1,6 +1,5 @@
 package com.wanmi.sbc.erp.provider.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.sbc.wanmi.erp.bean.vo.NewGoodsInfoVO;
@@ -14,9 +13,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -27,12 +26,20 @@ public class ShopCenterController implements ShopCenterProvider {
 		try {
 			String host = "http://callback-test.dushu365.com";
 			//TODO 商品接口 改router接口，有baseResponse
-			String url = "/product-meta/newGoods/goodsInfoList/arcticfoxenv/test35";
+//			String url = "/platform-router/productMeta/newGoods/list/arcticfoxenv/test35";
+			String url = "/product-meta/newGoods/list/arcticfoxenv/test35";
 			JSONObject param = new JSONObject();
-			param.put("goodsCode", request.getMetaGoodsCode());
+			// TODO 查询商城
+//			param.put("saleChannelId", 21);
+			param.put("goodsCode", request.getGoodsCode());
+			if (Objects.nonNull(request.getValidFlag())) {
+				param.put("validFlag", request.getValidFlag());
+			}
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
-			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);
+			JSONObject json = JSONObject.parseObject(str);
+			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(json.getString("data"), NewGoodsInfoVO.class);
+//			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);
 
 			NewGoodsResponse result = new NewGoodsResponse();
 			result.setGoodsInfoList(stockInfoVOS);
@@ -41,33 +48,5 @@ public class ShopCenterController implements ShopCenterProvider {
 			e.printStackTrace();
 		}
 		return BaseResponse.FAILED();
-	}
-
-	@Override
-	public BaseResponse<List<NewGoodsInfoVO>> listWareHoseStock(Integer pageNum, Integer pageSize, String goodsCode) {
-		if (pageNum == null) {
-			pageNum = 1;
-		}
-		if (pageSize == null) {
-			pageSize = 100;
-		}
-		JSONObject param = new JSONObject();
-		param.put("pageNo", pageNum);
-		param.put("pageSize", pageSize);
-		param.put("metaGoodsCode", goodsCode);
-		param.put("shelfFlag", 1); // 上架状态库存
-
-		try {
-			String host = "http://callback-test.dushu365.com";
-			//TODO 库存接口 改router接口，有baseResponse
-			String url = "/product-meta/newGoods/stockList/arcticfoxenv/test35";
-			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
-			String str = EntityUtils.toString(response.getEntity());
-			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);
-			return BaseResponse.success(stockInfoVOS);
-		} catch (Exception ex) {
-			log.error("GuanyierpService listWareHoseStock error", ex);
-		}
-		return BaseResponse.success(Collections.emptyList());
 	}
 }

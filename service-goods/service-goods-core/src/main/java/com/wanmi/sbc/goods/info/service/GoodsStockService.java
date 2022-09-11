@@ -413,73 +413,26 @@ public class GoodsStockService {
 
 
 		List<NewGoodsInfoVO> result = new ArrayList<>(100);
-		Set<String> erpGoodsCodeNoSet =
-				goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
+		Set<String> erpGoodsCodeNoSet = goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
 		log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ", JSON.toJSONString(erpGoodsCodeNoSet));
 		long benginTime = System.currentTimeMillis();
 		for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
-			int pageNum = 1;
-			int pageSize = 100;
-			while (true) {
-				BaseResponse<List<NewGoodsInfoVO>> listWareHoseStock = shopCenterProvider.listWareHoseStock(pageNum, pageSize, erpGoodsCodeNo);
-				List<NewGoodsInfoVO> infoVOList = listWareHoseStock.getContext();
-				Integer total = CollectionUtils.isEmpty(infoVOList) ? 0 : infoVOList.size();
-				log.info("GoodsStockService batchUpdateStock pull warehostStock erpGoodsCodeNo:{} pageNum:{} pageSize:{} total:{}", erpGoodsCodeNo, pageNum, pageSize, total);
-
-				result.addAll(infoVOList);
-				if (CollectionUtils.isEmpty(infoVOList) || infoVOList.size() < pageSize) {
-					break;
-				}
-
-//				int cycleCount = erpStockInfo.getTotal() / pageSize;
-//				int remainder = erpStockInfo.getTotal() % pageSize;
-//				cycleCount += remainder > 0 ? 1 : 0;
-//				pageNum++;
-//				if (pageNum > cycleCount) {
-//					break;
-//				}
-			}
-		}
-		log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ERPGoodsInfoVO size:{} cost:{} s", JSON.toJSONString(erpGoodsCodeNoSet), result.size(), (System.currentTimeMillis() - benginTime) / 1000);
-		Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
-		for (NewGoodsInfoVO erpGoodsInfoVo : result) {
-			if (!Integer.valueOf(1).equals(erpGoodsInfoVo.getSkuValidFlag())) {
-//                log.info("GoodsStockService batchUpdateStock itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
-//                        erpGoodsInfoVo.getGoodsCode(), erpGoodsInfoVo.getGoodsName(), erpGoodsInfoVo.getSkuCode(), erpGoodsInfoVo.getSkuName(), erpGoodsInfoVo.getWhCode());
-				continue;
-			}
-			Integer saleableStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoVo.getSkuCode());
-			int tmpStockQty = saleableStockQty == null ? erpGoodsInfoVo.getStockActual() : saleableStockQty + erpGoodsInfoVo.getStockActual();
-			erpSkuCode2ErpStockQtyMap.put(erpGoodsInfoVo.getSkuCode(), tmpStockQty);
+			NewGoodsInfoRequest request = new NewGoodsInfoRequest();
+			request.setGoodsCode(erpGoodsCodeNo);
+			request.setValidFlag(1);
+			BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(request);
+			List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
+			result.addAll(infoList);
 		}
 
 		//获取sku 库存状态
 		Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
-		for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
-			try {
-
-				BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(erpGoodsCodeNo).build());
-				List<NewGoodsInfoVO> erpGoodsInfoVOListTmp = response.getContext().getGoodsInfoList();
-				if (CollectionUtils.isEmpty(erpGoodsInfoVOListTmp)) {
-					continue;
-				}
-				for (NewGoodsInfoVO erpGoodsInfoParam : erpGoodsInfoVOListTmp) {
-					long erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
-							? 0L : Long.parseLong(erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()).toString());
-//                    if (Arrays.asList("1", "3", "2", "4").contains(erpGoodsInfoParam.getStockStatusCode())) {
-//                        erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
-//                                ? 0L: Long.parseLong(erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()).toString());
-//                    } else if (Objects.equals("0", erpGoodsInfoParam.getStockStatusCode())) {
-//                        erpStockQty = 9999L;
-//                    }
-					ErpGoodsInfoRequest erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-					erpGoodsInfoRequest.setErpCostPrice(new BigDecimal(erpGoodsInfoParam.getCostPrice()));
-					erpGoodsInfoRequest.setErpStock(erpStockQty);
-					erpSkuCode2ErpGoodsInfoMap.put(erpGoodsInfoParam.getSkuCode(), erpGoodsInfoRequest);
-				}
-			} catch (Exception ex) {
-				log.warn("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} 访问管易异常", erpGoodsCodeNo, ex);
-			}
+		for (NewGoodsInfoVO infoVO : result) {
+			BigDecimal costPrice = Objects.isNull(infoVO.getWhStockCost()) ? null : new BigDecimal(infoVO.getWhStockCost()).divide(new BigDecimal(100));
+			ErpGoodsInfoRequest erpGoodsInfoRequest = new ErpGoodsInfoRequest();
+			erpGoodsInfoRequest.setErpCostPrice(costPrice);
+			erpGoodsInfoRequest.setErpStock(Objects.isNull(infoVO.getWhStockActual()) ? 0L : infoVO.getWhStockActual().longValue());
+			erpSkuCode2ErpGoodsInfoMap.put(infoVO.getGoodsCode(), erpGoodsInfoRequest);
 		}
 		log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequests:{} erpSkuCode2ErpGoodsInfoMap:{} "
 				, JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests), erpSkuCode2ErpGoodsInfoMap);

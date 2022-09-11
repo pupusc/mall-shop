@@ -209,11 +209,11 @@ public class CycleBuyController {
         cycleBuyAddRequest.setSendDateRule(null);
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyAddRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
-                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                 if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                     throw new SbcRuntimeException("K-800002");
                 }
@@ -265,11 +265,11 @@ public class CycleBuyController {
         CycleBuyVO cycleBuyVO = cycleBuyQueryProvider.getById(CycleBuyByIdRequest.builder().id(cycleBuyModifyRequest.getId()).build()).getContext().getCycleBuyVO();
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
-                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                 if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                     throw new SbcRuntimeException("K-800002");
                 }
