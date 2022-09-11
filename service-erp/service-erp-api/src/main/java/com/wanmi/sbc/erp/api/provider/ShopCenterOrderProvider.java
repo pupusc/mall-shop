@@ -35,6 +35,8 @@ public interface ShopCenterOrderProvider {
      * 订单列表
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrder")
-    BaseResponse<> listOrder(@RequestBody OrderQueryReq orderQueryReq);
+    BaseResponse<OrderDetailResp> listOrder(@RequestBody OrderQueryReq orderQueryReq);
+
+
 
 }
