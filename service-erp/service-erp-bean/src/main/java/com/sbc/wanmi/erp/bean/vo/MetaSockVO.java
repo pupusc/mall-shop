@@ -5,9 +5,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ErpStockVo {
+public class MetaSockVO {
 
-    private int total;
+	private int total;
 
-    private List<ERPGoodsInfoVO> stocks;
+    private List<NewGoodsInfoVO> stocks;
 }

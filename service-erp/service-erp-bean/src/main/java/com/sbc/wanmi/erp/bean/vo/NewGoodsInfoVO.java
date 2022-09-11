@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class MetaStockInfoVO implements Serializable {
+public class NewGoodsInfoVO implements Serializable {
 
 	/**
 	 *  商品编码
@@ -35,9 +35,27 @@ public class MetaStockInfoVO implements Serializable {
 	private Integer costPrice;
 
 	/**
+	 * 总库存数
+	 */
+	@ApiModelProperty(value = "总库存数")
+	private Integer stockNum;
+
+	/**
 	 * 实际库存数
 	 */
 	@ApiModelProperty(value = "实际库存数")
 	private Integer stockActual;
+
+	/**
+	 * 仓库编码
+	 */
+	@ApiModelProperty(value = "仓库编码")
+	private String whCode;
+
+	/**
+	 * SKU是否有效
+	 */
+	@ApiModelProperty(value = "SKU是否有效")
+	private Integer skuValidFlag;
 
 }

@@ -703,7 +703,8 @@ public class TradePushERPService {
     public void syncDeliveryStatus(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
         try {
             if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
-                this.syncDeliveryStatusProduct(providerTrade);
+                //TODO 先注释，待添加方法
+//                this.syncDeliveryStatusProduct(providerTrade);
             } else {
                 //周期购订单和普通订单分开处理
                 if (providerTrade.getCycleBuyFlag()) {
