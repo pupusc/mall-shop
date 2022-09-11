@@ -67,7 +67,9 @@ public class CreateOrderReq {
     /**
      * 支付超时
      */
-    private Date payTimeOut;
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime payTimeOut;
 
 //    /**
 //     * 订单优惠 【不用】
@@ -225,6 +227,7 @@ public class CreateOrderReq {
     /**
      * 收件地址
      */
+    @Data
     public static class BuyAddressReq {
         /**
          * 省
