@@ -99,6 +99,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -192,6 +193,9 @@ public class StoreGoodsInfoController {
         BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(request.getSpuCode()).build());
         List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
         ArrayList<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(erpGoodsInfoVOList)){
+            return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(Collections.emptyList()).build());
+        }
         for (NewGoodsInfoVO vo : infoList) {
             BigDecimal costPrice = Objects.isNull(vo.getCostPrice()) ? null : new BigDecimal(vo.getCostPrice()).divide(new BigDecimal(100));
             ERPGoodsInfoVO infoVO = ERPGoodsInfoVO.builder()

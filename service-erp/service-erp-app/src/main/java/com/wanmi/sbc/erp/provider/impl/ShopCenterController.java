@@ -26,12 +26,13 @@ public class ShopCenterController implements ShopCenterProvider {
 	public BaseResponse<NewGoodsResponse> searchGoodsInfo(NewGoodsInfoRequest request) {
 		try {
 			String host = "https://gateway-api.dushu365.com";
-			//TODO 商品接口
+			//TODO 商品接口 改router接口，有baseResponse
 			String url = "/product-meta/newGoods/goodsInfoList";
-			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
+			JSONObject param = new JSONObject();
+			param.put("goodsCode", request.getMetaGoodsCode());
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
-			JSONObject json = JSONObject.parseObject(str);
-			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(json.getString("data"), NewGoodsInfoVO.class);
+			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);
 
 			NewGoodsResponse result = new NewGoodsResponse();
 			result.setGoodsInfoList(stockInfoVOS);
@@ -58,12 +59,11 @@ public class ShopCenterController implements ShopCenterProvider {
 
 		try {
 			String host = "https://gateway-api.dushu365.com";
-			//TODO 库存接口
+			//TODO 库存接口 改router接口，有baseResponse
 			String url = "/product-meta/newGoods/stockList";
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
-			JSONObject json = JSONObject.parseObject(str);
-			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(json.getString("data"), NewGoodsInfoVO.class);
+			List<NewGoodsInfoVO> stockInfoVOS = JSONArray.parseArray(str, NewGoodsInfoVO.class);
 			return BaseResponse.success(stockInfoVOS);
 		} catch (Exception ex) {
 			log.error("GuanyierpService listWareHoseStock error", ex);
