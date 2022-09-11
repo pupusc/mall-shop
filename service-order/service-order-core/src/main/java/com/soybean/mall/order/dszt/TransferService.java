@@ -26,7 +26,7 @@ public class TransferService {
      * @param trade
      * @return
      */
-    public CreateOrderReq trade2CreateOrderReq(Trade trade,) {
+    public CreateOrderReq trade2CreateOrderReq(Trade trade) {
         CreateOrderReq createOrderReq = new CreateOrderReq();
         createOrderReq.setPlatformCode(trade.getId());
         createOrderReq.setOrderSource("XX_MALL");
