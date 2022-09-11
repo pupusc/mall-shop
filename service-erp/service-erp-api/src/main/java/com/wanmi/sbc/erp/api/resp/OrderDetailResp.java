@@ -189,15 +189,15 @@ public class OrderDetailResp {
      */
     private Integer deviceType;
 
-    /**
-     * 子订单
-     */
-    private List<OrderItemBO> orderItemBOS;
-
-    /**
-     * 收件信息
-     */
-    private OrderAddressBO orderAddressBO;
+//    /**
+//     * 子订单
+//     */
+//    private List<OrderItemBO> orderItemBOS;
+//
+//    /**
+//     * 收件信息
+//     */
+//    private OrderAddressBO orderAddressBO;
 
     /**
      * 优惠成本承担-渠道平台后返

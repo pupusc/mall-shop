@@ -1,5 +1,6 @@
 package com.wanmi.sbc.erp.api.provider;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
