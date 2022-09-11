@@ -99,6 +99,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -189,18 +190,19 @@ public class StoreGoodsInfoController {
     @RequestMapping(value = "/erp/goods/syncGoodsInfo", method = RequestMethod.POST)
     public BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody SynGoodsInfoRequest request) {
         // 改为shopCenter查询并兼容字段
-        BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(request.getSpuCode()).build());
+        BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(request.getSpuCode()).build());
         List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
         ArrayList<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(infoList)){
+            return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(Collections.emptyList()).build());
+        }
         for (NewGoodsInfoVO vo : infoList) {
-            BigDecimal costPrice = Objects.isNull(vo.getCostPrice()) ? null : new BigDecimal(vo.getCostPrice()).divide(new BigDecimal(100));
+            BigDecimal costPrice = Objects.isNull(vo.getWhStockCost()) ? null : new BigDecimal(vo.getWhStockCost()).divide(new BigDecimal(100));
             ERPGoodsInfoVO infoVO = ERPGoodsInfoVO.builder()
-                    .itemCode(vo.getGoodsCode())
-                    .itemName(vo.getGoodsName())
-                    .skuCode(vo.getSkuCode())
-                    .itemSkuName(vo.getSkuName())
-                    .qty(vo.getStockNum())
-                    .salableQty(vo.getStockActual())
+                    .skuCode(vo.getGoodsCode())
+                    .itemSkuName(vo.getName())
+                    .qty(vo.getWhStockSum())
+                    .salableQty(vo.getWhStockActual())
                     .costPrice(costPrice)
                     .warehouseCode(vo.getWhCode())
                     .build();

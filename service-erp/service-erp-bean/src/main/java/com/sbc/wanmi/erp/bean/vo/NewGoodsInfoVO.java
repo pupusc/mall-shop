@@ -17,34 +17,25 @@ public class NewGoodsInfoVO implements Serializable {
 	 *  商品名称
 	 */
 	@ApiModelProperty(value = "商品名称")
-	private String goodsName;
+	private String name;
+
 	/**
-	 *  SKU编码
+	 *  当前仓出仓成本
 	 */
-	@ApiModelProperty(value = "SKU编码")
-	private String skuCode;
-	/**
-	 *  SKU商品名称
-	 */
-	@ApiModelProperty(value = "SKU商品名称")
-	private String skuName;
-	/**
-	 *  成本价
-	 */
-	@ApiModelProperty(value = "成本价")
-	private Integer costPrice;
+	@ApiModelProperty(value = "当前仓出仓成本")
+	private Integer whStockCost;
 
 	/**
 	 * 总库存数
 	 */
 	@ApiModelProperty(value = "总库存数")
-	private Integer stockNum;
+	private Integer whStockSum;
 
 	/**
 	 * 实际库存数
 	 */
 	@ApiModelProperty(value = "实际库存数")
-	private Integer stockActual;
+	private Integer whStockActual;
 
 	/**
 	 * 仓库编码
@@ -53,9 +44,9 @@ public class NewGoodsInfoVO implements Serializable {
 	private String whCode;
 
 	/**
-	 * SKU是否有效
+	 * 是否有效
 	 */
-	@ApiModelProperty(value = "SKU是否有效")
-	private Integer skuValidFlag;
+	@ApiModelProperty(value = "是否有效")
+	private Integer validFlag;
 
 }

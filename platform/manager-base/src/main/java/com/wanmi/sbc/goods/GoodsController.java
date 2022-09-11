@@ -302,9 +302,9 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
-                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
-                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }
@@ -432,9 +432,9 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
-                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
-                        List<String> skuCodes = goodsInfoList.stream().map(info -> info.getSkuCode()).distinct().collect(Collectors.toList());
+                        List<String> skuCodes = goodsInfoList.stream().map(info -> info.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }
@@ -538,10 +538,10 @@ public class GoodsController {
                     if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
                         continue;
                     }
-                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
 
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
-                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }
