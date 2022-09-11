@@ -1,6 +1,6 @@
 package com.wanmi.sbc.goods;
 
-import com.sbc.wanmi.erp.bean.vo.MetaStockInfoVO;
+import com.sbc.wanmi.erp.bean.vo.NewGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -302,7 +302,7 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
-                    List<MetaStockInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
                         List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
@@ -432,7 +432,7 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
-                    List<MetaStockInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
                         List<String> skuCodes = goodsInfoList.stream().map(info -> info.getSkuCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
@@ -538,7 +538,7 @@ public class GoodsController {
                     if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
                         continue;
                     }
-                    List<MetaStockInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
+                    List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().metaGoodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext().getGoodsInfoList();
 
                     if (CollectionUtils.isNotEmpty(goodsInfoList)) {
                         List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getSkuCode()).distinct().collect(Collectors.toList());
