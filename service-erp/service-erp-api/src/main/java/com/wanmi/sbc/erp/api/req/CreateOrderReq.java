@@ -133,6 +133,7 @@ public class CreateOrderReq {
     /**
      * 购买商品
      */
+    @Data
     public static class BuyGoodsReq {
 //        /**
 //         * 商品ID，站内下单【不实用】
