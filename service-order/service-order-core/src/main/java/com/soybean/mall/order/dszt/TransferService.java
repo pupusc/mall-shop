@@ -264,7 +264,7 @@ public class TransferService {
             throw new SbcRuntimeException("999999", "订单不存在");
         }
         Trade trade = new Trade();
-        trade.setId(orderDetailResp.get);
+//        trade.setId(orderDetailResp.);
 //        trade.setYzTid("");
 //        trade.setParentId("");
 //        trade.setGroupId("");
