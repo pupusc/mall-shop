@@ -11,4 +11,6 @@ import lombok.Data;
  ********************************************************************/
 @Data
 public class SalePlatformQueryReq {
+
+	private Long tid;
 }

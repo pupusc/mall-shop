@@ -10,6 +10,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
+
 @FeignClient(value = "${application.erp.name}", contextId = "ShopCenterOrderProvider")
 public interface ShopCenterOrderProvider {
 
@@ -28,14 +30,14 @@ public interface ShopCenterOrderProvider {
      * @return
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/detaiByOrderNumber")
-    BaseResponse<OrderDetailResp> detailByOrderNumber();
+    BaseResponse<OrderDetailResp> detailByOrderNumber(Long orderNumber);
 
 
     /**
      * 订单列表
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrder")
-    BaseResponse<OrderDetailResp> listOrder(@RequestBody OrderQueryReq orderQueryReq);
+    BaseResponse<List<OrderDetailResp>> listOrder(@RequestBody OrderQueryReq orderQueryReq);
 
 
 
