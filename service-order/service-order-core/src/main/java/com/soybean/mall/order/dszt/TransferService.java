@@ -382,7 +382,7 @@ public class TransferService {
         trade.setOutTradePlat("");
         trade.setTags(Lists.newArrayList());
         trade.setMiniProgramScene(0);
-
+        return trade;
     }
 
 }
