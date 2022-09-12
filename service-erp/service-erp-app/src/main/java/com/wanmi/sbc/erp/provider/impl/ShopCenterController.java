@@ -10,12 +10,12 @@ import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,28 +31,29 @@ public class ShopCenterController implements ShopCenterProvider {
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("product.searchGoodsInfo");
 
-			List<NewGoodsInfoVO> stockInfoVOS = new ArrayList<>();
+			// 先查询虚拟商品
+			JSONObject param = (JSONObject) JSON.toJSON(request);
+			param.put("bizType", 4);
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
+			String str = EntityUtils.toString(response.getEntity());
+			JSONObject json = JSON.parseObject(str);
+			List<NewGoodsInfoVO> infoVOList = JSON.parseArray(json.getString("data"), NewGoodsInfoVO.class);
+			if (CollectionUtils.isNotEmpty(infoVOList)) {
+				NewGoodsResponse result = new NewGoodsResponse();
+				result.setGoodsInfoList(infoVOList);
+				return BaseResponse.success(result);
+			}
+
 
 			// 查询商城渠道商品
 			JSONObject param1 = (JSONObject) JSON.toJSON(request);
 			param1.put("saleChannelId", 21);
-			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param1.toJSONString());
-			String str = EntityUtils.toString(response.getEntity());
-			JSONObject json = JSON.parseObject(str);
-			List<NewGoodsInfoVO> result1 = JSON.parseArray(json.getString("data"), NewGoodsInfoVO.class);
-			stockInfoVOS.addAll(result1);
-
-			// 查询所有虚拟商品
-			JSONObject param2 = (JSONObject) JSON.toJSON(request);
-			param2.put("bizType", 4);
-			HttpResponse response2 = HttpUtil.doPost(host, url, new HashMap<>(), null, param2.toJSONString());
-			String str2 = EntityUtils.toString(response2.getEntity());
-			JSONObject json2 = JSON.parseObject(str2);
-			List<NewGoodsInfoVO> result2 = JSON.parseArray(json2.getString("data"), NewGoodsInfoVO.class);
-			stockInfoVOS.addAll(result2);
-
+			HttpResponse response1 = HttpUtil.doPost(host, url, new HashMap<>(), null, param1.toJSONString());
+			String str1 = EntityUtils.toString(response1.getEntity());
+			JSONObject json1 = JSON.parseObject(str1);
+			List<NewGoodsInfoVO> infoVOList1 = JSON.parseArray(json1.getString("data"), NewGoodsInfoVO.class);
 			NewGoodsResponse result = new NewGoodsResponse();
-			result.setGoodsInfoList(stockInfoVOS);
+			result.setGoodsInfoList(infoVOList1);
 			return BaseResponse.success(result);
 		} catch (Exception e) {
 			log.warn("ShopCenterController.searchGoodsInfo异常", e);
