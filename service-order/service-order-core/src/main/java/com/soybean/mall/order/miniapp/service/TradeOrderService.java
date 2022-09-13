@@ -41,10 +41,12 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyGoodsReq;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
@@ -316,6 +318,7 @@ public class TradeOrderService {
         List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
         for (Trade trade : tradeList) {
         	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+        	createOrderReq.setPlatformOrderId(trade.getId());
         	shopCenterOrderProvider.createOrder(createOrderReq);
         }
 		return BaseResponse.success(true);

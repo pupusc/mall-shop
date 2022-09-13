@@ -112,6 +112,7 @@ public class TransferService {
         List<CreateOrderReq.BuyGoodsReq> result = new ArrayList<>();
         for (TradeItem tradeItem : tradeItems) {
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+            buyGoodsReq.setPlatformItemId(tradeItem.getOid());
             buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
             buyGoodsReq.setNum(tradeItem.getNum().intValue());
             BigDecimal marketPrice;
