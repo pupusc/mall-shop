@@ -8,7 +8,7 @@ import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
@@ -82,7 +82,7 @@ public class GoodsStockService {
 	@Autowired
 	private GuanyierpProvider guanyierpProvider;
 	@Autowired
-	private ShopCenterProvider shopCenterProvider;
+	private ShopCenterProductProvider shopCenterProductProvider;
 
 	@Autowired
 	private GoodsStockSyncRepository goodsStockSyncRepository;
@@ -420,7 +420,7 @@ public class GoodsStockService {
 			NewGoodsInfoRequest request = new NewGoodsInfoRequest();
 			request.setGoodsCode(erpGoodsCodeNo);
 			request.setValidFlag(1);
-			BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(request);
+			BaseResponse<NewGoodsResponse> response = shopCenterProductProvider.searchGoodsInfo(request);
 			List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
 			result.addAll(infoList);
 		}

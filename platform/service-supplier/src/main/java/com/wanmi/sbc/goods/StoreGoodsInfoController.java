@@ -26,7 +26,7 @@ import com.wanmi.sbc.elastic.api.request.groupon.EsGrouponActivityPageRequest;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
@@ -172,7 +172,7 @@ public class StoreGoodsInfoController {
     @Autowired
     private GuanyierpProvider guanyierpProvider;
     @Autowired
-    private ShopCenterProvider shopCenterProvider;
+    private ShopCenterProductProvider shopCenterProductProvider;
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
@@ -190,7 +190,7 @@ public class StoreGoodsInfoController {
     @RequestMapping(value = "/erp/goods/syncGoodsInfo", method = RequestMethod.POST)
     public BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody SynGoodsInfoRequest request) {
         // 改为shopCenter查询并兼容字段
-        BaseResponse<NewGoodsResponse> response = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(request.getSpuCode()).build());
+        BaseResponse<NewGoodsResponse> response = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(request.getSpuCode()).build());
         List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
         ArrayList<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
         if (CollectionUtils.isEmpty(infoList)){
@@ -220,7 +220,7 @@ public class StoreGoodsInfoController {
     @ApiOperation(value = "根据 商品码查询sku")
     @RequestMapping(value = "/shopcenter/goods/searchGoodsInfo", method = RequestMethod.POST)
     public BaseResponse<NewGoodsResponse> searchGoodsInfo(@RequestBody NewGoodsInfoRequest request) {
-        return shopCenterProvider.searchGoodsInfo(request);
+        return shopCenterProductProvider.searchGoodsInfo(request);
     }
 
     /**

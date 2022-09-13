@@ -17,7 +17,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoModifyAddedStatusReque
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.provider.ShopCenterProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
@@ -171,7 +171,7 @@ public class CycleBuyController {
     @Autowired
     private GuanyierpProvider guanyierpProvider;
     @Autowired
-    private ShopCenterProvider shopCenterProvider;
+    private ShopCenterProductProvider shopCenterProductProvider;
 
     @Autowired
     private OsUtil osUtil;
@@ -209,7 +209,7 @@ public class CycleBuyController {
         cycleBuyAddRequest.setSendDateRule(null);
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoVO> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyAddRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
@@ -265,7 +265,7 @@ public class CycleBuyController {
         CycleBuyVO cycleBuyVO = cycleBuyQueryProvider.getById(CycleBuyByIdRequest.builder().id(cycleBuyModifyRequest.getId()).build()).getContext().getCycleBuyVO();
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoVO> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
