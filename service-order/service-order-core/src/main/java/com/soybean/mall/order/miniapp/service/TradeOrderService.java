@@ -1,26 +1,16 @@
 package com.soybean.mall.order.miniapp.service;
 
-import com.alibaba.fastjson.JSON;
-import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
-import com.soybean.mall.order.enums.MiniOrderOperateType;
-import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.order.bean.dto.*;
-import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
-import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
-import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
-import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.enums.ChannelType;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.DateUtil;
-import com.wanmi.sbc.order.bean.enums.DeliverStatus;
-import com.wanmi.sbc.order.bean.enums.FlowState;
-import com.wanmi.sbc.order.bean.enums.PayState;
-import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
-import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
-import com.wanmi.sbc.order.trade.model.root.Trade;
-import com.wanmi.sbc.order.trade.repository.TradeRepository;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -34,12 +24,32 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.alibaba.fastjson.JSON;
+import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
+import com.soybean.mall.order.dszt.TransferService;
+import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.dto.PaymentParamsDTO;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
+import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -59,8 +69,12 @@ public class TradeOrderService {
 
     @Autowired
     private WxOrderService wxOrderService;
-
-
+    
+    @Autowired
+    private TransferService transferService;
+    
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
@@ -289,5 +303,31 @@ public class TradeOrderService {
         return wxOrderService.getPaymentParams(trade.getBuyer().getOpenId(), trade.getId());
 
     }
+
+    /**
+	 * @return
+	 */
+	public BaseResponse syncOrderData() {
+		Criteria criteria = new Criteria();
+
+        Query query = new Query(criteria);
+        query.with(Sort.by(new Sort.Order(Sort.Direction.ASC, "tradeState.endTime"))).limit(1);
+
+        List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
+        for (Trade trade : tradeList) {
+        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+        	shopCenterOrderProvider.createOrder(createOrderReq);
+        }
+		return BaseResponse.success(true);
+	}
+
+	private Integer buildAmount(BigDecimal amount) {
+		if (amount == null) {
+			return null;
+		}
+		
+		BigDecimal amountCent = amount.multiply(new BigDecimal(100));
+		return amountCent.intValue();
+	}
 
 }

@@ -33,10 +33,10 @@ public class CreateOrderReq {
      */
     private String orderSource;
 
-//    /**
-//     * 平台订单号[orderNumber] 不传
-//     */
-//    private String platformOrderId;
+    /**
+     * 平台订单号[orderNumber] 不传
+     */
+    private String platformOrderId;
 
     /**
      * 用户id [主占用户id]
@@ -155,10 +155,10 @@ public class CreateOrderReq {
         @NotNull(message = "数量不能为空")
         private Integer num;
 
-//        /**
-//         * 平台子订单编号 不使用
-//         */
-//        private String platformItemId;
+        /**
+         * 平台子订单编号 不使用
+         */
+        private String platformItemId;
 
         /**
          * 价格，单位：分 【市场价】
