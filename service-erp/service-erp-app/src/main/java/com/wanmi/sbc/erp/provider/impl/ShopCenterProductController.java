@@ -2,14 +2,13 @@ package com.wanmi.sbc.erp.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.sbc.wanmi.erp.bean.vo.NewGoodsInfoVO;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
-import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 	private ShopCenterRouterConfig routerConfig;
 
 	@Override
-	public BaseResponse<NewGoodsResponse> searchGoodsInfo(NewGoodsInfoRequest request) {
+	public BaseResponse<List<NewGoodsInfoResp>> searchGoodsInfo(NewGoodsInfoRequest request) {
 		try {
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("product.searchGoodsInfo");
@@ -39,11 +39,9 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);
-			List<NewGoodsInfoVO> infoVOList = JSON.parseArray(json.getString("data"), NewGoodsInfoVO.class);
+			List<NewGoodsInfoResp> infoVOList = JSON.parseArray(json.getString("data"), NewGoodsInfoResp.class);
 			if (CollectionUtils.isNotEmpty(infoVOList)) {
-				NewGoodsResponse result = new NewGoodsResponse();
-				result.setGoodsInfoList(infoVOList);
-				return BaseResponse.success(result);
+				return BaseResponse.success(infoVOList);
 			}
 
 
@@ -53,14 +51,12 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			HttpResponse response1 = HttpUtil.doPost(host, url, new HashMap<>(), null, param1.toJSONString());
 			String str1 = EntityUtils.toString(response1.getEntity());
 			JSONObject json1 = JSON.parseObject(str1);
-			List<NewGoodsInfoVO> infoVOList1 = JSON.parseArray(json1.getString("data"), NewGoodsInfoVO.class);
-			NewGoodsResponse result = new NewGoodsResponse();
-			result.setGoodsInfoList(infoVOList1);
-			return BaseResponse.success(result);
+			List<NewGoodsInfoResp> infoVOList1 = JSON.parseArray(json1.getString("data"), NewGoodsInfoResp.class);
+			return BaseResponse.success(infoVOList1);
 		} catch (Exception e) {
 			log.warn("ShopCenterController.searchGoodsInfo异常", e);
 		}
-		return BaseResponse.FAILED();
+		return BaseResponse.success(Collections.emptyList());
 	}
 
 	@Override

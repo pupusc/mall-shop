@@ -2,7 +2,7 @@ package com.wanmi.sbc.cyclebuy;
 
 
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.vo.NewGoodsInfoVO;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -209,7 +209,7 @@ public class CycleBuyController {
         cycleBuyAddRequest.setSendDateRule(null);
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyAddRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
@@ -265,7 +265,7 @@ public class CycleBuyController {
         CycleBuyVO cycleBuyVO = cycleBuyQueryProvider.getById(CycleBuyByIdRequest.builder().id(cycleBuyModifyRequest.getId()).build()).getContext().getCycleBuyVO();
 
         //判断sku上面填写的sku的erp是否在填写的spu编码之内
-        List<NewGoodsInfoVO> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getGoodsInfoList();
+        List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext();
 
         if (CollectionUtils.isNotEmpty(goodsInfoList)) {
             cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {

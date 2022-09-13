@@ -2,7 +2,7 @@ package com.wanmi.sbc.goods.info.service;
 
 
 import com.alibaba.fastjson.JSON;
-import com.sbc.wanmi.erp.bean.vo.NewGoodsInfoVO;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -10,7 +10,6 @@ import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
-import com.wanmi.sbc.erp.api.response.NewGoodsResponse;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
@@ -412,7 +411,7 @@ public class GoodsStockService {
 		}
 
 
-		List<NewGoodsInfoVO> result = new ArrayList<>(100);
+		List<NewGoodsInfoResp> result = new ArrayList<>(100);
 		Set<String> erpGoodsCodeNoSet = goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
 		log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ", JSON.toJSONString(erpGoodsCodeNoSet));
 		long benginTime = System.currentTimeMillis();
@@ -420,14 +419,13 @@ public class GoodsStockService {
 			NewGoodsInfoRequest request = new NewGoodsInfoRequest();
 			request.setGoodsCode(erpGoodsCodeNo);
 			request.setValidFlag(1);
-			BaseResponse<NewGoodsResponse> response = shopCenterProductProvider.searchGoodsInfo(request);
-			List<NewGoodsInfoVO> infoList = response.getContext().getGoodsInfoList();
+			List<NewGoodsInfoResp> infoList = shopCenterProductProvider.searchGoodsInfo(request).getContext();
 			result.addAll(infoList);
 		}
 
 		//获取sku 库存状态
 		Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
-		for (NewGoodsInfoVO infoVO : result) {
+		for (NewGoodsInfoResp infoVO : result) {
 			BigDecimal costPrice = Objects.isNull(infoVO.getWhStockCost()) ? null : new BigDecimal(infoVO.getWhStockCost()).divide(new BigDecimal(100));
 			ErpGoodsInfoRequest erpGoodsInfoRequest = new ErpGoodsInfoRequest();
 			erpGoodsInfoRequest.setErpCostPrice(costPrice);
