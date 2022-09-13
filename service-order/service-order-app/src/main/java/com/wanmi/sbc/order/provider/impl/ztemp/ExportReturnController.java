@@ -1,0 +1,278 @@
+package com.wanmi.sbc.order.provider.impl.ztemp;
+
+import com.mongodb.client.result.UpdateResult;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Detail;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Item;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Order;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$PostFee;
+import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Refund;
+import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+
+/**
+ * @desc 导出售后推单到电商中台
+ * @author Liang Jun
+ * @date 2022-09-11 10:39:00
+ */
+@Validated
+@Slf4j
+@RestController
+@RequestMapping("export/return")
+public class ExportReturnController {
+    private static final String versionField = "sVersion";
+    @Autowired
+    private MongoTemplate mongoTemplate;
+    private AtomicBoolean inHand = new AtomicBoolean(false);
+    private int sVersion;
+    private int countTotal;
+    private int countExport;
+    private int countIgnore;
+    private int countError;
+
+    @GetMapping("stop")
+    public Boolean stop() {
+        boolean result = inHand.get() ? inHand.compareAndSet(true, false) : true;
+        if (result) {
+            this.countTotal = 0;
+            this.countExport = 0;
+            this.countIgnore = 0;
+            this.countError = 0;
+        }
+        return result;
+    }
+
+    /**
+     * 开始同步
+     * @param sVersion 本次同步版本
+     * @param pageSize 分页数量
+     * @param errorStop 错误停止同步
+     */
+    @GetMapping("start")
+    public String start(@Valid @NotNull Integer sVersion, @Valid @NotNull Integer pageSize, @Valid @NotNull Boolean errorStop) {
+        if (!inHand.compareAndSet(false, true)) {
+            return "同步任务正在执行中，本次调用无效";
+        }
+
+        log.info("开始同步商城退单数据到电商中台, sVersion={}, pageSize={}", sVersion, pageSize);
+        this.sVersion = sVersion;
+        long start = System.currentTimeMillis();
+        int pageNo = 0;
+
+        List<ReturnOrder> returnOrders;
+        do {
+            //查询
+            Query query = new Query().with(Sort.by(Sort.Direction.ASC, "createTime")).skip((pageNo++) * pageSize).limit(pageSize);
+            returnOrders = mongoTemplate.find(query, ReturnOrder.class);
+            //导出
+            for (ReturnOrder item : returnOrders) {
+                try {
+                    export(item);
+                } catch (Exception e) {
+                    log.error("同步数据发生异常", e);
+                    if (errorStop) {
+                        printResult("由于异常原因导致同步任务提前结束", start);
+                        return "error";
+                    }
+                }
+            }
+        } while (returnOrders.size() >= pageSize);
+        printResult("完成同步商城退单到电商中台", start);
+
+        stop();
+        return "success";
+    }
+
+    private void printResult(String msg, long start) {
+        log.info("{}，耗时：{}ms，总计：{}, 导出：{}，忽略：{}，错误：{}", msg, System.currentTimeMillis()-start, countTotal, countExport, countIgnore, countError);
+    }
+
+    private List<ReturnFlowState> createStatus = Arrays.asList(
+            ReturnFlowState.INIT,
+            ReturnFlowState.AUDIT
+    );
+    private List<ReturnFlowState> finishStatus = Arrays.asList(
+            ReturnFlowState.REFUNDED,
+            ReturnFlowState.COMPLETED,
+            ReturnFlowState.REJECT_REFUND,
+            ReturnFlowState.VOID,
+            ReturnFlowState.REFUND_FAILED
+    );
+
+    /**
+     * 导出数据
+     */
+    private void export(ReturnOrder returnOrder) {
+        if (Objects.isNull(returnOrder)) {
+            return;
+        }
+        this.countTotal ++;
+        //验证数据
+        if (returnOrder.getSVersion() != null && returnOrder.getSVersion() >= this.sVersion) {
+            this.countIgnore ++;
+            return;
+        }
+        //初始状态
+        if (!createStatus.contains(returnOrder.getReturnFlowState()) && !finishStatus.contains(returnOrder.getReturnFlowState())) {
+            log.info("不支持的退单状态,跳过不做处理,id={},state={}", returnOrder.getId(), returnOrder.getReturnFlowState().getStateId());
+            this.countIgnore ++;
+            return;
+
+        }
+        //同步电商中台
+        try {
+            sendData(returnOrder);
+        } catch (Exception e) {
+            this.countError ++;
+            throw new RuntimeException(e);
+        }
+        this.countExport ++;
+        log.info("退单数据同步到电商中台, 主键:{}, tid:{}", returnOrder.getId(), returnOrder.getTid());
+
+        //更新本地版本
+        UpdateResult updateResult = mongoTemplate.updateFirst(
+                new Query(Criteria.where("_id").is(returnOrder.getId())),
+                new Update().set(versionField, this.sVersion),
+                ReturnOrder.class);
+
+        if (updateResult.getModifiedCount() != 1) {
+            log.error("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.sVersion, updateResult.getModifiedCount());
+            throw new RuntimeException("更新退单的版本信息错误");
+        }
+    }
+
+    private void sendData(ReturnOrder returnOrder) throws Exception {
+        ImportMallRefundParamVO paramVO = new ImportMallRefundParamVO();
+        paramVO.setSaleAfterCreateEnum(finishStatus.contains(returnOrder.getReturnFlowState()) ? "MALL_HISTORY" : "MALL");
+        //退款主单
+        ImportMallRefundParamVO$Order orderBO = new ImportMallRefundParamVO$Order();
+        orderBO.setMallOrderId(returnOrder.getTid());
+        orderBO.setPlatformRefundId(returnOrder.getId());
+        orderBO.setApplyTime(returnOrder.getCreateTime());
+        orderBO.setCloseTime(returnOrder.getFinishTime());
+        paramVO.setSaleAfterOrderBO(orderBO);
+        //退运费
+        if (ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
+            sendData4PostFee(paramVO, returnOrder);
+            return;
+        }
+        sendData4buyFee(paramVO, returnOrder);
+    }
+
+    private void sendData4PostFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
+        int payType = 1; //1现金;2知豆;3积分
+        int postFeeAmount = yuan2fen(returnOrder.getReturnPrice().getApplyPrice());
+
+        ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
+        detail.setAmount(postFeeAmount);
+        detail.setPayType(payType);
+        paramVO.setSaleAfterPostFee(new ImportMallRefundParamVO$PostFee(Arrays.asList(detail)));
+        //退款单
+        ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
+        refund.setRefundNo(returnOrder.getId());
+        refund.setAmount(postFeeAmount);
+        refund.setPayType(String.valueOf(payType));
+        refund.setRefundTime(returnOrder.getFinishTime());
+        paramVO.setSaleAfterRefundBOList(Arrays.asList(refund));
+        invoke(paramVO);
+    }
+
+    /**
+     * 1现金;2知豆;3积分
+     */
+    private void sendData4buyFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
+        paramVO.setSaleAfterItemBOList(new ArrayList<>());
+
+        Integer refundType = parseRefundType(returnOrder);
+        //退款子单
+        for (ReturnItem item : returnOrder.getReturnItems()) {
+            ImportMallRefundParamVO$Item orderItem = new ImportMallRefundParamVO$Item();
+            orderItem.setMallSkuId(item.getSkuId());
+            //orderItem.setObjectId();
+            orderItem.setObjectType("ORDER_ITEM");
+            orderItem.setRefundType(refundType);
+            orderItem.setRefundNum(item.getNum());
+            orderItem.setSaleAfterRefundDetailBOList(new ArrayList<>());
+            //现金
+            BigDecimal cashAmount = item.getApplyRealPrice() != null ? item.getApplyRealPrice() : item.getSplitPrice();
+            if (cashAmount != null) {
+                ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
+                detail.setPayType(1);
+                detail.setAmount(yuan2fen(cashAmount));
+                orderItem.getSaleAfterRefundDetailBOList().add(detail);
+            }
+            //知豆
+            Long knowAmount = item.getApplyKnowledge() != null ? item.getApplyKnowledge() : item.getSplitKnowledge();
+            if (knowAmount != null) {
+                ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
+                detail.setPayType(2);
+                detail.setAmount(knowAmount.intValue());
+                orderItem.getSaleAfterRefundDetailBOList().add(detail);
+            }
+            //积分
+            Long pointAmount = item.getApplyPoint() != null ? item.getApplyPoint() : item.getSplitPoint();
+            if (pointAmount != null) {
+                ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
+                detail.setPayType(3);
+                detail.setAmount(pointAmount.intValue());
+                orderItem.getSaleAfterRefundDetailBOList().add(detail);
+            }
+            orderItem.setRefundFee(orderItem.getSaleAfterRefundDetailBOList().stream().mapToInt(i->i.getAmount()).sum());
+            paramVO.getSaleAfterItemBOList().add(orderItem);
+        }
+    }
+
+    /**
+     * 金额元转分
+     */
+    private Integer yuan2fen(BigDecimal cashAmount) {
+        return cashAmount.multiply(BigDecimal.valueOf(100)).intValue();
+    }
+
+    /**
+     * 售后类型：1退货退款 2仅退款 3换货 4补偿 5主订单退款 6赠品
+     */
+    private Integer parseRefundType(ReturnOrder returnOrder) {
+        if (ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
+            return 5;
+        }
+        if (ReturnType.RETURN.equals(returnOrder.getReturnType())) {
+            return  1;
+        }
+        if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
+            return  2;
+        }
+        log.error("错误的退款类型, id={}, returnType={}", returnOrder.getId(), returnOrder.getReturnType());
+        throw new RuntimeException("不支持的退款类型");
+    }
+
+    /**
+     * HTTP调用
+     */
+    private void invoke(ImportMallRefundParamVO paramVO) {
+    }
+}
