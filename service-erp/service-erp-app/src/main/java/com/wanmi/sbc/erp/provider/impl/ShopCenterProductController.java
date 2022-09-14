@@ -65,7 +65,6 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("product.salePlatform");
 
-
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);
