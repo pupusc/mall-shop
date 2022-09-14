@@ -2,6 +2,7 @@ package com.wanmi.sbc.order.provider.impl.ztemp.vo;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -11,7 +12,7 @@ public class ImportMallRefundParamVO$Item {
     /**
      * 商城skuId需要转换成中台的子单id
      */
-    @NotNull
+    @NotBlank
     private String mallSkuId;
     /**
      * 子订单ID/主订单ID

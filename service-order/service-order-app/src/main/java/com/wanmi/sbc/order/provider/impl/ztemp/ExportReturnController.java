@@ -1,6 +1,8 @@
 package com.wanmi.sbc.order.provider.impl.ztemp;
 
+import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
+import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
@@ -46,9 +48,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ExportReturnController {
     private static final String versionField = "sVersion";
     @Autowired
+    private DSZTService dsztService;
+    @Autowired
     private MongoTemplate mongoTemplate;
     private AtomicBoolean inHand = new AtomicBoolean(false);
-    private int sVersion;
+    private int selectVersion;
+    private int updateVersion;
+
     private int countTotal;
     private int countExport;
     private int countIgnore;
@@ -68,20 +74,24 @@ public class ExportReturnController {
 
     /**
      * 开始同步
-     * @param sVersion 本次同步版本
+     * @param selectVersion 同步的版本
+     * @param updateVersion 更新的版本
      * @param pageSize 分页数量
      * @param errorStop 错误停止同步
      */
+    @Valid
     @GetMapping("start")
-    public String start(@Valid @NotNull Integer sVersion, @Valid @NotNull Integer pageSize, @Valid @NotNull Boolean errorStop) {
+    public String start(@NotNull Integer selectVersion, @NotNull Integer updateVersion, @NotNull Integer pageSize, @NotNull Boolean errorStop) {
         if (!inHand.compareAndSet(false, true)) {
             return "同步任务正在执行中，本次调用无效";
         }
 
-        log.info("开始同步商城退单数据到电商中台, sVersion={}, pageSize={}", sVersion, pageSize);
-        this.sVersion = sVersion;
-        long start = System.currentTimeMillis();
+        log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}", selectVersion, updateVersion, pageSize);
+        this.selectVersion = selectVersion;
+        this.updateVersion = updateVersion;
+
         int pageNo = 0;
+        long start = System.currentTimeMillis();
 
         List<ReturnOrder> returnOrders;
         do {
@@ -93,7 +103,7 @@ public class ExportReturnController {
                 try {
                     export(item);
                 } catch (Exception e) {
-                    log.error("同步数据发生异常", e);
+                    log.warn("同步数据发生异常", e);
                     if (errorStop) {
                         printResult("由于异常原因导致同步任务提前结束", start);
                         return "error";
@@ -132,7 +142,7 @@ public class ExportReturnController {
         }
         this.countTotal ++;
         //验证数据
-        if (returnOrder.getSVersion() != null && returnOrder.getSVersion() >= this.sVersion) {
+        if (!checkVersion(returnOrder.getSVersion())) {
             this.countIgnore ++;
             return;
         }
@@ -156,13 +166,23 @@ public class ExportReturnController {
         //更新本地版本
         UpdateResult updateResult = mongoTemplate.updateFirst(
                 new Query(Criteria.where("_id").is(returnOrder.getId())),
-                new Update().set(versionField, this.sVersion),
+                new Update().set(versionField, this.updateVersion),
                 ReturnOrder.class);
 
         if (updateResult.getModifiedCount() != 1) {
-            log.error("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.sVersion, updateResult.getModifiedCount());
+            log.warn("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.updateVersion, updateResult.getModifiedCount());
             throw new RuntimeException("更新退单的版本信息错误");
         }
+    }
+
+    private boolean checkVersion(Integer sVersion) {
+        if (sVersion == null) {
+            return true;
+        }
+        if (selectVersion < 0) {
+            return sVersion < this.updateVersion;
+        }
+        return selectVersion == sVersion;
     }
 
     private void sendData(ReturnOrder returnOrder) throws Exception {
@@ -192,12 +212,14 @@ public class ExportReturnController {
         detail.setPayType(payType);
         paramVO.setSaleAfterPostFee(new ImportMallRefundParamVO$PostFee(Arrays.asList(detail)));
         //退款单
-        ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
-        refund.setRefundNo(returnOrder.getId());
-        refund.setAmount(postFeeAmount);
-        refund.setPayType(String.valueOf(payType));
-        refund.setRefundTime(returnOrder.getFinishTime());
-        paramVO.setSaleAfterRefundBOList(Arrays.asList(refund));
+        if (finishStatus.contains(returnOrder.getReturnFlowState())) {
+            ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
+            refund.setRefundNo(returnOrder.getId());
+            refund.setAmount(postFeeAmount);
+            refund.setPayType(String.valueOf(payType));
+            refund.setRefundTime(returnOrder.getFinishTime());
+            paramVO.setSaleAfterRefundBOList(Arrays.asList(refund));
+        }
         invoke(paramVO);
     }
 
@@ -206,6 +228,7 @@ public class ExportReturnController {
      */
     private void sendData4buyFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
         paramVO.setSaleAfterItemBOList(new ArrayList<>());
+        paramVO.setSaleAfterRefundBOList(new ArrayList<>());
 
         Integer refundType = parseRefundType(returnOrder);
         //退款子单
@@ -218,12 +241,19 @@ public class ExportReturnController {
             orderItem.setRefundNum(item.getNum());
             orderItem.setSaleAfterRefundDetailBOList(new ArrayList<>());
             //现金
-            BigDecimal cashAmount = item.getApplyRealPrice() != null ? item.getApplyRealPrice() : item.getSplitPrice();
+            Integer cashAmount = yuan2fen(item.getApplyRealPrice() != null ? item.getApplyRealPrice() : item.getSplitPrice());
             if (cashAmount != null) {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(1);
-                detail.setAmount(yuan2fen(cashAmount));
+                detail.setAmount(cashAmount);
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
+
+                ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
+                refund.setRefundNo(returnOrder.getId());
+                refund.setPayType("1");
+                refund.setAmount(cashAmount);
+                refund.setRefundTime(returnOrder.getFinishTime());
+                paramVO.getSaleAfterRefundBOList().add(refund);
             }
             //知豆
             Long knowAmount = item.getApplyKnowledge() != null ? item.getApplyKnowledge() : item.getSplitKnowledge();
@@ -232,6 +262,13 @@ public class ExportReturnController {
                 detail.setPayType(2);
                 detail.setAmount(knowAmount.intValue());
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
+
+                ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
+                refund.setRefundNo(returnOrder.getId());
+                refund.setPayType("2");
+                refund.setAmount(knowAmount.intValue());
+                refund.setRefundTime(returnOrder.getFinishTime());
+                paramVO.getSaleAfterRefundBOList().add(refund);
             }
             //积分
             Long pointAmount = item.getApplyPoint() != null ? item.getApplyPoint() : item.getSplitPoint();
@@ -240,9 +277,17 @@ public class ExportReturnController {
                 detail.setPayType(3);
                 detail.setAmount(pointAmount.intValue());
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
+
+                ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
+                refund.setRefundNo(returnOrder.getId());
+                refund.setPayType("3");
+                refund.setAmount(pointAmount.intValue());
+                refund.setRefundTime(returnOrder.getFinishTime());
+                paramVO.getSaleAfterRefundBOList().add(refund);
             }
             orderItem.setRefundFee(orderItem.getSaleAfterRefundDetailBOList().stream().mapToInt(i->i.getAmount()).sum());
             paramVO.getSaleAfterItemBOList().add(orderItem);
+            invoke(paramVO);
         }
     }
 
@@ -250,6 +295,9 @@ public class ExportReturnController {
      * 金额元转分
      */
     private Integer yuan2fen(BigDecimal cashAmount) {
+        if (cashAmount == null) {
+            return null;
+        }
         return cashAmount.multiply(BigDecimal.valueOf(100)).intValue();
     }
 
@@ -266,13 +314,19 @@ public class ExportReturnController {
         if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
             return  2;
         }
-        log.error("错误的退款类型, id={}, returnType={}", returnOrder.getId(), returnOrder.getReturnType());
+        log.warn("错误的退款类型, id={}, returnType={}", returnOrder.getId(), returnOrder.getReturnType());
         throw new RuntimeException("不支持的退款类型");
     }
 
+    private static final String exportUrl = "https://gateway-api.dushu365.com/platform-router/import/mallRefund";
     /**
      * HTTP调用
      */
     private void invoke(ImportMallRefundParamVO paramVO) {
+        BusinessResponse response = dsztService.doRequest(exportUrl, JSON.toJSONString(paramVO), BusinessResponse.class);
+        if (!response.getCode().equals("0000")) {
+            log.warn("调用数据同步接口结果失败, code={}, msg={}", response.getCode(), response.getMessage());
+            throw new RuntimeException("数据导出失败");
+        }
     }
 }
