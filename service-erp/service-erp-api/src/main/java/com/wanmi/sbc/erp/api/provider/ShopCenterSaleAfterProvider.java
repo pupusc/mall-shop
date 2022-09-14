@@ -5,6 +5,7 @@ import com.wanmi.sbc.erp.api.req.QuerySaleAfterOrderReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterCancelReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterConfirmDeliverReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterConfirmPaymentReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterExamineReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterReq;
 import com.wanmi.sbc.erp.api.resp.SaleAfterFillDeliverInfoReq;
@@ -25,7 +26,7 @@ public interface ShopCenterSaleAfterProvider {
 	 * TODO 创建售后
 	 */
 	@PostMapping("/erp/${application.erp.version}/shopcenter/createSaleAfter")
-	BaseResponse<List<SaleAfterResp>> createSaleAfter(@RequestBody SaleAfterReq request);
+	BaseResponse<Long> createSaleAfter(@RequestBody SaleAfterCreateReq request);
 
 	/**
 	 * TODO 售后列表

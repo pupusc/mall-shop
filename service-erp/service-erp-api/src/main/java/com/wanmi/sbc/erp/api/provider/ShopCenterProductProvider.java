@@ -1,6 +1,7 @@
 package com.wanmi.sbc.erp.api.provider;
 
 
+import com.wanmi.sbc.erp.api.resp.GoodsPackRsp;
 import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
@@ -29,7 +30,14 @@ public interface ShopCenterProductProvider {
     BaseResponse<List<NewGoodsInfoResp>> searchGoodsInfo(@RequestBody NewGoodsInfoRequest request);
 
     /**
+     * goods
+     */
+    @PostMapping("/erp/${application.erp.version}/shopcenter/searchPackByGoodsCodes")
+    BaseResponse<List<GoodsPackRsp>> searchPackByGoodsCodes(@RequestBody List<String> request);
+
+    /**
      * 获取渠道信息
+     *
      * @param salePlatformQueryReq
      * @return
      */

@@ -8,7 +8,10 @@ import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.req.OrderQueryReq;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
+import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
+import com.wanmi.sbc.erp.api.resp.PaymentResp;
+import com.wanmi.sbc.erp.api.resp.SaleAfterResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -16,6 +19,7 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -83,5 +87,48 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 			log.warn("ShopCenterOrderController.listOrder异常", e);
 		}
 		return BaseResponse.FAILED();
+	}
+
+	@Override
+	public BaseResponse<OrdOrderResp> queryMasterOrderByTid(Long tid) {
+		try {
+			String host = routerConfig.getHost();
+			String url = routerConfig.getUrl("order.queryMasterOrderByTid");
+
+			JSONObject param = new JSONObject();
+			param.put("tid", tid);
+
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
+			String str = EntityUtils.toString(response.getEntity());
+			JSONObject json = JSON.parseObject(str);
+			OrdOrderResp data = JSON.parseObject(json.getString("data"), OrdOrderResp.class);
+
+			return BaseResponse.success(data);
+		} catch (Exception e) {
+			log.warn("ShopCenterOrderController.queryMasterOrderByTid.异常", e);
+		}
+		return BaseResponse.FAILED();
+	}
+
+
+	@Override
+	public BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId) {
+		try {
+			String host = routerConfig.getHost();
+			String url = routerConfig.getUrl("saleAfter.saleAfterList");
+
+			JSONObject param = new JSONObject();
+			param.put("orderId", orderId);
+
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
+			String str = EntityUtils.toString(response.getEntity());
+			JSONObject json = JSON.parseObject(str);
+			List<PaymentResp> data = JSON.parseArray(json.getString("data"), PaymentResp.class);
+
+			return BaseResponse.success(data);
+		} catch (Exception e) {
+			log.warn("ShopCenterSaleAfterController.getPaymentByOrderId.异常", e);
+		}
+		return BaseResponse.success(Collections.emptyList());
 	}
 }

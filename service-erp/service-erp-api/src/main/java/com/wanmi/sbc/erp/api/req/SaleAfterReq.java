@@ -85,6 +85,17 @@ public class SaleAfterReq implements Serializable {
      */
     private String contactMobile;
 
+
+    /**
+     * 分页参数
+     */
+    private Page page = new Page(1, 10);
+
+    /**
+     * 用户ID
+     */
+    private Long userId;
+
     public String getPlatformOrderId() {
         return StringUtils.isBlank(platformOrderId) ? null : platformOrderId;
     }
@@ -92,10 +103,4 @@ public class SaleAfterReq implements Serializable {
     public String getContactMobile() {
         return StringUtils.isBlank(contactMobile) ? null : contactMobile;
     }
-
-
-    /**
-     * 分页参数
-     */
-    private Page page = new Page(1, 10);
 }
