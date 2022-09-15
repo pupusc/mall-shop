@@ -1,6 +1,5 @@
 package com.soybean.mall.order.miniapp.service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -8,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -41,16 +42,15 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyGoodsReq;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
-import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -77,6 +77,9 @@ public class TradeOrderService {
     
     @Autowired
     private ShopCenterOrderProvider shopCenterOrderProvider;
+    
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
@@ -309,28 +312,56 @@ public class TradeOrderService {
     /**
 	 * @return
 	 */
-	public BaseResponse syncOrderData() {
-		Criteria criteria = new Criteria();
-
-        Query query = new Query(criteria);
-        query.with(Sort.by(new Sort.Order(Sort.Direction.ASC, "tradeState.endTime"))).limit(1);
-
-        List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
-        for (Trade trade : tradeList) {
-        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-        	createOrderReq.setPlatformOrderId(trade.getId());
-        	shopCenterOrderProvider.createOrder(createOrderReq);
-        }
-		return BaseResponse.success(true);
-	}
-
-	private Integer buildAmount(BigDecimal amount) {
-		if (amount == null) {
-			return null;
+	public BaseResponse syncOrderDataAll() {
+		String redisKey = "trade_query_id";
+		String queryId = (String) redisTemplate.opsForValue().get(redisKey);
+		if (StringUtil.isNotBlank(queryId)) {
+			Query query = new Query(Criteria.where("_id").gt(queryId));
+			Long count = mongoTemplate.count(query, Trade.class);
+			if (count == 0) {
+				return BaseResponse.success(true);
+			}
+			
+			Integer foreachTimes = (int) (count / 1000) + 1;
+			for (int i = 0 ; i < foreachTimes ; i++) {
+				Integer offset = (i - 1) * 1000;
+				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
+				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
+		        for (Trade trade : tradeList) {
+		        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+		        	createOrderReq.setPlatformOrderId(trade.getId());
+		        	shopCenterOrderProvider.createOrder(createOrderReq);
+		        	
+		        	queryId = trade.getId();
+		        }
+			}
+			
+			redisTemplate.opsForValue().set(redisKey, queryId);
+			return BaseResponse.success(true);
+		} else {
+			Query query = new Query(Criteria.where("_id").is("O202103241606337472040"));
+	        Long count = mongoTemplate.count(query, Trade.class);
+			if (count == 0) {
+				return BaseResponse.success(true);
+			}
+			
+			Integer foreachTimes = (int) (count / 1000) + 1;
+			for (int i = 0 ; i < foreachTimes ; i++) {
+				Integer offset = (i - 1) * 1000;
+				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
+				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
+		        for (Trade trade : tradeList) {
+		        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+		        	createOrderReq.setPlatformOrderId(trade.getId());
+		        	shopCenterOrderProvider.createOrder(createOrderReq);
+		        	
+		        	queryId = trade.getId();
+		        }
+			}
+			
+			redisTemplate.opsForValue().set(redisKey, queryId);
+			return BaseResponse.success(true);
 		}
-		
-		BigDecimal amountCent = amount.multiply(new BigDecimal(100));
-		return amountCent.intValue();
 	}
-
+	
 }

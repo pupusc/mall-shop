@@ -530,6 +530,7 @@ public interface TradeProvider {
      * 订单同步
      * @return
      */
-    @PostMapping("/order/${application.order.version}/trade/syncOrderData")
-    BaseResponse syncOrderData();
+    @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
+    BaseResponse syncOrderDataAll();
+    
 }
