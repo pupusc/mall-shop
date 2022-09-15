@@ -2,7 +2,6 @@ package com.wanmi.sbc.order.provider.impl.ztemp;
 
 import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
-import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
@@ -32,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -59,6 +59,7 @@ public class ExportReturnController {
     private int countExport;
     private int countIgnore;
     private int countError;
+    private int countFailed;
 
     @GetMapping("stop")
     public Boolean stop() {
@@ -68,6 +69,7 @@ public class ExportReturnController {
             this.countExport = 0;
             this.countIgnore = 0;
             this.countError = 0;
+            this.countFailed = 0;
         }
         return result;
     }
@@ -118,7 +120,7 @@ public class ExportReturnController {
     }
 
     private void printResult(String msg, long start) {
-        log.info("{}，耗时：{}ms，总计：{}, 导出：{}，忽略：{}，错误：{}", msg, System.currentTimeMillis()-start, countTotal, countExport, countIgnore, countError);
+        log.info("{}，耗时：{}ms，总计：{}, 成功：{}，失败：{}，忽略：{}，错误：{}，", msg, System.currentTimeMillis()-start, countTotal, countExport, countFailed, countIgnore, countError);
     }
 
     private List<ReturnFlowState> createStatus = Arrays.asList(
@@ -155,7 +157,10 @@ public class ExportReturnController {
         }
         //同步电商中台
         try {
-            sendData(returnOrder);
+            if (!sendData(returnOrder)) {
+                this.countFailed ++;
+                return;
+            }
         } catch (Exception e) {
             this.countError ++;
             throw new RuntimeException(e);
@@ -185,25 +190,26 @@ public class ExportReturnController {
         return selectVersion == sVersion;
     }
 
-    private void sendData(ReturnOrder returnOrder) throws Exception {
+    private boolean sendData(ReturnOrder returnOrder) throws Exception {
         ImportMallRefundParamVO paramVO = new ImportMallRefundParamVO();
         paramVO.setSaleAfterCreateEnum(finishStatus.contains(returnOrder.getReturnFlowState()) ? "MALL_HISTORY" : "MALL");
+        paramVO.setMallOrderId(returnOrder.getTid());
         //退款主单
         ImportMallRefundParamVO$Order orderBO = new ImportMallRefundParamVO$Order();
-        orderBO.setMallOrderId(returnOrder.getTid());
         orderBO.setPlatformRefundId(returnOrder.getId());
         orderBO.setApplyTime(returnOrder.getCreateTime());
         orderBO.setCloseTime(returnOrder.getFinishTime());
         paramVO.setSaleAfterOrderBO(orderBO);
+        paramVO.get
+        paramVO.getRefundTypeList().add(parseRefundType(returnOrder));
         //退运费
         if (ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
-            sendData4PostFee(paramVO, returnOrder);
-            return;
+            return sendData4PostFee(paramVO, returnOrder);
         }
-        sendData4buyFee(paramVO, returnOrder);
+        return sendData4buyFee(paramVO, returnOrder);
     }
 
-    private void sendData4PostFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
+    private boolean sendData4PostFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
         int payType = 1; //1现金;2知豆;3积分
         int postFeeAmount = yuan2fen(returnOrder.getReturnPrice().getApplyPrice());
 
@@ -220,13 +226,13 @@ public class ExportReturnController {
             refund.setRefundTime(returnOrder.getFinishTime());
             paramVO.setSaleAfterRefundBOList(Arrays.asList(refund));
         }
-        invoke(paramVO);
+        return invoke(paramVO);
     }
 
     /**
      * 1现金;2知豆;3积分
      */
-    private void sendData4buyFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
+    private boolean sendData4buyFee(ImportMallRefundParamVO paramVO, ReturnOrder returnOrder) {
         paramVO.setSaleAfterItemBOList(new ArrayList<>());
         paramVO.setSaleAfterRefundBOList(new ArrayList<>());
 
@@ -287,8 +293,8 @@ public class ExportReturnController {
             }
             orderItem.setRefundFee(orderItem.getSaleAfterRefundDetailBOList().stream().mapToInt(i->i.getAmount()).sum());
             paramVO.getSaleAfterItemBOList().add(orderItem);
-            invoke(paramVO);
         }
+        return invoke(paramVO);
     }
 
     /**
@@ -318,15 +324,17 @@ public class ExportReturnController {
         throw new RuntimeException("不支持的退款类型");
     }
 
-    private static final String exportUrl = "https://gateway-api.dushu365.com/platform-router/import/mallRefund";
+    private static final String exportUrl = "/platform-router/import/mallRefund";
     /**
      * HTTP调用
      */
-    private void invoke(ImportMallRefundParamVO paramVO) {
-        BusinessResponse response = dsztService.doRequest(exportUrl, JSON.toJSONString(paramVO), BusinessResponse.class);
-        if (!response.getCode().equals("0000")) {
-            log.warn("调用数据同步接口结果失败, code={}, msg={}", response.getCode(), response.getMessage());
-            throw new RuntimeException("数据导出失败");
+    private boolean invoke(ImportMallRefundParamVO paramVO) {
+        Map<String, Object> response = dsztService.doRequest(exportUrl, JSON.toJSONString(paramVO), Map.class);
+        if (response == null || response.get("status") == null || !response.get("status").equals("0000")) {
+            log.warn("调用数据同步接口结果失败, code={}, msg={}", response.get("status"), response.get("msg"));
+            //throw new RuntimeException("数据导出失败");
+            return false;
         }
+        return true;
     }
 }

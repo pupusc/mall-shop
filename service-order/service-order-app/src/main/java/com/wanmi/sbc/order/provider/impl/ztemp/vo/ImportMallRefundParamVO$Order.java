@@ -8,11 +8,6 @@ import java.time.LocalDateTime;
 @Data
 public class ImportMallRefundParamVO$Order {
     /**
-     * 商城主单id,需要转换成中台的主订单id
-     */
-    @NotNull
-    private String mallOrderId;
-    /**
      * 主订单ID
      */
     private Long orderId;
