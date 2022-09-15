@@ -37,7 +37,7 @@ public interface ShopCenterSaleAfterProvider {
 	/**
 	 * TODO 售后列表
 	 */
-	@PostMapping("/erp/${application.erp.version}/shopcenter/saleAfterList")
+	@PostMapping("/erp/${application.erp.version}/shopcenter/querySaleAfterOrder")
 	BaseResponse<List<SaleAfterOrderResp>> querySaleAfterOrder(@RequestBody QuerySaleAfterOrderReq request);
 
 	/**
