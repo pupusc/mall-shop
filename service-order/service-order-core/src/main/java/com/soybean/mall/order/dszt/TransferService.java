@@ -249,7 +249,9 @@ public class TransferService {
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems));
         createOrderReq.setBuyAddressBO(this.packageAddress(consignee, customerDetail));
-        createOrderReq.setShopId(salePlatformResp.getShopCode());
+        if (salePlatformResp.getTid() != null) {
+        	createOrderReq.setShopId(salePlatformResp.getTid().toString());
+        }
         createOrderReq.setSellerMemo(trade.getSellerRemark());
         createOrderReq.setBookModel(1);
         createOrderReq.setBookTime(tradeState.getCreateTime());

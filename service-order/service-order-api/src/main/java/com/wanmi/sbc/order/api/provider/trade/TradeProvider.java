@@ -531,6 +531,6 @@ public interface TradeProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
-    BaseResponse syncOrderDataAll();
+    BaseResponse syncOrderDataAll(String id);
     
 }

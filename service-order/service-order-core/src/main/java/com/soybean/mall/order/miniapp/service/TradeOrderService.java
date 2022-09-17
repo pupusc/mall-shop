@@ -333,8 +333,6 @@ public class TradeOrderService {
 				createOrderReq.setPlatformCode("WAN_MI");
 				createOrderReq.setPlatformOrderId(trade.getId());
 				shopCenterOrderProvider.createOrder(createOrderReq);
-
-//	        	redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 			}
 			return BaseResponse.success(true);
 		}
