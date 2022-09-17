@@ -155,10 +155,10 @@ public class CreateOrderReq {
         @NotNull(message = "数量不能为空")
         private Integer num;
 
-//        /**
-//         * 平台子订单编号 不使用
-//         */
-//        private String platformItemId;
+        /**
+         * 平台子订单编号 不使用
+         */
+        private String platformItemId;
 
         /**
          * 价格，单位：分 【市场价】

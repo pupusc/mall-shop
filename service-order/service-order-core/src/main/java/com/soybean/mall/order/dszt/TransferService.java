@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
+import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
@@ -105,6 +106,7 @@ public class TransferService {
         List<CreateOrderReq.BuyGoodsReq> result = new ArrayList<>();
         for (TradeItem tradeItem : tradeItems) {
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+            buyGoodsReq.setPlatformItemId(tradeItem.getOid());
             buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
             buyGoodsReq.setNum(tradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
@@ -192,8 +194,9 @@ public class TransferService {
      * @return
      */
     public CreateOrderReq trade2CreateOrderReq(Trade trade) {
-        SalePlatformQueryReq salePlatformQueryReq = new SalePlatformQueryReq();
-        SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(null).getContext();
+    	SalePlatformQueryReq salePlatformQueryReq = new SalePlatformQueryReq();
+    	salePlatformQueryReq.setTid(21L);
+        SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(salePlatformQueryReq).getContext();
         if (salePlatformResp == null) {
             throw new SbcRuntimeException("999999", "获取平台渠道为空");
         }
@@ -235,7 +238,7 @@ public class TransferService {
 
         CreateOrderReq createOrderReq = new CreateOrderReq();
         createOrderReq.setPlatformCode(trade.getId());
-        createOrderReq.setOrderSource(trade.getOrderSource()); // H5_MALL  VIDEO_MALL MINIAPP_MALL  PLATFORM_MALL
+        createOrderReq.setOrderSource(null); // H5_MALL  VIDEO_MALL MINIAPP_MALL  PLATFORM_MALL
         createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
         createOrderReq.setDeviceType(DeviceTypeEnum.WEB.getType());
@@ -256,7 +259,6 @@ public class TransferService {
         createOrderReq.setOrderSnapshot(SandR);
         return createOrderReq;
     }
-
 
 
 //    /**

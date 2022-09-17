@@ -525,4 +525,12 @@ public interface TradeProvider {
      */
     @PostMapping("/order/${application.order.version}/trade/update-invoice")
     BaseResponse updateInvoice(@RequestBody AutoUpdateInvoiceRequest autoUpdateInvoiceRequest);
+    
+    /**
+     * 订单同步
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
+    BaseResponse syncOrderDataAll();
+    
 }

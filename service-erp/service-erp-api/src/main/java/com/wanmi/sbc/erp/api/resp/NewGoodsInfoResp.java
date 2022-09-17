@@ -1,4 +1,4 @@
-package com.sbc.wanmi.erp.bean.vo;
+package com.wanmi.sbc.erp.api.resp;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -6,15 +6,15 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class NewGoodsInfoVO implements Serializable {
+public class NewGoodsInfoResp implements Serializable {
 
 	/**
-	 *  商品编码
+	 * 商品编码
 	 */
 	@ApiModelProperty(value = "商品编码")
 	private String goodsCode;
 	/**
-	 *  商品名称
+	 * 商品名称
 	 */
 	@ApiModelProperty(value = "商品名称")
 	private String name;
