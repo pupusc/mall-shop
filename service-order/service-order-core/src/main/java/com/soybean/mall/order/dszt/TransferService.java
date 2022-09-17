@@ -312,7 +312,9 @@ public class TransferService {
         //收货地址
         Consignee consignee = trade.getConsignee();
         createOrderReq.setBuyAddressBO(this.packageAddress(consignee, customerDetail));
-        createOrderReq.setShopId(salePlatformResp.getShopCode());
+        if (salePlatformResp.getTid() != null) {
+        	createOrderReq.setShopId(salePlatformResp.getTid().toString());
+        }
         createOrderReq.setSellerMemo(trade.getSellerRemark());
         createOrderReq.setBookModel(2); //支付后再下单
         //下单时间

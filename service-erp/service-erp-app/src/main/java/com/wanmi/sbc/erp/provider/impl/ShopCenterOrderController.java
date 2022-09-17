@@ -11,6 +11,7 @@ import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
+import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -39,8 +40,9 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
-			JSONObject json = JSON.parseObject(str);
-			CreateOrderResp data = JSON.parseObject(json.getString("data"), CreateOrderResp.class);
+			
+			log.info("reateOrder end，result:{}", str);
+			CreateOrderResp data = JSON.parseObject(str, CreateOrderResp.class);
 
 			return BaseResponse.success(data);
 		} catch (Exception e) {
