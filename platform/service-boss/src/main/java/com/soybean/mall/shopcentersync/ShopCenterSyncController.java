@@ -2,6 +2,7 @@ package com.soybean.mall.shopcentersync;
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.shopcentersync.req.SyncDataReq;
+import com.soybean.mall.shopcentersync.resp.ShopCenterSyncResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
@@ -47,17 +48,17 @@ public class ShopCenterSyncController {
 	private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
 	@PostMapping("/syncData")
-	public BaseResponse<Boolean> syncData(@RequestBody SyncDataReq request) {
+	public ShopCenterSyncResponse<Boolean> syncData(@RequestBody SyncDataReq request) {
 		Integer tag = request.getTag();
 		String data = request.getData();
 		String requestId = request.getRequestId();
 		if (StringUtils.isEmpty(data)) {
 			logger.warn("电商中台推送同步.data为空，结束！requestId={}", requestId);
-			return BaseResponse.success(false);
+			return ShopCenterSyncResponse.success(false);
 		}
 		if (Objects.isNull(tag)) {
 			logger.warn("电商中台推送同步.tag为空，结束！requestId={}", requestId);
-			return BaseResponse.success(false);
+			return ShopCenterSyncResponse.success(false);
 		}
 
 		try {
@@ -76,14 +77,13 @@ public class ShopCenterSyncController {
 					break;
 				default:
 					logger.warn("电商中台推送同步，未知的数据类型，tag={}!", tag);
-					return BaseResponse.success(false);
+					return ShopCenterSyncResponse.success(false);
 			}
 
-			//TODO SUCCESS_CODE 不同
-			return BaseResponse.success(true);
+			return ShopCenterSyncResponse.success(true);
 		} catch (Exception e) {
 			logger.warn("电商中台推送同步.异常，结束！requestId={}", requestId, e);
-			return BaseResponse.success(false);
+			return ShopCenterSyncResponse.success(false);
 		}
 	}
 
