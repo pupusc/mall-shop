@@ -29,4 +29,8 @@ public class ImportMallRefundParamVO$Order {
      * 备注
      */
     private String memo;
+    /**
+     * 售后类型
+     */
+    private Integer refundType;
 }

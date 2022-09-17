@@ -52,6 +52,7 @@ public class ExportReturnController {
     @Autowired
     private MongoTemplate mongoTemplate;
     private AtomicBoolean inHand = new AtomicBoolean(false);
+    private List<String> ids = new ArrayList<>();
     private int selectVersion;
     private int updateVersion;
 
@@ -70,6 +71,7 @@ public class ExportReturnController {
             this.countIgnore = 0;
             this.countError = 0;
             this.countFailed = 0;
+            this.ids.clear();
         }
         return result;
     }
@@ -83,7 +85,7 @@ public class ExportReturnController {
      */
     @Valid
     @GetMapping("start")
-    public String start(@NotNull Integer selectVersion, @NotNull Integer updateVersion, @NotNull Integer pageSize, @NotNull Boolean errorStop) {
+    public String start(String[] ids, @NotNull Integer selectVersion, @NotNull Integer updateVersion, @NotNull Integer pageSize, @NotNull Boolean errorStop) {
         if (!inHand.compareAndSet(false, true)) {
             return "同步任务正在执行中，本次调用无效";
         }
@@ -91,6 +93,10 @@ public class ExportReturnController {
         log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}", selectVersion, updateVersion, pageSize);
         this.selectVersion = selectVersion;
         this.updateVersion = updateVersion;
+
+        if (Objects.nonNull(ids)) {
+            this.ids.addAll(Arrays.asList(ids));
+        }
 
         int pageNo = 0;
         long start = System.currentTimeMillis();
@@ -124,15 +130,15 @@ public class ExportReturnController {
     }
 
     private List<ReturnFlowState> createStatus = Arrays.asList(
-            ReturnFlowState.INIT,
-            ReturnFlowState.AUDIT
+//            ReturnFlowState.INIT,
+//            ReturnFlowState.AUDIT
     );
     private List<ReturnFlowState> finishStatus = Arrays.asList(
-            ReturnFlowState.REFUNDED,
-            ReturnFlowState.COMPLETED,
-            ReturnFlowState.REJECT_REFUND,
-            ReturnFlowState.VOID,
-            ReturnFlowState.REFUND_FAILED
+//            ReturnFlowState.REFUNDED,
+//            ReturnFlowState.REJECT_REFUND,
+//            ReturnFlowState.VOID,
+//            ReturnFlowState.REFUND_FAILED,
+            ReturnFlowState.COMPLETED
     );
 
     /**
@@ -143,6 +149,11 @@ public class ExportReturnController {
             return;
         }
         this.countTotal ++;
+        //指定ids
+        if (!this.ids.isEmpty() && !this.ids.contains(returnOrder.getId())) {
+            this.countIgnore ++;
+            return;
+        }
         //验证数据
         if (!checkVersion(returnOrder.getSVersion())) {
             this.countIgnore ++;
@@ -166,7 +177,7 @@ public class ExportReturnController {
             throw new RuntimeException(e);
         }
         this.countExport ++;
-        log.info("退单数据同步到电商中台, 主键:{}, tid:{}", returnOrder.getId(), returnOrder.getTid());
+        log.info("成功同步到电商中台, 主键:{}, tid:{}", returnOrder.getId(), returnOrder.getTid());
 
         //更新本地版本
         UpdateResult updateResult = mongoTemplate.updateFirst(
@@ -196,11 +207,12 @@ public class ExportReturnController {
         paramVO.setMallOrderId(returnOrder.getTid());
         //退款主单
         ImportMallRefundParamVO$Order orderBO = new ImportMallRefundParamVO$Order();
+        orderBO.setRefundType(parseRefundType(returnOrder));
         orderBO.setPlatformRefundId(returnOrder.getId());
         orderBO.setApplyTime(returnOrder.getCreateTime());
         orderBO.setCloseTime(returnOrder.getFinishTime());
+        orderBO.setMemo(returnOrder.getDescription());
         paramVO.setSaleAfterOrderBO(orderBO);
-        paramVO.get
         paramVO.getRefundTypeList().add(parseRefundType(returnOrder));
         //退运费
         if (ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
@@ -248,7 +260,7 @@ public class ExportReturnController {
             orderItem.setSaleAfterRefundDetailBOList(new ArrayList<>());
             //现金
             Integer cashAmount = yuan2fen(item.getApplyRealPrice() != null ? item.getApplyRealPrice() : item.getSplitPrice());
-            if (cashAmount != null) {
+            if (cashAmount != null && cashAmount > 0) {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(1);
                 detail.setAmount(cashAmount);
@@ -263,7 +275,7 @@ public class ExportReturnController {
             }
             //知豆
             Long knowAmount = item.getApplyKnowledge() != null ? item.getApplyKnowledge() : item.getSplitKnowledge();
-            if (knowAmount != null) {
+            if (knowAmount != null && knowAmount > 0) {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(2);
                 detail.setAmount(knowAmount.intValue());
@@ -278,7 +290,7 @@ public class ExportReturnController {
             }
             //积分
             Long pointAmount = item.getApplyPoint() != null ? item.getApplyPoint() : item.getSplitPoint();
-            if (pointAmount != null) {
+            if (pointAmount != null && pointAmount > 0) {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(3);
                 detail.setAmount(pointAmount.intValue());
