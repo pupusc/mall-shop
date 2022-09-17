@@ -23,7 +23,7 @@ public interface ShopCenterOrderProvider {
      * @param createOrderReq
      * @return
      */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/create-order")
+    @PostMapping("/erp/${application.erp.version}/shopcenter/order/createOrder")
     BaseResponse<CreateOrderResp> createOrder(@RequestBody CreateOrderReq createOrderReq);
 
 

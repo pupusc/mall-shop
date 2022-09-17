@@ -82,6 +82,7 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 	public BaseResponse<SalePlatformResp> getSalePlatform(SalePlatformQueryReq request) {
 		try {
 			String host = routerConfig.getHost();
+//			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("product.getSalePlatform");
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));

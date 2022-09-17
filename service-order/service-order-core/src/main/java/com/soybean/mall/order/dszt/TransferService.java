@@ -39,6 +39,7 @@ import java.util.Map;
 
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
@@ -200,7 +201,9 @@ public class TransferService {
      * @return
      */
     public CreateOrderReq trade2CreateOrderReq(Trade trade) {
-        SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(null).getContext();
+    	SalePlatformQueryReq salePlatformQueryReq = new SalePlatformQueryReq();
+    	salePlatformQueryReq.setTid(21L);
+        SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(salePlatformQueryReq).getContext();
         if (salePlatformResp == null) {
             throw new SbcRuntimeException("999999", "获取平台渠道为空");
         }
@@ -260,7 +263,7 @@ public class TransferService {
 
 
     public Trade OrderDetailResp2Trade() {
-        OrderDetailResp orderDetailResp = shopCenterOrderProvider.detailByOrderNumber().getContext();
+        OrderDetailResp orderDetailResp = shopCenterOrderProvider.detailByOrderNumber(1L).getContext();
         if (orderDetailResp == null) {
             throw new SbcRuntimeException("999999", "订单不存在");
         }

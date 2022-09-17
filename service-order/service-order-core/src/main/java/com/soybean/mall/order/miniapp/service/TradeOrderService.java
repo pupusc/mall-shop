@@ -85,6 +85,8 @@ public class TradeOrderService {
     private String wxLogisticsStr;
 
     private final String BATCH_UPDATE_DELIVERY_STATUS_TO_WECHAT_LOCKS = "syncDeliveryStatusToWechat";
+    
+    private final String SYNC_ORDER_DATA_REDIS_KEY = "trade_query_id";
 
 
     /**
@@ -313,8 +315,7 @@ public class TradeOrderService {
 	 * @return
 	 */
 	public BaseResponse syncOrderDataAll() {
-		String redisKey = "trade_query_id";
-		String queryId = (String) redisTemplate.opsForValue().get(redisKey);
+		String queryId = (String) redisTemplate.opsForValue().get(SYNC_ORDER_DATA_REDIS_KEY);
 		if (StringUtil.isNotBlank(queryId)) {
 			Query query = new Query(Criteria.where("_id").gt(queryId));
 			Long count = mongoTemplate.count(query, Trade.class);
@@ -328,15 +329,20 @@ public class TradeOrderService {
 				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
 				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
 		        for (Trade trade : tradeList) {
+		        	queryId = trade.getId();
+		        	
+		        	if (!PayState.PAID.equals(trade.getTradeState().getPayState())) {
+		        		continue;
+		        	}
+		        	
 		        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+		        	createOrderReq.setPlatformCode("WAN_MI");
 		        	createOrderReq.setPlatformOrderId(trade.getId());
 		        	shopCenterOrderProvider.createOrder(createOrderReq);
-		        	
-		        	queryId = trade.getId();
 		        }
 			}
 			
-			redisTemplate.opsForValue().set(redisKey, queryId);
+//			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 			return BaseResponse.success(true);
 		} else {
 			Query query = new Query(Criteria.where("_id").is("O202103241606337472040"));
@@ -351,15 +357,20 @@ public class TradeOrderService {
 				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
 				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
 		        for (Trade trade : tradeList) {
+		        	queryId = trade.getId();
+		        	
+		        	if (!PayState.PAID.equals(trade.getTradeState().getPayState())) {
+		        		continue;
+		        	}
+		        	
 		        	CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+		        	createOrderReq.setPlatformCode("WAN_MI");
 		        	createOrderReq.setPlatformOrderId(trade.getId());
 		        	shopCenterOrderProvider.createOrder(createOrderReq);
-		        	
-		        	queryId = trade.getId();
 		        }
 			}
 			
-			redisTemplate.opsForValue().set(redisKey, queryId);
+//			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 			return BaseResponse.success(true);
 		}
 	}
