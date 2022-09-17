@@ -14,6 +14,7 @@ import java.util.Map;
 public class ShopCenterRouterConfig {
 	//TODO 改router接口
 	private String host;
+	private String hostLocal;
 	private Map<String, String> urlMap;
 
 	public String getUrl(String key) {

@@ -342,7 +342,7 @@ public class TradeOrderService {
 		        }
 			}
 			
-			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
+//			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 			return BaseResponse.success(true);
 		} else {
 			Query query = new Query(Criteria.where("_id").is("O202103241606337472040"));
@@ -370,7 +370,7 @@ public class TradeOrderService {
 		        }
 			}
 			
-			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
+//			redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 			return BaseResponse.success(true);
 		}
 	}

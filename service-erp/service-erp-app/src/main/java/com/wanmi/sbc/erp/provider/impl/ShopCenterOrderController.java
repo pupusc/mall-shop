@@ -33,8 +33,8 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
 		try {
 			String host = routerConfig.getHost();
+//			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("order.createOrder");
-
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
