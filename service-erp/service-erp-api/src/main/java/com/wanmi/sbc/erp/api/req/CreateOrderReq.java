@@ -33,10 +33,10 @@ public class CreateOrderReq {
      */
     private String orderSource;
 
-//    /**
-//     * 平台订单号[orderNumber] 不传
-//     */
-//    private String platformOrderId;
+    /**
+     * 平台订单号[orderNumber] 不传
+     */
+    private String platformOrderId;
 
     /**
      * 用户id [主占用户id]
@@ -170,6 +170,25 @@ public class CreateOrderReq {
          */
         private Integer giftFlag;
 
+        /**
+         * 第三方平台商品ID
+         */
+        private String platformGoodsId;
+
+        /**
+         * 第三方平台规格ID
+         */
+        private String platformSkuId;
+
+        /**
+         * 第三方平台商品名称
+         */
+        private String platformGoodsName;
+
+        /**
+         * 第三方平台规格名称
+         */
+        private String platformSkuName;
 
         /**
          * 优惠 商品层面的优惠

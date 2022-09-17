@@ -57,7 +57,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String>, Jpa
      * @param deleteFlag
      * @return
      */
-    Customer findByFanDengUserNoAndDelFlag(String fanDengUserNo, DeleteFlag deleteFlag);
+    List<Customer> findByFanDengUserNoAndDelFlag(String fanDengUserNo, DeleteFlag deleteFlag);
 
     /**
      * 查询成长值大于0的客户
