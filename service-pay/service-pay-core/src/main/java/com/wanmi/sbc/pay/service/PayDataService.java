@@ -73,7 +73,11 @@ public class PayDataService {
      */
     @MasterRouteOnly
     public PayTradeRecord queryByBusinessId(String businessId) {
-        return recordRepository.findByBusinessId(businessId);
+        List<PayTradeRecord> payTradeRecords = recordRepository.listPayTradeRecord(businessId);
+        if (CollectionUtils.isEmpty(payTradeRecords)) {
+            return null;
+        }
+        return payTradeRecords.get(0);
     }
 
     /**

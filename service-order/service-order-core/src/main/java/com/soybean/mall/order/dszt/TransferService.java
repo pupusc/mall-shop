@@ -1,6 +1,7 @@
 package com.soybean.mall.order.dszt;
 
 
+import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
@@ -11,7 +12,6 @@ import com.wanmi.sbc.customer.api.provider.detail.CustomerDetailQueryProvider;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.erp.api.constant.DeviceTypeEnum;
-import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 
 import java.math.BigDecimal;
@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
-import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
@@ -32,6 +31,9 @@ import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
 import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
+import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
+import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,8 +49,6 @@ import org.springframework.stereotype.Service;
 public class TransferService {
 
 
-    @Autowired
-    private ShopCenterOrderProvider shopCenterOrderProvider;
 
     @Autowired
     private ShopCenterProductProvider shopCenterProductProvider;
@@ -58,6 +58,8 @@ public class TransferService {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
+    private PayQueryProvider payQueryProvider;
 
 
     //转换率
@@ -188,6 +190,63 @@ public class TransferService {
         return result;
     }
 
+
+    /**
+     * 打包支付信息
+     * @param trade
+     * @return
+     */
+    private List<CreateOrderReq.BuyPaymentReq> packageBuyPayment(Trade trade) {
+
+        List<CreateOrderReq.BuyPaymentReq> paymentReqList = new ArrayList<>();
+        //支付金额
+        BigDecimal amount = trade.getTradePrice().getTotalPrice().multiply(exchangeRate);
+        if (amount.compareTo(BigDecimal.ZERO) > 0) {
+            //获取支付流水和 商户号
+            TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
+            request.setOrderId(trade.getId());
+            PayTradeRecordResponse payTradeRecordResponse = payQueryProvider.getTradeRecordByOrderCode(request).getContext();
+
+            CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+            buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
+
+            buyPaymentReq.setAmount(amount.intValue());
+            buyPaymentReq.setMemo("支付");
+            buyPaymentReq.setPayGateway(108);
+            buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
+            buyPaymentReq.setPayMchid(payTradeRecordResponse.getAppId());
+            buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+            paymentReqList.add(buyPaymentReq);
+        }
+
+        Long knowledge = trade.getTradePrice().getKnowledge();
+        if (knowledge != null && knowledge > 0) {
+            BigDecimal knowledgeDecimal = new BigDecimal(trade.getTradePrice().getKnowledge().toString());
+            CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+            buyPaymentReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+
+            buyPaymentReq.setAmount(knowledgeDecimal.intValue());
+            buyPaymentReq.setMemo("知豆");
+            buyPaymentReq.setPayGateway(108);
+            buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+            paymentReqList.add(buyPaymentReq);
+        }
+
+        Long point = trade.getTradePrice().getKnowledge();
+        if (point != null && point > 0) {
+            BigDecimal pointDecimal = new BigDecimal(trade.getTradePrice().getPoints().toString());
+            CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+            buyPaymentReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+
+            buyPaymentReq.setAmount(pointDecimal.intValue());
+            buyPaymentReq.setMemo("积分");
+            buyPaymentReq.setPayGateway(108);
+            buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+            paymentReqList.add(buyPaymentReq);
+        }
+        return paymentReqList;
+    }
+
     /**
      * Trade 转化成 CreateOrderReq
      * @param trade
@@ -219,16 +278,12 @@ public class TransferService {
             throw new SbcRuntimeException("999999", "当前获取客户信息为null");
         }
 
-        //费用信息
-        TradePrice tradePrice = trade.getTradePrice();
-        BigDecimal postFee = tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice();
-        postFee = postFee.multiply(exchangeRate);
+
 
         //订单状态
         TradeState tradeState = trade.getTradeState();
 
-        //收货
-        Consignee consignee = trade.getConsignee();
+
 
         //商品列表
         List<TradeItem> tradeItems = trade.getTradeItems();
@@ -237,19 +292,30 @@ public class TransferService {
         }
 
         CreateOrderReq createOrderReq = new CreateOrderReq();
+
         createOrderReq.setPlatformCode(trade.getId());
         createOrderReq.setOrderSource(null); // H5_MALL  VIDEO_MALL MINIAPP_MALL  PLATFORM_MALL
         createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
         createOrderReq.setDeviceType(DeviceTypeEnum.WEB.getType());
-        createOrderReq.setSaleChannelId(salePlatformResp.getSaleChannelId()); //TODO
+        createOrderReq.setSaleChannelId(salePlatformResp.getSaleChannelId());
+        //费用信息
+        TradePrice tradePrice = trade.getTradePrice();
+        BigDecimal postFee = tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice();
+        postFee = postFee.multiply(exchangeRate);
         createOrderReq.setPostFee(postFee.intValue());
+        //支付信息
+        createOrderReq.setBuyPaymentBO(this.packageBuyPayment(trade));
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
+        //商品信息
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems));
+        //收货地址
+        Consignee consignee = trade.getConsignee();
         createOrderReq.setBuyAddressBO(this.packageAddress(consignee, customerDetail));
         createOrderReq.setShopId(salePlatformResp.getShopCode());
         createOrderReq.setSellerMemo(trade.getSellerRemark());
-        createOrderReq.setBookModel(1);
+        createOrderReq.setBookModel(2); //支付后再下单
+        //下单时间
         createOrderReq.setBookTime(tradeState.getCreateTime());
         //存S R
         Map<String, String> SandR = new HashMap<>();

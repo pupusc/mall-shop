@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.pay.api.request.*;
@@ -32,6 +33,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +49,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 微信支付
@@ -78,6 +82,8 @@ public class WxPayService {
     @Autowired
     private PayDataService payDataService;
 
+    @Autowired
+    private RedissonClient redissonClient;
 
     /**
      * 统一下单接口--native扫码支付（pc扫码支付）
@@ -507,25 +513,34 @@ public class WxPayService {
      * @param request
      */
     private void addTradeRecord(PayTradeRecordRequest request) {
-        //是否重复支付
-        PayTradeRecord record = recordRepository.findByBusinessId(request.getBusinessId());
-        String html = "";
-        if (!Objects.isNull(record) && record.getStatus() == TradeStatus.SUCCEED) {
-            //如果重复支付，判断状态，已成功状态则做异常提示
-            throw new SbcRuntimeException("K-100203");
-        } else {
-            if (record == null) {
-                record = new PayTradeRecord();
-                record.setId(GeneratorUtils.generatePT());
+        //是否重复支付 加锁信息
+        RLock lock = redissonClient.getLock(RedisKeyConstant.ORDER_PAY_TRADE_RECORD);
+
+        try {
+            lock.lock();
+            PayTradeRecord record = recordRepository.findByBusinessId(request.getBusinessId());
+            if (!Objects.isNull(record) && record.getStatus() == TradeStatus.SUCCEED) {
+                //如果重复支付，判断状态，已成功状态则做异常提示
+                throw new SbcRuntimeException("K-100203");
+            } else {
+                if (record == null) {
+                    record = new PayTradeRecord();
+                    record.setId(GeneratorUtils.generatePT());
+                }
+                record.setApplyPrice(request.getApplyPrice());
+                record.setBusinessId(request.getBusinessId());
+                record.setClientIp(request.getClientIp());
+                record.setChannelItemId(request.getChannelItemId());
+                record.setTradeType(TradeType.PAY);
+                record.setCreateTime(LocalDateTime.now());
+                record.setStatus(TradeStatus.PROCESSING);
+                recordRepository.save(record);
             }
-            record.setApplyPrice(request.getApplyPrice());
-            record.setBusinessId(request.getBusinessId());
-            record.setClientIp(request.getClientIp());
-            record.setChannelItemId(request.getChannelItemId());
-            record.setTradeType(TradeType.PAY);
-            record.setCreateTime(LocalDateTime.now());
-            record.setStatus(TradeStatus.PROCESSING);
-            recordRepository.save(record);
+        } catch (Exception ex) {
+            log.error("WxPayService addTradeRecord error", ex);
+        } finally {
+            lock.unlock();
         }
+
     }
 }
