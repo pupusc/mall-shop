@@ -330,10 +330,15 @@ public class TradeOrderService {
 
 			List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
 			for (Trade trade : tradeList) {
-				CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-				createOrderReq.setPlatformCode("WAN_MI");
-				createOrderReq.setPlatformOrderId(trade.getId());
-				shopCenterOrderProvider.createOrder(createOrderReq);
+				try {
+					CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+					createOrderReq.setPlatformCode("WAN_MI");
+					createOrderReq.setPlatformOrderId(trade.getId());
+					shopCenterOrderProvider.createOrder(createOrderReq);
+				} catch (Exception e) {
+					log.error("e:{}", e);
+				}
+
 			}
 			return BaseResponse.success(true);
 		}
@@ -355,10 +360,14 @@ public class TradeOrderService {
 				for (Trade trade : tradeList) {
 					queryId = trade.getId();
 
-					CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-					createOrderReq.setPlatformCode("WAN_MI");
-					createOrderReq.setPlatformOrderId(trade.getId());
-					shopCenterOrderProvider.createOrder(createOrderReq);
+					try {
+						CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+						createOrderReq.setPlatformCode("WAN_MI");
+						createOrderReq.setPlatformOrderId(trade.getId());
+						shopCenterOrderProvider.createOrder(createOrderReq);
+					} catch (Exception e) {
+						log.error("e:{}", e);
+					}
 
 					redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 				}
@@ -381,10 +390,14 @@ public class TradeOrderService {
 				for (Trade trade : tradeList) {
 					queryId = trade.getId();
 
-					CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-					createOrderReq.setPlatformCode("WAN_MI");
-					createOrderReq.setPlatformOrderId(trade.getId());
-					shopCenterOrderProvider.createOrder(createOrderReq);
+					try {
+						CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+						createOrderReq.setPlatformCode("WAN_MI");
+						createOrderReq.setPlatformOrderId(trade.getId());
+						shopCenterOrderProvider.createOrder(createOrderReq);
+					} catch (Exception e) {
+						log.error("e:{}", e);
+					}
 
 					redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
 				}
