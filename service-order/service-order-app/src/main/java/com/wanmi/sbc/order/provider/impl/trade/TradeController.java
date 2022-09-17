@@ -833,7 +833,7 @@ public class TradeController implements TradeProvider {
     }
 
 	@Override
-	public BaseResponse syncOrderDataAll() {
-		return tradeOrderService.syncOrderDataAll();
+	public BaseResponse syncOrderDataAll(SyncOrderDataRequest syncOrderDataRequest) {
+		return tradeOrderService.syncOrderDataAll(syncOrderDataRequest);
 	}
 }
