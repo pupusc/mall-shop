@@ -2,14 +2,13 @@ package com.wanmi.sbc.erp.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.sbc.erp.api.resp.GoodsPackRsp;
-import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
-import com.wanmi.sbc.erp.api.resp.SaleAfterOrderResp;
+import com.wanmi.sbc.erp.api.resp.GoodsPackRsp;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +82,7 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 	public BaseResponse<SalePlatformResp> getSalePlatform(SalePlatformQueryReq request) {
 		try {
 			String host = routerConfig.getHost();
-			String url = routerConfig.getUrl("product.salePlatform");
+			String url = routerConfig.getUrl("product.getSalePlatform");
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());

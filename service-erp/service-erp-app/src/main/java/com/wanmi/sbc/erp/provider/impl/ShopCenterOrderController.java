@@ -11,7 +11,6 @@ import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
-import com.wanmi.sbc.erp.api.resp.SaleAfterResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -115,7 +114,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 	public BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId) {
 		try {
 			String host = routerConfig.getHost();
-			String url = routerConfig.getUrl("saleAfter.saleAfterList");
+			String url = routerConfig.getUrl("order.getPaymentByOrderId");
 
 			JSONObject param = new JSONObject();
 			param.put("orderId", orderId);

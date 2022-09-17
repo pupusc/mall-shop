@@ -1,4 +1,4 @@
-package com.wanmi.sbc.erp.api.resp;
+package com.wanmi.sbc.erp.api.req;
 
 import lombok.Data;
 
