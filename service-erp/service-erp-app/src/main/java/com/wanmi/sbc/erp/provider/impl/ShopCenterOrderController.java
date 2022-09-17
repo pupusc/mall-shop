@@ -42,9 +42,10 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 			String str = EntityUtils.toString(response.getEntity());
 			
 			log.info("reateOrder end，result:{}", str);
-			CreateOrderResp data = JSON.parseObject(str, CreateOrderResp.class);
-
-			return BaseResponse.success(data);
+			JSONObject resultJson = JSONObject.parseObject(str, JSONObject.class);
+			
+			CreateOrderResp createOrderResp = new CreateOrderResp();
+			return BaseResponse.success(createOrderResp);
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
 		}
