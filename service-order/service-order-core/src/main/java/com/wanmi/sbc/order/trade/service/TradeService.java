@@ -3726,7 +3726,7 @@ public class TradeService {
     @GlobalTransactional
     public List<TradeCommitResult> createBatch(List<Trade> trades, TradeGroup tradeGroup, Operator operator) {
         //linkedMall验证
-        linkedMallTradeService.verify(trades);
+//        linkedMallTradeService.verify(trades);
 
         List<TradeCommitResult> resultList = new ArrayList<>();
         final String parentId = generatorService.generatePoId();

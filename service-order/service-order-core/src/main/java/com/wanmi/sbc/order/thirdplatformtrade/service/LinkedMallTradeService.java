@@ -541,52 +541,52 @@ public class LinkedMallTradeService {
      *
      * @param trades 多订单
      */
-    public void verify(List<Trade> trades) {
-        Trade trade = trades.stream().filter(t -> ThirdPlatformType.LINKED_MALL.equals(t.getThirdPlatformType())).findFirst().orElse(null);
-        if(Objects.isNull(trade)){
-            return;
-        }
-        List<ThirdAddressVO> thirdAddressVOS =
-                thirdAddressQueryProvider.list(ThirdAddressListRequest.builder().platformAddrIdList(Collections.singletonList(Objects.toString(trade.getConsignee().getAreaId())))
-                        .thirdFlag(ThirdPlatformType.LINKED_MALL).build())
-                        .getContext().getThirdAddressList();
-        String thirdAddrId = null;
-        if (CollectionUtils.isNotEmpty(thirdAddressVOS)) {
-            thirdAddrId = thirdAddressVOS.get(0).getThirdAddrId();
-        }
-        if (thirdAddrId == null) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"不支持该收货地区"});
-        }
-        SbcRenderOrderRequest request = new SbcRenderOrderRequest();
-        request.setDivisionCode(thirdAddrId);
-        request.setBizUid(trade.getBuyer().getId());
-        request.setAddressDetail(trade.getConsignee().getDetailAddress());
-        request.setMobile(trade.getConsignee().getPhone());
-        request.setFullName(trade.getConsignee().getName());
-        List<RenderOrderRequest.ItemList> items = this.zipLinkedMallItem(trade.getTradeItems(), trade.getGifts()).stream()
-                .map(i -> {
-                    RenderOrderRequest.ItemList item = new RenderOrderRequest.ItemList();
-                    item.setItemId(NumberUtils.toLong(i.getThirdPlatformSpuId()));
-                    item.setQuantity(i.getNum().intValue());
-                    item.setSkuId(NumberUtils.toLong(i.getThirdPlatformSkuId()));
-                    return item;
-                }).collect(Collectors.toList());
-        request.setLmGoodsItems(items);
-        try {
-            SbcRenderOrderResponse response = linkedMallOrderQueryProvider.initRenderOrder(request).getContext();
-            response.getModel().getRenderOrderInfos().stream()
-                    .flatMap(o -> o.getLmItemInfos().stream())
-                    .filter(i -> Boolean.FALSE.equals(i.getCanSell()))
-                    .findFirst().ifPresent(i -> {
-                throw new SbcRuntimeException("K-050117");
-            });
-        }catch (SbcRuntimeException e) {
-            if (CommonErrorCode.SPECIFIED.equals(e.getErrorCode())) {
-                throw new SbcRuntimeException("K-050117");
-            }
-            throw e;
-        }
-    }
+//    public void verify(List<Trade> trades) {
+//        Trade trade = trades.stream().filter(t -> ThirdPlatformType.LINKED_MALL.equals(t.getThirdPlatformType())).findFirst().orElse(null);
+//        if(Objects.isNull(trade)){
+//            return;
+//        }
+//        List<ThirdAddressVO> thirdAddressVOS =
+//                thirdAddressQueryProvider.list(ThirdAddressListRequest.builder().platformAddrIdList(Collections.singletonList(Objects.toString(trade.getConsignee().getAreaId())))
+//                        .thirdFlag(ThirdPlatformType.LINKED_MALL).build())
+//                        .getContext().getThirdAddressList();
+//        String thirdAddrId = null;
+//        if (CollectionUtils.isNotEmpty(thirdAddressVOS)) {
+//            thirdAddrId = thirdAddressVOS.get(0).getThirdAddrId();
+//        }
+//        if (thirdAddrId == null) {
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"不支持该收货地区"});
+//        }
+//        SbcRenderOrderRequest request = new SbcRenderOrderRequest();
+//        request.setDivisionCode(thirdAddrId);
+//        request.setBizUid(trade.getBuyer().getId());
+//        request.setAddressDetail(trade.getConsignee().getDetailAddress());
+//        request.setMobile(trade.getConsignee().getPhone());
+//        request.setFullName(trade.getConsignee().getName());
+//        List<RenderOrderRequest.ItemList> items = this.zipLinkedMallItem(trade.getTradeItems(), trade.getGifts()).stream()
+//                .map(i -> {
+//                    RenderOrderRequest.ItemList item = new RenderOrderRequest.ItemList();
+//                    item.setItemId(NumberUtils.toLong(i.getThirdPlatformSpuId()));
+//                    item.setQuantity(i.getNum().intValue());
+//                    item.setSkuId(NumberUtils.toLong(i.getThirdPlatformSkuId()));
+//                    return item;
+//                }).collect(Collectors.toList());
+//        request.setLmGoodsItems(items);
+//        try {
+//            SbcRenderOrderResponse response = linkedMallOrderQueryProvider.initRenderOrder(request).getContext();
+//            response.getModel().getRenderOrderInfos().stream()
+//                    .flatMap(o -> o.getLmItemInfos().stream())
+//                    .filter(i -> Boolean.FALSE.equals(i.getCanSell()))
+//                    .findFirst().ifPresent(i -> {
+//                throw new SbcRuntimeException("K-050117");
+//            });
+//        }catch (SbcRuntimeException e) {
+//            if (CommonErrorCode.SPECIFIED.equals(e.getErrorCode())) {
+//                throw new SbcRuntimeException("K-050117");
+//            }
+//            throw e;
+//        }
+//    }
 
     /**
      * 确认收货
