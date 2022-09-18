@@ -832,8 +832,9 @@ public class TradeController implements TradeProvider {
         return tradeService.updateInvoice(autoUpdateInvoiceRequest);
     }
 
-	@Override
-	public BaseResponse syncOrderDataAll() {
-		return tradeOrderService.syncOrderDataAll();
+
+    @Override
+	public BaseResponse syncOrderDataAll(String id) {
+		return tradeOrderService.syncOrderDataAll(id);
 	}
 }
