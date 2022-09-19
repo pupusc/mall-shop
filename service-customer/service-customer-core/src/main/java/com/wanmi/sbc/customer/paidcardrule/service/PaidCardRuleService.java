@@ -1,8 +1,8 @@
 package com.wanmi.sbc.customer.paidcardrule.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
-import com.sbc.wanmi.erp.bean.dto.ERPTradePaymentDTO;
+//import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
+//import com.sbc.wanmi.erp.bean.dto.ERPTradePaymentDTO;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.MQConstant;
@@ -30,7 +30,7 @@ import com.wanmi.sbc.customer.paidcardrule.model.root.PaidCardRule;
 import com.wanmi.sbc.customer.paidcardrule.repository.PaidCardRuleRepository;
 import com.wanmi.sbc.customer.util.PaidSmsSendUtil;
 //import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.PushTradeRequest;
+//import com.wanmi.sbc.erp.api.request.PushTradeRequest;
 import com.wanmi.sbc.setting.api.provider.baseconfig.BaseConfigQueryProvider;
 import com.wanmi.sbc.setting.api.response.baseconfig.BaseConfigRopResponse;
 import com.wanmi.sbc.setting.bean.enums.AddrLevel;
@@ -281,21 +281,21 @@ public class PaidCardRuleService {
 		resolver.resolveDestination(MQConstant.PAID_CARD_MESSAGE_Q_NAME)
 				.send(new GenericMessage<>(JSONObject.toJSONString(params4Message)));
 
-		//将付费卡订单推送到ERP
-		this.pushPaidCard(PaidCardERPPushDTO.builder()
-				.account(customer.getCustomerAccount())
-				.payTime(paidCardBuyRecord.getCreateTime())
-				.payTypeCode(ERPTradePayChannel.other.toValue())
-				.phone(customer.getCustomerDetail().getContactPhone())
-				.platformCode(paidCardBuyRecord.getPayCode())
-				.price(paidCardRule.getPrice().toString())
-				//.shopCode("99999")
-				.skuCode(paidCardRule.getErpSkuCode())
-				.spuCode(paidCard.getErpSpuCode())
-				.vipCode(customer.getCustomerAccount())
-				.beginTime(paidCardBuyRecord.getBeginTime())
-				.endTime(paidCardBuyRecord.getInvalidTime())
-				.build());
+//		//将付费卡订单推送到ERP
+//		this.pushPaidCard(PaidCardERPPushDTO.builder()
+//				.account(customer.getCustomerAccount())
+//				.payTime(paidCardBuyRecord.getCreateTime())
+//				.payTypeCode(ERPTradePayChannel.other.toValue())
+//				.phone(customer.getCustomerDetail().getContactPhone())
+//				.platformCode(paidCardBuyRecord.getPayCode())
+//				.price(paidCardRule.getPrice().toString())
+//				//.shopCode("99999")
+//				.skuCode(paidCardRule.getErpSkuCode())
+//				.spuCode(paidCard.getErpSpuCode())
+//				.vipCode(customer.getCustomerAccount())
+//				.beginTime(paidCardBuyRecord.getBeginTime())
+//				.endTime(paidCardBuyRecord.getInvalidTime())
+//				.build());
 
 		// 更新es
 		Map<String, Object>params = new HashMap<>();
@@ -335,45 +335,45 @@ public class PaidCardRuleService {
 
 	}
 
-	public void pushPaidCard(PaidCardERPPushDTO paidCardERPPushDTO) {
-		//拼接会期开始时间和结束时间
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		StringBuffer stringBuffer=new StringBuffer();
-		              stringBuffer.append("[").append(df.format(paidCardERPPushDTO.getBeginTime())).append("|").append(df.format(paidCardERPPushDTO.getEndTime())).append("]");
-		ERPTradeItemDTO erpTradeItemDTO = ERPTradeItemDTO.builder()
-				.skuCode(paidCardERPPushDTO.getSkuCode())
-				.itemCode(paidCardERPPushDTO.getSpuCode())
-				.price(paidCardERPPushDTO.getPrice())
-				.qty(1)
-				.refund(0)
-		        .note(stringBuffer.toString())//会期时间备注
-				.build();
-		List<ERPTradePaymentDTO> erpTradePaymentDTOList = new ArrayList<>();
-		ERPTradePaymentDTO erpTradePaymentDTO = ERPTradePaymentDTO.builder()
-				.account(paidCardERPPushDTO.getAccount())
-				.paytime(Objects.nonNull(paidCardERPPushDTO.getPayTime()) ? paidCardERPPushDTO.getPayTime().toInstant(ZoneOffset.of("+8")).toEpochMilli():null)
-				.payment(paidCardERPPushDTO.getPrice())
-//				.payTypeCode(ERPTradePayChannel.other.toValue())
-				.payTypeCode(paidCardERPPushDTO.getPayTypeCode())
-				.build();
-		erpTradePaymentDTOList.add(erpTradePaymentDTO);
-		PushTradeRequest pushTradeRequest = PushTradeRequest.builder()
-				.shopCode(paidCardERPPushDTO.getShopCode())//店铺代码
-				.vipCode(paidCardERPPushDTO.getAccount())//会员代码
-				.dealDatetime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))//下单时间
-				.platformCode(paidCardERPPushDTO.getPlatformCode())//订单号
-				.details(Arrays.asList(erpTradeItemDTO))
-				.payments(erpTradePaymentDTOList)
-//				.receiveName(customer.getCustomerDetail().getCustomerName())
-				.receiverMobile(paidCardERPPushDTO.getPhone())
-//				.receiverProvince(addrMap.get(AddrLevel.PROVINCE))
-//				.receiverCity(addrMap.get(AddrLevel.CITY))
-//				.receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
-//				.receiverAddress(consignee.getDetailAddress())
-				.build();
-//		guanyierpProvider.autoPushTrade(pushTradeRequest);
-		new Thread(() -> {
-//			guanyierpProvider.autoPushTradeDelivered(pushTradeRequest);
-		}).start();
-	}
+//	public void pushPaidCard(PaidCardERPPushDTO paidCardERPPushDTO) {
+//		//拼接会期开始时间和结束时间
+//		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//		StringBuffer stringBuffer=new StringBuffer();
+//		              stringBuffer.append("[").append(df.format(paidCardERPPushDTO.getBeginTime())).append("|").append(df.format(paidCardERPPushDTO.getEndTime())).append("]");
+//		ERPTradeItemDTO erpTradeItemDTO = ERPTradeItemDTO.builder()
+//				.skuCode(paidCardERPPushDTO.getSkuCode())
+//				.itemCode(paidCardERPPushDTO.getSpuCode())
+//				.price(paidCardERPPushDTO.getPrice())
+//				.qty(1)
+//				.refund(0)
+//		        .note(stringBuffer.toString())//会期时间备注
+//				.build();
+//		List<ERPTradePaymentDTO> erpTradePaymentDTOList = new ArrayList<>();
+//		ERPTradePaymentDTO erpTradePaymentDTO = ERPTradePaymentDTO.builder()
+//				.account(paidCardERPPushDTO.getAccount())
+//				.paytime(Objects.nonNull(paidCardERPPushDTO.getPayTime()) ? paidCardERPPushDTO.getPayTime().toInstant(ZoneOffset.of("+8")).toEpochMilli():null)
+//				.payment(paidCardERPPushDTO.getPrice())
+////				.payTypeCode(ERPTradePayChannel.other.toValue())
+//				.payTypeCode(paidCardERPPushDTO.getPayTypeCode())
+//				.build();
+//		erpTradePaymentDTOList.add(erpTradePaymentDTO);
+//		PushTradeRequest pushTradeRequest = PushTradeRequest.builder()
+//				.shopCode(paidCardERPPushDTO.getShopCode())//店铺代码
+//				.vipCode(paidCardERPPushDTO.getAccount())//会员代码
+//				.dealDatetime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))//下单时间
+//				.platformCode(paidCardERPPushDTO.getPlatformCode())//订单号
+//				.details(Arrays.asList(erpTradeItemDTO))
+//				.payments(erpTradePaymentDTOList)
+////				.receiveName(customer.getCustomerDetail().getCustomerName())
+//				.receiverMobile(paidCardERPPushDTO.getPhone())
+////				.receiverProvince(addrMap.get(AddrLevel.PROVINCE))
+////				.receiverCity(addrMap.get(AddrLevel.CITY))
+////				.receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
+////				.receiverAddress(consignee.getDetailAddress())
+//				.build();
+////		guanyierpProvider.autoPushTrade(pushTradeRequest);
+//		new Thread(() -> {
+////			guanyierpProvider.autoPushTradeDelivered(pushTradeRequest);
+//		}).start();
+//	}
 }
