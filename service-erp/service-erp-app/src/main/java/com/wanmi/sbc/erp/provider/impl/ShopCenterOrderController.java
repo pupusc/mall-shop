@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -32,6 +33,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 	@Override
 	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
+		String errorContent = "";
 		try {
 //			String host = routerConfig.getHost();
 			log.info("createOrder start，request:{}", JSON.toJSONString(request));
@@ -43,16 +45,18 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 			
 			log.info("reateOrder end，result:{}", str);
 			JSONObject resultJson = JSONObject.parseObject(str, JSONObject.class);
-			String data = resultJson.getString("status");
-			if () {
-
-			}
+			String status = resultJson.getString("status");
+			errorContent = resultJson.getString("msg");
 			CreateOrderResp createOrderResp = new CreateOrderResp();
-			return BaseResponse.success(createOrderResp);
+			if (Objects.equals("0000", status)) {
+				String data = resultJson.getString("data");
+				createOrderResp.setThirdOrderId(data);
+				return BaseResponse.success(createOrderResp);
+			}
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
 		}
-		return BaseResponse.FAILED();
+		return BaseResponse.info("99999", errorContent);
 	}
 
 //	@Override

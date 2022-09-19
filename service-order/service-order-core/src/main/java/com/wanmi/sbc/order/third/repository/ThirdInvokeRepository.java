@@ -1,7 +1,9 @@
 package com.wanmi.sbc.order.third.repository;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -22,12 +24,15 @@ import java.util.List;
 public interface ThirdInvokeRepository extends JpaRepository<ThirdInvokeDTO, Integer>, JpaSpecificationExecutor<ThirdInvokeDTO> {
 
 
-    default Specification<ThirdInvokeDTO> buildSearchCondition(String businessId) {
+    default Specification<ThirdInvokeDTO> buildSearchCondition(String businessId, Integer pushStatus) {
         return (Specification<ThirdInvokeDTO>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
-            if (businessId != null) {
+            if (StringUtils.isNotBlank(businessId)) {
                 conditionList.add(criteriaBuilder.equal(root.get("businessId"), businessId));
+            }
+            if (pushStatus != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("pushStatus"), pushStatus));
             }
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
