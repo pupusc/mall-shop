@@ -6,12 +6,10 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.OrderQueryReq;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
-import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -42,17 +40,24 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
-			
-			log.info("reateOrder end，result:{}", str);
-			JSONObject resultJson = JSONObject.parseObject(str, JSONObject.class);
-			String status = resultJson.getString("status");
-			errorContent = resultJson.getString("msg");
+
+			log.info("createOrder end，result:{}", str);
+			JSONObject json = JSON.parseObject(str);
+			String status = json.getString("status");
+			errorContent = json.getString("msg");
 			CreateOrderResp createOrderResp = new CreateOrderResp();
 			if (Objects.equals("0000", status)) {
-				String data = resultJson.getString("data");
+				String data = json.getString("data");
 				createOrderResp.setThirdOrderId(data);
 				return BaseResponse.success(createOrderResp);
 			}
+
+
+			// 重复订单
+			if ("40000".equals(status)) {
+				return BaseResponse.info("40000", errorContent);
+			}
+
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
 		}
