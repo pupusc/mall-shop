@@ -719,23 +719,23 @@ public class OrderConsumerService {
     }
 
 
-    /**
-     * 订单推送第三方成功
-     * @param
-     */
-
-    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE)
-    @RabbitHandler
-    public void orderPushConsumer(Message message, @Payload String body){
-        log.info("order push confirm message:{}",body);
-        try{
-            ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
-            tradeProvider.syncProviderTradeStatus(request);
-            log.info("=============== 订单推送完成 ===============");
-        }catch (Exception e){
-            log.error("provider order push confirm error,body:{}",body,e);
-        }
-    }
+//    /**
+//     * 订单推送第三方成功
+//     * @param
+//     */
+//
+//    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE)
+//    @RabbitHandler
+//    public void orderPushConsumer(Message message, @Payload String body){
+//        log.info("order push confirm message:{}",body);
+//        try{
+//            ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+//            tradeProvider.syncProviderTradeStatus(request);
+//            log.info("=============== 订单推送完成 ===============");
+//        }catch (Exception e){
+//            log.error("provider order push confirm error,body:{}",body,e);
+//        }
+//    }
 
     /**
      * 物流状态查询成功

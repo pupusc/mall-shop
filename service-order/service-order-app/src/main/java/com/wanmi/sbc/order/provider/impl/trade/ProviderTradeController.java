@@ -149,13 +149,13 @@ public class ProviderTradeController implements ProviderTradeProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @Override
-    public BaseResponse<String> changeTradeProvider(ChangeTradeProviderRequest request) {
-        if(request == null || StringUtils.isEmpty(request.getPid()) || request.getSkuNos().isEmpty()){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
-        }
-        return BaseResponse.success(providerTradeService.changeTradeProvider(request));
-    }
+//    @Override
+//    public BaseResponse<String> changeTradeProvider(ChangeTradeProviderRequest request) {
+//        if(request == null || StringUtils.isEmpty(request.getPid()) || request.getSkuNos().isEmpty()){
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+//        }
+//        return BaseResponse.success(providerTradeService.changeTradeProvider(request));
+//    }
 
 //    @Override
 //    public BaseResponse resetPushCount(ProviderTradeErpRequest request) {

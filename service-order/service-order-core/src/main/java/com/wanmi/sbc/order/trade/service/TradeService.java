@@ -8541,18 +8541,22 @@ public class TradeService {
      */
     public void pushTradeToErp(String tradeNo){
         //根据父订单号,查询子订单集合
-        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
+//        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
 //        List<ProviderTrade> providerTradeListin = providerTradeService.findListByParentIdList(Arrays.asList(tradeNo));
         Trade trade = tradeRepository.findById(tradeNo).get();
-        if (CollectionUtils.isNotEmpty(providerTradeList)){
-            providerTradeList.stream().forEach(providerTrade -> {
-                providerTrade.setPayWay(trade.getPayWay());
-                if (!providerTrade.getGrouponFlag()
-                        ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
-                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
-                    providerTradeService.singlePushOrder(providerTrade);
-                }
-            });
+//        if (CollectionUtils.isNotEmpty(providerTradeList)){
+//            providerTradeList.stream().forEach(providerTrade -> {
+//                providerTrade.setPayWay(trade.getPayWay());
+//                if (!providerTrade.getGrouponFlag()
+//                        ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+//                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
+//                    providerTradeService.singlePushOrder(providerTrade);
+//                }
+//            });
+//        }
+
+        if (!trade.getGrouponFlag() ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+            providerTradeService.singlePushOrder(Collections.singletonList(trade));
         }
     }
 

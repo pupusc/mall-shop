@@ -449,13 +449,13 @@ public interface TradeProvider {
     BaseResponse cycleBuyPostponement(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
 
 
-    /**
-     * 周期购订单  定时器推送失败---手动推送
-     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
-     * @return 操作结果 {@link BaseResponse}
-     */
-    @PostMapping("/order/${application.order.version}/trade//cyclebuy-supplementary-push")
-    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
+//    /**
+//     * 周期购订单  定时器推送失败---手动推送
+//     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+//     * @return 操作结果 {@link BaseResponse}
+//     */
+//    @PostMapping("/order/${application.order.version}/trade//cyclebuy-supplementary-push")
+//    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
 
 
     /**
@@ -474,13 +474,13 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/query-trade-information")
     BaseResponse<TradeGetBookingTypeByIdResponse> queryTradeInformation(@RequestBody @Valid String tradeId);
 
-    /**
-     * 推送发货单同步状态
-     * @param request 订单号
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
-    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
+//    /**
+//     * 推送发货单同步状态
+//     * @param request 订单号
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
+//    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
 
     /**
      * 同步物流状态
