@@ -47,7 +47,7 @@ public class ShopCenterGoodsStockService {
 		for (GoodsInfo info : infoList) {
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
-		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity);
+		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue());
 
 		// 修改goods 库存
 		List<String> goodsIds = infoList.stream().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
