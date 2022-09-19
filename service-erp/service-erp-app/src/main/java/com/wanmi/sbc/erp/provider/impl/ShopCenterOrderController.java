@@ -6,12 +6,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.OrderQueryReq;
-import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
-import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -31,21 +28,29 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 
 	@Override
-	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
+	public BaseResponse<Long> createOrder(CreateOrderReq request) {
 		try {
-//			String host = routerConfig.getHost();
+			String host = routerConfig.getHost();
 			log.info("createOrder start，request:{}", request);
-			String host = routerConfig.getHostLocal();
+//			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("order.createOrder");
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
-			
-			log.info("reateOrder end，result:{}", str);
-			JSONObject resultJson = JSONObject.parseObject(str, JSONObject.class);
-			
-			CreateOrderResp createOrderResp = new CreateOrderResp();
-			return BaseResponse.success(createOrderResp);
+			log.info("createOrder end，result:{}", str);
+			JSONObject json = JSON.parseObject(str);
+
+			String status = json.getString("status");
+			// 成功
+			if ("0000".equals(status)) {
+				return BaseResponse.success(json.getLong("data"));
+			}
+			// 重复订单
+			if ("40000".equals(status)) {
+				return BaseResponse.info("40000", json.getString("msg"));
+			}
+			// 返回异常信息
+			return BaseResponse.info(status, json.getString("msg"));
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
 		}

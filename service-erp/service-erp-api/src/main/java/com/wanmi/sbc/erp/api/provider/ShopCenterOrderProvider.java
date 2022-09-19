@@ -3,11 +3,8 @@ package com.wanmi.sbc.erp.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.OrderPaymentQueryReq;
-import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
-import com.wanmi.sbc.erp.api.resp.OrderPaymentResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +22,7 @@ public interface ShopCenterOrderProvider {
      * @return
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/createOrder")
-    BaseResponse<CreateOrderResp> createOrder(@RequestBody CreateOrderReq createOrderReq);
+    BaseResponse<Long> createOrder(@RequestBody CreateOrderReq createOrderReq);
 
 
     /**
