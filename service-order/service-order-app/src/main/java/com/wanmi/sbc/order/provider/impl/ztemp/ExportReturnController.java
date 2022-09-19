@@ -249,6 +249,7 @@ public class ExportReturnController {
         paramVO.setSaleAfterRefundBOList(new ArrayList<>());
 
         Integer refundType = parseRefundType(returnOrder);
+        String returnReason = returnOrder.getReturnReason() == null ? null : returnOrder.getReturnReason().getDesc();
         //退款子单
         for (ReturnItem item : returnOrder.getReturnItems()) {
             ImportMallRefundParamVO$Item orderItem = new ImportMallRefundParamVO$Item();
@@ -264,6 +265,7 @@ public class ExportReturnController {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(1);
                 detail.setAmount(cashAmount);
+                detail.setRefundReason(returnReason);
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
 
                 ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
@@ -279,6 +281,7 @@ public class ExportReturnController {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(2);
                 detail.setAmount(knowAmount.intValue());
+                detail.setRefundReason(returnReason);
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
 
                 ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
@@ -294,6 +297,7 @@ public class ExportReturnController {
                 ImportMallRefundParamVO$Detail detail = new ImportMallRefundParamVO$Detail();
                 detail.setPayType(3);
                 detail.setAmount(pointAmount.intValue());
+                detail.setRefundReason(returnReason);
                 orderItem.getSaleAfterRefundDetailBOList().add(detail);
 
                 ImportMallRefundParamVO$Refund refund = new ImportMallRefundParamVO$Refund();
