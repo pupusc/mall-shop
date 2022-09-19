@@ -105,4 +105,5 @@ public class PayTradeRecordResponse implements Serializable{
     @ApiModelProperty(value = "交易流水号")
     private String tradeNo;
 
+    private String appId;
 }

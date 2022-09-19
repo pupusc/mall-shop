@@ -3,10 +3,11 @@ package com.wanmi.sbc.erp.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.OrderQueryReq;
+import com.wanmi.sbc.erp.api.req.OrderPaymentQueryReq;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
+import com.wanmi.sbc.erp.api.resp.OrderPaymentResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,15 +32,15 @@ public interface ShopCenterOrderProvider {
      * 订单详情
      * @return
      */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/detaiByOrderNumber")
-    BaseResponse<OrderDetailResp> detailByOrderNumber(Long orderNumber);
+    @PostMapping("/erp/${application.erp.version}/shopcenter/order/orderDetailByOrderNumber")
+    BaseResponse<OrderDetailResp> orderDetailByOrderNumber(String orderNumber);
 
 
-    /**
-     * 订单列表
-     */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrder")
-    BaseResponse<List<OrderDetailResp>> listOrder(@RequestBody OrderQueryReq orderQueryReq);
+//    /**
+//     * 订单列表
+//     */
+//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrder")
+//    BaseResponse<List<OrderDetailResp>> listOrder(@RequestBody OrderQueryReq orderQueryReq);
 
     /**
      * 根据TID查询订单
@@ -47,9 +48,12 @@ public interface ShopCenterOrderProvider {
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/queryMasterOrderByTid")
     BaseResponse<OrdOrderResp> queryMasterOrderByTid(Long tid);
 
-    /**
-     * 查询支付
-     */
+//    /**
+//     * 支付列表
+//     */
+//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/payment")
+//    BaseResponse<OrderPaymentResp> listPayment(@RequestBody OrderPaymentQueryReq paymentQueryReq);
+
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/getPaymentByOrderId")
     BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId);
 

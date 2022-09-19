@@ -9,6 +9,7 @@ import lombok.Data;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,10 +86,10 @@ public class CreateOrderReq {
      */
     private BuyAddressReq buyAddressBO;
 
-//    /**
-//     * 支付流水 走真实支付
-//     */
-//    private List<BuyPaymentReq> buyPaymentBO;
+    /**
+     * 支付流水 走真实支付
+     */
+    private List<BuyPaymentReq> buyPaymentBO;
 
     /**
      * 商城ID t_sale_platform TODO
@@ -170,6 +171,25 @@ public class CreateOrderReq {
          */
         private Integer giftFlag;
 
+        /**
+         * 第三方平台商品ID
+         */
+        private String platformGoodsId;
+
+        /**
+         * 第三方平台规格ID
+         */
+        private String platformSkuId;
+
+        /**
+         * 第三方平台商品名称
+         */
+        private String platformGoodsName;
+
+        /**
+         * 第三方平台规格名称
+         */
+        private String platformSkuName;
 
         /**
          * 优惠 商品层面的优惠
@@ -273,6 +293,56 @@ public class CreateOrderReq {
          * 联系人手机区号, 1 女，2 男
          */
         private Integer contactGenders;
+    }
+
+    /**
+     * 支付流水信息信息
+     */
+    @Data
+    public static class BuyPaymentReq {
+
+        /**
+         * 支付类型：1、现金，2、知豆，3、积分，4、智慧币
+         * <p>
+         * 现金
+         * 知豆
+         * 智慧币
+         */
+        @NotNull(message = "支付类型不能为空")
+        private String payType;
+
+        /**
+         * 支付金额，单位：分
+         */
+        @NotNull(message = "支付金额不能为空")
+        private Integer amount;
+
+        /**
+         * 备注
+         */
+        private String memo;
+
+        /**
+         * 支付网关，1、支付宝、2、微信、3、银联、4、通联，5、其他
+         */
+        private Integer payGateway;
+
+        /**
+         * 支付流水号
+         */
+        private String payTradeNo;
+
+        /**
+         * 支付商户号
+         */
+        private String payMchid;
+
+        /**
+         * 支付时间
+         */
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+        private LocalDateTime payTime;
     }
 
 }

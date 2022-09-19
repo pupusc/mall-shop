@@ -8,7 +8,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:
@@ -24,6 +26,11 @@ public class OrderDetailResp {
 //     * 订单ID
 //     */
 //    private Long tid;
+
+    /**
+     * 订单来源
+     */
+    private String orderSource;
 
     /**
      * 订单状态
@@ -63,7 +70,7 @@ public class OrderDetailResp {
 //    private String orderItemTid;
 
     /**
-     * 订单金额
+     * 订单金额 【含运费】
      */
     private Integer totalFee;
 
@@ -89,20 +96,20 @@ public class OrderDetailResp {
      */
     private String mobile;
 
-    /**
-     * 商品总金额，单位：分
-     */
-    private Integer goodsAmount;
+//    /**
+//     * 商品总金额，单位：分 【不包含运费】
+//     */
+//    private Integer goodsAmount;
+
+//    /**
+//     * 渠道下单-时间
+//     */
+//    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+//    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+//    private LocalDateTime bookTime;
 
     /**
-     * 渠道下单-时间
-     */
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime bookTime;
-
-    /**
-     * 优惠总金额
+     * 优惠总金额 【待确定】
      */
     private Integer discountFee;
 
@@ -134,14 +141,18 @@ public class OrderDetailResp {
     private Integer paymentStatus;
 
     /**
-     * 创建时间
+     * 创建时间 【下单时间】
      */
-    private Date createTime;
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime createTime;
 
     /**
      * 取消/关闭时间
      */
-    private Date cancelTime;
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime cancelTime;
 
 //    /**
 //     * 错误原因
@@ -149,14 +160,16 @@ public class OrderDetailResp {
 //    private String errorReason;
 
     /**
-     * 应付金额
+     * 应付金额 【包含所有费用信息】
      */
     private Integer oughtFee;
 
     /**
      * 交易完成时间
      */
-    private Date completeTime;
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime completeTime;
 
     /**
      * 积分支付金额
@@ -169,14 +182,14 @@ public class OrderDetailResp {
     private Integer zhiDouAmount;
 
     /**
-     * 实付金额
+     * 实付金额 【实付金额 应付和实付相等才可以】
      */
     private Integer actualFee;
 
-    /**
-     * 已退金额
-     */
-    private Integer refundFee;
+//    /**
+//     * 已退金额
+//     */
+//    private Integer refundFee;
 
     /**
      * 买家留言
@@ -201,74 +214,103 @@ public class OrderDetailResp {
     /**
      * 子订单
      */
-    private List<OrderItemReq> orderItemBOS;
+    private List<OrderItemResp> orderItemBOS;
 
     /**
      * 包信息
      */
-    private List<OrderPackReq> orderPackBOS;
+    private List<OrderPackResp> orderPackBOS;
 
     /**
      * 收件信息
      */
-    private OrderAddressReq orderAddressBO;
+    private OrderAddressResp orderAddressBO;
+
+//    /**
+//     * 优惠成本承担-渠道平台后返
+//     */
+//    private Integer costDiscountFee;
 
     /**
-     * 优惠成本承担-渠道平台后返
+     * 快照存储信息 [存储信息]
      */
-    private Integer costDiscountFee;
-
-
+    private Map<String, String> orderSnapshot = new HashMap<>();
     /**
      * 子单信息
      */
     @Data
-    public static class OrderItemReq {
+    public static class OrderItemResp {
         /**
          * 子订单号
          */
         private Long tid;
 
-        /**
-         * 平台子单ID
-         */
-        private String  platformItemId;
+//        /**
+//         * 平台子单ID
+//         */
+//        private String  platformItemId;
 
         /**
-         * 价格
+         * 价格 【商品金额】
          */
         private Integer price;
 
         /**
-         * 仓库ID
+         * 销售码
          */
-        private Long whId;
+        private String saleCode;
 
         /**
-         * 仓库编码
-         */
-        private String whCode;
-
-
-        /**
-         * 业务类型 1:实物商品 2：虚拟商品-樊登，3：图书订阅商品 4-历史虚拟
-         */
-        private Integer metaGoodsType;
-
-        /**
-         * 成本价
-         */
-        private Integer costPrice;
-
-        /**
-         * 成本价
-         */
-        private Integer marketPrice;
-
-        /**
-         * 购买件数
+         * 数量
          */
         private Integer num;
+
+        /**
+         * 第三方平台商品ID
+         */
+        private String platformGoodsId;
+
+        /**
+         * 第三方平台规格ID
+         */
+        private String platformSkuId;
+
+        /**
+         * 第三方平台商品名称
+         */
+        private String platformGoodsName;
+
+        /**
+         * 第三方平台规格名称
+         */
+        private String platformSkuName;
+
+//        /**
+//         * 仓库ID
+//         */
+//        private Long whId;
+//
+//        /**
+//         * 仓库编码
+//         */
+//        private String whCode;
+
+//
+//        /**
+//         * 业务类型 1:实物商品 2：虚拟商品-樊登，3：图书订阅商品 4-历史虚拟
+//         */
+//        private Integer metaGoodsType;
+
+//        /**
+//         * 成本价
+//         */
+//        private Integer costPrice;
+//
+//        /**
+//         * 市场价
+//         */
+//        private Integer marketPrice;
+
 
         /**
          * 物流编码
@@ -286,12 +328,12 @@ public class OrderDetailResp {
         private Date signatureTime;
 
         /**
-         * 优惠金额
+         * 优惠金额 【优惠的金额】
          */
         private Integer discountFee;
 
         /**
-         * 实付金额
+         * 实付金额 【实际支付的费用包含积分和知豆】
          */
         private Integer oughtFee;
 
@@ -300,35 +342,12 @@ public class OrderDetailResp {
          */
         private Long orderPackId;
 
-        /**
-         * 是否为赠品，0非赠送，1赠送，3补偿
-         */
-        private Integer giftFlag;
+//        /**
+//         * 是否为赠品，0非赠送，1赠送，3补偿
+//         */
+//        private Integer giftFlag;
 
-        /**
-         * 销售码
-         */
-        private String saleCode;
 
-        /**
-         * 第三方平台商品ID
-         */
-        private String platformGoodsId;
-
-        /**
-         * 第三方平台规格ID
-         */
-        private String platformSkuId;
-
-        /**
-         * 第三方平台商品名称
-         */
-        private String platformGoodsName;
-
-        /**
-         * 第三方平台规格名称
-         */
-        private String platformSkuName;
 
         /**
          * 状态
@@ -337,39 +356,39 @@ public class OrderDetailResp {
          */
         private Integer status;
 
-        /**
-         * 货品ID
-         */
-        private Long metaGoodsId;
-
-        /**
-         * 货品规格ID
-         */
-        private Long metaSkuId;
-
-        /**
-         * 商品ID
-         */
-        private Integer goodsId;
-
-        /**
-         * 产品ID
-         */
-        private Long productId;
+//        /**
+//         * 货品ID
+//         */
+//        private Long metaGoodsId;
+//
+//        /**
+//         * 货品规格ID
+//         */
+//        private Long metaSkuId;
+//
+//        /**
+//         * 商品ID
+//         */
+//        private Integer goodsId;
+//
+//        /**
+//         * 产品ID
+//         */
+//        private Long productId;
 
         /**
          * 会期类型 0 体验，1 正式
          */
         private Integer rightsCategory;
-        /**
-         * 退货数量
-         */
-        private Integer refundNum;
-
-        /**
-         * 退款金额
-         */
-        private Integer refundFee;
+//        /**
+//         * 退货数量
+//         */
+//        private Integer refundNum;
+//
+//        /**
+//         * 退款金额
+//         */
+//        private Integer refundFee;
 
 
         /**
@@ -380,12 +399,21 @@ public class OrderDetailResp {
         /**
          * 发货时间
          */
-        private Date deliveryTime;
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+        private LocalDateTime deliveryTime;
 
         /**
          * 计划发货时间
          */
-        private Date planDeliveryTime;
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+        private LocalDateTime planDeliveryTime;
+
+        /**
+         * 优惠信息
+         */
+        private BuyDiscountResp buyDiscountBo;
     }
 
 
@@ -394,8 +422,27 @@ public class OrderDetailResp {
      * 打包对象
      */
     @Data
-    public static class OrderPackReq {
+    public static class OrderPackResp {
 
+        /**
+         * 打包id
+         */
+        private Long tid;
+
+        /**
+         * 订单id
+         */
+        private Long orderId;
+
+        /**
+         * 价格
+         */
+        private Integer price;
+
+        /**
+         * 销售code
+         *
+         */
         private String saleCode;
 
         private Integer num;
@@ -420,7 +467,6 @@ public class OrderDetailResp {
          */
         private String platformSkuName;
 
-        private Long tid;
     }
 
 
@@ -428,7 +474,7 @@ public class OrderDetailResp {
      * 订单地址信息
      */
     @Data
-    public static class OrderAddressReq {
+    public static class OrderAddressResp {
         private Long tid;
         /**
          * 省
@@ -474,5 +520,43 @@ public class OrderDetailResp {
          * 联系人手机区号, 1 女，2 男
          */
         private Integer contactGenders;
+    }
+
+
+    /**
+     * 优惠对象
+     */
+    @Data
+    public static class BuyDiscountResp {
+        /**
+         * 优惠金额，单位：分
+         */
+        private Integer amount;
+
+        /**
+         * 优惠券ID
+         */
+        private String couponId;
+
+        /**
+         * 优惠券编码
+         */
+        private String discountNo;
+
+        /**
+         * 优惠名称
+         */
+        private String discountName;
+
+        /**
+         * {@link UnifiedOrderChangeTypeEnum}
+         */
+        private String changeType;
+
+        /**
+         * 备注
+         */
+        private String memo;
+
     }
 }

@@ -1,5 +1,13 @@
 package com.wanmi.sbc.order.api.provider.trade;
 
+import javax.validation.Valid;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
@@ -8,6 +16,7 @@ import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
+import com.wanmi.sbc.order.api.request.trade.SyncOrderDataRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchWithGroupRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddInvoiceRequest;
@@ -57,13 +66,6 @@ import com.wanmi.sbc.order.api.response.trade.TradeCountByPayStateResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeDefaultPayResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeDeliverResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetBookingTypeByIdResponse;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import javax.validation.Valid;
 
 /**
  * @Author: ZhangLingKe
@@ -531,6 +533,6 @@ public interface TradeProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
-    BaseResponse syncOrderDataAll();
+    BaseResponse syncOrderDataAll(@RequestBody SyncOrderDataRequest syncOrderDataRequest);
     
 }

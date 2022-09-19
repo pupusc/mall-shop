@@ -732,7 +732,12 @@ public class CustomerService {
      * @return
      */
     public Customer findByFanDengUserNoAndDelFlag(String fanDengId) {
-        return customerRepository.findByFanDengUserNoAndDelFlag(fanDengId, DeleteFlag.NO);
+        List<Customer> customerList =
+                customerRepository.findByFanDengUserNoAndDelFlag(fanDengId, DeleteFlag.NO);
+        if (CollectionUtils.isEmpty(customerList)) {
+            return null;
+        }
+        return customerList.get(0);
     }
 
     /**
