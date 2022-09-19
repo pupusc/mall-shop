@@ -23,8 +23,10 @@ import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
+import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
@@ -32,6 +34,8 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
@@ -42,6 +46,8 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
@@ -144,6 +150,12 @@ public class ProviderTradeService {
 
     @Autowired
     private TransferService transferService;
+
+    @Autowired
+    private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
     /**
      * 更新券码信息lock
@@ -1020,6 +1032,14 @@ public class ProviderTradeService {
                     continue;
                 }
 
+                ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
+                if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+                    log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                    continue;
+                }
+
+                //调用推送接口
+                CreateOrderResp createOrderResp = shopCenterOrderProvider.createOrder(createOrderReq).getContext();
 
 
             }

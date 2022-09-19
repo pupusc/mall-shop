@@ -34,7 +34,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
 		try {
 //			String host = routerConfig.getHost();
-			log.info("createOrder start，request:{}", request);
+			log.info("createOrder start，request:{}", JSON.toJSONString(request));
 			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("order.createOrder");
 
@@ -43,7 +43,10 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 			
 			log.info("reateOrder end，result:{}", str);
 			JSONObject resultJson = JSONObject.parseObject(str, JSONObject.class);
-			
+			String data = resultJson.getString("status");
+			if () {
+
+			}
 			CreateOrderResp createOrderResp = new CreateOrderResp();
 			return BaseResponse.success(createOrderResp);
 		} catch (Exception e) {

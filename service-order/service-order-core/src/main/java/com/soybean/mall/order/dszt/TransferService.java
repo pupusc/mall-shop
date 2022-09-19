@@ -280,7 +280,7 @@ public class TransferService {
 
         CreateOrderReq createOrderReq = new CreateOrderReq();
 
-        createOrderReq.setPlatformCode(trade.getId());
+        createOrderReq.setPlatformOrderId(trade.getId());
         createOrderReq.setPlatformCode("WAN_MI");
         //订单来源
         OrderSourceEnum orderSourceEnum = OrderSourceEnum.H5_MALL;
