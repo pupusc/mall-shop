@@ -704,35 +704,35 @@ public class TradeController implements TradeProvider {
     }
 
 
-//    /**
-//     * 周期购订单  定时器推送失败---手动推送
-//     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
-//        List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
-//        providerTrades.forEach(providerTrade -> {
-//            TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
-//            List<DeliverCalendar> deliverCalendarList = tradeCycleBuyInfo.getDeliverCalendar();
-//            deliverCalendarList.forEach(deliverCalendar -> {
-//                if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.PUSHED_FAIL && Objects.equals(deliverCalendar.getDeliverDate(),cycleBuyPostponementRequest.getLocalDate().toLocalDate())) {
-//                    int index = deliverCalendarList.indexOf(deliverCalendar);
-//                    boolean isFirstCycle = Boolean.FALSE;
-//                    if (index == 0) {
-//                        isFirstCycle = Boolean.TRUE;
-//                    }
-//
-//                    //推送订单
-//                    tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
-//
-//                    log.info("================订单推送周期购订单---手动推送===:{}", providerTrade);
-//
-//                }
-//            });
-//        });
-//        return BaseResponse.SUCCESSFUL();
-//    }
+    /**
+     * 周期购订单  定时器推送失败---手动推送
+     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+     * @return
+     */
+    @Override
+    public BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
+        List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
+        providerTrades.forEach(providerTrade -> {
+            TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
+            List<DeliverCalendar> deliverCalendarList = tradeCycleBuyInfo.getDeliverCalendar();
+            deliverCalendarList.forEach(deliverCalendar -> {
+                if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.PUSHED_FAIL && Objects.equals(deliverCalendar.getDeliverDate(),cycleBuyPostponementRequest.getLocalDate().toLocalDate())) {
+                    int index = deliverCalendarList.indexOf(deliverCalendar);
+                    boolean isFirstCycle = Boolean.FALSE;
+                    if (index == 0) {
+                        isFirstCycle = Boolean.TRUE;
+                    }
+
+                    //推送订单
+                    tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
+
+                    log.info("================订单推送周期购订单---手动推送===:{}", providerTrade);
+
+                }
+            });
+        });
+        return BaseResponse.SUCCESSFUL();
+    }
 
 
 
@@ -800,10 +800,10 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(tradeResponse);
     }
 
-//    @Override
-//    public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
-//        return tradePushERPService.syncProviderTradeStatus(request);
-//    }
+    @Override
+    public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
+        return tradePushERPService.syncProviderTradeStatus(request);
+    }
 
     @Override
     public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
@@ -832,9 +832,8 @@ public class TradeController implements TradeProvider {
         return tradeService.updateInvoice(autoUpdateInvoiceRequest);
     }
 
-
-    @Override
-	public BaseResponse syncOrderDataAll(String id) {
-		return tradeOrderService.syncOrderDataAll(id);
+	@Override
+	public BaseResponse syncOrderDataAll(SyncOrderDataRequest syncOrderDataRequest) {
+		return tradeOrderService.syncOrderDataAll(syncOrderDataRequest);
 	}
 }
