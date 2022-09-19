@@ -120,6 +120,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/home")
                     || requestURI.startsWith("/normal-activity")
                     || requestURI.startsWith("/popular_search_terms")
+                    || requestURI.startsWith("/shopCenterSync")
 
             ) {
                 if (StringUtils.isBlank(token)) {

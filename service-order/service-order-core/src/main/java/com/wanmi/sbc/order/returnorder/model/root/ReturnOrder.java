@@ -7,8 +7,8 @@ import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.Platform;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.enums.TerminalSource;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
@@ -593,4 +593,8 @@ public class ReturnOrder implements Serializable {
         }
     }
 
+    /**
+     * 同步版本，内部使用
+     */
+    private Integer sVersion;
 }
