@@ -1,6 +1,7 @@
 package com.soybean.mall.order.dszt;
 
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.enums.OrderSourceEnum;
 import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
@@ -187,6 +188,7 @@ public class TransferService {
             //获取支付流水和 商户号
             TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
             request.setOrderId(trade.getId());
+            log.info("TransferService packageBuyPayment getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
             PayTradeRecordResponse payTradeRecordResponse = payQueryProvider.getTradeRecordByOrderCode(request).getContext();
 
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
