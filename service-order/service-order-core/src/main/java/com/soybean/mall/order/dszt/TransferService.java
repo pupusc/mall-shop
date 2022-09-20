@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.enums.OrderSourceEnum;
 import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
@@ -189,7 +190,9 @@ public class TransferService {
             TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
             request.setOrderId(trade.getId());
             log.info("TransferService packageBuyPayment getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
-            PayTradeRecordResponse payTradeRecordResponse = payQueryProvider.getTradeRecordByOrderCode(request).getContext();
+            BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
+            log.info("TransferService packageBuyPayment result {}", JSON.toJSONString(tradeRecordByOrderCode));
+            PayTradeRecordResponse context = tradeRecordByOrderCode.getContext();
 
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
             buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
