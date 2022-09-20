@@ -192,7 +192,7 @@ public class TransferService {
             log.info("TransferService packageBuyPayment getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
             BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
             log.info("TransferService packageBuyPayment result {}", JSON.toJSONString(tradeRecordByOrderCode));
-            PayTradeRecordResponse context = tradeRecordByOrderCode.getContext();
+            PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
 
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
             buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
