@@ -27,7 +27,7 @@ public interface ThirdInvokeRepository extends JpaRepository<ThirdInvokeDTO, Int
     default Specification<ThirdInvokeDTO> buildSearchCondition(String businessId, Integer pushStatus) {
         return (Specification<ThirdInvokeDTO>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
-            conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
+            conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO.toValue()));
             if (StringUtils.isNotBlank(businessId)) {
                 conditionList.add(criteriaBuilder.equal(root.get("businessId"), businessId));
             }
