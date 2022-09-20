@@ -181,27 +181,27 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
         return BaseResponse.success(ProviderTradeCountCriteriaResponse.builder().count(count).build());
     }
 
-    /**
-     * 批量推送周期购订单
-     * @param providerTradePushErpRequest
-     * @return
-     */
-    @Override
-    public BaseResponse batchPushCycleOrder(@RequestBody @Valid ProviderTradeErpRequest providerTradePushErpRequest) {
-        providerTradeService.batchPushCycleOrder(providerTradePushErpRequest.getPageSize());
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 批量推送周期购订单
+//     * @param providerTradePushErpRequest
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse batchPushCycleOrder(@RequestBody @Valid ProviderTradeErpRequest providerTradePushErpRequest) {
+//        providerTradeService.batchPushCycleOrder(providerTradePushErpRequest.getPageSize());
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
     /**
      * 批量同步发货单状态
      * @param request
      * @return
      */
-    @Override
-    public BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request) {
-        providerTradeService.batchSyncDeliveryStatus(request.getPageSize(),request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
+//    @Override
+//    public BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request) {
+//        providerTradeService.batchSyncDeliveryStatus(request.getPageSize(),request.getPtid());
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
 //    /**
 //     * 批量补偿推送erp普通订单
@@ -214,38 +214,38 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
 //        return BaseResponse.SUCCESSFUL();
 //    }
 
-    /**
-     * 批量重置订单扫描次数
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse batchResetScanCount(@RequestBody @Valid ProviderTradeErpRequest request) {
-        providerTradeService.batchResetScanCount(request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
-
-    /**
-     * 扫描未发货订单同步erp发货状态
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request) {
-        providerTradeService.scanNotYetShippedTrade(request.getPageSize(),request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
-
-    /**
-     * 同步历史发货单
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
-        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 批量重置订单扫描次数
+//     * @param request
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse batchResetScanCount(@RequestBody @Valid ProviderTradeErpRequest request) {
+//        providerTradeService.batchResetScanCount(request.getPtid());
+//        return BaseResponse.SUCCESSFUL();
+//    }
+//
+//    /**
+//     * 扫描未发货订单同步erp发货状态
+//     * @param request
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request) {
+//        providerTradeService.scanNotYetShippedTrade(request.getPageSize(),request.getPtid());
+//        return BaseResponse.SUCCESSFUL();
+//    }
+//
+//    /**
+//     * 同步历史发货单
+//     * @param request
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
+//        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
 
 }

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.order.bean.enums;
+package com.soybean.mall.order.enums;
 
 
 import lombok.AllArgsConstructor;

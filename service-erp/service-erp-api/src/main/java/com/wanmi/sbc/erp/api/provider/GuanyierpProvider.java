@@ -55,22 +55,22 @@ public interface GuanyierpProvider {
     @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-info")
     BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
 
-    /**
-     * 推动订单
-     * @param erpPushTradeRequest
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade")
-    BaseResponse autoPushTrade(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
+//    /**
+//     * 推动订单
+//     * @param erpPushTradeRequest
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade")
+//    BaseResponse autoPushTrade(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
 
 
-    /**
-     * 推动订单--已发货状态
-     * @param erpPushTradeRequest
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade-delivered")
-    BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
+//    /**
+//     * 推动订单--已发货状态
+//     * @param erpPushTradeRequest
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade-delivered")
+//    BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
 
     /**
      * 获取仓库集合

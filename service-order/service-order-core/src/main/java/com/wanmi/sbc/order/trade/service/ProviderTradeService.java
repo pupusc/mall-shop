@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.trade.service;
 import com.alibaba.fastjson.JSON;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
+import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -22,7 +23,10 @@ import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
+import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
@@ -30,6 +34,8 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
@@ -40,6 +46,8 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
@@ -127,18 +135,27 @@ public class ProviderTradeService {
     @Autowired
     private TradeRepository tradeRepository;
 
-    @Autowired
-    private TradePushERPService tradePushERPService;
+//    @Autowired
+//    private TradePushERPService tradePushERPService;
+
+//    @Autowired
+//    private GuanyierpProvider guanyierpProvider;
+
+
+//    @Autowired
+//    private RedissonClient redissonClient;
+
+//    @Autowired
+//    private StoreQueryProvider storeQueryProvider;
 
     @Autowired
-    private GuanyierpProvider guanyierpProvider;
-
-
-    @Autowired
-    private RedissonClient redissonClient;
+    private TransferService transferService;
 
     @Autowired
-    private StoreQueryProvider storeQueryProvider;
+    private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
     /**
      * 更新券码信息lock
@@ -968,110 +985,142 @@ public class ProviderTradeService {
      */
     public void defalutPayOrderAsycToERP(String tradeNo) {
         //根据父订单号,查询子订单集合
-        List<ProviderTrade> providerTradeList = this.findListByParentId(tradeNo);
+//        List<ProviderTrade> providerTradeList = this.findListByParentId(tradeNo);
         Trade trade = tradeRepository.findById(tradeNo).get();
-        if (CollectionUtils.isNotEmpty(providerTradeList)) {
-            providerTradeList.stream().forEach(providerTrade -> {
-                providerTrade.setPayWay(trade.getPayWay());
-                if (!providerTrade.getGrouponFlag() ||
-                        GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
-                    this.singlePushOrder(providerTrade);
-                }
-            });
+//        if (CollectionUtils.isNotEmpty(providerTradeList)) {
+//            providerTradeList.stream().forEach(providerTrade -> {
+//                providerTrade.setPayWay(trade.getPayWay());
+//                if (!providerTrade.getGrouponFlag() ||
+//                        GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+//                    this.singlePushOrder(providerTrade);
+//                }
+//            });
+//        }
+        if (!trade.getGrouponFlag() ||
+                GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+            this.singlePushOrder(Collections.singletonList(trade));
         }
     }
 
-    /**
-     * 普通支付订单推送到ERP系统
-     *
-     * @param providerTrade
-     * @return
-     */
-    public boolean singlePushOrder(ProviderTrade providerTrade) {
-        //获取主订单对于的供应商订单
-        if (!ObjectUtils.isEmpty(providerTrade)) {
-            if (ERPTradePushStatus.PUSHED_SUCCESS.getStateId().equals(providerTrade.getTradeState().getErpTradeState())) {
-                log.info("订单{}重复推送", providerTrade.getId());
-                return false;
-            }
-            //推送订单
-            BaseResponse baseResponse = tradePushERPService.pushOrderToERP(providerTrade);
-            if (baseResponse.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
-                return true;
+//    /**
+//     * 普通支付订单推送到ERP系统
+//     *
+//     * @param providerTrade
+//     * @return
+//     */
+//    public boolean singlePushOrder(ProviderTrade providerTrade) {
+//        //获取主订单对于的供应商订单
+//        if (!ObjectUtils.isEmpty(providerTrade)) {
+//            if (ERPTradePushStatus.PUSHED_SUCCESS.getStateId().equals(providerTrade.getTradeState().getErpTradeState())) {
+//                log.info("订单{}重复推送", providerTrade.getId());
+//                return false;
+//            }
+//            //推送订单
+//            BaseResponse baseResponse = tradePushERPService.pushOrderToERP(providerTrade);
+//            if (baseResponse.getCode().equals(CommonErrorCode.SUCCESSFUL)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+
+    public void singlePushOrder(List<Trade> tradeList) {
+        if (!CollectionUtils.isEmpty(tradeList)) {
+            for (Trade trade : tradeList) {
+                CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+                if (createOrderReq == null) {
+                    continue;
+                }
+
+                ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
+                if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+                    log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                    continue;
+                }
+
+                //调用推送接口
+                BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
+                CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
+                if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
+                        || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
+                    thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+                } else {
+                    thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
+                }
+
             }
         }
-        return false;
     }
 
     /**
      * 推送的周期购订单到ERP系统
      */
-    public void batchPushCycleOrder(int pageSize) {
-        RLock lock = redissonClient.getLock(BATCH_PUSH_ORDER_LOCKS);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-
-            if (pageSize <= 0) {
-                pageSize = 500;
-            }
-
-            ProviderTradeQueryRequest tradeQueryRequest = new ProviderTradeQueryRequest();
-            tradeQueryRequest.setCycleBuyFlag(true);
-            //已支付的订单
-            TradeState tradeState = new TradeState();
-            tradeState.setPayState(PayState.PAID);
-            tradeQueryRequest.setTradeState(tradeState);
-            //待处理就显示待发货和部分发货
-            tradeQueryRequest.setFlowStates(Arrays.asList(FlowState.AUDIT, FlowState.DELIVERED_PART));
-            tradeQueryRequest.setReturnHasFlag(false);//没有退单
-            tradeQueryRequest.setDeliverStatus(CycleDeliverStatus.NOT_SHIPPED);//周期购待配送
-            tradeQueryRequest.setYzOrderFlag(Boolean.FALSE);
-
-
-            tradeQueryRequest.putSort(tradeQueryRequest.getSortColumn(), tradeQueryRequest.getSortRole());
-            tradeQueryRequest.setPageNum(0);
-            tradeQueryRequest.setPageSize(pageSize);
-            Query query = new Query(tradeQueryRequest.getWhereCriteria());
-
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query.with(tradeQueryRequest.getPageRequest()), ProviderTrade.class);
-
-            for (ProviderTrade providerTrade : providerTrades) {
-                log.info("================订单推送周期购订单=====:{}", providerTrade);
-                TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
-
-                List<DeliverCalendar> deliverCalendars = tradeCycleBuyInfo.getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()!=CycleDeliverStatus.POSTPONE).collect(Collectors.toList());
-
-                List<DeliverCalendar> deliverCalendarList = KsBeanUtil.convert(deliverCalendars,DeliverCalendar.class);
-
-                deliverCalendarList.forEach(deliverCalendar -> {
-                    LocalDate startDate = LocalDate.now();
-                    LocalDate endDate = deliverCalendar.getDeliverDate();
-                    if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.NOT_SHIPPED
-                            && startDate.until(endDate, ChronoUnit.DAYS) <= 1 && deliverCalendar.getPushCount() < 3) {
-                        int index = deliverCalendarList.indexOf(deliverCalendar);
-                        boolean isFirstCycle = Boolean.FALSE;
-                        if (index == 0) {
-                            isFirstCycle = Boolean.TRUE;
-                        }
-                        //推送订单
-                        tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
-
-                        log.info("================订单推送周期购订单=====:{}", providerTrade);
-
-                    }
-                });
-            }
-        } catch (Exception e) {
-            log.error("#订单推送失败:{}", e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    public void batchPushCycleOrder(int pageSize) {
+//        RLock lock = redissonClient.getLock(BATCH_PUSH_ORDER_LOCKS);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//
+//            if (pageSize <= 0) {
+//                pageSize = 500;
+//            }
+//
+//            ProviderTradeQueryRequest tradeQueryRequest = new ProviderTradeQueryRequest();
+//            tradeQueryRequest.setCycleBuyFlag(true);
+//            //已支付的订单
+//            TradeState tradeState = new TradeState();
+//            tradeState.setPayState(PayState.PAID);
+//            tradeQueryRequest.setTradeState(tradeState);
+//            //待处理就显示待发货和部分发货
+//            tradeQueryRequest.setFlowStates(Arrays.asList(FlowState.AUDIT, FlowState.DELIVERED_PART));
+//            tradeQueryRequest.setReturnHasFlag(false);//没有退单
+//            tradeQueryRequest.setDeliverStatus(CycleDeliverStatus.NOT_SHIPPED);//周期购待配送
+//            tradeQueryRequest.setYzOrderFlag(Boolean.FALSE);
+//
+//
+//            tradeQueryRequest.putSort(tradeQueryRequest.getSortColumn(), tradeQueryRequest.getSortRole());
+//            tradeQueryRequest.setPageNum(0);
+//            tradeQueryRequest.setPageSize(pageSize);
+//            Query query = new Query(tradeQueryRequest.getWhereCriteria());
+//
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query.with(tradeQueryRequest.getPageRequest()), ProviderTrade.class);
+//
+//            for (ProviderTrade providerTrade : providerTrades) {
+//                log.info("================订单推送周期购订单=====:{}", providerTrade);
+//                TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
+//
+//                List<DeliverCalendar> deliverCalendars = tradeCycleBuyInfo.getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()!=CycleDeliverStatus.POSTPONE).collect(Collectors.toList());
+//
+//                List<DeliverCalendar> deliverCalendarList = KsBeanUtil.convert(deliverCalendars,DeliverCalendar.class);
+//
+//                deliverCalendarList.forEach(deliverCalendar -> {
+//                    LocalDate startDate = LocalDate.now();
+//                    LocalDate endDate = deliverCalendar.getDeliverDate();
+//                    if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.NOT_SHIPPED
+//                            && startDate.until(endDate, ChronoUnit.DAYS) <= 1 && deliverCalendar.getPushCount() < 3) {
+//                        int index = deliverCalendarList.indexOf(deliverCalendar);
+//                        boolean isFirstCycle = Boolean.FALSE;
+//                        if (index == 0) {
+//                            isFirstCycle = Boolean.TRUE;
+//                        }
+//                        //推送订单
+//                        tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
+//
+//                        log.info("================订单推送周期购订单=====:{}", providerTrade);
+//
+//                    }
+//                });
+//            }
+//        } catch (Exception e) {
+//            log.error("#订单推送失败:{}", e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
 
 //    /**
@@ -1178,219 +1227,219 @@ public class ProviderTradeService {
      *
      * @param pageSize
      */
-    public void batchSyncDeliveryStatus(int pageSize, String ptid) {
-        RLock lock = redissonClient.getLock(BATCH_UPDATE_DELIVERY_STATUS_LOCKS);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            /**
-             * 普通订单发货状态更新
-             */
-            List<Criteria> criterias = new ArrayList<>();
-            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            criterias.add(Criteria.where("tradeState.erpTradeState").is(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
-            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
-            criterias.add(Criteria.where("cycleBuyFlag").is(false));
-            //单个订单发货状态同步
-            if (StringUtils.isNoneBlank(ptid)) {
-                criterias.add(Criteria.where("id").is(ptid));
-            }
-            if (pageSize <= 0) {
-                pageSize = 200;
-            }
-            Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-            Query query = new Query(newCriteria).limit(pageSize);
-            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-
-            /**
-             * 周期购订单发货单状态更新
-             */
-            Criteria cycleBuycriteria = new Criteria();
-            cycleBuycriteria.andOperator(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()),
-                    Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()),
-                    Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()),
-                    Criteria.where("cycleBuyFlag").is(true));
-
-            Query cycleQuery = new Query(cycleBuycriteria).limit(pageSize);
-            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery, ProviderTrade.class);
-
-            List<ProviderTrade> totalTradeList =
-                    Stream.of(providerTrades, cycleBuyTradeList).flatMap(Collection::stream).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalTradeList)) {
-                log.info("#批量同步发货状态的订单:{}", totalTradeList);
-                totalTradeList.stream().forEach(providerTrade -> {
-                    tradePushERPService.syncDeliveryStatus(providerTrade,null);
-                    log.info("#批量同步发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
-
-                });
-            }
-        } catch (Exception e) {
-            log.error("#批量同步发货状态异常:{}", e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    public void batchSyncDeliveryStatus(int pageSize, String ptid) {
+//        RLock lock = redissonClient.getLock(BATCH_UPDATE_DELIVERY_STATUS_LOCKS);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            /**
+//             * 普通订单发货状态更新
+//             */
+//            List<Criteria> criterias = new ArrayList<>();
+//            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//            criterias.add(Criteria.where("tradeState.erpTradeState").is(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
+//            criterias.add(Criteria.where("cycleBuyFlag").is(false));
+//            //单个订单发货状态同步
+//            if (StringUtils.isNoneBlank(ptid)) {
+//                criterias.add(Criteria.where("id").is(ptid));
+//            }
+//            if (pageSize <= 0) {
+//                pageSize = 200;
+//            }
+//            Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+//            Query query = new Query(newCriteria).limit(pageSize);
+//            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+//
+//            /**
+//             * 周期购订单发货单状态更新
+//             */
+//            Criteria cycleBuycriteria = new Criteria();
+//            cycleBuycriteria.andOperator(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()),
+//                    Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()),
+//                    Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()),
+//                    Criteria.where("cycleBuyFlag").is(true));
+//
+//            Query cycleQuery = new Query(cycleBuycriteria).limit(pageSize);
+//            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
+//            List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery, ProviderTrade.class);
+//
+//            List<ProviderTrade> totalTradeList =
+//                    Stream.of(providerTrades, cycleBuyTradeList).flatMap(Collection::stream).collect(Collectors.toList());
+//            if (CollectionUtils.isNotEmpty(totalTradeList)) {
+//                log.info("#批量同步发货状态的订单:{}", totalTradeList);
+//                totalTradeList.stream().forEach(providerTrade -> {
+//                    tradePushERPService.syncDeliveryStatus(providerTrade,null);
+//                    log.info("#批量同步发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
+//
+//                });
+//            }
+//        } catch (Exception e) {
+//            log.error("#批量同步发货状态异常:{}", e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
     /**
      * 重置扫描次数
      *
      * @param ptid
      */
-    public void batchResetScanCount(String ptid) {
-        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_SCAN_COUNT);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            /**
-             * 查询所有扫描次数为3的数据
-             */
-            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.RESET_ORDER_THREE.toValue(), null);
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-
-            if (CollectionUtils.isNotEmpty(providerTrades)) {
-                providerTrades.forEach(providerTrade -> {
-                    log.info("erpResetStatusSyncCountJobHandler ProviderTradeService tid: {} pid:{}", providerTrade.getParentId(), providerTrade.getId());
-                    providerTrade.getTradeState().setScanCount(ScanCount.COUNT_ZERO.toValue());
-                });
-                this.updateProviderTradeList(providerTrades);
-            }
-        } catch (Exception e) {
-            log.error("Error message ： #批量重置扫描次数为三的数据:{}", e.getMessage(), e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    public void batchResetScanCount(String ptid) {
+//        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_SCAN_COUNT);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            /**
+//             * 查询所有扫描次数为3的数据
+//             */
+//            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.RESET_ORDER_THREE.toValue(), null);
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+//
+//            if (CollectionUtils.isNotEmpty(providerTrades)) {
+//                providerTrades.forEach(providerTrade -> {
+//                    log.info("erpResetStatusSyncCountJobHandler ProviderTradeService tid: {} pid:{}", providerTrade.getParentId(), providerTrade.getId());
+//                    providerTrade.getTradeState().setScanCount(ScanCount.COUNT_ZERO.toValue());
+//                });
+//                this.updateProviderTradeList(providerTrades);
+//            }
+//        } catch (Exception e) {
+//            log.error("Error message ： #批量重置扫描次数为三的数据:{}", e.getMessage(), e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
     /**
      * 扫描未发货订单，并加上扫面次数
      */
-    public void scanNotYetShippedTrade(int pageSize, String ptid) {
-        RLock lock = redissonClient.getLock(FIND_NOT_YET_SHIPPED_TRADE);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            int scanCount = 0;
-            String scanCountStr = redisService.getString(ORDER_DELIVER_SYNC_SCAN_COUNT);
-            if (StringUtils.isNotBlank(scanCountStr)) {
-                scanCount = Integer.parseInt(scanCountStr);
-            }
-
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start("同步普通订单发货状态获取 StopWatch");
-            /**
-             * 普通订单发货状态更新
-             */
-            // 查询scanCount小于3或scanCount不存在的数据
-            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.REGULAR_ORDER_ZERO.toValue(), scanCount);
-            log.info("ProviderTradeService scanNotYetShippedTrade normal query:{}", query);
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query.limit(pageSize), ProviderTrade.class);
-            stopWatch.stop();
-
-            /**
-             * 周期购订单发货单状态更新
-             */
-            stopWatch.start("同步周期购订单发货状态获取 StopWatch");
-            // 查询zhouqigou scanCount小于3或scanCount不存在的数据
-            Query cycleQuery = this.queryProviderTradeCondition(ptid, OrderTypeEnums.CYCLE_ORDER_TWO.toValue(), scanCount);
-            log.info("ProviderTradeService scanNotYetShippedTrade cycle query:{}", query);
-            List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery.limit(pageSize), ProviderTrade.class);
-            stopWatch.stop();
-
-            List<ProviderTrade> totalTradeList = Stream.of(providerTrades, cycleBuyTradeList)
-                            .flatMap(Collection::stream)
-                            .collect(Collectors.toList());
-            List<DeliveryInfoVO> deliveryInfoVOList = new ArrayList<>();
-
-            stopWatch.start("同步订单发货状态/添加canCount StopWatch");
-            if (CollectionUtils.isNotEmpty(totalTradeList)) {
-                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {}", totalTradeList.size(), scanCount);
-                totalTradeList.stream().forEach(providerTrade -> {
-
-                    log.info("ProviderTradeService scanNotYetShippedTrade  同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
-                    tradePushERPService.syncDeliveryStatus(providerTrade, deliveryInfoVOList);
-                });
-            } else {
-                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {} scanCount++", totalTradeList.size(), scanCount);
-                scanCount = scanCount +1;
-                if (scanCount > ScanCount.COUNT_THREE.toValue()) {
-                    scanCount = 0;
-                }
-                redisService.setString(ORDER_DELIVER_SYNC_SCAN_COUNT, scanCount + "", 24 * 60 * 60);
-            }
-            stopWatch.stop();
-//            log.info("ProviderTradeService scanNotYetShippedTrade StopWatch statistics {}", stopWatch.prettyPrint());
-            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
-                log.info("ProviderTradeService scanNotYetShippedTrade StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
-            }
-        } catch (Exception e) {
-            log.error("Error message ： #批量同步发货状态异常:{}",e.getMessage(), e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    public void scanNotYetShippedTrade(int pageSize, String ptid) {
+//        RLock lock = redissonClient.getLock(FIND_NOT_YET_SHIPPED_TRADE);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            int scanCount = 0;
+//            String scanCountStr = redisService.getString(ORDER_DELIVER_SYNC_SCAN_COUNT);
+//            if (StringUtils.isNotBlank(scanCountStr)) {
+//                scanCount = Integer.parseInt(scanCountStr);
+//            }
+//
+//            StopWatch stopWatch = new StopWatch();
+//            stopWatch.start("同步普通订单发货状态获取 StopWatch");
+//            /**
+//             * 普通订单发货状态更新
+//             */
+//            // 查询scanCount小于3或scanCount不存在的数据
+//            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.REGULAR_ORDER_ZERO.toValue(), scanCount);
+//            log.info("ProviderTradeService scanNotYetShippedTrade normal query:{}", query);
+//            List<ProviderTrade> providerTrades = mongoTemplate.find(query.limit(pageSize), ProviderTrade.class);
+//            stopWatch.stop();
+//
+//            /**
+//             * 周期购订单发货单状态更新
+//             */
+//            stopWatch.start("同步周期购订单发货状态获取 StopWatch");
+//            // 查询zhouqigou scanCount小于3或scanCount不存在的数据
+//            Query cycleQuery = this.queryProviderTradeCondition(ptid, OrderTypeEnums.CYCLE_ORDER_TWO.toValue(), scanCount);
+//            log.info("ProviderTradeService scanNotYetShippedTrade cycle query:{}", query);
+//            List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery.limit(pageSize), ProviderTrade.class);
+//            stopWatch.stop();
+//
+//            List<ProviderTrade> totalTradeList = Stream.of(providerTrades, cycleBuyTradeList)
+//                            .flatMap(Collection::stream)
+//                            .collect(Collectors.toList());
+//            List<DeliveryInfoVO> deliveryInfoVOList = new ArrayList<>();
+//
+//            stopWatch.start("同步订单发货状态/添加canCount StopWatch");
+//            if (CollectionUtils.isNotEmpty(totalTradeList)) {
+//                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {}", totalTradeList.size(), scanCount);
+//                totalTradeList.stream().forEach(providerTrade -> {
+//
+//                    log.info("ProviderTradeService scanNotYetShippedTrade  同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
+//                    tradePushERPService.syncDeliveryStatus(providerTrade, deliveryInfoVOList);
+//                });
+//            } else {
+//                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {} scanCount++", totalTradeList.size(), scanCount);
+//                scanCount = scanCount +1;
+//                if (scanCount > ScanCount.COUNT_THREE.toValue()) {
+//                    scanCount = 0;
+//                }
+//                redisService.setString(ORDER_DELIVER_SYNC_SCAN_COUNT, scanCount + "", 24 * 60 * 60);
+//            }
+//            stopWatch.stop();
+////            log.info("ProviderTradeService scanNotYetShippedTrade StopWatch statistics {}", stopWatch.prettyPrint());
+//            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
+//                log.info("ProviderTradeService scanNotYetShippedTrade StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
+//            }
+//        } catch (Exception e) {
+//            log.error("Error message ： #批量同步发货状态异常:{}",e.getMessage(), e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
     /**
      * @description 同步历史发货单状态(创建时间大于当前时间7天的订单)
      * @param startTime 发货开始时间
      * @param endTime 发货结束时间
      */
-    public void batchSyncHistoryOrderStatus(String startTime,String endTime,int pageSize,int pageNum) {
-        RLock lock = redissonClient.getLock(HISTORY_NOT_YET_SHIPPED_ORDER);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            HistoryDeliveryInfoRequest historyDeliveryInfoRequest = HistoryDeliveryInfoRequest.builder()
-                    .startDeliveryDate(startTime)
-                    .pageSize(pageSize)
-                    .endDeliveryDate(endTime)
-                    .pageNum(pageNum)
-                    .build();
-
-            List<DeliveryInfoVO> deliveryInfoVOList = guanyierpProvider
-                    .getHistoryDeliveryStatus(historyDeliveryInfoRequest).getContext().getDeliveryInfoVOList();
-
-            if (CollectionUtils.isNotEmpty(deliveryInfoVOList)){
-                deliveryInfoVOList.forEach(deliveryInfoVO -> {
-                    // 获取所有子订单的商品信息
-                    List<DeliveryInfoVO> deliveryInfoVOS = deliveryInfoVOList
-                            .stream()
-                            .filter(deliveryInfoVO1 -> deliveryInfoVO1.getPlatformCode().equals(deliveryInfoVO.getPlatformCode()))
-                            .collect(Collectors.toList());
-                    // 查询数据库中信息
-                    ProviderTrade providerTrade = mongoTemplate.findById(deliveryInfoVO.getPlatformCode(), ProviderTrade.class);
-                    if (!ObjectUtils.isEmpty(providerTrade) &&
-                            DeliverStatus.SHIPPED != providerTrade.getTradeState().getDeliverStatus() &&
-                            FlowState.VOID != providerTrade.getTradeState().getFlowState()){
-                        log.info("#同步erp发货状态的订单:{},订单id:{},erp返回订单信息:{}", providerTrade.getTradeState(),providerTrade.getId(),deliveryInfoVOS);
-                        tradePushERPService.syncDeliveryStatus(providerTrade,deliveryInfoVOS);
-                    }
-                });
-            }
-        } catch (Exception e) {
-            log.error("Error message ： #同步历史发货单状态:{}",e.getMessage(), e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
+//    public void batchSyncHistoryOrderStatus(String startTime,String endTime,int pageSize,int pageNum) {
+//        RLock lock = redissonClient.getLock(HISTORY_NOT_YET_SHIPPED_ORDER);
+//        if (lock.isLocked()) {
+//            log.error("定时任务在执行中,下次执行.");
+//            return;
+//        }
+//        lock.lock();
+//        try {
+//            HistoryDeliveryInfoRequest historyDeliveryInfoRequest = HistoryDeliveryInfoRequest.builder()
+//                    .startDeliveryDate(startTime)
+//                    .pageSize(pageSize)
+//                    .endDeliveryDate(endTime)
+//                    .pageNum(pageNum)
+//                    .build();
+//
+//            List<DeliveryInfoVO> deliveryInfoVOList = guanyierpProvider
+//                    .getHistoryDeliveryStatus(historyDeliveryInfoRequest).getContext().getDeliveryInfoVOList();
+//
+//            if (CollectionUtils.isNotEmpty(deliveryInfoVOList)){
+//                deliveryInfoVOList.forEach(deliveryInfoVO -> {
+//                    // 获取所有子订单的商品信息
+//                    List<DeliveryInfoVO> deliveryInfoVOS = deliveryInfoVOList
+//                            .stream()
+//                            .filter(deliveryInfoVO1 -> deliveryInfoVO1.getPlatformCode().equals(deliveryInfoVO.getPlatformCode()))
+//                            .collect(Collectors.toList());
+//                    // 查询数据库中信息
+//                    ProviderTrade providerTrade = mongoTemplate.findById(deliveryInfoVO.getPlatformCode(), ProviderTrade.class);
+//                    if (!ObjectUtils.isEmpty(providerTrade) &&
+//                            DeliverStatus.SHIPPED != providerTrade.getTradeState().getDeliverStatus() &&
+//                            FlowState.VOID != providerTrade.getTradeState().getFlowState()){
+//                        log.info("#同步erp发货状态的订单:{},订单id:{},erp返回订单信息:{}", providerTrade.getTradeState(),providerTrade.getId(),deliveryInfoVOS);
+//                        tradePushERPService.syncDeliveryStatus(providerTrade,deliveryInfoVOS);
+//                    }
+//                });
+//            }
+//        } catch (Exception e) {
+//            log.error("Error message ： #同步历史发货单状态:{}",e.getMessage(), e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
 
     /**
      * 查询订单的前置条件
@@ -1398,218 +1447,218 @@ public class ProviderTradeService {
      * @param ptid 订单子id
      * @return
      */
-    public Query queryProviderTradeCondition(String ptid, Integer orderType, Integer scanCount) {
-        List<Criteria> criterias = new ArrayList<>();
-        // 查询条件组装
-        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-        criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
-        criterias.add(Criteria.where("tradeState.erpTradeState").is(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//    public Query queryProviderTradeCondition(String ptid, Integer orderType, Integer scanCount) {
+//        List<Criteria> criterias = new ArrayList<>();
+//        // 查询条件组装
+//        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//        criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
+//        criterias.add(Criteria.where("tradeState.erpTradeState").is(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//
+//        //单个订单发货状态同步(重置扫描次数,ptid为空)
+//        if (StringUtils.isNoneBlank(ptid)) {
+//
+//            criterias.add(Criteria.where("id").is(ptid));
+//            return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
+//        } else {
+//            // 重置订单扫描次数
+//            if (OrderTypeEnums.RESET_ORDER_THREE.toValue() == orderType) {
+//
+//                criterias.add(Criteria.where("tradeState.scanCount").is(ScanCount.COUNT_THREE.toValue()));
+//            } else {
+//                //增加时间限制
+//                LocalDateTime localDateTime = LocalDateTime.now().plusMonths(-6);
+//                criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+//                Criteria orCriteria = new Criteria();
+//                if (scanCount != null) {
+//                    orCriteria.orOperator(
+//                            Criteria.where("tradeState.scanCount").exists(false),
+//                            Criteria.where("tradeState.scanCount").is(scanCount));
+//                } else {
+//                    orCriteria.orOperator(
+//                            Criteria.where("tradeState.scanCount").exists(false),
+//                            Criteria.where("tradeState.scanCount").lt(ScanCount.COUNT_THREE.toValue()));
+//                }
+//                criterias.add(orCriteria);
+//            }
+//        }
+//
+//
+//
+//        // 周期购订单
+//        if (OrderTypeEnums.CYCLE_ORDER_TWO.toValue() == orderType){
+//
+//            criterias.add(Criteria.where("cycleBuyFlag").is(true));
+//        }
+//
+//        // 普通订单
+//        if (OrderTypeEnums.REGULAR_ORDER_ZERO.toValue() == orderType){
+//
+//            criterias.add(Criteria.where("cycleBuyFlag").is(false));
+//        }
+//
+//        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+//        return new Query(newCriteria);
+//    }
 
-        //单个订单发货状态同步(重置扫描次数,ptid为空)
-        if (StringUtils.isNoneBlank(ptid)) {
-
-            criterias.add(Criteria.where("id").is(ptid));
-            return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
-        } else {
-            // 重置订单扫描次数
-            if (OrderTypeEnums.RESET_ORDER_THREE.toValue() == orderType) {
-
-                criterias.add(Criteria.where("tradeState.scanCount").is(ScanCount.COUNT_THREE.toValue()));
-            } else {
-                //增加时间限制
-                LocalDateTime localDateTime = LocalDateTime.now().plusMonths(-6);
-                criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
-                Criteria orCriteria = new Criteria();
-                if (scanCount != null) {
-                    orCriteria.orOperator(
-                            Criteria.where("tradeState.scanCount").exists(false),
-                            Criteria.where("tradeState.scanCount").is(scanCount));
-                } else {
-                    orCriteria.orOperator(
-                            Criteria.where("tradeState.scanCount").exists(false),
-                            Criteria.where("tradeState.scanCount").lt(ScanCount.COUNT_THREE.toValue()));
-                }
-                criterias.add(orCriteria);
-            }
-        }
 
 
+//    public String changeTradeProvider(ChangeTradeProviderRequest request) {
+//        ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
+//        if (providerTrade == null) {
+//            log.warn("changeTradeProvider发货单不存在，request:{}", request);
+//            throw new SbcRuntimeException("K-000001");
+//        }
+//        if(providerTrade.getTradeState().getFlowState().equals(FlowState.VOID)){
+//            log.warn("changeTradeProvider已作废，请不要重复操作，request:{}", request);
+//            throw new SbcRuntimeException("K-000001");
+//        }
+//        List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());
+//        List<String> changeSkuIds = new ArrayList<>(request.getSkuNos().keySet());
+//        if (!oldSkuIds.containsAll(changeSkuIds)) {
+//            log.warn("changeTradeProvider商品信息不匹配，request:{}", request);
+//            throw new SbcRuntimeException("K-000001");
+//        }
+//        Optional<Trade> trade = tradeRepository.findById(providerTrade.getParentId());
+//        if (!trade.isPresent()) {
+//            log.warn("changeTradeProvider主单信息不存在，request:{}", request);
+//            throw new SbcRuntimeException("K-000001");
+//        }
+//        ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade, ProviderTrade.class);
+//        List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
+//        //查询sku信息
+//        GoodsInfoListByConditionRequest goodsInfoRequest = GoodsInfoListByConditionRequest.builder()
+//                .goodsInfoNos(newSkuNos)
+//                .build();
+//        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoResponse = goodsInfoQueryProvider.listByCondition(goodsInfoRequest);
+//        if (goodsInfoResponse == null || goodsInfoResponse.getContext() == null || CollectionUtils.isEmpty(goodsInfoResponse.getContext().getGoodsInfos())) {
+//            log.warn("changeTradeProvider替换的商品信息为空，request:{}", request);
+//            throw new SbcRuntimeException("K-000001");
+//        }
+//
+//        List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getContext().getGoodsInfos();
+//        //更新商品信息和供应商信息
+//        BaseResponse<ListNoDeleteStoreByIdsResponse> storesResposne =
+//                storeQueryProvider.listNoDeleteStoreByIds(ListNoDeleteStoreByIdsRequest.builder().storeIds(Arrays.asList(defaultProviderId)).build());
+//        StoreVO provider = storesResposne.getContext().getStoreVOList().get(0);
+//        List<TradeItem> newTradeItems = newProviderTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
+//        newTradeItems.forEach(item -> {
+//            Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
+//            if (goodsInfoVO.isPresent()) {
+//                item.setOid(generatorService.generateOid());
+//                item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
+//                item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
+//                item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
+//                item.setErpSpuNo(goodsInfoVO.get().getErpGoodsNo());
+//                item.setSpuId(goodsInfoVO.get().getGoodsId());
+//                item.setProviderId(defaultProviderId);
+//                // 供应商名称
+//                item.setProviderName(provider.getSupplierName());
+//                // 供应商编号
+//                item.setProviderCode(provider.getCompanyInfo().getCompanyCode());
+//            }
+//        });
+//        newProviderTrade.setTradeItems(newTradeItems);
+//        List<String> oids = providerTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).map(TradeItem::getOid).collect(Collectors.toList());
+//        newProviderTrade.getTradeState().setErpTradeState(DeliverStatus.NOT_YET_SHIPPED.toString());
+//        // 供应商信息
+//        newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
+//        newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
+//        newProviderTrade.getSupplier().setSupplierId(provider.getCompanyInfo().getCompanyInfoId());
+//        newProviderTrade.getSupplier().setSupplierCode(provider.getCompanyInfo().getCompanyCode());
+//        //若没有剩余商品，作废原订单
+//        List<TradeItem> leftTradeItems = providerTrade.getTradeItems().stream().filter(p->!changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
+//        if(CollectionUtils.isEmpty(leftTradeItems)) {
+//            providerTrade.getTradeState().setFlowState(FlowState.VOID);
+//            providerTrade.appendTradeEventLog(TradeEventLog
+//                    .builder()
+//                    .eventType(FlowState.VOID.getDescription())
+//                    .eventDetail(String.format("发货单更新为管易云发货，作废原订单，更新的商品:%s",JSON.toJSONString(request)))
+//                    .eventTime(LocalDateTime.now())
+//                    .build());
+//        }else{
+//            providerTrade.setTradeItems(leftTradeItems);
+//            providerTrade.appendTradeEventLog(TradeEventLog
+//                    .builder()
+//                    .eventType(FlowState.VOID.getDescription())
+//                    .eventDetail(String.format("发货单更新为管易云发货，更新的商品:%s",JSON.toJSONString(request)))
+//                    .eventTime(LocalDateTime.now())
+//                    .build());
+//        }
+//        providerTradeRepository.save(providerTrade);
+//        newProviderTrade.setId(generatorService.generateProviderTid());
+//        newProviderTrade.getTradeState().setPushCount(0);
+//        newProviderTrade.getTradeState().setFlowState(FlowState.AUDIT);
+//        newProviderTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
+//        //价格
+//        initPrice(newProviderTrade);
+//        providerTradeRepository.save(newProviderTrade);
+//        //更新trade的item信息
+//        List<TradeItem> tradeItems = new ArrayList<>(trade.get().getTradeItems().size());
+//        tradeItems.addAll(trade.get().getTradeItems().stream().filter(p->!oids.contains(p.getOid())).collect(Collectors.toList()));
+//        tradeItems.addAll(newProviderTrade.getTradeItems());
+//        trade.get().setTradeItems(tradeItems);
+//        tradeRepository.save(trade.get());
+//        return newProviderTrade.getId();
+//    }
 
-        // 周期购订单
-        if (OrderTypeEnums.CYCLE_ORDER_TWO.toValue() == orderType){
-
-            criterias.add(Criteria.where("cycleBuyFlag").is(true));
-        }
-
-        // 普通订单
-        if (OrderTypeEnums.REGULAR_ORDER_ZERO.toValue() == orderType){
-
-            criterias.add(Criteria.where("cycleBuyFlag").is(false));
-        }
-
-        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-        return new Query(newCriteria);
-    }
-
-
-
-    public String changeTradeProvider(ChangeTradeProviderRequest request) {
-        ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
-        if (providerTrade == null) {
-            log.warn("changeTradeProvider发货单不存在，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
-        if(providerTrade.getTradeState().getFlowState().equals(FlowState.VOID)){
-            log.warn("changeTradeProvider已作废，请不要重复操作，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
-        List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());
-        List<String> changeSkuIds = new ArrayList<>(request.getSkuNos().keySet());
-        if (!oldSkuIds.containsAll(changeSkuIds)) {
-            log.warn("changeTradeProvider商品信息不匹配，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
-        Optional<Trade> trade = tradeRepository.findById(providerTrade.getParentId());
-        if (!trade.isPresent()) {
-            log.warn("changeTradeProvider主单信息不存在，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
-        ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade, ProviderTrade.class);
-        List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
-        //查询sku信息
-        GoodsInfoListByConditionRequest goodsInfoRequest = GoodsInfoListByConditionRequest.builder()
-                .goodsInfoNos(newSkuNos)
-                .build();
-        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoResponse = goodsInfoQueryProvider.listByCondition(goodsInfoRequest);
-        if (goodsInfoResponse == null || goodsInfoResponse.getContext() == null || CollectionUtils.isEmpty(goodsInfoResponse.getContext().getGoodsInfos())) {
-            log.warn("changeTradeProvider替换的商品信息为空，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
-
-        List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getContext().getGoodsInfos();
-        //更新商品信息和供应商信息
-        BaseResponse<ListNoDeleteStoreByIdsResponse> storesResposne =
-                storeQueryProvider.listNoDeleteStoreByIds(ListNoDeleteStoreByIdsRequest.builder().storeIds(Arrays.asList(defaultProviderId)).build());
-        StoreVO provider = storesResposne.getContext().getStoreVOList().get(0);
-        List<TradeItem> newTradeItems = newProviderTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
-        newTradeItems.forEach(item -> {
-            Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
-            if (goodsInfoVO.isPresent()) {
-                item.setOid(generatorService.generateOid());
-                item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
-                item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
-                item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
-                item.setErpSpuNo(goodsInfoVO.get().getErpGoodsNo());
-                item.setSpuId(goodsInfoVO.get().getGoodsId());
-                item.setProviderId(defaultProviderId);
-                // 供应商名称
-                item.setProviderName(provider.getSupplierName());
-                // 供应商编号
-                item.setProviderCode(provider.getCompanyInfo().getCompanyCode());
-            }
-        });
-        newProviderTrade.setTradeItems(newTradeItems);
-        List<String> oids = providerTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).map(TradeItem::getOid).collect(Collectors.toList());
-        newProviderTrade.getTradeState().setErpTradeState(DeliverStatus.NOT_YET_SHIPPED.toString());
-        // 供应商信息
-        newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
-        newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
-        newProviderTrade.getSupplier().setSupplierId(provider.getCompanyInfo().getCompanyInfoId());
-        newProviderTrade.getSupplier().setSupplierCode(provider.getCompanyInfo().getCompanyCode());
-        //若没有剩余商品，作废原订单
-        List<TradeItem> leftTradeItems = providerTrade.getTradeItems().stream().filter(p->!changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(leftTradeItems)) {
-            providerTrade.getTradeState().setFlowState(FlowState.VOID);
-            providerTrade.appendTradeEventLog(TradeEventLog
-                    .builder()
-                    .eventType(FlowState.VOID.getDescription())
-                    .eventDetail(String.format("发货单更新为管易云发货，作废原订单，更新的商品:%s",JSON.toJSONString(request)))
-                    .eventTime(LocalDateTime.now())
-                    .build());
-        }else{
-            providerTrade.setTradeItems(leftTradeItems);
-            providerTrade.appendTradeEventLog(TradeEventLog
-                    .builder()
-                    .eventType(FlowState.VOID.getDescription())
-                    .eventDetail(String.format("发货单更新为管易云发货，更新的商品:%s",JSON.toJSONString(request)))
-                    .eventTime(LocalDateTime.now())
-                    .build());
-        }
-        providerTradeRepository.save(providerTrade);
-        newProviderTrade.setId(generatorService.generateProviderTid());
-        newProviderTrade.getTradeState().setPushCount(0);
-        newProviderTrade.getTradeState().setFlowState(FlowState.AUDIT);
-        newProviderTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
-        //价格
-        initPrice(newProviderTrade);
-        providerTradeRepository.save(newProviderTrade);
-        //更新trade的item信息
-        List<TradeItem> tradeItems = new ArrayList<>(trade.get().getTradeItems().size());
-        tradeItems.addAll(trade.get().getTradeItems().stream().filter(p->!oids.contains(p.getOid())).collect(Collectors.toList()));
-        tradeItems.addAll(newProviderTrade.getTradeItems());
-        trade.get().setTradeItems(tradeItems);
-        tradeRepository.save(trade.get());
-        return newProviderTrade.getId();
-    }
-
-    private void initPrice(ProviderTrade providerTrade){
-
-        // 拆单后，重新计算价格信息
-        TradePrice tradePrice = providerTrade.getTradePrice();
-        // 商品总价
-        BigDecimal goodsPrice = BigDecimal.ZERO;
-        // 订单总价:实付金额
-        BigDecimal orderPrice = BigDecimal.ZERO;
-        // 订单供货价总额
-        BigDecimal orderSupplyPrice = BigDecimal.ZERO;
-        //积分价
-        Long buyPoints = NumberUtils.LONG_ZERO;
-        for (TradeItem providerTradeItem : providerTrade.getTradeItems()) {
-            //积分
-            if (Objects.nonNull(providerTradeItem.getBuyPoint())) {
-                buyPoints += providerTradeItem.getBuyPoint();
-            }
-            // 商品总价
-            goodsPrice =
-                    goodsPrice.add(providerTradeItem.getPrice().multiply(new BigDecimal(providerTradeItem.getNum())));
-            // 商品分摊价格
-            BigDecimal splitPrice = Objects.isNull(providerTradeItem.getSplitPrice()) ? BigDecimal.ZERO :
-                    providerTradeItem.getSplitPrice();
-            orderPrice = orderPrice.add(splitPrice);
-            // 订单供货价总额
-            orderSupplyPrice = orderSupplyPrice.add(providerTradeItem.getTotalSupplyPrice());
-
-        }
-
-        // 商品总价
-        tradePrice.setGoodsPrice(goodsPrice);
-        tradePrice.setOriginPrice(goodsPrice);
-        // 订单总价
-        tradePrice.setTotalPrice(orderPrice);
-        tradePrice.setTotalPayCash(orderPrice);
-        // 订单供货价总额
-        tradePrice.setOrderSupplyPrice(orderSupplyPrice);
-        //积分价
-        tradePrice.setBuyPoints(buyPoints);
-        tradePrice.setDeliveryPrice(BigDecimal.ZERO);
-        //实际金额
-        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getSplitPrice()!=null)){
-            tradePrice.setActualPrice(providerTrade.getTradeItems().stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
-        }
-        Long points = 0L;
-        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getPoints()!=null)){
-            points=providerTrade.getTradeItems().stream().filter(p->p.getPoints()!=null).mapToLong(TradeItem::getPoints).sum();
-        }
-        //计算积分的总和
-        BigDecimal bigDecimal=new BigDecimal(points);
-        //计算积分金额的总和
-        tradePrice.setActualPoints(bigDecimal.divide(new BigDecimal(100)));
-        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getKnowledge()!=null)){
-            tradePrice.setActualKnowledge(providerTrade.getTradeItems().stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
-        }
-        providerTrade.setTradePrice(tradePrice);
-    }
+//    private void initPrice(ProviderTrade providerTrade){
+//
+//        // 拆单后，重新计算价格信息
+//        TradePrice tradePrice = providerTrade.getTradePrice();
+//        // 商品总价
+//        BigDecimal goodsPrice = BigDecimal.ZERO;
+//        // 订单总价:实付金额
+//        BigDecimal orderPrice = BigDecimal.ZERO;
+//        // 订单供货价总额
+//        BigDecimal orderSupplyPrice = BigDecimal.ZERO;
+//        //积分价
+//        Long buyPoints = NumberUtils.LONG_ZERO;
+//        for (TradeItem providerTradeItem : providerTrade.getTradeItems()) {
+//            //积分
+//            if (Objects.nonNull(providerTradeItem.getBuyPoint())) {
+//                buyPoints += providerTradeItem.getBuyPoint();
+//            }
+//            // 商品总价
+//            goodsPrice =
+//                    goodsPrice.add(providerTradeItem.getPrice().multiply(new BigDecimal(providerTradeItem.getNum())));
+//            // 商品分摊价格
+//            BigDecimal splitPrice = Objects.isNull(providerTradeItem.getSplitPrice()) ? BigDecimal.ZERO :
+//                    providerTradeItem.getSplitPrice();
+//            orderPrice = orderPrice.add(splitPrice);
+//            // 订单供货价总额
+//            orderSupplyPrice = orderSupplyPrice.add(providerTradeItem.getTotalSupplyPrice());
+//
+//        }
+//
+//        // 商品总价
+//        tradePrice.setGoodsPrice(goodsPrice);
+//        tradePrice.setOriginPrice(goodsPrice);
+//        // 订单总价
+//        tradePrice.setTotalPrice(orderPrice);
+//        tradePrice.setTotalPayCash(orderPrice);
+//        // 订单供货价总额
+//        tradePrice.setOrderSupplyPrice(orderSupplyPrice);
+//        //积分价
+//        tradePrice.setBuyPoints(buyPoints);
+//        tradePrice.setDeliveryPrice(BigDecimal.ZERO);
+//        //实际金额
+//        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getSplitPrice()!=null)){
+//            tradePrice.setActualPrice(providerTrade.getTradeItems().stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+//        }
+//        Long points = 0L;
+//        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getPoints()!=null)){
+//            points=providerTrade.getTradeItems().stream().filter(p->p.getPoints()!=null).mapToLong(TradeItem::getPoints).sum();
+//        }
+//        //计算积分的总和
+//        BigDecimal bigDecimal=new BigDecimal(points);
+//        //计算积分金额的总和
+//        tradePrice.setActualPoints(bigDecimal.divide(new BigDecimal(100)));
+//        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getKnowledge()!=null)){
+//            tradePrice.setActualKnowledge(providerTrade.getTradeItems().stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
+//        }
+//        providerTrade.setTradePrice(tradePrice);
+//    }
 
 //    /**
 //     * 重置推送次数
@@ -1644,24 +1693,24 @@ public class ProviderTradeService {
 //        }
 //    }
 
-    public Query queryProviderTradePushCountCondition(ProviderTradeErpRequest request) {
-        List<Criteria> criterias = new ArrayList<>();
-        // 查询条件组装
-        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-        criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
-        criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
-        criterias.add(Criteria.where("tradeState.pushCount").gt(3));
-        if (StringUtils.isNoneBlank(request.getPtid())) {
-            criterias.add(Criteria.where("id").is(request.getPtid()));
-            return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
-        }
-        if (request.getPageSize() <= 0) {
-            request.setPageSize(200);
-        }
-        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-        return new Query(newCriteria).limit(request.getPageSize());
-    }
+//    public Query queryProviderTradePushCountCondition(ProviderTradeErpRequest request) {
+//        List<Criteria> criterias = new ArrayList<>();
+//        // 查询条件组装
+//        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//        criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
+//        criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+//        criterias.add(Criteria.where("tradeState.pushCount").gt(3));
+//        if (StringUtils.isNoneBlank(request.getPtid())) {
+//            criterias.add(Criteria.where("id").is(request.getPtid()));
+//            return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
+//        }
+//        if (request.getPageSize() <= 0) {
+//            request.setPageSize(200);
+//        }
+//        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+//        return new Query(newCriteria).limit(request.getPageSize());
+//    }
 
 
 

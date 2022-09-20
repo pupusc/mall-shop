@@ -21,6 +21,7 @@ public interface TradeRecordRepository extends JpaRepository<PayTradeRecord, Str
 
     PayTradeRecord findByBusinessId(String businessId);
 
+    @Query(value = "select * from pay_trade_record where business_id = ?1", nativeQuery = true)
     List<PayTradeRecord> listPayTradeRecord(String businessId);
 
     PayTradeRecord findTopByBusinessIdAndStatus(String businessId, TradeStatus status);

@@ -71,6 +71,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -361,9 +362,12 @@ public class GrouponOrderService {
             providerTradeService.updateProviderTradeList(providerTradeList);
         }
 
-        providerTradeList.forEach(providerTrade -> {
-            providerTradeService.singlePushOrder(providerTrade);
-        });
+//        providerTradeList.forEach(providerTrade -> {
+//            providerTradeService.singlePushOrder(providerTrade);
+//        });
+        for (Trade trade : tradeList) {
+            providerTradeService.singlePushOrder(Collections.singletonList(trade));
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -28,33 +30,38 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 
 	@Override
-	public BaseResponse<Long> createOrder(CreateOrderReq request) {
+	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
+		String errorContent = "";
 		try {
-			String host = routerConfig.getHost();
-			log.info("createOrder start，request:{}", request);
-//			String host = routerConfig.getHostLocal();
+//			String host = routerConfig.getHost();
+			log.info("createOrder start，request:{}", JSON.toJSONString(request));
+			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("order.createOrder");
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
+
 			log.info("createOrder end，result:{}", str);
 			JSONObject json = JSON.parseObject(str);
-
 			String status = json.getString("status");
-			// 成功
-			if ("0000".equals(status)) {
-				return BaseResponse.success(json.getLong("data"));
+			errorContent = json.getString("msg");
+			CreateOrderResp createOrderResp = new CreateOrderResp();
+			if (Objects.equals("0000", status)) {
+				String data = json.getString("data");
+				createOrderResp.setThirdOrderId(data);
+				return BaseResponse.success(createOrderResp);
 			}
+
+
 			// 重复订单
 			if ("40000".equals(status)) {
-				return BaseResponse.info("40000", json.getString("msg"));
+				return BaseResponse.info("40000", errorContent);
 			}
-			// 返回异常信息
-			return BaseResponse.info(status, json.getString("msg"));
+
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
 		}
-		return BaseResponse.FAILED();
+		return BaseResponse.info("99999", errorContent);
 	}
 
 //	@Override

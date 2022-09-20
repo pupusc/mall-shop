@@ -1,8 +1,10 @@
 package com.soybean.mall.order.dszt;
 
 
+import com.soybean.mall.order.enums.OrderSourceEnum;
 import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -20,11 +22,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
+import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
+import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -34,6 +40,7 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,6 +52,7 @@ import org.springframework.stereotype.Service;
  * Date       : 2022/9/10 2:21 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
+@Slf4j
 @Service
 public class TransferService {
 
@@ -158,32 +166,6 @@ public class TransferService {
                 }
             }
 
-//            //积分
-//            if (tradeItem.getPoints() != null && tradeItem.getPoints() > 0L) {
-//                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-//                buyDiscountReq.setAmount(tradeItem.getPoints().intValue());
-//                buyDiscountReq.setCouponId("");
-//                buyDiscountReq.setDiscountNo("");
-//                buyDiscountReq.setDiscountName("积分");
-//                buyDiscountReq.setChangeType("DISCOUNT");
-//                buyDiscountReq.setMemo("积分");
-//                buyDiscountReq.setCostAssume("CHANNEL");
-//                buyDiscountReqList.add(buyDiscountReq);
-//            }
-//
-//            //知豆
-//            if (tradeItem.getKnowledge() != null && tradeItem.getKnowledge() > 0L) {
-//                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-//                buyDiscountReq.setAmount(tradeItem.getKnowledge().intValue());
-//                buyDiscountReq.setCouponId("");
-//                buyDiscountReq.setDiscountNo("");
-//                buyDiscountReq.setDiscountName("知豆");
-//                buyDiscountReq.setChangeType("DISCOUNT");
-//                buyDiscountReq.setMemo("知豆");
-//                buyDiscountReq.setCostAssume("CHANNEL");
-//                buyDiscountReqList.add(buyDiscountReq);
-//            }
-
             buyGoodsReq.setGoodsDiscounts(buyDiscountReqList);
             result.add(buyGoodsReq);
         }
@@ -253,6 +235,11 @@ public class TransferService {
      * @return
      */
     public CreateOrderReq trade2CreateOrderReq(Trade trade) {
+        if (!Objects.equals(trade.getTradeState().getPayState(), PayState.PAID)) {
+            log.info("TransferService trade2CreateOrderReq tradeId {} 当前支付状态为：{} 不推送", trade.getId(), trade.getTradeState().getPayState());
+            return null;
+        }
+
     	SalePlatformQueryReq salePlatformQueryReq = new SalePlatformQueryReq();
     	salePlatformQueryReq.setTid(21L);
         SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(salePlatformQueryReq).getContext();
@@ -293,8 +280,21 @@ public class TransferService {
 
         CreateOrderReq createOrderReq = new CreateOrderReq();
 
-        createOrderReq.setPlatformCode(trade.getId());
-        createOrderReq.setOrderSource(null); // H5_MALL  VIDEO_MALL MINIAPP_MALL  PLATFORM_MALL
+        createOrderReq.setPlatformOrderId(trade.getId());
+        createOrderReq.setPlatformCode("WAN_MI");
+        //订单来源
+        OrderSourceEnum orderSourceEnum = OrderSourceEnum.H5_MALL;
+        if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+            orderSourceEnum = OrderSourceEnum.MINIAPP_MALL;
+            if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                orderSourceEnum = OrderSourceEnum.VIDEO_MALL;
+            }
+        }
+        if (Objects.equals(trade.getOutTradePlat(), OutTradePlatEnum.FDDS_PERFORM.getCode())) {
+            orderSourceEnum = OrderSourceEnum.PLATFORM_MALL;
+        }
+
+        createOrderReq.setOrderSource(orderSourceEnum.getCode());
         createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
         createOrderReq.setDeviceType(DeviceTypeEnum.WEB.getType());
