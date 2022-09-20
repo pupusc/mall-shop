@@ -69,6 +69,7 @@ public class TransferService {
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
 
+    @Autowired
     private PayQueryProvider payQueryProvider;
 
 
