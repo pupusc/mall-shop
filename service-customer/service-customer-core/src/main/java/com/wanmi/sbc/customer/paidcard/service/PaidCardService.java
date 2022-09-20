@@ -622,21 +622,21 @@ public class PaidCardService {
 			erpTradePayChannel = ERPTradePayChannel.other;
 		}
 
-		//将付费卡订单推送到ERP
-		this.paidCardRuleService.pushPaidCard(PaidCardERPPushDTO.builder()
-				.account(customer.getCustomerAccount())
-				.payTime(paidCardBuyRecord.getCreateTime())
-				.payTypeCode(erpTradePayChannel.toValue())
-				.phone(customer.getCustomerDetail().getContactPhone())
-				.platformCode(paidCardBuyRecord.getPayCode())
-				.price(paidCardRule.getPrice().toString())
-				//.shopCode("99999")
-				.skuCode(paidCardRule.getErpSkuCode())
-				.spuCode(paidCard.getErpSpuCode())
-				.vipCode(customer.getCustomerAccount())
-				.beginTime(paidCardBuyRecord.getBeginTime())
-				.endTime(paidCardBuyRecord.getInvalidTime())
-				.build());
+//		//将付费卡订单推送到ERP
+//		this.paidCardRuleService.pushPaidCard(PaidCardERPPushDTO.builder()
+//				.account(customer.getCustomerAccount())
+//				.payTime(paidCardBuyRecord.getCreateTime())
+//				.payTypeCode(erpTradePayChannel.toValue())
+//				.phone(customer.getCustomerDetail().getContactPhone())
+//				.platformCode(paidCardBuyRecord.getPayCode())
+//				.price(paidCardRule.getPrice().toString())
+//				//.shopCode("99999")
+//				.skuCode(paidCardRule.getErpSkuCode())
+//				.spuCode(paidCard.getErpSpuCode())
+//				.vipCode(customer.getCustomerAccount())
+//				.beginTime(paidCardBuyRecord.getBeginTime())
+//				.endTime(paidCardBuyRecord.getInvalidTime())
+//				.build());
 
 
 	}
