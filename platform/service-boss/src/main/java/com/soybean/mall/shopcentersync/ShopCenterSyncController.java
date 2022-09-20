@@ -49,6 +49,7 @@ public class ShopCenterSyncController {
 
 	@PostMapping("/syncData")
 	public ShopCenterSyncResponse<Boolean> syncData(@RequestBody SyncDataReq request) {
+		logger.info("ShopCenterSyncController.syncData.request={}", request);
 		Integer tag = request.getTag();
 		String data = request.getData();
 		String requestId = request.getRequestId();
