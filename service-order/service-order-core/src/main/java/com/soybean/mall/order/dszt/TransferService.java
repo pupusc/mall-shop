@@ -21,6 +21,7 @@ import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,10 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
+import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
+import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressListRequest;
+import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListResponse;
+import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +77,9 @@ public class TransferService {
     @Autowired
     private PayQueryProvider payQueryProvider;
 
+    @Autowired
+    private PlatformAddressQueryProvider platformAddressQueryProvider;
+
 
     //转换率
     private static BigDecimal exchangeRate = new BigDecimal("100");
@@ -87,11 +95,35 @@ public class TransferService {
      */
     private CreateOrderReq.BuyAddressReq packageAddress(Consignee consignee, CustomerDetailGetCustomerIdResponse customerDetail) {
 
+        //获取省市信息
+        String provinceName = consignee.getProvinceName();
+        String cityName = consignee.getCityName();
+        String areaName = consignee.getAreaName();
+        PlatformAddressListRequest platformAddressListRequest = new PlatformAddressListRequest();
+        platformAddressListRequest.setIdList(Arrays.asList(provinceName, cityName, areaName));
+        platformAddressListRequest.setLeafFlag(false);
+        PlatformAddressListResponse platformAddressListResponse =
+                platformAddressQueryProvider.list(platformAddressListRequest).getContext();
+        List<PlatformAddressVO> platformAddressVOList = platformAddressListResponse.getPlatformAddressVOList();
+        if (CollectionUtils.isNotEmpty(platformAddressVOList)) {
+            for (PlatformAddressVO platformAddressVO : platformAddressVOList) {
+                if (Objects.equals(platformAddressVO.getId(), provinceName)) {
+                    provinceName = platformAddressVO.getAddrName();
+                }
+                if (Objects.equals(platformAddressVO.getId(), cityName)) {
+                    cityName = platformAddressVO.getAddrName();
+                }
+                if (Objects.equals(platformAddressVO.getId(), areaName)) {
+                    areaName = platformAddressVO.getAddrName();
+                }
+            }
+        }
+
         //订单收货地址
         CreateOrderReq.BuyAddressReq buyAddressReq = new CreateOrderReq.BuyAddressReq();
-        buyAddressReq.setProvinceId(consignee.getProvinceName());
-        buyAddressReq.setCityId(consignee.getCityName());
-        buyAddressReq.setCountryId(consignee.getAreaName());
+        buyAddressReq.setProvinceId(provinceName);
+        buyAddressReq.setCityId(cityName);
+        buyAddressReq.setCountryId(areaName);
         buyAddressReq.setFullAddress(consignee.getDetailAddress());
         buyAddressReq.setAddressType("ORDER");
         buyAddressReq.setContactName(consignee.getName());
