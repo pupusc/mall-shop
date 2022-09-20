@@ -295,7 +295,10 @@ public class TransferService {
         }
 
         createOrderReq.setOrderSource(orderSourceEnum.getCode());
-        createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
+//        createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
+        CreateOrderReq.OrderUserInfoReq orderUserInfoReq = new CreateOrderReq.OrderUserInfoReq();
+        orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
+        createOrderReq.setOrderUserInfoBO(orderUserInfoReq);
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
         createOrderReq.setDeviceType(DeviceTypeEnum.WEB.getType());
         createOrderReq.setSaleChannelId(salePlatformResp.getSaleChannelId());

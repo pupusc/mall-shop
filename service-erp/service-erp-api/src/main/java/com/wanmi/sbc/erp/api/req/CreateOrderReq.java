@@ -9,7 +9,6 @@ import lombok.Data;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +38,10 @@ public class CreateOrderReq {
      */
     private String platformOrderId;
 
-    /**
-     * 用户id [主占用户id]
-     */
-    private Long userId;
+//    /**
+//     * 用户id [主占用户id]
+//     */
+//    private Long userId;
 
     /**
      * 买家留言
@@ -124,6 +123,11 @@ public class CreateOrderReq {
 //    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
 //    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 //    private LocalDateTime completeTime;
+
+    /**
+     * 用户系统的用户下单的使用的用户信息
+     */
+    private OrderUserInfoReq orderUserInfoBO;
 
     /**
      * 快照存储信息 [存储信息]
@@ -345,4 +349,46 @@ public class CreateOrderReq {
         private LocalDateTime payTime;
     }
 
+
+    @Data
+    public static class OrderUserInfoReq {
+        /**
+         * 用户编号（为空时，走注册流程）
+         */
+        private Integer userId;
+//        /**
+//         * 手机区号
+//         */
+//        private String area;
+//
+//        /**
+//         * 手机号码
+//         */
+//        private String mobile;
+//
+//        /**
+//         * 昵称
+//         */
+//        private String nickName;
+
+//        /**
+//         * 注册来源
+//         */
+//        private String registerSource;
+//
+//        /**
+//         * 用户归属
+//         */
+//        private String registerChannelId;
+//
+//        /**
+//         * 推广人id或手机
+//         */
+//        private String promoUser;
+//
+//        /**
+//         * 1 c端用户,2 企读用户
+//         */
+//        private Integer belong;
+    }
 }
