@@ -98,6 +98,9 @@ public class ShopCenterSyncController {
 		for (String goodsId : goodsStockMap.keySet()) {
 			redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
 		}
+		for (String goodsInfoId : goodsInfoStockMap.keySet()) {
+			redisService.delete(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+		}
 
 		// 更新ES
 		if (MapUtils.isNotEmpty(goodsStockMap)) {

@@ -6,7 +6,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.OrdItemReq;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
+import com.wanmi.sbc.erp.api.resp.OrdItemResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
@@ -167,5 +169,22 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 		}
 		return BaseResponse.success(Collections.emptyList());
 	}
-	
+
+	@Override
+	public BaseResponse<List<OrdItemResp>> listOrdItem(OrdItemReq request) {
+		try {
+			String host = routerConfig.getHost();
+			String url = routerConfig.getUrl("order.listOrdItem");
+
+
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
+			String str = EntityUtils.toString(response.getEntity());
+			List<OrdItemResp> data = JSON.parseArray(str, OrdItemResp.class);
+
+			return BaseResponse.success(data);
+		} catch (Exception e) {
+			log.warn("ShopCenterSaleAfterController.getPaymentByOrderId.异常", e);
+		}
+		return BaseResponse.success(Collections.emptyList());
+	}
 }

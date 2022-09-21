@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.info.service;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterCostPriceSyncResp;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterStockSyncResp;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -39,7 +40,7 @@ public class ShopCenterGoodsStockService {
 		if (StringUtils.isEmpty(goodsCode) || Objects.isNull(quantity)) {
 			return BaseResponse.success(resp);
 		}
-		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNo(goodsCode);
+		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNoAndDelFlag(goodsCode, DeleteFlag.NO);
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
@@ -70,7 +71,7 @@ public class ShopCenterGoodsStockService {
 		if (StringUtils.isEmpty(goodsCode) || Objects.isNull(costPrice)) {
 			return BaseResponse.success(resp);
 		}
-		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNo(goodsCode);
+		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNoAndDelFlag(goodsCode, DeleteFlag.NO);
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
