@@ -39,7 +39,7 @@ public class ShopCenterGoodsStockService {
 		if (StringUtils.isEmpty(goodsCode) || Objects.isNull(quantity)) {
 			return BaseResponse.success(resp);
 		}
-		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNo(goodsCode);
+		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNoAAndDelFlag(goodsCode, 0);
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
@@ -70,7 +70,7 @@ public class ShopCenterGoodsStockService {
 		if (StringUtils.isEmpty(goodsCode) || Objects.isNull(costPrice)) {
 			return BaseResponse.success(resp);
 		}
-		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNo(goodsCode);
+		List<GoodsInfo> infoList = goodsInfoRepository.findByErpGoodsInfoNoAAndDelFlag(goodsCode, 0);
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
