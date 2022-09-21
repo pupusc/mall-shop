@@ -3,7 +3,9 @@ package com.wanmi.sbc.erp.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.OrdItemReq;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
+import com.wanmi.sbc.erp.api.resp.OrdItemResp;
 import com.wanmi.sbc.erp.api.resp.OrdOrderResp;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.PaymentResp;
@@ -54,5 +56,9 @@ public interface ShopCenterOrderProvider {
 
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/getPaymentByOrderId")
     BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId);
+
+
+    @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrdItem")
+    BaseResponse<List<OrdItemResp>> listOrdItem(OrdItemReq request);
 
 }
