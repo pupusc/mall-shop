@@ -245,10 +245,10 @@ public class OrderDetailResp {
          */
         private Long tid;
 
-//        /**
-//         * 平台子单ID
-//         */
-//        private String  platformItemId;
+        /**
+         * 平台子单ID
+         */
+        private String  platformItemId;
 
         /**
          * 价格 【商品金额】

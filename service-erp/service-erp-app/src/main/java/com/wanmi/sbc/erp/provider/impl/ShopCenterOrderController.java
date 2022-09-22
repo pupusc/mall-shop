@@ -66,35 +66,14 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 		return BaseResponse.info("99999", errorContent);
 	}
 
-//	@Override
-//	public BaseResponse<OrderDetailResp> detailByOrderNumber(Long orderNumber) {
-//		try {
-//			String host = routerConfig.getHost();
-//			String url = routerConfig.getUrl("order.detailByOrderNumber");
-//
-//			JSONObject param = new JSONObject();
-//			param.put("orderNumber", orderNumber);
-//
-//			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
-//			String str = EntityUtils.toString(response.getEntity());
-//			JSONObject json = JSON.parseObject(str);
-//			OrderDetailResp data = JSON.parseObject(json.getString("data"), OrderDetailResp.class);
-//
-//			return BaseResponse.success(data);
-//		} catch (Exception e) {
-//			log.warn("ShopCenterOrderController.detailByOrderNumber异常", e);
-//		}
-//		return BaseResponse.FAILED();
-//	}
-	
 	@Override
-	public BaseResponse<OrderDetailResp> orderDetailByOrderNumber(String orderNumber) {
+	public BaseResponse<OrderDetailResp> detailByPlatformOrderId(String platformOrderId) {
 		try {
 			String host = routerConfig.getHost();
-			String url = routerConfig.getUrl("order.detailByOrderNumber");
+			String url = routerConfig.getUrl("order.detailByPlatformOrderId");
 
 			JSONObject param = new JSONObject();
-			param.put("orderNumber", orderNumber);
+			param.put("platformOrderId", platformOrderId);
 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
@@ -103,7 +82,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			return BaseResponse.success(data);
 		} catch (Exception e) {
-			log.warn("ShopCenterOrderController.detailByOrderNumber异常", e);
+			log.warn("ShopCenterOrderController.detailByPlatformOrderId.异常", e);
 		}
 		return BaseResponse.FAILED();
 	}

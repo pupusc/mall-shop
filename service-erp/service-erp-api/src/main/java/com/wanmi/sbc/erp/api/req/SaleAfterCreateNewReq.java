@@ -85,7 +85,6 @@ public class SaleAfterCreateNewReq {
         private String memo;
     }
 
-
     /**
      * 快递费
      */
@@ -96,8 +95,6 @@ public class SaleAfterCreateNewReq {
          */
         private List<SaleAfterRefundDetailReq> saleAfterRefundDetailBOList;
     }
-
-
     /**
      * 支付信息
      */
@@ -119,7 +116,6 @@ public class SaleAfterCreateNewReq {
          */
         private String refundReason;
     }
-
 
     @Data
     public static class SaleAfterItemReq {
@@ -170,7 +166,6 @@ public class SaleAfterCreateNewReq {
          */
         private List<SaleAfterRefundDetailReq> saleAfterRefundDetailBOList;
     }
-
 
     /**
      * 退款主单
