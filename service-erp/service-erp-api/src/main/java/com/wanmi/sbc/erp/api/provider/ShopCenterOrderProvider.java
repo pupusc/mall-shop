@@ -28,13 +28,6 @@ public interface ShopCenterOrderProvider {
     BaseResponse<CreateOrderResp> createOrder(@RequestBody CreateOrderReq createOrderReq);
 
     /**
-     * 订单详情
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/orderDetailByOrderNumber")
-    BaseResponse<OrderDetailResp> orderDetailByOrderNumber(String orderNumber);
-
-    /**
      * 订单详情（根据第三方订单号）
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/detailByPlatformOrderId")
