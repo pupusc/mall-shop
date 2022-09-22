@@ -48,6 +48,7 @@ public class ShopCenterGoodsStockService {
 		for (GoodsInfo info : infoList) {
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
+		logger.info("ShopCenterGoodsStockService.goodsInfo修改库存.quantity={},ids={}", quantity, goodsInfoStockMap.keySet());
 		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue());
 
 		// 修改goods 库存
@@ -59,6 +60,7 @@ public class ShopCenterGoodsStockService {
 			goodsStockMap.put(info.getGoodsId(), stockNum + (Objects.nonNull(info.getStock()) ? info.getStock().intValue() : 0));
 		}
 		for (Map.Entry<String, Integer> entry : goodsStockMap.entrySet()) {
+			logger.info("ShopCenterGoodsStockService.goods修改库存.quantity={},id={}", entry.getValue(), entry.getKey());
 			goodsRepository.updateStockByGoodsId(entry.getValue().longValue(), entry.getKey());
 		}
 
@@ -81,6 +83,7 @@ public class ShopCenterGoodsStockService {
 
 		// 更新成本价
 		goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price);
+		logger.info("ShopCenterGoodsStockService.goodsInfo修改价格.price={},ids={}", price, goodsInfoIds);
 		resp.setGoodsInfoIds(goodsInfoIds);
 		return BaseResponse.success(resp);
 	}
