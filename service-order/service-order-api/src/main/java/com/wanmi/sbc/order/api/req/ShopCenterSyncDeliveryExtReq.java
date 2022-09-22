@@ -28,11 +28,7 @@ public class ShopCenterSyncDeliveryExtReq extends ShopCenterSyncDeliveryReq{
      * 订单id
      */
     private Long orderId;
-
-    /**
-     * 子订单id
-     */
-    private Long orderItemId;
+    
 
 
     /**
