@@ -105,9 +105,11 @@ public class ShopCenterSyncController {
 		Map<String, Integer> goodsInfoStockMap = resp.getGoodsInfoStockMap();
 		// 删除redis缓存
 		for (String goodsId : goodsStockMap.keySet()) {
+			logger.info("ShopCenterSyncController.刷新goods库存.删除redis={}", RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
 			redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
 		}
 		for (String goodsInfoId : goodsInfoStockMap.keySet()) {
+			logger.info("ShopCenterSyncController.刷新goodsInfo库存.删除redis={}", RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
 			redisService.delete(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
 		}
 
