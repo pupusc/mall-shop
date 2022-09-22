@@ -136,7 +136,9 @@ public class GuanYiYunService extends AbstractCRMService {
                     OrdItemReq ordItemReq = new OrdItemReq();
                     ordItemReq.setPlatformItemId(returnOrderVO.getTid());
                     ordItemReq.setPlatformSkuId(returnItemVO.getSkuId());
+                    log.info("GuanyiYunService listOrdItem request: {}", JSON.toJSONString(ordItemReq));
                     List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
+                    log.info("GuanyiYunService listOrdItem resp: {}", JSON.toJSONString(context));
                     if (CollectionUtils.isEmpty(context)) {
                         throw new SbcRuntimeException("999999", "商品" + returnItemVO.getSkuId() + "在电商中台中不存在");
                     }
