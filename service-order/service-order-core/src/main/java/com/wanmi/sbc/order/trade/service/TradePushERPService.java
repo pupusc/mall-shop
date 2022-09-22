@@ -21,6 +21,7 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.order.api.req.ShopCenterSyncDeliveryExtReq;
 import com.wanmi.sbc.order.api.req.ShopCenterSyncDeliveryReq;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
@@ -2011,16 +2012,29 @@ public class TradePushERPService {
     /**
      * shopCenter更新订单发货信息
      */
-    public void fillShopCenterDelivery(ShopCenterSyncDeliveryReq request, List<DevItemResp> itemList /*ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOListT, Integer allDelivery*/) {
+    public void fillShopCenterDelivery(ShopCenterSyncDeliveryExtReq request /*ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOListT, Integer allDelivery*/) {
         Trade trade = tradeService.detail(request.getPlatformOrderId());
-        ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformOrderId());
-
+        
         // 根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
         List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
         if (CollectionUtils.isEmpty(providerTrades)) {
             log.error(" TradePushERPService fillShopCenterDelivery providerTrade {} not exists ", trade.getId());
             return;
         }
+
+
+
+        for (ProviderTrade providerTrade : providerTrades) {
+
+            for (TradeItem tradeItem : providerTrade.getTradeItems()) {
+                if (!Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
+                    continue;
+                }
+
+
+            }
+        }
+        
 
         // TODO itemList = 实物发货？
 
