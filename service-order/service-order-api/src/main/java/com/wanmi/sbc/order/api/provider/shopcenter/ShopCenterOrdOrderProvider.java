@@ -12,7 +12,7 @@ public interface ShopCenterOrdOrderProvider {
 	/**
 	 * 同步发货
 	 */
-	@PostMapping("/order/${application.order.version}/groupon/instance/page-criteria")
+	@PostMapping("/order/${application.order.version}/shopCenter/shopCenterSyncDelivery")
 	BaseResponse<Void> shopCenterSyncDelivery(@RequestBody ShopCenterSyncDeliveryReq request);
 
 }
