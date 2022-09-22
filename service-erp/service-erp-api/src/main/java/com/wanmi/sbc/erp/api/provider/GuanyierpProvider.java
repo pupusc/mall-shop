@@ -80,13 +80,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/get-warehouse-list")
 //    BaseResponse<WareHouseListResponse> getWareHouseList(@RequestBody @Valid WareHouseQueryRequest wareHouseQueryRequest);
 
-    /**
-     * 发货单查询
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-delivery-status")
-    BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
+//    /**
+//     * 发货单查询
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-delivery-status")
+//    BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
 
 //    /**
 //     * 退款商品终止发货
@@ -113,13 +113,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade")
 //    BaseResponse RefundTrade(@RequestBody @Valid RefundTradeRequest request);
 
-    /**
-     * 创建退货单
-     * @param requst
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/create-return-order")
-    BaseResponse createReturnOrder(@RequestBody @Valid ReturnTradeCreateRequst requst);
+//    /**
+//     * 创建退货单
+//     * @param requst
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/create-return-order")
+//    BaseResponse createReturnOrder(@RequestBody @Valid ReturnTradeCreateRequst requst);
 
 //    /**
 //     * 退货单查询

@@ -671,56 +671,56 @@ public class TradePushERPService {
      *
      * @param providerTrade
      */
-    public void syncDeliveryStatus(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
-        try {
-            if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
-                //TODO 先注释，待添加方法
-//                this.syncDeliveryStatusProduct(providerTrade);
-            } else {
-                //周期购订单和普通订单分开处理
-                if (providerTrade.getCycleBuyFlag()) {
-                    this.updateCycleBuyDeliveryStatus(providerTrade, deliveryInfoVOList);
-                } else {
-                    DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
-                    deliveryQueryRequest.setTid(providerTrade.getId());
-                    //设置查询erp发货状态
-                    deliveryQueryRequest.setDelivery(Constants.yes);
-                    // 是否是历史订单
-                    if (CollectionUtils.isEmpty(deliveryInfoVOList)) {
-                        deliveryInfoVOList = guanyierpProvider
-                                .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
-                    }
-                    if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
-                        this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList, 0);
-                    } /*else {
-                            // 扫描次数小于3的加1
-                            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                                TradeState tradeState = providerTrade.getTradeState();
-                                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                                } else {
-                                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
-                                }
-                            }
-                            providerTradeService.updateProviderTrade(providerTrade);
-
-                        }*/
-                }
-            }
-            // 扫描次数小于3的加1
-            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                TradeState tradeState = providerTrade.getTradeState();
-                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                } else {
-                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
-                }
-                providerTradeService.updateProviderTrade(providerTrade);
-            }
-        } catch (Exception e) {
-            log.error("#批量同步发货状态异常:{}", e);
-        }
-    }
+//    public void syncDeliveryStatus(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
+//        try {
+//            if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
+//                //TODO 先注释，待添加方法
+////                this.syncDeliveryStatusProduct(providerTrade);
+//            } else {
+//                //周期购订单和普通订单分开处理
+//                if (providerTrade.getCycleBuyFlag()) {
+//                    this.updateCycleBuyDeliveryStatus(providerTrade, deliveryInfoVOList);
+//                } else {
+//                    DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
+//                    deliveryQueryRequest.setTid(providerTrade.getId());
+//                    //设置查询erp发货状态
+//                    deliveryQueryRequest.setDelivery(Constants.yes);
+//                    // 是否是历史订单
+//                    if (CollectionUtils.isEmpty(deliveryInfoVOList)) {
+//                        deliveryInfoVOList = guanyierpProvider
+//                                .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
+//                    }
+//                    if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
+//                        this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList, 0);
+//                    } /*else {
+//                            // 扫描次数小于3的加1
+//                            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+//                                TradeState tradeState = providerTrade.getTradeState();
+//                                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+//                                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+//                                } else {
+//                                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
+//                                }
+//                            }
+//                            providerTradeService.updateProviderTrade(providerTrade);
+//
+//                        }*/
+//                }
+//            }
+//            // 扫描次数小于3的加1
+//            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+//                TradeState tradeState = providerTrade.getTradeState();
+//                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+//                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+//                } else {
+//                    tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
+//                }
+//                providerTradeService.updateProviderTrade(providerTrade);
+//            }
+//        } catch (Exception e) {
+//            log.error("#批量同步发货状态异常:{}", e);
+//        }
+//    }
 
 //    /**
 //     * 非erp发货状态更新，消息
@@ -768,178 +768,178 @@ public class TradePushERPService {
      *
      * @param providerTrade
      */
-    public void updateCycleBuyDeliveryStatus(ProviderTrade providerTrade,List<DeliveryInfoVO> deliveryInfoVOListVo) {
-        //周期购订单更新父订单、子订单发货日历
-        Trade trade = tradeService.detail(providerTrade.getParentId());
-        List<DeliverCalendar> deliverCalendars = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar();
-        //总期数
-        Integer cycleNum = providerTrade.getTradeCycleBuyInfo().getCycleNum();
-        if (CollectionUtils.isNotEmpty(deliverCalendars)) {
-            //筛选已推送的发货日历
-            List<DeliverCalendar> deliveryList =
-                    deliverCalendars.stream()
-                            .filter(deliverCalendar ->
-                                    deliverCalendar.getCycleDeliverStatus().equals(CycleDeliverStatus.PUSHED) && Objects.nonNull(deliverCalendar.getErpTradeCode()))
-                            .collect(Collectors.toList());
-
-            /*if (CollectionUtils.isEmpty(deliveryList)) {
-                // 扫描次数小于3的加1
-                if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                    TradeState tradeState = providerTrade.getTradeState();
-                    if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                        tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                    } else {
-                        tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
-                    }
-                    providerTradeService.updateProviderTrade(providerTrade);
-                }
-            }*/
-
-            deliveryList.forEach(deliverCalendar -> {
-                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
-                deliveryQueryRequest.setTid(deliverCalendar.getErpTradeCode());
-                // 是否是历史订单
-                List<DeliveryInfoVO> deliveryInfoVOList = new ArrayList<>();
-                if (CollectionUtils.isEmpty(deliveryInfoVOListVo)){
-                    deliveryInfoVOList = guanyierpProvider
-                            .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
-                }else {
-                    deliveryInfoVOList = deliveryInfoVOListVo;
-                }
-                if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
-                    //计算erp发货单已发的商品个数
-                    for (DeliveryInfoVO deliveryInfoVO : deliveryInfoVOList) {
-                        if (deliveryInfoVO.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)) {
-                            //获取发货的期数
-                            String cycle = deliverCalendar.getErpTradeCode().substring(deliverCalendar.getErpTradeCode().length() - 1);
-                            log.info("=================周期购订单修改发货状态，查询erp发货单==========={}=========", deliveryInfoVO);
-                            if (CollectionUtils.isEmpty(providerTrade.getTradeDelivers())) {
-                                if (Objects.equals(cycleNum.toString(), cycle)) {
-
-                                    List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                    calendar.forEach(calendar1 -> {
-                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                    });
-                                    providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-                                    providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-
-
-                                    List<DeliverCalendar> tradeCalendar = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliver -> Objects.nonNull(deliver.getErpTradeCode()) && deliver.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                    tradeCalendar.forEach(calendar1 -> {
-                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                    });
-
-                                    trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                                    trade.getTradeState().setFlowState(FlowState.DELIVERED);
-
-
-                                    //设置发货时间
-                                    log.info("=========TradeDelivers:{}，platformCode:{}======",deliveryInfoVO.getDeliverTime(),deliveryInfoVO.getPlatformCode());
-                                    providerTrade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
-                                    trade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
-
-                                    //组装发货记录等信息
-                                    this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
-                                } else {
-                                    List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                    calendar.forEach(calendar1 -> {
-                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                    });
-                                    providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                                    providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-
-                                    List<DeliverCalendar> tradeCalendar = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliver -> Objects.nonNull(deliver.getErpTradeCode()) && deliver.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                    tradeCalendar.forEach(calendar1 -> {
-                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                    });
-
-                                    trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                                    trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-
-                                    //组装发货记录等信息
-                                    this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
-                                }
-
-                            } else {
-                                providerTrade.getTradeDelivers().forEach(tradeDeliver -> {
-                                    if (Objects.nonNull(tradeDeliver.getDeliverId()) && !Objects.equals(tradeDeliver.getDeliverId(), deliveryInfoVO.getCode())) {
-                                        //最后一期修改订单状态
-                                        if (Objects.equals(cycleNum.toString(), cycle)) {
-
-                                            List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                            calendar.forEach(calendar1 -> {
-                                                calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                            });
-
-                                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-                                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-
-
-                                            trade.getTradeCycleBuyInfo().getDeliverCalendar().stream()
-                                                    .filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).forEach(deliverCalendar1 -> {
-                                                deliverCalendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                            });
-
-                                            trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                                            trade.getTradeState().setFlowState(FlowState.DELIVERED);
-
-                                            //设置发货时间
-                                            log.info("=========TradeDelivers:{}，platformCode:{}======",deliveryInfoVO.getDeliverTime(),deliveryInfoVO.getPlatformCode());
-                                            providerTrade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
-                                            trade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
-
-                                            //组装发货记录等信息
-                                            this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
-                                        } else {
-                                            List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
-                                            calendar.forEach(calendar1 -> {
-                                                calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                            });
-
-                                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-
-
-                                            trade.getTradeCycleBuyInfo().getDeliverCalendar().stream()
-                                                    .filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).forEach(deliverCalendar1 -> {
-                                                deliverCalendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
-                                            });
-                                            trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                                            trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-
-                                            //组装发货记录等信息
-                                            this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
-                                        }
-                                    }
-                                });
-                            }
-                        } else {
-                            // 返回数据只要不是已发货,其余状态下,扫描次数小于3的加1
-                            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                                TradeState tradeState = providerTrade.getTradeState();
-                                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                                }
-                            }
-
-                            providerTradeService.updateProviderTrade(providerTrade);
-
-                        }
-                    }
-                } /*else {
-                    // erp返回空数据
-                    // 扫描次数小于3的加1
-                    if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                        TradeState tradeState = providerTrade.getTradeState();
-                        if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                            tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                        }
-                        providerTradeService.updateProviderTrade(providerTrade);
-                    }
-                }*/
-            });
-        }
-    }
+//    public void updateCycleBuyDeliveryStatus(ProviderTrade providerTrade,List<DeliveryInfoVO> deliveryInfoVOListVo) {
+//        //周期购订单更新父订单、子订单发货日历
+//        Trade trade = tradeService.detail(providerTrade.getParentId());
+//        List<DeliverCalendar> deliverCalendars = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar();
+//        //总期数
+//        Integer cycleNum = providerTrade.getTradeCycleBuyInfo().getCycleNum();
+//        if (CollectionUtils.isNotEmpty(deliverCalendars)) {
+//            //筛选已推送的发货日历
+//            List<DeliverCalendar> deliveryList =
+//                    deliverCalendars.stream()
+//                            .filter(deliverCalendar ->
+//                                    deliverCalendar.getCycleDeliverStatus().equals(CycleDeliverStatus.PUSHED) && Objects.nonNull(deliverCalendar.getErpTradeCode()))
+//                            .collect(Collectors.toList());
+//
+//            /*if (CollectionUtils.isEmpty(deliveryList)) {
+//                // 扫描次数小于3的加1
+//                if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+//                    TradeState tradeState = providerTrade.getTradeState();
+//                    if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+//                        tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+//                    } else {
+//                        tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
+//                    }
+//                    providerTradeService.updateProviderTrade(providerTrade);
+//                }
+//            }*/
+//
+//            deliveryList.forEach(deliverCalendar -> {
+//                DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
+//                deliveryQueryRequest.setTid(deliverCalendar.getErpTradeCode());
+//                // 是否是历史订单
+//                List<DeliveryInfoVO> deliveryInfoVOList = new ArrayList<>();
+//                if (CollectionUtils.isEmpty(deliveryInfoVOListVo)){
+//                    deliveryInfoVOList = guanyierpProvider
+//                            .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
+//                }else {
+//                    deliveryInfoVOList = deliveryInfoVOListVo;
+//                }
+//                if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
+//                    //计算erp发货单已发的商品个数
+//                    for (DeliveryInfoVO deliveryInfoVO : deliveryInfoVOList) {
+//                        if (deliveryInfoVO.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)) {
+//                            //获取发货的期数
+//                            String cycle = deliverCalendar.getErpTradeCode().substring(deliverCalendar.getErpTradeCode().length() - 1);
+//                            log.info("=================周期购订单修改发货状态，查询erp发货单==========={}=========", deliveryInfoVO);
+//                            if (CollectionUtils.isEmpty(providerTrade.getTradeDelivers())) {
+//                                if (Objects.equals(cycleNum.toString(), cycle)) {
+//
+//                                    List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                    calendar.forEach(calendar1 -> {
+//                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                    });
+//                                    providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+//                                    providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//
+//
+//                                    List<DeliverCalendar> tradeCalendar = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliver -> Objects.nonNull(deliver.getErpTradeCode()) && deliver.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                    tradeCalendar.forEach(calendar1 -> {
+//                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                    });
+//
+//                                    trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//                                    trade.getTradeState().setFlowState(FlowState.DELIVERED);
+//
+//
+//                                    //设置发货时间
+//                                    log.info("=========TradeDelivers:{}，platformCode:{}======",deliveryInfoVO.getDeliverTime(),deliveryInfoVO.getPlatformCode());
+//                                    providerTrade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
+//                                    trade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
+//
+//                                    //组装发货记录等信息
+//                                    this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
+//                                } else {
+//                                    List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                    calendar.forEach(calendar1 -> {
+//                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                    });
+//                                    providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+//                                    providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+//
+//                                    List<DeliverCalendar> tradeCalendar = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliver -> Objects.nonNull(deliver.getErpTradeCode()) && deliver.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                    tradeCalendar.forEach(calendar1 -> {
+//                                        calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                    });
+//
+//                                    trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+//                                    trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+//
+//                                    //组装发货记录等信息
+//                                    this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
+//                                }
+//
+//                            } else {
+//                                providerTrade.getTradeDelivers().forEach(tradeDeliver -> {
+//                                    if (Objects.nonNull(tradeDeliver.getDeliverId()) && !Objects.equals(tradeDeliver.getDeliverId(), deliveryInfoVO.getCode())) {
+//                                        //最后一期修改订单状态
+//                                        if (Objects.equals(cycleNum.toString(), cycle)) {
+//
+//                                            List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                            calendar.forEach(calendar1 -> {
+//                                                calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                            });
+//
+//                                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+//                                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//
+//
+//                                            trade.getTradeCycleBuyInfo().getDeliverCalendar().stream()
+//                                                    .filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).forEach(deliverCalendar1 -> {
+//                                                deliverCalendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                            });
+//
+//                                            trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//                                            trade.getTradeState().setFlowState(FlowState.DELIVERED);
+//
+//                                            //设置发货时间
+//                                            log.info("=========TradeDelivers:{}，platformCode:{}======",deliveryInfoVO.getDeliverTime(),deliveryInfoVO.getPlatformCode());
+//                                            providerTrade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
+//                                            trade.getTradeState().setDeliverTime(deliveryInfoVO.getDeliverTime());
+//
+//                                            //组装发货记录等信息
+//                                            this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
+//                                        } else {
+//                                            List<DeliverCalendar> calendar = providerTrade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).collect(Collectors.toList());
+//                                            calendar.forEach(calendar1 -> {
+//                                                calendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                            });
+//
+//                                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+//                                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+//
+//
+//                                            trade.getTradeCycleBuyInfo().getDeliverCalendar().stream()
+//                                                    .filter(deliverCalendar1 -> Objects.nonNull(deliverCalendar1.getErpTradeCode()) && deliverCalendar1.getErpTradeCode().equals(deliverCalendar.getErpTradeCode())).forEach(deliverCalendar1 -> {
+//                                                deliverCalendar1.setCycleDeliverStatus(CycleDeliverStatus.SHIPPED);
+//                                            });
+//                                            trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+//                                            trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+//
+//                                            //组装发货记录等信息
+//                                            this.setCycleTradeDelivers(providerTrade, KsBeanUtil.convert(trade, TradeVO.class), deliveryInfoVO, Integer.valueOf(cycle));
+//                                        }
+//                                    }
+//                                });
+//                            }
+//                        } else {
+//                            // 返回数据只要不是已发货,其余状态下,扫描次数小于3的加1
+//                            if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+//                                TradeState tradeState = providerTrade.getTradeState();
+//                                if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+//                                    tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+//                                }
+//                            }
+//
+//                            providerTradeService.updateProviderTrade(providerTrade);
+//
+//                        }
+//                    }
+//                } /*else {
+//                    // erp返回空数据
+//                    // 扫描次数小于3的加1
+//                    if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+//                        TradeState tradeState = providerTrade.getTradeState();
+//                        if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+//                            tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+//                        }
+//                        providerTradeService.updateProviderTrade(providerTrade);
+//                    }
+//                }*/
+//            });
+//        }
+//    }
 
 
     /**

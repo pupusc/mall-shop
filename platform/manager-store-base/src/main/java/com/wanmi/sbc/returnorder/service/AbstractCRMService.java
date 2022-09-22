@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterDeliveryProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
@@ -44,6 +45,9 @@ public abstract class AbstractCRMService {
 
     @Autowired
     protected ShopCenterDeliveryProvider shopCenterDeliveryProvider;
+
+    @Autowired
+    protected ShopCenterOrderProvider shopCenterOrderProvider;
 
 
     /**

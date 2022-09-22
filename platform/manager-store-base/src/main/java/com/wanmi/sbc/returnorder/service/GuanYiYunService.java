@@ -8,10 +8,12 @@ import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.erp.api.req.OrdItemReq;
 import com.wanmi.sbc.erp.api.req.OrderInterceptorReq;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 //import com.wanmi.sbc.erp.api.request.RefundTradeRequest;
 import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
+import com.wanmi.sbc.erp.api.resp.OrdItemResp;
 import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
 import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -128,12 +130,18 @@ public class GuanYiYunService extends AbstractCRMService {
                 if (DeliverStatus.SHIPPED.equals(tradeItemParam.getDeliverStatus())) {
                     log.info("GuanYiYunService interceptorErpDeliverStatus tid:{} 退款执行完成", returnOrderVO.getTid());
                 } else {
-                    //如果没有发货，则可以通过商品行退款
                     //tid表示的是 子单id  Oid表示的是管易云上的订单号
 //                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(tradeItemParam.getOid()).refundState(2).build();
 //                    BaseResponse baseResponse = guanyierpProvider.refundTradeItem(refundTradeRequest);
+                    OrdItemReq ordItemReq = new OrdItemReq();
+                    ordItemReq.setPlatformItemId(returnOrderVO.getTid());
+                    ordItemReq.setPlatformSkuId(returnItemVO.getSkuId());
+                    List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
+                    if (CollectionUtils.isEmpty(context)) {
+                        throw new SbcRuntimeException("999999", "商品" + returnItemVO.getSkuId() + "在电商中台中不存在");
+                    }
                     OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
-                    orderInterceptorReq.setOrderItemId();
+                    orderInterceptorReq.setOrderItemId(context.get(0).getTid());
                     BaseResponse booleanBaseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
                     if (CommonErrorCode.SUCCESSFUL.equals(booleanBaseResponse.getCode())) {
                         //此处更新订单商品为作废状态 TODO duanlsh
@@ -220,8 +228,15 @@ public class GuanYiYunService extends AbstractCRMService {
 //                                    log.info("=============组合商品退货退款拦截未发货的商品：{}==================",refundTradeRequest);
 //                                }
 //                            }
+                            OrdItemReq ordItemReq = new OrdItemReq();
+                            ordItemReq.setPlatformItemId(returnOrderVO.getTid());
+                            ordItemReq.setPlatformSkuId(tradeItem.getSkuId());
+                            List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
+                            if (CollectionUtils.isEmpty(context)) {
+                                throw new SbcRuntimeException("999999", "商品" + tradeItem.getSkuId() + "在电商中台中不存在");
+                            }
                             OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
-                            orderInterceptorReq.setOrderItemId();
+                            orderInterceptorReq.setOrderItemId(context.get(0).getTid());
                             BaseResponse booleanBaseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
                             if (CommonErrorCode.SUCCESSFUL.equals(booleanBaseResponse.getCode())) {
                                 //此处更新订单商品为作废状态 TODO duanlsh

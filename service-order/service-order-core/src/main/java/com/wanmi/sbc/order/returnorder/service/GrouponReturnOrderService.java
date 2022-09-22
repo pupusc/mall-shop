@@ -1,11 +1,16 @@
 package com.wanmi.sbc.order.returnorder.service;
 
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.erp.api.provider.ShopCenterDeliveryProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.OrdItemReq;
 import com.wanmi.sbc.erp.api.req.OrderInterceptorReq;
+import com.wanmi.sbc.erp.api.resp.OrdItemResp;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.customer.service.CustomerCommonService;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.service.ProviderTradeService;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.google.common.collect.Lists;
@@ -99,6 +104,8 @@ public class GrouponReturnOrderService {
     @Autowired
     private ShopCenterDeliveryProvider shopCenterDeliveryProvider;
 
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
 
 
@@ -171,12 +178,22 @@ public class GrouponReturnOrderService {
         //拦截拼团订单，通知erp系统停止发货,走系统退款逻辑
         tradeList.forEach(trade -> {
             if (trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
-                OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
-                orderInterceptorReq.setOrderItemId();
-                BaseResponse baseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
-                if (!Objects.equals(baseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
-                    log.error("GrouponReturnOrderService handleGrouponOrderRefund  订单{} 拦截失败", trade.getId());
+                for (TradeItem tradeItem : trade.getTradeItems()) {
+                    OrdItemReq ordItemReq = new OrdItemReq();
+                    ordItemReq.setPlatformItemId(trade.getId());
+                    ordItemReq.setPlatformSkuId(tradeItem.getSkuId());
+                    List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
+                    if (CollectionUtils.isEmpty(context)) {
+                        throw new SbcRuntimeException("999999", "商品" + tradeItem.getSkuId() + "在电商中台中不存在");
+                    }
+                    OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
+                    orderInterceptorReq.setOrderItemId(context.get(0).getTid());
+                    BaseResponse baseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
+                    if (!Objects.equals(baseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                        log.error("GrouponReturnOrderService handleGrouponOrderRefund  订单{} 拦截失败", trade.getId());
+                    }
                 }
+
 //                log.info("===========拦截拼团订单，通知erp系统停止发货,订单id：{}========", trade.getId());
 //                List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(trade.getId());
 //                if (CollectionUtils.isNotEmpty(providerTrades)) {

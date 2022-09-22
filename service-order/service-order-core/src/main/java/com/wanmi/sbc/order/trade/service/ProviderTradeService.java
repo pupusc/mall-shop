@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -1003,7 +1004,9 @@ public class ProviderTradeService {
                    }
 
                    //调用推送接口
+                   log.info("ProviderTradeService singlePushOrder createOrderReq {}", JSON.toJSONString(createOrderReq));
                    BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
+                   log.info("ProviderTradeService singlePushOrder result {}", JSON.toJSONString(createOrderRespBaseResponse));
                    CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
                    if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
                            || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
