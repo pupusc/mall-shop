@@ -25,7 +25,7 @@ public class ShopCenterOrdOrderController implements ShopCenterOrdOrderProvider 
 		req.setOrderItemId(Long.valueOf(request.getOrderItemId()));
 		BaseResponse<List<DevItemResp>> response = shopCenterDeliveryProvider.listDevItem(req);
 
-//		return tradePushERPService.fillShopCenterDelivery(request, response.getContext());
-		return null;
+		tradePushERPService.fillShopCenterDelivery(request, response.getContext());
+		return BaseResponse.success(null);
 	}
 }
