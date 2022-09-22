@@ -1,4 +1,16 @@
 package com.soybean.mall.order.dszt;
+import java.time.LocalDateTime;
+
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterReturnAllReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterOnlyRefundReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterExchangeGoodsReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCompensateReq;
+import com.google.common.collect.Lists;
+import com.wanmi.sbc.erp.api.req.SaleAfterBookSubscribeReq;
 
 
 import com.alibaba.fastjson.JSON;
@@ -29,11 +41,16 @@ import java.util.Objects;
 
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterItemReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -79,6 +96,9 @@ public class TransferService {
 
     @Autowired
     private PlatformAddressQueryProvider platformAddressQueryProvider;
+
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
 
     //转换率
@@ -729,5 +749,102 @@ public class TransferService {
 ////        trade.setMiniProgramScene(0);
 //        return trade;
 //    }
+
+    public SaleAfterCreateNewReq changeSaleAfterCreateReq(ReturnOrder returnOrder) {
+        SaleAfterCreateNewReq saleAfterCreateNewReq = new SaleAfterCreateNewReq();
+        //根据订单id获取订单的详细信息
+        
+        //计算map，skuId2自订单信息
+
+        //获取订单支付信息
+
+
+        saleAfterCreateNewReq.setOrderNumber("");
+        saleAfterCreateNewReq.setRefundTypeList(Lists.newArrayList());
+
+        SaleAfterOrderReq saleAfterCreateReq = new SaleAfterOrderReq();
+        saleAfterCreateReq.setPlatformRefundId(returnOrder.getId());
+        saleAfterCreateReq.setApplyTime(returnOrder.getCreateTime());
+        saleAfterCreateReq.setCloseTime(returnOrder.getFinishTime());
+        saleAfterCreateReq.setMemo(returnOrder.getDescription());
+        saleAfterCreateNewReq.setSaleAfterOrderBO(saleAfterCreateReq);
+
+        SaleAfterPostFeeReq saleAfterPostFeeReq = new SaleAfterPostFeeReq();
+
+        //运费
+        List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterFreeList = new ArrayList<>();
+        if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+            BigDecimal freightAmount = returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate);
+            SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
+                    new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+            saleAfterRefundDetailReq.setPayType(1);
+            saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
+            saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+            saleAfterFreeList.add(saleAfterRefundDetailReq);
+        }
+
+        if (returnOrder.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
+            SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
+                    new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+            saleAfterRefundDetailReq.setPayType(1);
+            saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getDeliverPrice().multiply(exchangeRate).intValue());
+            saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+            saleAfterFreeList.add(saleAfterRefundDetailReq);
+        }
+        saleAfterPostFeeReq.setSaleAfterRefundDetailBOList(saleAfterFreeList);
+        saleAfterCreateNewReq.setSaleAfterPostFee(saleAfterPostFeeReq);
+
+        //商品
+        List<SaleAfterCreateNewReq.SaleAfterItemReq> saleAfterItemReqList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
+
+            for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                saleAfterItemReq.setRefundType(0); // todo
+
+                if (returnOrder.getReturnLogistics() != null) {
+                    saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
+                    saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
+                }
+
+                saleAfterItemReq.setRefundNum(returnItem.getNum());
+                saleAfterItemReq.setObjectId(0L); //TODO
+                saleAfterItemReq.setObjectType(""); //TODO
+                saleAfterItemReq.setDeliveryStatus(0);
+//                saleAfterItemReq.setSignatureTime(LocalDateTime.now());
+
+                List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
+                //金额
+                if (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(1);
+                    saleAfterRefundDetailReq.setAmount(returnItem.getApplyRealPrice().multiply(exchangeRate).intValue());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
+                    saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
+                }
+                //积分
+                if (returnItem.getApplyPoint() != null && returnItem.getApplyPoint() > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(3);
+                    saleAfterRefundDetailReq.setAmount(returnItem.getApplyPoint().intValue());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
+                    saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
+                }
+                //金额
+                if (returnItem.getApplyKnowledge() != null && returnItem.getApplyKnowledge() > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(2);
+                    saleAfterRefundDetailReq.setAmount(returnItem.getApplyKnowledge().intValue());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
+                    saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
+                }
+                saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
+                saleAfterItemReqList.add(saleAfterItemReq);
+            }
+        }
+        saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
+
+        return saleAfterCreateNewReq;
+    }
 
 }
