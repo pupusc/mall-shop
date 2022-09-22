@@ -136,13 +136,18 @@ public class GuanYiYunService extends AbstractCRMService {
                     OrdItemReq ordItemReq = new OrdItemReq();
                     ordItemReq.setPlatformItemId(returnOrderVO.getTid());
                     ordItemReq.setPlatformSkuId(returnItemVO.getSkuId());
+                    log.info("GuanyiYunService listOrdItem request: {}", JSON.toJSONString(ordItemReq));
                     List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
+                    log.info("GuanyiYunService listOrdItem resp: {}", JSON.toJSONString(context));
                     if (CollectionUtils.isEmpty(context)) {
                         throw new SbcRuntimeException("999999", "商品" + returnItemVO.getSkuId() + "在电商中台中不存在");
                     }
                     OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
                     orderInterceptorReq.setOrderItemId(context.get(0).getTid());
+                    log.info("GuanyiYunService interceptorErpDeliverStatus request: {}", JSON.toJSONString(orderInterceptorReq));
                     BaseResponse booleanBaseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
+                    log.info("GuanyiYunService interceptorErpDeliverStatus response: {}", JSON.toJSONString(booleanBaseResponse));
+
                     if (CommonErrorCode.SUCCESSFUL.equals(booleanBaseResponse.getCode())) {
                         //此处更新订单商品为作废状态 TODO duanlsh
                         log.info("管易云取消订单 子订单号：{} 商品:{} 拦截成功", returnOrderVO.getPtid(),tradeItemParam.getSkuId());

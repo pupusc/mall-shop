@@ -12,6 +12,7 @@ import com.wanmi.sbc.erp.api.resp.PaymentResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -31,20 +32,20 @@ public interface ShopCenterOrderProvider {
      * 订单详情（根据第三方订单号）
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/detailByPlatformOrderId")
-    BaseResponse<OrderDetailResp> detailByPlatformOrderId(String platformOrderId);
+    BaseResponse<OrderDetailResp> detailByPlatformOrderId(@RequestParam("platformOrderId") String platformOrderId);
 
-    /**
-     * 根据TID查询订单
-     */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/queryMasterOrderByTid")
-    BaseResponse<OrdOrderResp> queryMasterOrderByTid(Long tid);
+//    /**
+//     * 根据TID查询订单
+//     */
+//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/queryMasterOrderByTid")
+//    BaseResponse<OrdOrderResp> queryMasterOrderByTid(Long tid);
 
 
-    @PostMapping("/erp/${application.erp.version}/shopcenter/order/getPaymentByOrderId")
-    BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId);
+//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/getPaymentByOrderId")
+//    BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId);
 
 
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrdItem")
-    BaseResponse<List<OrdItemResp>> listOrdItem(OrdItemReq request);
+    BaseResponse<List<OrdItemResp>> listOrdItem(@RequestBody OrdItemReq request);
 
 }

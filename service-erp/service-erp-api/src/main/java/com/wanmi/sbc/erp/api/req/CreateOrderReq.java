@@ -356,15 +356,16 @@ public class CreateOrderReq {
          * 用户编号（为空时，走注册流程）
          */
         private Integer userId;
-//        /**
-//         * 手机区号
-//         */
-//        private String area;
+
+        /**
+         * 手机区号
+         */
+        private String area;
 //
-//        /**
-//         * 手机号码
-//         */
-//        private String mobile;
+        /**
+         * 手机号码
+         */
+        private String mobile;
 //
 //        /**
 //         * 昵称
