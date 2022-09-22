@@ -265,7 +265,7 @@ public class TransferService {
             paymentReqList.add(buyPaymentReq);
         }
 
-        Long point = trade.getTradePrice().getKnowledge();
+        Long point = trade.getTradePrice().getPoints();
         if (point != null && point > 0) {
             BigDecimal pointDecimal = new BigDecimal(trade.getTradePrice().getPoints().toString());
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
