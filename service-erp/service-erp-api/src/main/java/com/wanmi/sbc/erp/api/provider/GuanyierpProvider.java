@@ -21,13 +21,13 @@ import java.util.List;
 @FeignClient(value = "${application.erp.name}", contextId = "GuanyierpProvider")
 public interface GuanyierpProvider {
 
-    /**
-     * 同步ERP商品库存
-     * @param erpSynGoodsStockRequest
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-stock")
-    BaseResponse<SyncGoodsInfoResponse> syncGoodsStock(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
+//    /**
+//     * 同步ERP商品库存
+//     * @param erpSynGoodsStockRequest
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-stock")
+//    BaseResponse<SyncGoodsInfoResponse> syncGoodsStock(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
 
 //    /**
 //     * 获取商品库存
@@ -38,14 +38,14 @@ public interface GuanyierpProvider {
 //                                             @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
 //                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
 
-    @PostMapping("/erp/${application.erp.version}/guanyierp/list-ware-hose-stock")
-    BaseResponse<ErpStockVo> listWareHoseStock(@RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize, @RequestParam("erpGoodNo") String erpGoodNo);
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/list-ware-hose-stock")
+//    BaseResponse<ErpStockVo> listWareHoseStock(@RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize, @RequestParam("erpGoodNo") String erpGoodNo);
 
-    /**
-     * 获取Goods信息
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-erp-goods")
-    BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(@RequestParam("erpGoodsNum") String erpGoodsNum);
+//    /**
+//     * 获取Goods信息
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-erp-goods")
+//    BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(@RequestParam("erpGoodsNum") String erpGoodsNum);
 
     /**
      * 同步商品信息
@@ -72,13 +72,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade-delivered")
 //    BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
 
-    /**
-     * 获取仓库集合
-     * @param wareHouseQueryRequest
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-warehouse-list")
-    BaseResponse<WareHouseListResponse> getWareHouseList(@RequestBody @Valid WareHouseQueryRequest wareHouseQueryRequest);
+//    /**
+//     * 获取仓库集合
+//     * @param wareHouseQueryRequest
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-warehouse-list")
+//    BaseResponse<WareHouseListResponse> getWareHouseList(@RequestBody @Valid WareHouseQueryRequest wareHouseQueryRequest);
 
     /**
      * 发货单查询
@@ -88,30 +88,30 @@ public interface GuanyierpProvider {
     @PostMapping("/erp/${application.erp.version}/guanyierp/get-delivery-status")
     BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
 
-    /**
-     * 退款商品终止发货
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-item")
-    BaseResponse refundTradeItem(@RequestBody @Valid RefundTradeRequest request);
+//    /**
+//     * 退款商品终止发货
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-item")
+//    BaseResponse refundTradeItem(@RequestBody @Valid RefundTradeRequest request);
 
 
-    /**
-     * 退款订单拦截
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-order")
-    BaseResponse refundTradeOrder(@RequestBody @Valid RefundTradeRequest request);
+//    /**
+//     * 退款订单拦截
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-order")
+//    BaseResponse refundTradeOrder(@RequestBody @Valid RefundTradeRequest request);
 
-    /**
-     * 退款中止发货
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade")
-    BaseResponse RefundTrade(@RequestBody @Valid RefundTradeRequest request);
+//    /**
+//     * 退款中止发货
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade")
+//    BaseResponse RefundTrade(@RequestBody @Valid RefundTradeRequest request);
 
     /**
      * 创建退货单
@@ -121,21 +121,21 @@ public interface GuanyierpProvider {
     @PostMapping("/erp/${application.erp.version}/guanyierp/create-return-order")
     BaseResponse createReturnOrder(@RequestBody @Valid ReturnTradeCreateRequst requst);
 
-    /**
-     * 退货单查询
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-return-trade-status")
-    BaseResponse<ReturnTradeResponse> getReturnTradeStatus(@RequestBody @Valid  ReturnTradeQueryRequest request);
+//    /**
+//     * 退货单查询
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-return-trade-status")
+//    BaseResponse<ReturnTradeResponse> getReturnTradeStatus(@RequestBody @Valid  ReturnTradeQueryRequest request);
 
-    /**
-     * 历史发货单查询
-     * @param request
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-history-delivery-status")
-    BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@RequestBody @Valid HistoryDeliveryInfoRequest request);
+//    /**
+//     * 历史发货单查询
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-history-delivery-status")
+//    BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@RequestBody @Valid HistoryDeliveryInfoRequest request);
 
 
     /**

@@ -1,50 +1,26 @@
 package com.wanmi.sbc.order.trade.service;
 
-import com.alibaba.fastjson.JSON;
-import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
-import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
-import com.wanmi.sbc.common.enums.OrderType;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
-import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
-import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
-import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
-import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
-import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
-import com.wanmi.sbc.customer.bean.vo.StoreVO;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
 import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
-import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
-import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
-import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
 import com.wanmi.sbc.order.common.OperationLogMq;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.third.ThirdInvokeService;
 import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
@@ -56,7 +32,6 @@ import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
-import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.ProviderTradeRepository;
@@ -68,16 +43,12 @@ import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.bson.Document;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -85,15 +56,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StopWatch;
-
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -1026,29 +989,33 @@ public class ProviderTradeService {
 
     public void singlePushOrder(List<Trade> tradeList) {
         if (!CollectionUtils.isEmpty(tradeList)) {
-            for (Trade trade : tradeList) {
-                CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-                if (createOrderReq == null) {
-                    continue;
-                }
+           try {
+               for (Trade trade : tradeList) {
+                   CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+                   if (createOrderReq == null) {
+                       continue;
+                   }
 
-                ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
-                if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
-                    log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
-                    continue;
-                }
+                   ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
+                   if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+                       log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                       continue;
+                   }
 
-                //调用推送接口
-                BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
-                CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
-                if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
-                        || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
-                    thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
-                } else {
-                    thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
-                }
+                   //调用推送接口
+                   BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
+                   CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
+                   if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
+                           || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
+                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+                   } else {
+                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
+                   }
 
-            }
+               }
+           } catch (Exception ex) {
+               log.error("ProviderTradeService singlePushOrder error", ex);
+           }
         }
     }
 

@@ -79,30 +79,30 @@ public class StoreReturnAddressService {
 	}
 
 
-	/**
-	 * 新增店铺退货地址表
-	 * @author wugongjiang
-	 */
-	@Transactional
-	public void batchAdd() {
-		//todo 获取店铺编号
-		List<StoreReturnAddress> addresses = new ArrayList<>();
-		WareHouseQueryRequest wareHouseQueryRequest = WareHouseQueryRequest.builder().hasDelData(false).build();
-		BaseResponse<WareHouseListResponse> responseBaseResponse = guanyierpProvider.getWareHouseList(wareHouseQueryRequest);
-		if (!CollectionUtils.isEmpty(responseBaseResponse.getContext().getWareHouseVOList())){
-			responseBaseResponse.getContext().getWareHouseVOList().stream().forEach(erpWareHouseVO -> {
-				StoreReturnAddress storeReturnAddress = new StoreReturnAddress();
-				storeReturnAddress.setAddressId(erpWareHouseVO.getCode());
-				storeReturnAddress.setCompanyInfoId(25L);
-				storeReturnAddress.setStoreId(123456881L);
-				storeReturnAddress.setIsDefaultAddress(Boolean.FALSE);
-				storeReturnAddress.setReturnAddress(erpWareHouseVO.getAddress());
-				storeReturnAddress.setCreatePerson("system");
-				addresses.add(storeReturnAddress);
-			});
-		}
-		storeReturnAddressRepository.saveAll(addresses);
-	}
+//	/**
+//	 * 新增店铺退货地址表
+//	 * @author wugongjiang
+//	 */
+//	@Transactional
+//	public void batchAdd() {
+//		//todo 获取店铺编号
+//		List<StoreReturnAddress> addresses = new ArrayList<>();
+//		WareHouseQueryRequest wareHouseQueryRequest = WareHouseQueryRequest.builder().hasDelData(false).build();
+//		BaseResponse<WareHouseListResponse> responseBaseResponse = guanyierpProvider.getWareHouseList(wareHouseQueryRequest);
+//		if (!CollectionUtils.isEmpty(responseBaseResponse.getContext().getWareHouseVOList())){
+//			responseBaseResponse.getContext().getWareHouseVOList().stream().forEach(erpWareHouseVO -> {
+//				StoreReturnAddress storeReturnAddress = new StoreReturnAddress();
+//				storeReturnAddress.setAddressId(erpWareHouseVO.getCode());
+//				storeReturnAddress.setCompanyInfoId(25L);
+//				storeReturnAddress.setStoreId(123456881L);
+//				storeReturnAddress.setIsDefaultAddress(Boolean.FALSE);
+//				storeReturnAddress.setReturnAddress(erpWareHouseVO.getAddress());
+//				storeReturnAddress.setCreatePerson("system");
+//				addresses.add(storeReturnAddress);
+//			});
+//		}
+//		storeReturnAddressRepository.saveAll(addresses);
+//	}
 
 
 	/**

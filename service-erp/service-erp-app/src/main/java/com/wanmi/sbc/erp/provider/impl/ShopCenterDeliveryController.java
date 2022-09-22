@@ -25,7 +25,7 @@ public class ShopCenterDeliveryController implements ShopCenterDeliveryProvider 
 	private ShopCenterRouterConfig routerConfig;
 
 	@Override
-	public BaseResponse<Boolean> orderInterceptor(OrderInterceptorReq request) {
+	public BaseResponse orderInterceptor(OrderInterceptorReq request) {
 		try {
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("delivery.orderInterceptor");
@@ -33,8 +33,9 @@ public class ShopCenterDeliveryController implements ShopCenterDeliveryProvider 
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
 			Boolean data = JSON.parseObject(str, Boolean.class);
-
-			return BaseResponse.success(data);
+			if (data != null && data) {
+				return BaseResponse.SUCCESSFUL();
+			}
 		} catch (Exception e) {
 			log.warn("ShopCenterSaleAfterController.orderInterceptor.异常", e);
 		}

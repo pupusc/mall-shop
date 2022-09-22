@@ -66,12 +66,12 @@ public interface StoreReturnAddressProvider {
 	@PostMapping("/customer/${application.customer.version}/storereturnaddress/delete-by-id-list")
 	BaseResponse deleteByIdList(@RequestBody @Valid StoreReturnAddressDelByIdListRequest storeReturnAddressDelByIdListRequest);
 
-	/**
-	 * 批量新增店铺
-	 * @return
-	 */
-	@PostMapping("/customer/${application.customer.version}/storereturnaddress/batch-add")
-	BaseResponse batchAdd();
+//	/**
+//	 * 批量新增店铺
+//	 * @return
+//	 */
+//	@PostMapping("/customer/${application.customer.version}/storereturnaddress/batch-add")
+//	BaseResponse batchAdd();
 
 }
 

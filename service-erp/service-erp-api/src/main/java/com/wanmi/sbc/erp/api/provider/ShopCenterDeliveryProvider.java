@@ -19,7 +19,7 @@ public interface ShopCenterDeliveryProvider {
 	 *  订单拦截
 	 */
 	@PostMapping("/erp/${application.erp.version}/shopcenter/orderInterceptor")
-	BaseResponse<Boolean> orderInterceptor(@RequestBody OrderInterceptorReq request);
+	BaseResponse orderInterceptor(@RequestBody OrderInterceptorReq request);
 
 	/**
 	 *  发货数量

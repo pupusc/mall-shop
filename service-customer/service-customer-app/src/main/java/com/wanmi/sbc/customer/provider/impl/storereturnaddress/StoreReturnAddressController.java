@@ -74,11 +74,11 @@ public class StoreReturnAddressController implements StoreReturnAddressProvider 
 		return BaseResponse.SUCCESSFUL();
 	}
 
-	@Override
-	public BaseResponse batchAdd() {
-		 storeReturnAddressService.batchAdd();
-		 return BaseResponse.SUCCESSFUL();
-	}
+//	@Override
+//	public BaseResponse batchAdd() {
+//		 storeReturnAddressService.batchAdd();
+//		 return BaseResponse.SUCCESSFUL();
+//	}
 
 }
 
