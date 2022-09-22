@@ -61,6 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * Description: 转换服务
@@ -106,7 +107,7 @@ public class TransferService {
     /**
      * 封装收获地址信息
      */
-    private CreateOrderReq.BuyAddressReq packageAddress(Consignee consignee, CustomerDetailGetCustomerIdResponse customerDetail) {
+    private CreateOrderReq.BuyAddressReq packageAddress(Trade trade, Consignee consignee, CustomerDetailGetCustomerIdResponse customerDetail) {
 
         //获取省市信息
         String provinceName = consignee.getProvinceName();
@@ -171,9 +172,9 @@ public class TransferService {
             buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
             buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
             buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
-            BigDecimal  marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : tradeItem.getMarketPrice();
-            BigDecimal newMarketPrice = marketPrice.multiply(exchangeRate);
-            buyGoodsReq.setPrice(newMarketPrice.intValue());
+            BigDecimal  originalPrice = tradeItem.getOriginalPrice() == null ? BigDecimal.ZERO : tradeItem.getOriginalPrice();
+            BigDecimal newOriginalPrice = originalPrice.multiply(exchangeRate);
+            buyGoodsReq.setPrice(newOriginalPrice.intValue());
             buyGoodsReq.setGiftFlag(0); //非赠送
 
             //优惠
@@ -348,6 +349,12 @@ public class TransferService {
         createOrderReq.setOrderSource(orderSourceEnum.getCode());
 //        createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
         CreateOrderReq.OrderUserInfoReq orderUserInfoReq = new CreateOrderReq.OrderUserInfoReq();
+        if (!StringUtils.isEmpty(trade.getDirectChargeMobile())) {
+            orderUserInfoReq.setArea("+86");
+            orderUserInfoReq.setMobile(trade.getDirectChargeMobile());
+        } else {
+            orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
+        }
         orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
         createOrderReq.setOrderUserInfoBO(orderUserInfoReq);
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
@@ -365,7 +372,7 @@ public class TransferService {
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems));
         //收货地址
         Consignee consignee = trade.getConsignee();
-        createOrderReq.setBuyAddressBO(this.packageAddress(consignee, customerDetail));
+        createOrderReq.setBuyAddressBO(this.packageAddress(trade, consignee, customerDetail));
         if (salePlatformResp.getTid() != null) {
         	createOrderReq.setShopId(salePlatformResp.getTid().toString());
         }
