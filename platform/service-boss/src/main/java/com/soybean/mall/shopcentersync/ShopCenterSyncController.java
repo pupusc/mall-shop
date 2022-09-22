@@ -16,6 +16,8 @@ import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncStockReq;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterCostPriceSyncResp;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterStockSyncResp;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
+import com.wanmi.sbc.order.api.provider.shopcenter.ShopCenterOrdOrderProvider;
+import com.wanmi.sbc.order.api.req.ShopCenterSyncDeliveryReq;
 import com.wanmi.sbc.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,6 +45,8 @@ public class ShopCenterSyncController {
 	@Autowired
 	private ShopCenterGoodsProvider shopCenterGoodsProvider;
 	@Autowired
+	private ShopCenterOrdOrderProvider shopCenterOrdOrderProvider;
+	@Autowired
 	private EsGoodsStockProvider esGoodsStockProvider;
 	@Autowired
 	private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
@@ -69,6 +73,11 @@ public class ShopCenterSyncController {
 					ShopCenterSyncStockReq syncStock = JSON.parseObject(data, ShopCenterSyncStockReq.class);
 					BaseResponse<ShopCenterStockSyncResp> stockResp = shopCenterGoodsProvider.shopCenterSyncGoodsStock(syncStock);
 					refreshStock(stockResp.getContext());
+					break;
+				// 发货
+				case 1002:
+					ShopCenterSyncDeliveryReq syncDelivery = JSON.parseObject(data, ShopCenterSyncDeliveryReq.class);
+					shopCenterOrdOrderProvider.shopCenterSyncDelivery(syncDelivery);
 					break;
 				// 成本变动
 				case 1004:

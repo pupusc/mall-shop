@@ -27,7 +27,6 @@ public interface ShopCenterOrderProvider {
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/createOrder")
     BaseResponse<CreateOrderResp> createOrder(@RequestBody CreateOrderReq createOrderReq);
 
-
     /**
      * 订单详情
      * @return
@@ -35,24 +34,12 @@ public interface ShopCenterOrderProvider {
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/orderDetailByOrderNumber")
     BaseResponse<OrderDetailResp> orderDetailByOrderNumber(String orderNumber);
 
-
-//    /**
-//     * 订单列表
-//     */
-//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/listOrder")
-//    BaseResponse<List<OrderDetailResp>> listOrder(@RequestBody OrderQueryReq orderQueryReq);
-
     /**
      * 根据TID查询订单
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/queryMasterOrderByTid")
     BaseResponse<OrdOrderResp> queryMasterOrderByTid(Long tid);
 
-//    /**
-//     * 支付列表
-//     */
-//    @PostMapping("/erp/${application.erp.version}/shopcenter/order/payment")
-//    BaseResponse<OrderPaymentResp> listPayment(@RequestBody OrderPaymentQueryReq paymentQueryReq);
 
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/getPaymentByOrderId")
     BaseResponse<List<PaymentResp>> getPaymentByOrderId(Long orderId);
