@@ -36,7 +36,7 @@ public class ShopCenterOrdOrderController implements ShopCenterOrdOrderProvider 
 		shopCenterSyncDeliveryExtReq.setNum(devItemResp.getNum());
 		shopCenterSyncDeliveryExtReq.setPrice(devItemResp.getPrice());
 		shopCenterSyncDeliveryExtReq.setOrderId(devItemResp.getOrderId());
-		shopCenterSyncDeliveryExtReq.setOrderItemId(devItemResp.getOrderItemId());
+		shopCenterSyncDeliveryExtReq.setOrderItemId(request.getOrderItemId());
 		shopCenterSyncDeliveryExtReq.setDevDeliveryId(devItemResp.getDevDeliveryId());
 		shopCenterSyncDeliveryExtReq.setMetaGoodsCode(devItemResp.getMetaGoodsCode());
 		shopCenterSyncDeliveryExtReq.setMetaSkuCode(devItemResp.getMetaSkuCode());
