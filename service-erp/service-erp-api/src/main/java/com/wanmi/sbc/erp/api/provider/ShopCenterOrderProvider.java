@@ -35,6 +35,12 @@ public interface ShopCenterOrderProvider {
     BaseResponse<OrderDetailResp> orderDetailByOrderNumber(String orderNumber);
 
     /**
+     * 订单详情（根据第三方订单号）
+     */
+    @PostMapping("/erp/${application.erp.version}/shopcenter/order/detailByPlatformOrderId")
+    BaseResponse<OrderDetailResp> detailByPlatformOrderId(String platformOrderId);
+
+    /**
      * 根据TID查询订单
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/order/queryMasterOrderByTid")
