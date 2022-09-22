@@ -355,7 +355,6 @@ public class TransferService {
         } else {
             orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
         }
-        orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
         createOrderReq.setOrderUserInfoBO(orderUserInfoReq);
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
         createOrderReq.setDeviceType(DeviceTypeEnum.WEB.getType());
