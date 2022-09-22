@@ -1,16 +1,10 @@
 package com.soybean.mall.order.dszt;
-import java.time.LocalDateTime;
 
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterReturnAllReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterOnlyRefundReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterExchangeGoodsReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCompensateReq;
 import com.google.common.collect.Lists;
-import com.wanmi.sbc.erp.api.req.SaleAfterBookSubscribeReq;
 
 
 import com.alibaba.fastjson.JSON;
@@ -41,9 +35,8 @@ import java.util.Objects;
 
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterItemReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
+import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
@@ -753,13 +746,21 @@ public class TransferService {
     public SaleAfterCreateNewReq changeSaleAfterCreateReq(ReturnOrder returnOrder) {
         SaleAfterCreateNewReq saleAfterCreateNewReq = new SaleAfterCreateNewReq();
         //根据订单id获取订单的详细信息
-        
+        OrderDetailResp context = shopCenterOrderProvider.detailByPlatformOrderId(returnOrder.getTid()).getContext();
+        log.info("TransferService detailByPlatformOrderId context {}", JSON.toJSONString(context));
+        if (context == null) {
+            log.error("TransferService detailByPlatformOrderId context is null");
+            return null;
+        }
         //计算map，skuId2自订单信息
-
+        Map<String, OrderDetailResp.OrderItemResp> skuId2OrderItemMap = new HashMap<>();
+        for (OrderDetailResp.OrderItemResp orderItemBO : context.getOrderItemBOS()) {
+            skuId2OrderItemMap.put(orderItemBO.getPlatformSkuId(), orderItemBO);
+        }
         //获取订单支付信息
 
 
-        saleAfterCreateNewReq.setOrderNumber("");
+        saleAfterCreateNewReq.setOrderNumber(context.getOrderNumber().toString());
         saleAfterCreateNewReq.setRefundTypeList(Lists.newArrayList());
 
         SaleAfterOrderReq saleAfterCreateReq = new SaleAfterOrderReq();
@@ -795,22 +796,29 @@ public class TransferService {
         saleAfterCreateNewReq.setSaleAfterPostFee(saleAfterPostFeeReq);
 
         //商品
+        Integer refundType = 1;
         List<SaleAfterCreateNewReq.SaleAfterItemReq> saleAfterItemReqList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
 
             for (ReturnItem returnItem : returnOrder.getReturnItems()) {
                 SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                saleAfterItemReq.setRefundType(0); // todo
+                saleAfterItemReq.setRefundType(refundType); // todo
 
                 if (returnOrder.getReturnLogistics() != null) {
                     saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
                     saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
                 }
 
+                OrderDetailResp.OrderItemResp orderItemResp = skuId2OrderItemMap.get(returnItem.getSkuId());
+                if (orderItemResp == null) {
+                    log.error("TransferService detailByPlatformOrderId skuId:{} 在电商中台中不存在", returnItem.getSkuId());
+                    throw new SbcRuntimeException("999999", "skuId" + returnItem.getSkuId() + " 电商中台中不存在");
+                }
+
                 saleAfterItemReq.setRefundNum(returnItem.getNum());
-                saleAfterItemReq.setObjectId(0L); //TODO
-                saleAfterItemReq.setObjectType(""); //TODO
-                saleAfterItemReq.setDeliveryStatus(0);
+                saleAfterItemReq.setObjectId(orderItemResp.getTid());
+                saleAfterItemReq.setObjectType("ORDER_ITEM");
+//                saleAfterItemReq.setDeliveryStatus(0);
 //                saleAfterItemReq.setSignatureTime(LocalDateTime.now());
 
                 List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
