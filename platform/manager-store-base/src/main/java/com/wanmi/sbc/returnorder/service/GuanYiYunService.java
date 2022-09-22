@@ -142,7 +142,10 @@ public class GuanYiYunService extends AbstractCRMService {
                     }
                     OrderInterceptorReq orderInterceptorReq = new OrderInterceptorReq();
                     orderInterceptorReq.setOrderItemId(context.get(0).getTid());
+                    log.info("GuanyiYunService interceptorErpDeliverStatus request: {}", JSON.toJSONString(orderInterceptorReq));
                     BaseResponse booleanBaseResponse = shopCenterDeliveryProvider.orderInterceptor(orderInterceptorReq);
+                    log.info("GuanyiYunService interceptorErpDeliverStatus response: {}", JSON.toJSONString(booleanBaseResponse));
+
                     if (CommonErrorCode.SUCCESSFUL.equals(booleanBaseResponse.getCode())) {
                         //此处更新订单商品为作废状态 TODO duanlsh
                         log.info("管易云取消订单 子订单号：{} 商品:{} 拦截成功", returnOrderVO.getPtid(),tradeItemParam.getSkuId());
