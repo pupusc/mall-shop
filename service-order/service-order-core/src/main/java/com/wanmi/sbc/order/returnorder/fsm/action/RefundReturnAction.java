@@ -1,4 +1,5 @@
 package com.wanmi.sbc.order.returnorder.fsm.action;
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -178,7 +179,9 @@ public class RefundReturnAction extends ReturnAction {
 
            //调用推送接口
            SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+           log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
            BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+           log.info("RefundReturnAction createSaleAfter result {}", JSON.toJSONString(saleAfter));
 
            if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
