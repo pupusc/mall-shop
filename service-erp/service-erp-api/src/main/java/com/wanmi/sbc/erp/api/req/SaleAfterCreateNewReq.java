@@ -201,6 +201,8 @@ public class SaleAfterCreateNewReq {
         /**
          * 退款时间
          */
+        @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+        @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
         private LocalDateTime refundTime;
 
         /**
