@@ -57,7 +57,12 @@ public class ShopCenterGoodsStockService {
 		// 统计总库存
 		for (GoodsInfo info : allGoodsInfo) {
 			Integer stockNum = goodsStockMap.getOrDefault(info.getGoodsId(), 0);
-			goodsStockMap.put(info.getGoodsId(), stockNum + (Objects.nonNull(info.getStock()) ? info.getStock().intValue() : 0));
+			if (goodsInfoStockMap.containsKey(info.getGoodsInfoId())) {
+				stockNum += quantity;
+			} else {
+				stockNum += (Objects.nonNull(info.getStock()) ? info.getStock().intValue() : 0);
+			}
+			goodsStockMap.put(info.getGoodsId(), stockNum);
 		}
 		for (Map.Entry<String, Integer> entry : goodsStockMap.entrySet()) {
 			logger.info("ShopCenterGoodsStockService.goods修改库存.quantity={},id={}", entry.getValue(), entry.getKey());
