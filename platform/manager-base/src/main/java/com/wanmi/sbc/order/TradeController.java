@@ -1493,16 +1493,16 @@ public class TradeController {
         return trade;
     }
 
-    /**
-     * 推送订单至ERP系统(测试)
-     */
-    @ApiOperation(value = "推送订单至ERP系统")
-    @RequestMapping(value = "/erpTrade/pushTrade", method = RequestMethod.GET)
-    public BaseResponse pushTrade(String tradeNO) {
-        TradePushRequest request = TradePushRequest.builder().tid(tradeNO).build();
-        BaseResponse baseResponse = tradeProvider.pushOrderToERP(request);
-        return baseResponse;
-    }
+//    /**
+//     * 推送订单至ERP系统(测试)
+//     */
+//    @ApiOperation(value = "推送订单至ERP系统")
+//    @RequestMapping(value = "/erpTrade/pushTrade", method = RequestMethod.GET)
+//    public BaseResponse pushTrade(String tradeNO) {
+//        TradePushRequest request = TradePushRequest.builder().tid(tradeNO).build();
+//        BaseResponse baseResponse = tradeProvider.pushOrderToERP(request);
+//        return baseResponse;
+//    }
 
 //    /**
 //     * 推送订单至ERP系统(测试)
