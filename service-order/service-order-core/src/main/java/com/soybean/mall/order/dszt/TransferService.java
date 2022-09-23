@@ -32,12 +32,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -94,13 +99,11 @@ public class TransferService {
     @Autowired
     private ShopCenterOrderProvider shopCenterOrderProvider;
 
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     //转换率
     private static BigDecimal exchangeRate = new BigDecimal("100");
-
-    private static String source = "source";
-    private static String promoteUserId = "promoteUserId";
-    private static String deductDoce = "deductDoce";
 
 
 
@@ -163,7 +166,104 @@ public class TransferService {
      */
     private List<CreateOrderReq.BuyGoodsReq> packageSku(List<TradeItem> tradeItems) {
         List<CreateOrderReq.BuyGoodsReq> result = new ArrayList<>();
+
+        //打包商品
+        Map<String, List<TradeItem>> spuId2ModelMap = new HashMap<>();
         for (TradeItem tradeItem : tradeItems) {
+            if (StringUtils.isEmpty(tradeItem.getPackId())) {
+                continue;
+            }
+            List<TradeItem> tradeItemList = spuId2ModelMap.get(tradeItem.getPackId());
+            if (tradeItemList == null) {
+                tradeItemList = new ArrayList<>();
+                spuId2ModelMap.put(tradeItem.getPackId(), tradeItemList);
+            }
+            tradeItemList.add(tradeItem);
+        }
+
+        Map<String, List<GoodsPackDetailResponse>> packageId2ModelMap = new HashMap<>();
+        if (spuId2ModelMap.size() > 0) {
+            BaseResponse<List<GoodsPackDetailResponse>> packResponse =
+                    goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(new ArrayList<>(spuId2ModelMap.keySet())));
+            List<GoodsPackDetailResponse> goodsPackDetailResponses = packResponse.getContext();
+            for (GoodsPackDetailResponse goodsPackDetailRespon : goodsPackDetailResponses) {
+                List<GoodsPackDetailResponse> goodsPackDetailResponseList = packageId2ModelMap.get(goodsPackDetailRespon.getPackId());
+                if (goodsPackDetailResponseList == null) {
+                    goodsPackDetailResponseList = new ArrayList<>();
+                    packageId2ModelMap.put(goodsPackDetailRespon.getPackId(), goodsPackDetailResponseList);
+                }
+                goodsPackDetailResponseList.add(goodsPackDetailRespon);
+            }
+        }
+
+
+
+
+        for (Map.Entry<String, List<TradeItem>> entry : spuId2ModelMap.entrySet()) {
+            TradeItem packageTradeItem = null;
+            for (TradeItem tradeItem : entry.getValue()) {
+                if (Objects.equals(entry.getKey(), tradeItem.getSpuId())) {
+                    packageTradeItem = tradeItem;
+                    break;
+                }
+            }
+
+            if (packageTradeItem == null) {
+                continue;
+            }
+
+            BigDecimal sumOther = BigDecimal.ZERO;
+            for (TradeItem tradeItem : entry.getValue()) {
+                if (Objects.equals(entry.getKey(), tradeItem.getSpuId())) {
+                    continue;
+                }
+
+                //获取打包对应的折扣信息
+                List<GoodsPackDetailResponse> goodsPackDetailResponses = packageId2ModelMap.get(tradeItem.getPackId());
+                Map<String, GoodsPackDetailResponse> collect =
+                        goodsPackDetailResponses.stream().collect(Collectors.toMap(GoodsPackDetailResponse::getGoodsId, Function.identity(), (k1, k2) -> k1));
+                GoodsPackDetailResponse goodsPackDetailResponse = collect.get(tradeItem.getSpuId());
+
+                CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+                buyGoodsReq.setPlatformItemId(tradeItem.getOid());
+                buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
+                buyGoodsReq.setNum(tradeItem.getNum().intValue());
+                buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
+                buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
+                buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
+                buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
+                BigDecimal  price = packageTradeItem.getPrice() == null ? BigDecimal.ZERO : packageTradeItem.getPrice();
+                BigDecimal newPrice = price.multiply(goodsPackDetailResponse.getShareRate());
+                buyGoodsReq.setPrice(newPrice.intValue());
+                buyGoodsReq.setGiftFlag(0); //非赠送
+                sumOther = sumOther.add(newPrice);
+                result.add(buyGoodsReq);
+            }
+
+            //打包的商品
+            //获取打包对应的折扣信息
+            CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+            buyGoodsReq.setPlatformItemId(packageTradeItem.getOid());
+            buyGoodsReq.setGoodsCode(packageTradeItem.getErpSkuNo());
+            buyGoodsReq.setNum(packageTradeItem.getNum().intValue());
+            buyGoodsReq.setPlatformGoodsId(packageTradeItem.getSpuId());
+            buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
+            buyGoodsReq.setPlatformSkuId(packageTradeItem.getSkuId());
+            buyGoodsReq.setPlatformSkuName(packageTradeItem.getSkuName());
+            BigDecimal  price = packageTradeItem.getPrice() == null ? BigDecimal.ZERO : packageTradeItem.getPrice();
+            BigDecimal newPrice = price.multiply(exchangeRate).subtract(sumOther);
+            buyGoodsReq.setPrice(newPrice.intValue());
+            buyGoodsReq.setGiftFlag(0); //非赠送
+            result.add(buyGoodsReq);
+        }
+
+        //非打包商品
+        for (TradeItem tradeItem : tradeItems) {
+
+            //判断是否为打包商品
+            if (!StringUtils.isEmpty(tradeItem.getPackId())) {
+                continue;
+            }
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(tradeItem.getOid());
             buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
@@ -180,6 +280,20 @@ public class TransferService {
             //优惠
             List<CreateOrderReq.BuyDiscountReq> buyDiscountReqList = new ArrayList<>();
 
+            //会员价格
+            if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
+                tmpPrice = tmpPrice.multiply(exchangeRate);
+                buyDiscountReq.setAmount(tmpPrice.intValue());
+                buyDiscountReq.setCouponId("");
+                buyDiscountReq.setDiscountNo("");
+                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                buyDiscountReq.setMemo("会员价");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
 
             //优惠券
             if (!CollectionUtils.isEmpty(tradeItem.getCouponSettlements())) {
@@ -214,6 +328,8 @@ public class TransferService {
                     buyDiscountReqList.add(buyDiscountReq);
                 }
             }
+
+
 
             buyGoodsReq.setGoodsDiscounts(buyDiscountReqList);
             result.add(buyGoodsReq);
@@ -270,7 +386,7 @@ public class TransferService {
         if (point != null && point > 0) {
             BigDecimal pointDecimal = new BigDecimal(trade.getTradePrice().getPoints().toString());
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
-            buyPaymentReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+            buyPaymentReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString());
 
             buyPaymentReq.setAmount(pointDecimal.intValue());
             buyPaymentReq.setMemo("积分");
