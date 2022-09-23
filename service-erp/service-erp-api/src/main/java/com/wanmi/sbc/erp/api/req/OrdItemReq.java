@@ -9,7 +9,5 @@ public class OrdItemReq implements Serializable {
 
 	private String platformOrderId;
 
-	private String platformItemId;
-
 	private String platformSkuId;
 }

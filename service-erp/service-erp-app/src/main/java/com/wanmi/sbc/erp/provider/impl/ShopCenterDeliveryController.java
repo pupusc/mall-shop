@@ -30,8 +30,11 @@ public class ShopCenterDeliveryController implements ShopCenterDeliveryProvider 
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("delivery.orderInterceptor");
 
+			log.info("ShopCenterDeliveryController orderInterceptor request {}", JSON.toJSONString(request));
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterDeliveryController orderInterceptor response {}", JSON.toJSONString(request));
+
 			Boolean data = JSON.parseObject(str, Boolean.class);
 			if (data != null && data) {
 				return BaseResponse.SUCCESSFUL();

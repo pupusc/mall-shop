@@ -95,5 +95,5 @@ public abstract class AbstractCRMService {
     }
 
 
-    public abstract BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag);
+//    public abstract BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag);
 }
