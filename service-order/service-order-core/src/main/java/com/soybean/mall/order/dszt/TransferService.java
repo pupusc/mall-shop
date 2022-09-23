@@ -938,8 +938,8 @@ public class TransferService {
                 }
 
                 saleAfterItemReq.setRefundNum(returnItem.getNum());
-                saleAfterItemReq.setObjectId(orderItemResp.getTid());
-                saleAfterItemReq.setObjectType("ORDER_ITEM");
+                saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                saleAfterItemReq.setObjectType("ORD_ITEM");
 //                saleAfterItemReq.setDeliveryStatus(0);
 //                saleAfterItemReq.setSignatureTime(LocalDateTime.now());
 

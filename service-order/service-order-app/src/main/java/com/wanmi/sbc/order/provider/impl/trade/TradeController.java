@@ -805,10 +805,10 @@ public class TradeController implements TradeProvider {
 //        return tradePushERPService.syncProviderTradeStatus(request);
 //    }
 
-    @Override
-    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
-        return tradePushERPService.syncProviderTradeDeliveryStatus(request);
-    }
+//    @Override
+//    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
+//        return tradePushERPService.syncProviderTradeDeliveryStatus(request);
+//    }
 
     /**
      * C端提交订单-新,不用快照，无优惠信息

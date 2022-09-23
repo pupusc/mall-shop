@@ -1,8 +1,13 @@
 package com.wanmi.sbc.order.api.req;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -25,14 +30,18 @@ public class ShopCenterSyncDeliveryReq implements Serializable {
 	 * SkuId
 	 */
 	private String platformSkuId;
+
 	/**
 	 * 站内子订单号
 	 */
 	private Long orderItemId;
+
 	/**
-	 * 子单发货时间
+	 * 发货时间
 	 */
-	private Date deliveryTime;
+	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+	private LocalDateTime deliveryTime;
 
 	private List<Long> orderItemIds;
 }
