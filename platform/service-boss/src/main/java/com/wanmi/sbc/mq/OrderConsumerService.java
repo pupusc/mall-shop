@@ -737,22 +737,22 @@ public class OrderConsumerService {
 //        }
 //    }
 
-    /**
-     * 物流状态查询成功
-     * @param message
-     * @param body
-     */
-    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
-    @RabbitHandler
-    public void deliveryStatusSyncConsumer(Message message, @Payload String body){
-        log.info("order delivery status sync confirm message:{}", body);
-        try {
-            ProviderTradeDeliveryStatusSyncRequest request = JSONObject.parseObject(body, ProviderTradeDeliveryStatusSyncRequest.class);
-            tradeProvider.syncProviderTradeDeliveryStatus(request);
-            log.info("=============== 订单状态变更完成 ===============");
-        }catch (Exception e){
-            log.error("provider order delivery status sync confirm error,body:{}",body,e);
-        }
-    }
+//    /**
+//     * 物流状态查询成功
+//     * @param message
+//     * @param body
+//     */
+//    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
+//    @RabbitHandler
+//    public void deliveryStatusSyncConsumer(Message message, @Payload String body){
+//        log.info("order delivery status sync confirm message:{}", body);
+//        try {
+//            ProviderTradeDeliveryStatusSyncRequest request = JSONObject.parseObject(body, ProviderTradeDeliveryStatusSyncRequest.class);
+//            tradeProvider.syncProviderTradeDeliveryStatus(request);
+//            log.info("=============== 订单状态变更完成 ===============");
+//        }catch (Exception e){
+//            log.error("provider order delivery status sync confirm error,body:{}",body,e);
+//        }
+//    }
 
 }

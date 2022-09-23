@@ -143,7 +143,7 @@ public class SaleAfterCreateNewReq {
         /**
          * 子订单ID/主订单ID [如果主单退的时候【4补偿 5主订单仅退款 6赠品 主订单】，放主订单id，子订单退的时候，放自订单id，]
          */
-        private Long objectId;
+        private String objectId;
 
         /**
          * 对象类型  ORDER("ORD_ORDER", "订单"), ORDER_ITEM("ORD_ITEM", "订单"),

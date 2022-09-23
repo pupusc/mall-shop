@@ -484,13 +484,13 @@ public interface TradeProvider {
 //    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
 //    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
 
-    /**
-     * 同步物流状态
-     * @param request
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
-    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody ProviderTradeDeliveryStatusSyncRequest request);
+//    /**
+//     * 同步物流状态
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
+//    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody ProviderTradeDeliveryStatusSyncRequest request);
 
 
     /**
