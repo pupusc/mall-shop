@@ -74,7 +74,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			JSONObject param = new JSONObject();
 			param.put("platformOrderId", platformOrderId);
-
+			log.info("ShopCenterOrderController detailByPlatformOrderId platformOrderId {}", param);
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);
