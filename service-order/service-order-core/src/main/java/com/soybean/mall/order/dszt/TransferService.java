@@ -883,7 +883,7 @@ public class TransferService {
 
 
         saleAfterCreateNewReq.setOrderNumber(context.getOrderNumber().toString());
-        saleAfterCreateNewReq.setRefundTypeList(Lists.newArrayList());
+        saleAfterCreateNewReq.setRefundTypeList(Arrays.asList(1)); //退货退款
 
         SaleAfterOrderReq saleAfterCreateReq = new SaleAfterOrderReq();
         saleAfterCreateReq.setPlatformRefundId(returnOrder.getId());

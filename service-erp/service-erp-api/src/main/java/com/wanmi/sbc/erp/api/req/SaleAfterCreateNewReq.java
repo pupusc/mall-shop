@@ -52,6 +52,7 @@ public class SaleAfterCreateNewReq {
     private List<SaleAfterRefundReq> saleAfterRefundBOList;
 
 
+    private Integer saleAfterCreateEnum = 2;
 
     /**
      * 售后主单

@@ -31,7 +31,9 @@ public class ShopCenterSaleAfterController implements ShopCenterSaleAfterProvide
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);
 			Long data = JSON.parseObject(json.getString("data"), Long.class);
-
+			if (data == null) {
+				return BaseResponse.FAILED();
+			}
 			return BaseResponse.success(data);
 		} catch (Exception e) {
 			log.warn("ShopCenterSaleAfterController.createSaleAfter.异常", e);
