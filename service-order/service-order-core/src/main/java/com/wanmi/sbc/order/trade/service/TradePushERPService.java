@@ -2001,9 +2001,13 @@ public class TradePushERPService {
                 }
             }
         }
+
+
         DeliverStatus deliverStatus = null;
-        if (sum == 0) {
-            deliverStatus = DeliverStatus.NOT_YET_SHIPPED;
+        if (sum <= 0) {
+            log.info("TradePushERrPService fillShopCenterDelivery skuId {} return", request.getPlatformSkuId());
+            return;
+//            deliverStatus = DeliverStatus.NOT_YET_SHIPPED;
         } else if (sum >= request.getOrderItemIds().size() * 2) {
             deliverStatus = DeliverStatus.SHIPPED;
         } else {
@@ -2047,7 +2051,7 @@ public class TradePushERPService {
                 }
             }
 
-            if (sumProvider >= providerTrade.getTradeItems().size()) {
+            if (sumProvider >= providerTrade.getTradeItems().size() * 2) {
                 providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                 providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                 sumTrade += 2;
@@ -2103,7 +2107,7 @@ public class TradePushERPService {
 
         TradeDeliver currentTradeDeliver = null;
         for (TradeDeliver tradeDeliver : tradeDelivers) {
-            if (tradeDeliver.getLogistics() == null) {
+            if (tradeDeliver == null || tradeDeliver.getLogistics() == null) {
                 continue;
             }
             if (!Objects.equals(tradeDeliver.getLogistics().getLogisticNo(), request.getExpressNo())) {
@@ -2140,7 +2144,8 @@ public class TradePushERPService {
             tradeDeliverVO.setStatus(DeliverStatus.SHIPPED);
 
             TradeDeliver tradeDeliver = KsBeanUtil.copyPropertiesThird(tradeDeliverVO, TradeDeliver.class);
-            tradeDelivers.add(tradeDeliver);
+//            tradeDelivers.add(tradeDeliver);
+            currentTradeDeliver = tradeDeliver;
         } else {
 
             List<ShippingItem> shippingItems = currentTradeDeliver.getShippingItems();

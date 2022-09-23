@@ -1,4 +1,5 @@
 package com.soybean.mall.order.dszt;
+import java.time.LocalDateTime;
 
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
@@ -974,6 +975,51 @@ public class TransferService {
         }
         saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
 
+        //退款流水
+        //获取流水信息
+
+        List<SaleAfterCreateNewReq.SaleAfterRefundReq> saleAfterRefundReqList =  new ArrayList<>();
+        SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
+        if (Objects.nonNull(returnOrder.getReturnPrice().getActualReturnPrice())) {
+            // 获取订单流水
+            //获取支付流水和 商户号
+            TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
+            request.setOrderId(returnOrder.getTid());
+            log.info("TransferService changeSaleAfterCreateReq getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
+            BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
+            log.info("TransferService changeSaleAfterCreateReq result {}", JSON.toJSONString(tradeRecordByOrderCode));
+            PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
+            if (payTradeRecordResponse != null) {
+                saleAfterRefundReq.setRefundTradeNo(payTradeRecordResponse.getTradeNo());
+                saleAfterRefundReq.setRefundGateway("108");
+                saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getActualReturnPrice().multiply(exchangeRate).intValue());
+                saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
+                saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
+                saleAfterRefundReq.setRefundMchid(payTradeRecordResponse.getAppId());
+                saleAfterRefundReqList.add(saleAfterRefundReq);
+            }
+        }
+
+        if (Objects.nonNull(returnOrder.getReturnPoints()) && Objects.nonNull(returnOrder.getReturnPoints().getActualPoints())) {
+//            saleAfterRefundReq.setRefundTradeNo("");
+            saleAfterRefundReq.setRefundGateway("108");
+            saleAfterRefundReq.setAmount(returnOrder.getReturnPoints().getActualPoints().intValue());
+            saleAfterRefundReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString());
+            saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
+//            saleAfterRefundReq.setRefundMchid("");
+            saleAfterRefundReqList.add(saleAfterRefundReq);
+        }
+
+        if (Objects.nonNull(returnOrder.getReturnKnowledge()) && Objects.nonNull(returnOrder.getReturnKnowledge().getActualKnowledge())) {
+//            saleAfterRefundReq.setRefundTradeNo("");
+            saleAfterRefundReq.setRefundGateway("108");
+            saleAfterRefundReq.setAmount(returnOrder.getReturnKnowledge().getActualKnowledge().intValue());
+            saleAfterRefundReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+            saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
+//            saleAfterRefundReq.setRefundMchid("");
+            saleAfterRefundReqList.add(saleAfterRefundReq);
+        }
+        saleAfterCreateNewReq.setSaleAfterRefundBOList(saleAfterRefundReqList);
         return saleAfterCreateNewReq;
     }
 
