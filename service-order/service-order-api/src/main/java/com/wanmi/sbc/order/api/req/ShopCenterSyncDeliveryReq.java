@@ -11,10 +11,7 @@ public class ShopCenterSyncDeliveryReq implements Serializable {
 	 * 第三方主订单号
 	 */
 	private String platformOrderId;
-	/**
-	 * 第三方子订单号（目前推送就1条）
-	 */
-	private List<String> platformItemIds;
+
 	/**
 	 * 快递单号
 	 */
@@ -27,8 +24,7 @@ public class ShopCenterSyncDeliveryReq implements Serializable {
 	 * SkuId
 	 */
 	private String platformSkuId;
-	/**
-	 * shopCenter站内订单号
-	 */
-	private String orderItemId;
+
+
+	private List<Long> orderItemIds;
 }

@@ -26,38 +26,38 @@ public class ShopCenterOrdOrderController implements ShopCenterOrdOrderProvider 
 	@Override
 	public BaseResponse<Void> shopCenterSyncDelivery(ShopCenterSyncDeliveryReq request) {
 		OrderDevItemReq req = new OrderDevItemReq();
-		req.setOrderItemId(Long.valueOf(request.getOrderItemId()));
-		BaseResponse<List<DevItemResp>> response = shopCenterDeliveryProvider.listDevItem(req);
-		List<DevItemResp> context = response.getContext();
+//		req.setOrderItemId(Long.valueOf(request.getOrderItemId()));
+//		BaseResponse<List<DevItemResp>> response = shopCenterDeliveryProvider.listDevItem(req);
+//		List<DevItemResp> context = response.getContext();
+//
+//		DevItemResp devItemResp = context.get(0);
+//
+//		ShopCenterSyncDeliveryExtReq shopCenterSyncDeliveryExtReq = new ShopCenterSyncDeliveryExtReq();
+//		shopCenterSyncDeliveryExtReq.setNum(devItemResp.getNum());
+//		shopCenterSyncDeliveryExtReq.setPrice(devItemResp.getPrice());
+//		shopCenterSyncDeliveryExtReq.setOrderId(devItemResp.getOrderId());
+//		shopCenterSyncDeliveryExtReq.setOrderItemId(request.getOrderItemId());
+//		shopCenterSyncDeliveryExtReq.setDevDeliveryId(devItemResp.getDevDeliveryId());
+//		shopCenterSyncDeliveryExtReq.setMetaGoodsCode(devItemResp.getMetaGoodsCode());
+//		shopCenterSyncDeliveryExtReq.setMetaSkuCode(devItemResp.getMetaSkuCode());
+//		shopCenterSyncDeliveryExtReq.setThirdOrderId(devItemResp.getThirdOrderId());
+//		shopCenterSyncDeliveryExtReq.setThirdOrderNo(devItemResp.getThirdOrderNo());
+//		shopCenterSyncDeliveryExtReq.setExpressCode(devItemResp.getExpressCode());
+//		shopCenterSyncDeliveryExtReq.setExpressNo(devItemResp.getExpressNo());
+//		shopCenterSyncDeliveryExtReq.setStatus(devItemResp.getStatus());
+//		shopCenterSyncDeliveryExtReq.setLogisticStatus(devItemResp.getLogisticStatus());
+//		shopCenterSyncDeliveryExtReq.setInterceptStatus(devItemResp.getInterceptStatus());
+//		shopCenterSyncDeliveryExtReq.setActualNum(devItemResp.getActualNum());
+//		shopCenterSyncDeliveryExtReq.setRightsBeginTime(devItemResp.getRightsBeginTime());
+//		shopCenterSyncDeliveryExtReq.setRightsEndTime(devItemResp.getRightsEndTime());
+//		shopCenterSyncDeliveryExtReq.setPlatformOrderId(request.getPlatformOrderId());
+//		shopCenterSyncDeliveryExtReq.setPlatformItemIds(request.getPlatformItemIds());
+//		shopCenterSyncDeliveryExtReq.setExpressNo(request.getExpressNo());
+//		shopCenterSyncDeliveryExtReq.setExpressCode(request.getExpressCode());
+//		shopCenterSyncDeliveryExtReq.setPlatformSkuId(request.getPlatformSkuId());
+//		shopCenterSyncDeliveryExtReq.setOrderItemId(request.getOrderItemId());
 
-		DevItemResp devItemResp = context.get(0);
-
-		ShopCenterSyncDeliveryExtReq shopCenterSyncDeliveryExtReq = new ShopCenterSyncDeliveryExtReq();
-		shopCenterSyncDeliveryExtReq.setNum(devItemResp.getNum());
-		shopCenterSyncDeliveryExtReq.setPrice(devItemResp.getPrice());
-		shopCenterSyncDeliveryExtReq.setOrderId(devItemResp.getOrderId());
-		shopCenterSyncDeliveryExtReq.setOrderItemId(request.getOrderItemId());
-		shopCenterSyncDeliveryExtReq.setDevDeliveryId(devItemResp.getDevDeliveryId());
-		shopCenterSyncDeliveryExtReq.setMetaGoodsCode(devItemResp.getMetaGoodsCode());
-		shopCenterSyncDeliveryExtReq.setMetaSkuCode(devItemResp.getMetaSkuCode());
-		shopCenterSyncDeliveryExtReq.setThirdOrderId(devItemResp.getThirdOrderId());
-		shopCenterSyncDeliveryExtReq.setThirdOrderNo(devItemResp.getThirdOrderNo());
-		shopCenterSyncDeliveryExtReq.setExpressCode(devItemResp.getExpressCode());
-		shopCenterSyncDeliveryExtReq.setExpressNo(devItemResp.getExpressNo());
-		shopCenterSyncDeliveryExtReq.setStatus(devItemResp.getStatus());
-		shopCenterSyncDeliveryExtReq.setLogisticStatus(devItemResp.getLogisticStatus());
-		shopCenterSyncDeliveryExtReq.setInterceptStatus(devItemResp.getInterceptStatus());
-		shopCenterSyncDeliveryExtReq.setActualNum(devItemResp.getActualNum());
-		shopCenterSyncDeliveryExtReq.setRightsBeginTime(devItemResp.getRightsBeginTime());
-		shopCenterSyncDeliveryExtReq.setRightsEndTime(devItemResp.getRightsEndTime());
-		shopCenterSyncDeliveryExtReq.setPlatformOrderId(request.getPlatformOrderId());
-		shopCenterSyncDeliveryExtReq.setPlatformItemIds(request.getPlatformItemIds());
-		shopCenterSyncDeliveryExtReq.setExpressNo(request.getExpressNo());
-		shopCenterSyncDeliveryExtReq.setExpressCode(request.getExpressCode());
-		shopCenterSyncDeliveryExtReq.setPlatformSkuId(request.getPlatformSkuId());
-		shopCenterSyncDeliveryExtReq.setOrderItemId(request.getOrderItemId());
-
-		tradePushERPService.fillShopCenterDelivery(shopCenterSyncDeliveryExtReq);
+		tradePushERPService.fillShopCenterDelivery(null);
 		return BaseResponse.success(null);
 	}
 }

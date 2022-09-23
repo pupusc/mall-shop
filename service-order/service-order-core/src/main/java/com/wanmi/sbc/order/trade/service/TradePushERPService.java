@@ -12,6 +12,9 @@ import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterDeliveryProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.OrderDevItemReq;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
 import com.wanmi.sbc.erp.api.resp.DevItemResp;
@@ -110,11 +113,11 @@ public class TradePushERPService {
     @Autowired
     private GoodsInfoProvider goodsInfoProvider;
 
-    @Autowired
-    private GoodsProvider goodsProvider;
-
-    @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
+//    @Autowired
+//    private GoodsProvider goodsProvider;
+//
+//    @Autowired
+//    private GoodsQueryProvider goodsQueryProvider;
 
     @Autowired
     private ErpLogisticsMappingQueryProvider erpLogisticsMappingQueryProvider;
@@ -125,8 +128,8 @@ public class TradePushERPService {
     @Autowired
     private OrderInvoiceService orderInvoiceService;
 
-    @Autowired
-    private RedisService redisService;
+//    @Autowired
+//    private RedisService redisService;
 
 
     @Value("${default.providerId}")
@@ -145,8 +148,12 @@ public class TradePushERPService {
     @Autowired
     public OrderProducerService orderProducerService;
 
+//    @Autowired
+//    private FddsProviderService fddsProviderService;
+
+
     @Autowired
-    private FddsProviderService fddsProviderService;
+    private ShopCenterDeliveryProvider shopCenterDeliveryProvider;
 
     /**
      * 查询订单
@@ -2012,7 +2019,7 @@ public class TradePushERPService {
     /**
      * shopCenter更新订单发货信息
      */
-    public void fillShopCenterDelivery(ShopCenterSyncDeliveryExtReq request /*ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOListT, Integer allDelivery*/) {
+    public void fillShopCenterDelivery(ShopCenterSyncDeliveryReq request /*ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOListT, Integer allDelivery*/) {
         Trade trade = tradeService.detail(request.getPlatformOrderId());
         
         // 根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
@@ -2023,16 +2030,82 @@ public class TradePushERPService {
         }
 
 
+        int sum = 0;
+        for (Long orderItemId : request.getOrderItemIds()) {
+            OrderDevItemReq orderDevItemReq = new OrderDevItemReq();
+            orderDevItemReq.setOrderItemId(orderItemId);
+            log.info("TradePushERrPService fillShopCenterDelivery param {}", JSON.toJSONString(orderDevItemReq));
+            BaseResponse<List<DevItemResp>> listBaseResponse = shopCenterDeliveryProvider.listDevItem(orderDevItemReq);
+            log.info("TradePushERrPService fillShopCenterDelivery response {}", JSON.toJSONString(listBaseResponse));
+            for (DevItemResp devItemResp : listBaseResponse.getContext()) {
+                if (Objects.equals(devItemResp.getStatus(), 0)) {
+                    sum += 0;
+                }
+                if (Objects.equals(devItemResp.getStatus(), 1)) {
+                    sum += 1;
+                }
+                if (Objects.equals(devItemResp.getStatus(), 2)) {
+                    sum += 2;
+                }
+            }
+        }
+        DeliverStatus deliverStatus = null;
+        if (sum == 0) {
+            deliverStatus = DeliverStatus.NOT_YET_SHIPPED;
+        } else if (sum >= request.getOrderItemIds().size() * 2) {
+            deliverStatus = DeliverStatus.SHIPPED;
+        } else {
+            deliverStatus = DeliverStatus.PART_SHIPPED;
+        }
 
+        int sumTrade = 0;
         for (ProviderTrade providerTrade : providerTrades) {
-
+            int sumProvider = 0;
             for (TradeItem tradeItem : providerTrade.getTradeItems()) {
-                if (!Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
+                if (Objects.equals(tradeItem.getDeliverStatus(), DeliverStatus.SHIPPED)) {
                     continue;
                 }
-
-
+                if (Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
+                    tradeItem.setDeliverStatus(deliverStatus);
+                    if (Objects.equals(deliverStatus, DeliverStatus.PART_SHIPPED)) {
+                        tradeItem.setDeliveredNum(1L);
+                        sumProvider += 1;
+                    }
+                    if (Objects.equals(deliverStatus, DeliverStatus.NOT_YET_SHIPPED)) {
+                        tradeItem.setDeliveredNum(0L);
+                        sumProvider += 0;
+                    }
+                    if (Objects.equals(deliverStatus, DeliverStatus.SHIPPED)) {
+                        tradeItem.setDeliveredNum(tradeItem.getNum());
+                        sumProvider += 2;
+                    }
+                }
             }
+
+            if (sumProvider >= providerTrade.getTradeItems().size()) {
+                providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+                sumTrade += 2;
+            } else if (sumProvider <= 0) {
+                providerTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
+                providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                sumTrade += 1;
+            } else {
+//                providerTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
+//                providerTrade.getTradeState().setFlowState(FlowState.);
+                sumTrade += 0;
+            }
+        }
+
+        if (sumTrade == 0) {
+//            trade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
+//            trade.getTradeState().setFlowState(F);
+        } else if (sumTrade >= trade.getTradeItems().size() * 2) {
+            trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+            trade.getTradeState().setFlowState(FlowState.DELIVERED);
+        } else {
+            trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+            trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
         }
         
 
