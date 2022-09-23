@@ -1005,8 +1005,9 @@ public class ProviderTradeService {
 
                    //调用推送接口
                    log.info("ProviderTradeService singlePushOrder createOrderReq {}", JSON.toJSONString(createOrderReq));
+                   long beginTime = System.currentTimeMillis();
                    BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
-                   log.info("ProviderTradeService singlePushOrder result {}", JSON.toJSONString(createOrderRespBaseResponse));
+                   log.info("ProviderTradeService singlePushOrder result {} cost {}", JSON.toJSONString(createOrderRespBaseResponse), (System.currentTimeMillis() - beginTime)/1000);
                    CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
                    if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
                            || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
