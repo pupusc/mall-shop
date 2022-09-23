@@ -180,7 +180,7 @@ public class GrouponReturnOrderService {
             if (trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
                 for (TradeItem tradeItem : trade.getTradeItems()) {
                     OrdItemReq ordItemReq = new OrdItemReq();
-                    ordItemReq.setPlatformItemId(trade.getId());
+                    ordItemReq.setPlatformOrderId(trade.getId());
                     ordItemReq.setPlatformSkuId(tradeItem.getSkuId());
                     List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
                     if (CollectionUtils.isEmpty(context)) {

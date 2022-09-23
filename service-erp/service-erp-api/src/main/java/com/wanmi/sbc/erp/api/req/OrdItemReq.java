@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Data
 public class OrdItemReq implements Serializable {
 
-	private String platformItemId;
+	private String platformOrderId;
 
 	private String platformSkuId;
 }

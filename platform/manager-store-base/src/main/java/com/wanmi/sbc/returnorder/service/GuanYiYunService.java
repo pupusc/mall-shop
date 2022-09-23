@@ -134,7 +134,7 @@ public class GuanYiYunService extends AbstractCRMService {
 //                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(tradeItemParam.getOid()).refundState(2).build();
 //                    BaseResponse baseResponse = guanyierpProvider.refundTradeItem(refundTradeRequest);
                     OrdItemReq ordItemReq = new OrdItemReq();
-                    ordItemReq.setPlatformItemId(returnOrderVO.getTid());
+                    ordItemReq.setPlatformOrderId(returnOrderVO.getTid());
                     ordItemReq.setPlatformSkuId(returnItemVO.getSkuId());
                     log.info("GuanyiYunService listOrdItem request: {}", JSON.toJSONString(ordItemReq));
                     List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
@@ -234,7 +234,7 @@ public class GuanYiYunService extends AbstractCRMService {
 //                                }
 //                            }
                             OrdItemReq ordItemReq = new OrdItemReq();
-                            ordItemReq.setPlatformItemId(returnOrderVO.getTid());
+                            ordItemReq.setPlatformOrderId(returnOrderVO.getTid());
                             ordItemReq.setPlatformSkuId(tradeItem.getSkuId());
                             List<OrdItemResp> context = shopCenterOrderProvider.listOrdItem(ordItemReq).getContext();
                             if (CollectionUtils.isEmpty(context)) {
