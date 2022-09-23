@@ -32,7 +32,7 @@ public class ShopCenterSyncDeliveryReq implements Serializable {
 	private String platformSkuId;
 
 	/**
-	 * 子单id
+	 * 站内子订单号
 	 */
 	private Long orderItemId;
 
