@@ -906,7 +906,7 @@ public class TransferService {
             saleAfterFreeList.add(saleAfterRefundDetailReq);
         }
 
-        if (returnOrder.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
+        if (returnOrder.getReturnPrice().getDeliverPrice() != null && returnOrder.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
                     new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
             saleAfterRefundDetailReq.setPayType(1);
