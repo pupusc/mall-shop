@@ -354,19 +354,19 @@ public class StoreReturnOrderController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
     public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
-        //获取退单信息
-        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
-        if (returnOrderVO == null) {
-            //退单不存在
-            throw new SbcRuntimeException("K-050003");
-        }
-        //管易云
-        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
-            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        } else {
-            //博库
-            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        }
+//        //获取退单信息
+//        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
+//        if (returnOrderVO == null) {
+//            //退单不存在
+//            throw new SbcRuntimeException("K-050003");
+//        }
+//        //管易云
+//        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
+//            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        } else {
+//            //博库
+//            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        }
         return BaseResponse.SUCCESSFUL();
     }
 
