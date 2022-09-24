@@ -629,7 +629,6 @@ public class TransferService {
         //获取流水信息
 
         List<SaleAfterCreateNewReq.SaleAfterRefundReq> saleAfterRefundReqList =  new ArrayList<>();
-        SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
         if (Objects.nonNull(returnOrder.getReturnPrice().getActualReturnPrice())) {
             // 获取订单流水
             //获取支付流水和 商户号
@@ -640,6 +639,7 @@ public class TransferService {
             log.info("TransferService changeSaleAfterCreateReq result {}", JSON.toJSONString(tradeRecordByOrderCode));
             PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
             if (payTradeRecordResponse != null) {
+                SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
                 saleAfterRefundReq.setRefundTradeNo(payTradeRecordResponse.getTradeNo());
                 saleAfterRefundReq.setRefundGateway("108");
                 saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getActualReturnPrice().multiply(exchangeRate).intValue());
@@ -650,7 +650,10 @@ public class TransferService {
             }
         }
 
-        if (Objects.nonNull(returnOrder.getReturnPoints()) && Objects.nonNull(returnOrder.getReturnPoints().getActualPoints())) {
+        if (Objects.nonNull(returnOrder.getReturnPoints())
+                && Objects.nonNull(returnOrder.getReturnPoints().getActualPoints())
+                && returnOrder.getReturnPoints().getActualPoints() > 0L) {
+            SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
 //            saleAfterRefundReq.setRefundTradeNo("");
             saleAfterRefundReq.setRefundGateway("108");
             saleAfterRefundReq.setAmount(returnOrder.getReturnPoints().getActualPoints().intValue());
@@ -660,7 +663,10 @@ public class TransferService {
             saleAfterRefundReqList.add(saleAfterRefundReq);
         }
 
-        if (Objects.nonNull(returnOrder.getReturnKnowledge()) && Objects.nonNull(returnOrder.getReturnKnowledge().getActualKnowledge())) {
+        if (Objects.nonNull(returnOrder.getReturnKnowledge())
+                && Objects.nonNull(returnOrder.getReturnKnowledge().getActualKnowledge())
+                && returnOrder.getReturnKnowledge().getActualKnowledge() > 0L) {
+            SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
 //            saleAfterRefundReq.setRefundTradeNo("");
             saleAfterRefundReq.setRefundGateway("108");
             saleAfterRefundReq.setAmount(returnOrder.getReturnKnowledge().getActualKnowledge().intValue());

@@ -21,6 +21,8 @@ import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.PayCallBackType;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.model.entity.*;
 import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
@@ -83,6 +85,9 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private TradeRepository tradeRepository;
+
+    @Autowired
+    private ReturnOrderRepository returnOrderRepository;
 
 
     /**
@@ -851,4 +856,11 @@ public class TradeController implements TradeProvider {
         Trade trade = tradeRepository.findById(tradeNo).get();
         return BaseResponse.success(transferService.trade2CreateOrderReq(trade));
     }
+
+    @Override
+    public BaseResponse getSaleAfterCreateReq(String returnOrderNo) {
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
+        return BaseResponse.success(transferService.changeSaleAfterCreateReq(returnOrder));
+    }
+
 }

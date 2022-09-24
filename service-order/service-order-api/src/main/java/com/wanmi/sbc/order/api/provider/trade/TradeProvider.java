@@ -537,4 +537,8 @@ public interface TradeProvider {
 
     @GetMapping("/order/${application.order.version}/trade/getCreateOrderReq/{tradeNo}")
     BaseResponse getCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
+
+
+    @GetMapping("/order/${application.order.version}/trade/getSaleAfterCreateReq/{returnOrderNO}")
+    BaseResponse getSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
 }
