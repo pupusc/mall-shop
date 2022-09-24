@@ -574,9 +574,9 @@ public class WxOrderService {
                     .path(goodsDetailUrl + tradeItem.getSpuId())
                     .headImg(StringUtils.isEmpty(tradeItem.getPic()) ? defaultImageUrl : tradeItem.getPic()).build());
         }
-        if (CollectionUtils.isEmpty(productInfoDTOS)) {
-            throw new SbcRuntimeException("K-999999", "有效商品为空");
-        }
+//        if (CollectionUtils.isEmpty(productInfoDTOS)) {
+//            throw new SbcRuntimeException("K-999999", "有效商品为空");
+//        }
 
         detail.setProductInfos(productInfoDTOS);
 

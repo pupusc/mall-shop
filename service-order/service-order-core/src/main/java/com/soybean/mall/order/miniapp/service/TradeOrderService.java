@@ -304,6 +304,9 @@ public class TradeOrderService {
 		WxCreateOrderRequest wxCreateOrderRequest = null;
 //        try {
 		wxCreateOrderRequest = wxOrderService.buildRequest(trade);
+		if (CollectionUtils.isEmpty(wxCreateOrderRequest.getOrderDetail().getProductInfos())) {
+			throw new SbcRuntimeException("999999", "下单商品没有金额信息，不可以下单");
+		}
 		BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
 		log.info("微信小程序订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
 		if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {

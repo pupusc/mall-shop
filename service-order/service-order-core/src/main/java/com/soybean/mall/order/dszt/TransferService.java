@@ -147,7 +147,7 @@ public class TransferService {
         buyAddressReq.setAddressType("ORDER");
         buyAddressReq.setContactName(consignee.getName());
         if (!StringUtils.isEmpty(trade.getDirectChargeMobile())) {
-            buyAddressReq.setContactMobile(consignee.getPhone());
+            buyAddressReq.setContactMobile(trade.getDirectChargeMobile());
         } else {
             buyAddressReq.setContactMobile(consignee.getPhone());
         }
