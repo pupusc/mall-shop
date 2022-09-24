@@ -2139,7 +2139,7 @@ public class TradePushERPService {
             TradeDeliver tradeDeliver = new TradeDeliver();
             tradeDeliver.setTradeId(currentProviderTrade.getId());
             tradeDeliver.setProviderName(currentProviderTrade.getSupplier().getSupplierName());
-//            tradeDeliver.setDeliverId("");
+            tradeDeliver.setDeliverId(request.getExpressNo());
             tradeDeliver.setLogistics(logistics);
 //            tradeDeliver.setConsignee(new Consignee());
 //            tradeDeliver.setIsVirtualCoupon(false);
