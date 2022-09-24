@@ -1951,23 +1951,23 @@ public class TradePushERPService {
 //    }
 
     //如果有取消商品行且全部已发货或已取消，则将发货单修改成全部发货，并修改主订单状态
-    private void updateProviderAllDelivery(ProviderTradeDeliveryStatusSyncRequest request){
-        ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
-        TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
-        //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
-        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(tradeVO.getId());
-        providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-        providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-        providerTrade.getTradeState().setVirtualAllDelivery(1);
-        tradeVO.getTradeState().setVirtualAllDelivery(1);
-        providerTradeService.updateProviderTrade(providerTrade);
-        if (!providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
-            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
-        }
-        Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
-        tradeService.updateTrade(trade);
-    }
+//    private void updateProviderAllDelivery(ProviderTradeDeliveryStatusSyncRequest request){
+//        ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
+//        TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
+//        //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
+//        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(tradeVO.getId());
+//        providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//        providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+//        providerTrade.getTradeState().setVirtualAllDelivery(1);
+//        tradeVO.getTradeState().setVirtualAllDelivery(1);
+//        providerTradeService.updateProviderTrade(providerTrade);
+//        if (!providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
+//            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+//        }
+//        Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
+//        tradeService.updateTrade(trade);
+//    }
 
 
     /**
@@ -2101,7 +2101,7 @@ public class TradePushERPService {
                 = new ErpLogisticsMappingByErpLogisticsCodeRequest();
         erpLogisticsMappingByErpLogisticsCodeRequest.setErpLogisticsCode(request.getExpressCode());
         ErpLogisticsMappingVO erpLogisticsMappingVO =
-                erpLogisticsMappingQueryProvider.getByErpLogisticsCode(erpLogisticsMappingByErpLogisticsCodeRequest).getContext().getErpLogisticsMappingVO();
+                erpLogisticsMappingQueryProvider.getWmLogisticsCode(erpLogisticsMappingByErpLogisticsCodeRequest).getContext().getErpLogisticsMappingVO();
 
         List<TradeDeliver> tradeDelivers = currentProviderTrade.getTradeDelivers();
         if (tradeDelivers == null) {
@@ -2122,7 +2122,7 @@ public class TradePushERPService {
         if (currentTradeDeliver == null) {
             //物流信息
             Logistics logistics = new Logistics();
-            logistics.setLogisticCompanyName((erpLogisticsMappingVO != null && erpLogisticsMappingVO.getWmLogisticsCode() != null) ? erpLogisticsMappingVO.getWmLogisticsCode() : request.getExpressCode());
+            logistics.setLogisticCompanyName((erpLogisticsMappingVO != null && erpLogisticsMappingVO.getWmLogisticsCode() != null) ? erpLogisticsMappingVO.getNameLogisticsCompany() : request.getExpressCode());
             logistics.setLogisticNo(request.getExpressNo());
 
             List<ShippingItem> shippingItemList = new ArrayList<>();

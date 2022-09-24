@@ -290,7 +290,7 @@ public class TransferService {
             if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
                 CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                 BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
-                tmpPrice = tmpPrice.multiply(exchangeRate);
+                tmpPrice = tmpPrice.multiply(exchangeRate).multiply(new BigDecimal(tradeItem.getNum().toString()));
                 buyDiscountReq.setAmount(tmpPrice.intValue());
                 buyDiscountReq.setCouponId("");
                 buyDiscountReq.setDiscountNo("");

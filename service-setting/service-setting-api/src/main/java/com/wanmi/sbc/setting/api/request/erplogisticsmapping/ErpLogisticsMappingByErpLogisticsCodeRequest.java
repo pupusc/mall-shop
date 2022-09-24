@@ -24,6 +24,11 @@ public class ErpLogisticsMappingByErpLogisticsCodeRequest extends SettingBaseReq
 	 * erp系统物流编码
 	 */
 	@ApiModelProperty(value = "erp系统物流编码")
-	@NotNull
 	private String erpLogisticsCode;
+
+	/**
+	 * wm系统物流编码
+	 */
+	@ApiModelProperty(value = "wm系统物流编码")
+	private String wmLogisticsCode;
 }

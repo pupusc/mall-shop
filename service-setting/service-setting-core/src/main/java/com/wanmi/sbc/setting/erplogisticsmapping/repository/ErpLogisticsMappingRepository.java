@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 /**
  * <p>erp系统物流编码映射DAO</p>
@@ -18,4 +20,5 @@ public interface ErpLogisticsMappingRepository extends JpaRepository<ErpLogistic
 
     ErpLogisticsMapping findByErpLogisticsCode(String erpLogisticsCode);
 
+    List<ErpLogisticsMapping> findByWmLogisticsCode(String wmLogisticsCode);
 }
