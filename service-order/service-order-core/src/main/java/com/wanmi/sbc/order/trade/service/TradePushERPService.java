@@ -150,14 +150,14 @@ public class TradePushERPService {
 //        return BaseResponse.FAILED();
 //    }
 
-    private void releaseFrozenStock(ProviderTrade providerTrade){
+    public void releaseFrozenStock(Trade trade){
 //        List<TradeItem> tradeItems = providerTrade.getTradeItems();
 //        Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
 //        log.info("释放虚拟冻结库存:{}", JSONObject.toJSONString(map));
 //        goodsProvider.decryLastStock(map);
 
         List<GoodsInfoMinusStockDTO> stockList = new ArrayList<>();
-        for (TradeItem tradeItem : providerTrade.getTradeItems()) {
+        for (TradeItem tradeItem : trade.getTradeItems()) {
             GoodsInfoMinusStockDTO goodsInfoMinusStockDTO = new GoodsInfoMinusStockDTO();
             goodsInfoMinusStockDTO.setStock(tradeItem.getNum());
             goodsInfoMinusStockDTO.setGoodsInfoId(tradeItem.getSkuId());
@@ -2144,26 +2144,32 @@ public class TradePushERPService {
             tradeDeliverVO.setStatus(DeliverStatus.SHIPPED);
 
             TradeDeliver tradeDeliver = KsBeanUtil.copyPropertiesThird(tradeDeliverVO, TradeDeliver.class);
-//            tradeDelivers.add(tradeDeliver);
-            currentTradeDeliver = tradeDeliver;
+            tradeDelivers.add(tradeDeliver);
         } else {
 
             List<ShippingItem> shippingItems = currentTradeDeliver.getShippingItems();
             if (shippingItems == null) {
                 shippingItems = new ArrayList<>();
             }
-            ShippingItem shippingItem = new ShippingItem();
-            shippingItem.setItemName(currentTradeItem.getSpuName());
-            shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-            shippingItem.setSpuId(currentTradeItem.getSpuId());
-            shippingItem.setSkuId(currentTradeItem.getSkuId());
-            shippingItem.setSkuNo(currentTradeItem.getSkuNo());
-            shippingItem.setPic(currentTradeItem.getPic());
-            shippingItems.add(shippingItem);
+
+            for (ShippingItem shippingItem : shippingItems) {
+                if (Objects.equals(shippingItem.getSkuId(), currentTradeItem.getSkuId())) {
+                    continue;
+                }
+                ShippingItem tmpShippingItem = new ShippingItem();
+                tmpShippingItem.setItemName(currentTradeItem.getSpuName());
+                tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
+                tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
+                tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                tmpShippingItem.setPic(currentTradeItem.getPic());
+                shippingItems.add(tmpShippingItem);
+            }
+
             currentTradeDeliver.setShippingItems(shippingItems);
         }
 
-        currentProviderTrade.setTradeDelivers(Collections.singletonList(currentTradeDeliver));
+        currentProviderTrade.setTradeDelivers(tradeDelivers);
 
         // 添加日志
         Operator system = Operator.builder().name("system").account("system").platform(Platform.PLATFORM).build();

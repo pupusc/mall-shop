@@ -118,20 +118,21 @@ public class TransferService {
         String cityName = consignee.getCityName();
         String areaName = consignee.getAreaName();
         PlatformAddressListRequest platformAddressListRequest = new PlatformAddressListRequest();
-        platformAddressListRequest.setIdList(Arrays.asList(provinceName, cityName, areaName));
+        platformAddressListRequest.setIdList(
+                Arrays.asList(consignee.getProvinceId().toString(), consignee.getCityId().toString(), consignee.getAreaId().toString()));
         platformAddressListRequest.setLeafFlag(false);
         PlatformAddressListResponse platformAddressListResponse =
                 platformAddressQueryProvider.list(platformAddressListRequest).getContext();
         List<PlatformAddressVO> platformAddressVOList = platformAddressListResponse.getPlatformAddressVOList();
         if (CollectionUtils.isNotEmpty(platformAddressVOList)) {
             for (PlatformAddressVO platformAddressVO : platformAddressVOList) {
-                if (Objects.equals(platformAddressVO.getId(), provinceName)) {
+                if (Objects.equals(platformAddressVO.getId(), consignee.getProvinceId().toString())) {
                     provinceName = platformAddressVO.getAddrName();
                 }
-                if (Objects.equals(platformAddressVO.getId(), cityName)) {
+                if (Objects.equals(platformAddressVO.getId(), consignee.getCityId().toString())) {
                     cityName = platformAddressVO.getAddrName();
                 }
-                if (Objects.equals(platformAddressVO.getId(), areaName)) {
+                if (Objects.equals(platformAddressVO.getId(), consignee.getAreaId().toString())) {
                     areaName = platformAddressVO.getAddrName();
                 }
             }
@@ -182,20 +183,20 @@ public class TransferService {
             tradeItemList.add(tradeItem);
         }
 
-        Map<String, List<GoodsPackDetailResponse>> packageId2ModelMap = new HashMap<>();
-        if (spuId2ModelMap.size() > 0) {
-            BaseResponse<List<GoodsPackDetailResponse>> packResponse =
-                    goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(new ArrayList<>(spuId2ModelMap.keySet())));
-            List<GoodsPackDetailResponse> goodsPackDetailResponses = packResponse.getContext();
-            for (GoodsPackDetailResponse goodsPackDetailRespon : goodsPackDetailResponses) {
-                List<GoodsPackDetailResponse> goodsPackDetailResponseList = packageId2ModelMap.get(goodsPackDetailRespon.getPackId());
-                if (goodsPackDetailResponseList == null) {
-                    goodsPackDetailResponseList = new ArrayList<>();
-                    packageId2ModelMap.put(goodsPackDetailRespon.getPackId(), goodsPackDetailResponseList);
-                }
-                goodsPackDetailResponseList.add(goodsPackDetailRespon);
-            }
-        }
+//        Map<String, List<GoodsPackDetailResponse>> packageId2ModelMap = new HashMap<>();
+//        if (spuId2ModelMap.size() > 0) {
+//            BaseResponse<List<GoodsPackDetailResponse>> packResponse =
+//                    goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(new ArrayList<>(spuId2ModelMap.keySet())));
+//            List<GoodsPackDetailResponse> goodsPackDetailResponses = packResponse.getContext();
+//            for (GoodsPackDetailResponse goodsPackDetailRespon : goodsPackDetailResponses) {
+//                List<GoodsPackDetailResponse> goodsPackDetailResponseList = packageId2ModelMap.get(goodsPackDetailRespon.getPackId());
+//                if (goodsPackDetailResponseList == null) {
+//                    goodsPackDetailResponseList = new ArrayList<>();
+//                    packageId2ModelMap.put(goodsPackDetailRespon.getPackId(), goodsPackDetailResponseList);
+//                }
+//                goodsPackDetailResponseList.add(goodsPackDetailRespon);
+//            }
+//        }
 
 
 
@@ -220,10 +221,10 @@ public class TransferService {
                 }
 
                 //获取打包对应的折扣信息
-                List<GoodsPackDetailResponse> goodsPackDetailResponses = packageId2ModelMap.get(tradeItem.getPackId());
-                Map<String, GoodsPackDetailResponse> collect =
-                        goodsPackDetailResponses.stream().collect(Collectors.toMap(GoodsPackDetailResponse::getGoodsId, Function.identity(), (k1, k2) -> k1));
-                GoodsPackDetailResponse goodsPackDetailResponse = collect.get(tradeItem.getSpuId());
+//                List<GoodsPackDetailResponse> goodsPackDetailResponses = packageId2ModelMap.get(tradeItem.getPackId());
+//                Map<String, GoodsPackDetailResponse> collect =
+//                        goodsPackDetailResponses.stream().collect(Collectors.toMap(GoodsPackDetailResponse::getGoodsId, Function.identity(), (k1, k2) -> k1));
+//                GoodsPackDetailResponse goodsPackDetailResponse = collect.get(tradeItem.getSpuId());
 
                 CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
                 buyGoodsReq.setPlatformItemId(tradeItem.getOid());
@@ -233,8 +234,8 @@ public class TransferService {
                 buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
                 buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
                 buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
-                BigDecimal  price = packageTradeItem.getPrice() == null ? BigDecimal.ZERO : packageTradeItem.getPrice();
-                BigDecimal newPrice = price.multiply(goodsPackDetailResponse.getShareRate());
+                BigDecimal  price = tradeItem.getSplitPrice() == null ? BigDecimal.ZERO : tradeItem.getSplitPrice();
+                BigDecimal newPrice = price.multiply(exchangeRate);
                 buyGoodsReq.setPrice(newPrice.intValue());
                 buyGoodsReq.setGiftFlag(0); //非赠送
                 sumOther = sumOther.add(newPrice);
@@ -251,8 +252,8 @@ public class TransferService {
             buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
             buyGoodsReq.setPlatformSkuId(packageTradeItem.getSkuId());
             buyGoodsReq.setPlatformSkuName(packageTradeItem.getSkuName());
-            BigDecimal  price = packageTradeItem.getPrice() == null ? BigDecimal.ZERO : packageTradeItem.getPrice();
-            BigDecimal newPrice = price.multiply(exchangeRate).subtract(sumOther);
+            BigDecimal  price = packageTradeItem.getSplitPrice() == null ? BigDecimal.ZERO : packageTradeItem.getSplitPrice();
+            BigDecimal newPrice = price.multiply(exchangeRate);
             buyGoodsReq.setPrice(newPrice.intValue());
             buyGoodsReq.setGiftFlag(0); //非赠送
             result.add(buyGoodsReq);

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.provider.impl.trade;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.dszt.TransferService;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
@@ -26,6 +27,7 @@ import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeGroup;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
 import com.wanmi.sbc.order.trade.service.*;
@@ -75,6 +77,12 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private TradeOrderService tradeOrderService;
+
+    @Autowired
+    private TransferService transferService;
+
+    @Autowired
+    private TradeRepository tradeRepository;
 
 
     /**
@@ -836,4 +844,11 @@ public class TradeController implements TradeProvider {
 	public BaseResponse syncOrderDataAll(SyncOrderDataRequest syncOrderDataRequest) {
 		return tradeOrderService.syncOrderDataAll(syncOrderDataRequest);
 	}
+
+
+    @Override
+    public BaseResponse getCreateOrderReq(String tradeNo) {
+        Trade trade = tradeRepository.findById(tradeNo).get();
+        return BaseResponse.success(transferService.trade2CreateOrderReq(trade));
+    }
 }

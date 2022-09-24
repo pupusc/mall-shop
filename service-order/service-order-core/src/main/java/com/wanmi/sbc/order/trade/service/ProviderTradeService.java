@@ -99,8 +99,8 @@ public class ProviderTradeService {
     @Autowired
     private TradeRepository tradeRepository;
 
-//    @Autowired
-//    private TradePushERPService tradePushERPService;
+    @Autowired
+    private TradePushERPService tradePushERPService;
 
 //    @Autowired
 //    private GuanyierpProvider guanyierpProvider;
@@ -1011,6 +1011,7 @@ public class ProviderTradeService {
                    CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
                    if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
                            || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
+                       tradePushERPService.releaseFrozenStock(trade);
                        thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
                    } else {
                        thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
