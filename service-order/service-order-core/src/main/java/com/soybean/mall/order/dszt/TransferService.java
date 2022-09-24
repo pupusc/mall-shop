@@ -146,7 +146,11 @@ public class TransferService {
         buyAddressReq.setFullAddress(consignee.getDetailAddress());
         buyAddressReq.setAddressType("ORDER");
         buyAddressReq.setContactName(consignee.getName());
-        buyAddressReq.setContactMobile(consignee.getPhone());
+        if (!StringUtils.isEmpty(trade.getDirectChargeMobile())) {
+            buyAddressReq.setContactMobile(consignee.getPhone());
+        } else {
+            buyAddressReq.setContactMobile(consignee.getPhone());
+        }
         buyAddressReq.setContactArea("+86");
         // 1女 2 男 3 未知
         Integer gender = 3;

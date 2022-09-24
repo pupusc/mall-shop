@@ -1,4 +1,7 @@
 package com.wanmi.sbc.order.trade.service;
+import com.google.common.collect.Lists;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
@@ -2118,32 +2121,37 @@ public class TradePushERPService {
 
         if (currentTradeDeliver == null) {
             //物流信息
-            LogisticsVO logisticsVO = new LogisticsVO();
-            logisticsVO.setLogisticCompanyName(request.getExpressCode());
-            logisticsVO.setLogisticNo(request.getExpressNo());
-            logisticsVO.setLogisticCompanyName((erpLogisticsMappingVO != null && erpLogisticsMappingVO.getWmLogisticsCode() != null) ? erpLogisticsMappingVO.getWmLogisticsCode() : null);
+            Logistics logistics = new Logistics();
+            logistics.setLogisticCompanyName((erpLogisticsMappingVO != null && erpLogisticsMappingVO.getWmLogisticsCode() != null) ? erpLogisticsMappingVO.getWmLogisticsCode() : request.getExpressCode());
+            logistics.setLogisticNo(request.getExpressNo());
 
-            List<ShippingItemVO> shippingItemVOList = new ArrayList<>();
-            ShippingItemVO shippingItemVO = new ShippingItemVO();
-            shippingItemVO.setItemName(currentTradeItem.getSpuName());
-            shippingItemVO.setItemNum(currentTradeItem.getDeliveredNum());
-            shippingItemVO.setSpuId(currentTradeItem.getSpuId());
-            shippingItemVO.setSkuId(currentTradeItem.getSkuId());
-            shippingItemVO.setSkuNo(currentTradeItem.getSkuNo());
-            shippingItemVO.setPic(currentTradeItem.getPic());
-            shippingItemVOList.add(shippingItemVO);
+            List<ShippingItem> shippingItemList = new ArrayList<>();
+            ShippingItem shippingItem = new ShippingItem();
+            shippingItem.setItemName(currentTradeItem.getSpuName());
+            shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+            shippingItem.setSpuId(currentTradeItem.getSpuId());
+            shippingItem.setSkuId(currentTradeItem.getSkuId());
+            shippingItem.setSkuNo(currentTradeItem.getSkuNo());
+            shippingItem.setPic(currentTradeItem.getPic());
+            shippingItemList.add(shippingItem);
 
             //设置发货内容
-            TradeDeliverVO tradeDeliverVO = new TradeDeliverVO();
-            tradeDeliverVO.setTradeId(currentProviderTrade.getId());
-            tradeDeliverVO.setDeliverTime(request.getDeliveryTime());
-            tradeDeliverVO.setShippingItems(shippingItemVOList);
-            tradeDeliverVO.setLogistics(logisticsVO);
-            tradeDeliverVO.setProviderName(currentProviderTrade.getSupplier().getSupplierName());
-            tradeDeliverVO.setShipperType(ShipperType.PROVIDER);
-            tradeDeliverVO.setStatus(DeliverStatus.SHIPPED);
+            TradeDeliver tradeDeliver = new TradeDeliver();
+            tradeDeliver.setTradeId(currentProviderTrade.getId());
+            tradeDeliver.setProviderName(currentProviderTrade.getSupplier().getSupplierName());
+//            tradeDeliver.setDeliverId("");
+            tradeDeliver.setLogistics(logistics);
+//            tradeDeliver.setConsignee(new Consignee());
+//            tradeDeliver.setIsVirtualCoupon(false);
+            tradeDeliver.setShippingItems(shippingItemList);
+            tradeDeliver.setDeliverTime(request.getDeliveryTime());
+//            tradeDeliver.setStatus(DeliverStatus.NOT_YET_SHIPPED);
+//            tradeDeliver.setSunDeliverId("");
+            tradeDeliver.setShipperType(ShipperType.PROVIDER);
+//            tradeDeliver.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
+//            tradeDeliver.setCycleNum(0);
+//            tradeDeliver.setExpressProgressInfo("");
 
-            TradeDeliver tradeDeliver = KsBeanUtil.copyPropertiesThird(tradeDeliverVO, TradeDeliver.class);
             tradeDelivers.add(tradeDeliver);
         } else {
 
@@ -2181,7 +2189,7 @@ public class TradePushERPService {
         currentProviderTrade.appendTradeEventLog(tradeEventLog);
         providerTradeService.updateProviderTrade(currentProviderTrade);
 
-        trade.setTradeDelivers(Collections.singletonList(currentTradeDeliver));
+        trade.setTradeDelivers(tradeDelivers);
 
         tradeService.updateTrade(trade);
 
