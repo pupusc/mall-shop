@@ -179,9 +179,10 @@ public class RefundReturnAction extends ReturnAction {
 
            //调用推送接口
            SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+           long beginTime = System.currentTimeMillis();
            log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
            BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
-           log.info("RefundReturnAction createSaleAfter result {}", JSON.toJSONString(saleAfter));
+           log.info("RefundReturnAction createSaleAfter result {} cost: {}s", JSON.toJSONString(saleAfter), (System.currentTimeMillis() - beginTime)/100);
 
            if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");

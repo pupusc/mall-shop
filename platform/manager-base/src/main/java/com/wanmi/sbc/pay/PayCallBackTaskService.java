@@ -24,10 +24,10 @@ public class PayCallBackTaskService {
         tradeProvider.payOnlineCallBack(request);
     }
 
-    @Async
-    public void pushOrderToERP(String tradeNo){
-        TradePushRequest request =
-                TradePushRequest.builder().tid(tradeNo).build();
-        tradeProvider.pushOrderToERP(request);
-    }
+//    @Async
+//    public void pushOrderToERP(String tradeNo){
+//        TradePushRequest request =
+//                TradePushRequest.builder().tid(tradeNo).build();
+//        tradeProvider.pushOrderToERP(request);
+//    }
 }

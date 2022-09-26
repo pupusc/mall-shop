@@ -3,10 +3,13 @@ package com.wanmi.sbc.setting.erplogisticsmapping.service;
 import com.wanmi.sbc.setting.bean.vo.ErpLogisticsMappingVO;
 import com.wanmi.sbc.setting.erplogisticsmapping.model.root.ErpLogisticsMapping;
 import com.wanmi.sbc.setting.erplogisticsmapping.repository.ErpLogisticsMappingRepository;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+
+import java.util.List;
 
 /**
  * <p>erp系统物流编码映射业务逻辑</p>
@@ -45,6 +48,19 @@ public class ErpLogisticsMappingService {
 	 */
 	public ErpLogisticsMapping getByErpLogisticsCode(String erpLogisticsCode){
 		return erpLogisticsMappingRepository.findByErpLogisticsCode(erpLogisticsCode);
+	}
+
+
+	/**
+	 * 单个查询wm系统物流编码映射
+	 * @author weiwenhao
+	 */
+	public ErpLogisticsMapping getWmLogisticsCode(String wmLogisticsCode) {
+		List<ErpLogisticsMapping> byWmLogisticsCode = erpLogisticsMappingRepository.findByWmLogisticsCode(wmLogisticsCode);
+		if (CollectionUtils.isEmpty(byWmLogisticsCode)) {
+			return null;
+		}
+		return byWmLogisticsCode.get(0);
 	}
 
 	/**

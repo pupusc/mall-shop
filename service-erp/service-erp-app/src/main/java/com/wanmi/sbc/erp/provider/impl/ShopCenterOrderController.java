@@ -34,6 +34,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 	@Override
 	public BaseResponse<CreateOrderResp> createOrder(CreateOrderReq request) {
 		String errorContent = "";
+		long beginTime = System.currentTimeMillis();
 		try {
 //			String host = routerConfig.getHost();
 			log.info("createOrder start，request:{}", JSON.toJSONString(request));
@@ -62,6 +63,8 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 		} catch (Exception e) {
 			log.warn("ShopCenterOrderController.createOrder异常", e);
+		} finally {
+			log.info("ShopCenterOrderController.createOrder param: {} cost {}s", JSON.toJSONString(request), (System.currentTimeMillis() - beginTime) / 1000);
 		}
 		return BaseResponse.info("99999", errorContent);
 	}
@@ -74,7 +77,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			JSONObject param = new JSONObject();
 			param.put("platformOrderId", platformOrderId);
-
+			log.info("ShopCenterOrderController detailByPlatformOrderId platformOrderId {}", param);
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);

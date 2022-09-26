@@ -534,5 +534,11 @@ public interface TradeProvider {
      */
     @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
     BaseResponse syncOrderDataAll(@RequestBody SyncOrderDataRequest syncOrderDataRequest);
-    
+
+    @GetMapping("/order/${application.order.version}/trade/getCreateOrderReq/{tradeNo}")
+    BaseResponse getCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
+
+
+    @GetMapping("/order/${application.order.version}/trade/getSaleAfterCreateReq/{returnOrderNO}")
+    BaseResponse getSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
 }
