@@ -170,7 +170,7 @@ public class TransferService {
      * @param tradeItems
      * @return
      */
-    private List<CreateOrderReq.BuyGoodsReq> packageSku(List<TradeItem> tradeItems) {
+    private List<CreateOrderReq.BuyGoodsReq> packageSku(List<TradeItem> tradeItems, OrderSourceEnum orderSourceEnum) {
         List<CreateOrderReq.BuyGoodsReq> result = new ArrayList<>();
 
         //打包商品
@@ -285,21 +285,36 @@ public class TransferService {
 
             //优惠
             List<CreateOrderReq.BuyDiscountReq> buyDiscountReqList = new ArrayList<>();
-
-            //会员价格
-            if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
-                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-                BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
-                tmpPrice = tmpPrice.multiply(exchangeRate).multiply(new BigDecimal(tradeItem.getNum().toString()));
-                buyDiscountReq.setAmount(tmpPrice.intValue());
-                buyDiscountReq.setCouponId("");
-                buyDiscountReq.setDiscountNo("");
-                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
-                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
-                buyDiscountReq.setMemo("会员价");
-                buyDiscountReq.setCostAssume("CHANNEL");
-                buyDiscountReqList.add(buyDiscountReq);
+            if (Objects.equals(orderSourceEnum, OrderSourceEnum.PLATFORM_MALL)) {
+                //履约订单价格优惠没有设置，这里强制给设置成会员优惠
+                if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
+                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                    buyDiscountReq.setAmount(newOriginalPrice.intValue());
+                    buyDiscountReq.setCouponId("");
+                    buyDiscountReq.setDiscountNo("");
+                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                    buyDiscountReq.setMemo("会员价");
+                    buyDiscountReq.setCostAssume("CHANNEL");
+                    buyDiscountReqList.add(buyDiscountReq);
+                }
+            } else {
+                //会员价格
+                if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
+                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                    BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
+                    tmpPrice = tmpPrice.multiply(exchangeRate).multiply(new BigDecimal(tradeItem.getNum().toString()));
+                    buyDiscountReq.setAmount(tmpPrice.intValue());
+                    buyDiscountReq.setCouponId("");
+                    buyDiscountReq.setDiscountNo("");
+                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                    buyDiscountReq.setMemo("会员价");
+                    buyDiscountReq.setCostAssume("CHANNEL");
+                    buyDiscountReqList.add(buyDiscountReq);
+                }
             }
+
 
             //优惠券
             if (!CollectionUtils.isEmpty(tradeItem.getCouponSettlements())) {
@@ -490,7 +505,7 @@ public class TransferService {
         createOrderReq.setBuyPaymentBO(this.packageBuyPayment(trade));
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         //商品信息
-        createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems));
+        createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, orderSourceEnum));
         //收货地址
         Consignee consignee = trade.getConsignee();
         createOrderReq.setBuyAddressBO(this.packageAddress(trade, consignee, customerDetail));
