@@ -364,56 +364,72 @@ public class TransferService {
      * @param trade
      * @return
      */
-    private List<CreateOrderReq.BuyPaymentReq> packageBuyPayment(Trade trade) {
+    private List<CreateOrderReq.BuyPaymentReq> packageBuyPayment(Trade trade, OrderSourceEnum orderSourceEnum) {
 
         List<CreateOrderReq.BuyPaymentReq> paymentReqList = new ArrayList<>();
+
+
         //支付金额
         BigDecimal amount = trade.getTradePrice().getTotalPrice().multiply(exchangeRate);
-        if (amount.compareTo(BigDecimal.ZERO) > 0) {
-            //获取支付流水和 商户号
-            TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
-            request.setOrderId(trade.getId());
-            log.info("TransferService packageBuyPayment getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
-            BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
-            log.info("TransferService packageBuyPayment result {}", JSON.toJSONString(tradeRecordByOrderCode));
-            PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
-
+        if (Objects.equals(OrderSourceEnum.PLATFORM_MALL, orderSourceEnum)) {
             CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
             buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
 
-            buyPaymentReq.setAmount(amount.intValue());
+            buyPaymentReq.setAmount(BigDecimal.ZERO.intValue());
             buyPaymentReq.setMemo("支付");
             buyPaymentReq.setPayGateway(108);
-            buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
-            buyPaymentReq.setPayMchid(payTradeRecordResponse.getAppId());
+            buyPaymentReq.setPayTradeNo("");
+            buyPaymentReq.setPayMchid("");
             buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
             paymentReqList.add(buyPaymentReq);
-        }
+        } else {
 
-        Long knowledge = trade.getTradePrice().getKnowledge();
-        if (knowledge != null && knowledge > 0) {
-            BigDecimal knowledgeDecimal = new BigDecimal(trade.getTradePrice().getKnowledge().toString());
-            CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
-            buyPaymentReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+            if (amount.compareTo(BigDecimal.ZERO) > 0) {
+                //获取支付流水和 商户号
+                TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
+                request.setOrderId(trade.getId());
+                log.info("TransferService packageBuyPayment getTradeRecordByOrderCode param {}", JSON.toJSONString(request));
+                BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
+                log.info("TransferService packageBuyPayment result {}", JSON.toJSONString(tradeRecordByOrderCode));
+                PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
 
-            buyPaymentReq.setAmount(knowledgeDecimal.intValue());
-            buyPaymentReq.setMemo("知豆");
-            buyPaymentReq.setPayGateway(108);
-            buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
-            paymentReqList.add(buyPaymentReq);
-        }
+                CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+                buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
 
-        Long point = trade.getTradePrice().getPoints();
-        if (point != null && point > 0) {
-            BigDecimal pointDecimal = new BigDecimal(trade.getTradePrice().getPoints().toString());
-            CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
-            buyPaymentReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString());
+                buyPaymentReq.setAmount(amount.intValue());
+                buyPaymentReq.setMemo("支付");
+                buyPaymentReq.setPayGateway(108);
+                buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
+                buyPaymentReq.setPayMchid(payTradeRecordResponse.getAppId());
+                buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+                paymentReqList.add(buyPaymentReq);
+            }
 
-            buyPaymentReq.setAmount(pointDecimal.intValue());
-            buyPaymentReq.setMemo("积分");
-            buyPaymentReq.setPayGateway(108);
-            buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
-            paymentReqList.add(buyPaymentReq);
+            Long knowledge = trade.getTradePrice().getKnowledge();
+            if (knowledge != null && knowledge > 0) {
+                BigDecimal knowledgeDecimal = new BigDecimal(trade.getTradePrice().getKnowledge().toString());
+                CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+                buyPaymentReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
+
+                buyPaymentReq.setAmount(knowledgeDecimal.intValue());
+                buyPaymentReq.setMemo("知豆");
+                buyPaymentReq.setPayGateway(108);
+                buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+                paymentReqList.add(buyPaymentReq);
+            }
+
+            Long point = trade.getTradePrice().getPoints();
+            if (point != null && point > 0) {
+                BigDecimal pointDecimal = new BigDecimal(trade.getTradePrice().getPoints().toString());
+                CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
+                buyPaymentReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString());
+
+                buyPaymentReq.setAmount(pointDecimal.intValue());
+                buyPaymentReq.setMemo("积分");
+                buyPaymentReq.setPayGateway(108);
+                buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
+                paymentReqList.add(buyPaymentReq);
+            }
         }
         return paymentReqList;
     }
@@ -502,7 +518,7 @@ public class TransferService {
         postFee = postFee.multiply(exchangeRate);
         createOrderReq.setPostFee(postFee.intValue());
         //支付信息
-        createOrderReq.setBuyPaymentBO(this.packageBuyPayment(trade));
+        createOrderReq.setBuyPaymentBO(this.packageBuyPayment(trade, orderSourceEnum));
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         //商品信息
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, orderSourceEnum));
@@ -666,12 +682,12 @@ public class TransferService {
         }
 
         if (Objects.nonNull(returnOrder.getReturnPoints())
-                && Objects.nonNull(returnOrder.getReturnPoints().getActualPoints())
-                && returnOrder.getReturnPoints().getActualPoints() > 0L) {
+                && Objects.nonNull(returnOrder.getReturnPoints().getApplyPoints())
+                && returnOrder.getReturnPoints().getApplyPoints() > 0L) {
             SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
 //            saleAfterRefundReq.setRefundTradeNo("");
             saleAfterRefundReq.setRefundGateway("108");
-            saleAfterRefundReq.setAmount(returnOrder.getReturnPoints().getActualPoints().intValue());
+            saleAfterRefundReq.setAmount(returnOrder.getReturnPoints().getApplyPoints().intValue());
             saleAfterRefundReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString());
             saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
 //            saleAfterRefundReq.setRefundMchid("");
@@ -679,12 +695,12 @@ public class TransferService {
         }
 
         if (Objects.nonNull(returnOrder.getReturnKnowledge())
-                && Objects.nonNull(returnOrder.getReturnKnowledge().getActualKnowledge())
-                && returnOrder.getReturnKnowledge().getActualKnowledge() > 0L) {
+                && Objects.nonNull(returnOrder.getReturnKnowledge().getApplyKnowledge())
+                && returnOrder.getReturnKnowledge().getApplyKnowledge() > 0L) {
             SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
 //            saleAfterRefundReq.setRefundTradeNo("");
             saleAfterRefundReq.setRefundGateway("108");
-            saleAfterRefundReq.setAmount(returnOrder.getReturnKnowledge().getActualKnowledge().intValue());
+            saleAfterRefundReq.setAmount(returnOrder.getReturnKnowledge().getApplyKnowledge().intValue());
             saleAfterRefundReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString());
             saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
 //            saleAfterRefundReq.setRefundMchid("");
