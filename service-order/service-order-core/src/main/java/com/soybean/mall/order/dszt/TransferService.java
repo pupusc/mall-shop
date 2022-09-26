@@ -623,9 +623,15 @@ public class TransferService {
                     sum = sum.add(new BigDecimal(orderItemResp.getOughtFee().toString()));
                 }
 
-                BigDecimal surplusPrice = returnItem.getApplyRealPrice();
-                BigDecimal surplusPoint = new BigDecimal(returnItem.getApplyPoint().toString());
-                BigDecimal surplusKnowledge = new BigDecimal(returnItem.getApplyKnowledge().toString());
+                BigDecimal surplusPrice =
+                        (returnItem.getApplyRealPrice() == null || returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0)
+                        ? BigDecimal.ZERO : returnItem.getApplyRealPrice().multiply(exchangeRate);
+                BigDecimal surplusPoint =
+                        returnItem.getApplyPoint() != null && returnItem.getApplyPoint() > 0 ? new BigDecimal(returnItem.getApplyPoint().toString())
+                        : BigDecimal.ZERO;
+                BigDecimal surplusKnowledge =
+                        returnItem.getApplyKnowledge() != null && returnItem.getApplyKnowledge() > 0 ? new BigDecimal(returnItem.getApplyKnowledge().toString())
+                                : BigDecimal.ZERO;
 
                 for (int i = 0; i < orderItemRespList.size(); i++) {
                     SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
