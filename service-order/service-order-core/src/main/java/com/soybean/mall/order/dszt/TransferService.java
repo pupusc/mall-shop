@@ -565,6 +565,7 @@ public class TransferService {
         //运费
         List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterFreeList = new ArrayList<>();
         if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+            saleAfterCreateNewReq.setRefundTypeList(Arrays.asList(2)); //退货退款
             BigDecimal freightAmount = returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate);
             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
                     new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
