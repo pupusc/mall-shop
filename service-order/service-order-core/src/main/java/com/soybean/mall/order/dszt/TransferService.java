@@ -572,9 +572,7 @@ public class TransferService {
             saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
             saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
             saleAfterFreeList.add(saleAfterRefundDetailReq);
-        }
-
-        if (returnOrder.getReturnPrice().getDeliverPrice() != null && returnOrder.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
+        } else if (returnOrder.getReturnPrice().getDeliverPrice() != null && returnOrder.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
                     new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
