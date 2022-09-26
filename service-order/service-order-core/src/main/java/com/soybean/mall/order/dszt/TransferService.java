@@ -625,7 +625,7 @@ public class TransferService {
 
                 BigDecimal surplusPrice =
                         (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0)
-                        ? BigDecimal.ZERO : returnItem.getApplyRealPrice().multiply(exchangeRate);
+                        ? returnItem.getApplyRealPrice().multiply(exchangeRate) : BigDecimal.ZERO;
                 BigDecimal surplusPoint =
                         returnItem.getApplyPoint() != null && returnItem.getApplyPoint() > 0 ? new BigDecimal(returnItem.getApplyPoint().toString())
                         : BigDecimal.ZERO;
