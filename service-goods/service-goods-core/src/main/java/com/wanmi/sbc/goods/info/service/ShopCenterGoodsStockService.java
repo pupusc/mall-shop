@@ -44,6 +44,18 @@ public class ShopCenterGoodsStockService {
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
+		Integer syncStock = 1;
+		infoList = infoList.stream().filter(g -> {
+			if (!syncStock.equals(g.getStockSyncFlag())) {
+				logger.info("ShopCenterGoodsStockService.过滤.未开启库存同步.goodsCode={},goodsInfoId={}", g.getErpGoodsInfoNo(), g.getGoodsInfoId());
+				return false;
+			}
+			return true;
+		}).collect(Collectors.toList());
+		if (CollectionUtils.isEmpty(infoList)) {
+			return BaseResponse.success(resp);
+		}
+
 		// 修改goodsInfo 库存
 		for (GoodsInfo info : infoList) {
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
@@ -82,6 +94,18 @@ public class ShopCenterGoodsStockService {
 		if (CollectionUtils.isEmpty(infoList)) {
 			return BaseResponse.success(resp);
 		}
+		Integer syncPrice = 1;
+		infoList = infoList.stream().filter(g -> {
+			if (!syncPrice.equals(g.getCostPriceSyncFlag())) {
+				logger.info("ShopCenterGoodsStockService.过滤.未开启价格同步.goodsCode={},goodsInfoId={}", g.getErpGoodsInfoNo(), g.getGoodsInfoId());
+				return false;
+			}
+			return true;
+		}).collect(Collectors.toList());
+		if (CollectionUtils.isEmpty(infoList)) {
+			return BaseResponse.success(resp);
+		}
+
 		BigDecimal price = costPrice == 0 ? new BigDecimal("0")
 				: new BigDecimal(costPrice).divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN);
 		List<String> goodsInfoIds = infoList.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
