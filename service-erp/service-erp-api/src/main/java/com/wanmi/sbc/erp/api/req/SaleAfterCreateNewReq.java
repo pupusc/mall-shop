@@ -121,7 +121,7 @@ public class SaleAfterCreateNewReq {
     @Data
     public static class SaleAfterItemReq {
         /**
-         * 售后类型：1退货退款 2仅退款 3换货 4补偿 5赠品
+         * 售后类型：1退货退款 2仅退款 3换货 4补偿 5主订单退款  6赠品
          */
         private Integer refundType;
 
