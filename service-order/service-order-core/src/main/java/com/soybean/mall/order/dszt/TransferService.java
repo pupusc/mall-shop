@@ -547,9 +547,11 @@ public class TransferService {
         }
         //获取订单支付信息
 
+        //商品
+        Integer refundType = returnOrder.getReturnType().ordinal() == 0 ? 1 : 2;
 
         saleAfterCreateNewReq.setOrderNumber(context.getOrderNumber().toString());
-        saleAfterCreateNewReq.setRefundTypeList(Arrays.asList(1)); //退货退款
+        saleAfterCreateNewReq.setRefundTypeList(Arrays.asList(refundType)); //退货退款
 
         SaleAfterOrderReq saleAfterCreateReq = new SaleAfterOrderReq();
         saleAfterCreateReq.setPlatformRefundId(returnOrder.getId());
@@ -583,8 +585,7 @@ public class TransferService {
         saleAfterPostFeeReq.setSaleAfterRefundDetailBOList(saleAfterFreeList);
         saleAfterCreateNewReq.setSaleAfterPostFee(saleAfterPostFeeReq);
 
-        //商品
-        Integer refundType = 1;
+
         List<SaleAfterCreateNewReq.SaleAfterItemReq> saleAfterItemReqList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
 
@@ -603,7 +604,7 @@ public class TransferService {
                     throw new SbcRuntimeException("999999", "skuId" + returnItem.getSkuId() + " 电商中台中不存在");
                 }
 
-                saleAfterItemReq.setRefundNum(returnItem.getNum());
+                saleAfterItemReq.setRefundNum(orderItemResp.getNum());
                 saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
                 saleAfterItemReq.setObjectType("ORD_ITEM");
 //                saleAfterItemReq.setDeliveryStatus(0);
