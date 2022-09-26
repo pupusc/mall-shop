@@ -652,7 +652,7 @@ public class TransferService {
                         if (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0) {
                             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
-                            saleAfterRefundDetailReq.setAmount(surplusPrice.multiply(exchangeRate).intValue());
+                            saleAfterRefundDetailReq.setAmount(surplusPrice.intValue());
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
                             saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
                         }
