@@ -287,7 +287,7 @@ public class TransferService {
             List<CreateOrderReq.BuyDiscountReq> buyDiscountReqList = new ArrayList<>();
             if (Objects.equals(orderSourceEnum, OrderSourceEnum.PLATFORM_MALL)) {
                 //履约订单价格优惠没有设置，这里强制给设置成会员优惠
-                if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
+                if (newOriginalPrice.compareTo(BigDecimal.ZERO) > 0) {
                     CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                     buyDiscountReq.setAmount(newOriginalPrice.intValue());
                     buyDiscountReq.setCouponId("");
