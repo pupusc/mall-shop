@@ -2155,26 +2155,17 @@ public class TradePushERPService {
             tradeDelivers.add(tradeDeliver);
         } else {
 
-            List<ShippingItem> shippingItemResults = new ArrayList<>();
-            List<ShippingItem> shippingItems = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(currentTradeDeliver.getShippingItems())) {
-                shippingItems.addAll(currentTradeDeliver.getShippingItems());
-            }
+            List<ShippingItem> shippingItemResults = new ArrayList<>(currentTradeDeliver.getShippingItems());
 
-            for (ShippingItem shippingItem : shippingItems) {
-                if (Objects.equals(shippingItem.getSkuId(), currentTradeItem.getSkuId())) {
-                    continue;
-                }
-                ShippingItem tmpShippingItem = new ShippingItem();
-                tmpShippingItem.setItemName(currentTradeItem.getSpuName());
-                tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-                tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
-                tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
-                tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
-                tmpShippingItem.setPic(currentTradeItem.getPic());
+            ShippingItem tmpShippingItem = new ShippingItem();
+            tmpShippingItem.setItemName(currentTradeItem.getSpuName());
+            tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+            tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
+            tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
+            tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
+            tmpShippingItem.setPic(currentTradeItem.getPic());
 //                shippingItems.add(tmpShippingItem);
-                shippingItemResults.add(tmpShippingItem);
-            }
+            shippingItemResults.add(tmpShippingItem);
 
             if (!CollectionUtils.isEmpty(shippingItemResults)) {
                 currentTradeDeliver.setShippingItems(shippingItemResults);
