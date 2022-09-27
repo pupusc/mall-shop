@@ -2176,8 +2176,11 @@ public class TradePushERPService {
                 shippingItemResults.add(tmpShippingItem);
             }
 
-            currentTradeDeliver.setShippingItems(shippingItemResults);
-            tradeDelivers.add(currentTradeDeliver);
+            if (!CollectionUtils.isEmpty(shippingItemResults)) {
+                currentTradeDeliver.setShippingItems(shippingItemResults);
+//                tradeDelivers.add(currentTradeDeliver);
+            }
+
         }
 
         currentProviderTrade.setTradeDelivers(tradeDelivers);
