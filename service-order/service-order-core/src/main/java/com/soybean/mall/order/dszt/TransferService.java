@@ -720,7 +720,7 @@ public class TransferService {
         //获取流水信息
 
         List<SaleAfterCreateNewReq.SaleAfterRefundReq> saleAfterRefundReqList =  new ArrayList<>();
-        if (Objects.nonNull(returnOrder.getReturnPrice().getActualReturnPrice())) {
+        if (Objects.nonNull(returnOrder.getReturnPrice().getApplyPrice())) {
             // 获取订单流水
             //获取支付流水和 商户号
             TradeRecordByOrderCodeRequest request = new TradeRecordByOrderCodeRequest();
@@ -733,7 +733,7 @@ public class TransferService {
                 SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
                 saleAfterRefundReq.setRefundTradeNo(payTradeRecordResponse.getTradeNo());
                 saleAfterRefundReq.setRefundGateway("108");
-                saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getActualReturnPrice().multiply(exchangeRate).intValue());
+                saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
                 saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
                 saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
                 saleAfterRefundReq.setRefundMchid(payTradeRecordResponse.getAppId());
