@@ -2084,7 +2084,7 @@ public class TradePushERPService {
         if (sumTrade <= 0) {
 //            trade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
 //            trade.getTradeState().setFlowState(F);
-        } else if (sumTrade >= trade.getTradeItems().size() * 2) {
+        } else if (sumTrade >= providerTrades.size() * 2) {
             trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED);
         } else {
