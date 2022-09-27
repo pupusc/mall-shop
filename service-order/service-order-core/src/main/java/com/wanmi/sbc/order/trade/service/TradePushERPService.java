@@ -118,12 +118,12 @@ public class TradePushERPService {
         return tradeRepository.findById(tid).orElse(null);
     }
 
-    /**
-     * 推送订单到erp系统
-     *
-     * @param providerTrade
-     * @return
-     */
+//    /**
+//     * 推送订单到erp系统
+//     *
+//     * @param providerTrade
+//     * @return
+//     */
 //    public BaseResponse pushOrderToERP(ProviderTrade providerTrade) {
 //        try {
 //            Optional<PushTradeRequest> erpPushTradeRequest = this.buildERPOrder(providerTrade, null, false);
@@ -2155,9 +2155,9 @@ public class TradePushERPService {
             tradeDelivers.add(tradeDeliver);
         } else {
 
-            List<ShippingItem> shippingItems = currentTradeDeliver.getShippingItems();
-            if (shippingItems == null) {
-                shippingItems = new ArrayList<>();
+            List<ShippingItem> shippingItems = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(currentTradeDeliver.getShippingItems())) {
+                shippingItems.addAll(currentTradeDeliver.getShippingItems());
             }
 
             for (ShippingItem shippingItem : shippingItems) {
@@ -2175,6 +2175,7 @@ public class TradePushERPService {
             }
 
             currentTradeDeliver.setShippingItems(shippingItems);
+            tradeDelivers.add(currentTradeDeliver);
         }
 
         currentProviderTrade.setTradeDelivers(tradeDelivers);
