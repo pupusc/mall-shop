@@ -2155,6 +2155,7 @@ public class TradePushERPService {
             tradeDelivers.add(tradeDeliver);
         } else {
 
+            List<ShippingItem> shippingItemResults = new ArrayList<>();
             List<ShippingItem> shippingItems = new ArrayList<>();
             if (!CollectionUtils.isEmpty(currentTradeDeliver.getShippingItems())) {
                 shippingItems.addAll(currentTradeDeliver.getShippingItems());
@@ -2171,10 +2172,11 @@ public class TradePushERPService {
                 tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
                 tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
                 tmpShippingItem.setPic(currentTradeItem.getPic());
-                shippingItems.add(tmpShippingItem);
+//                shippingItems.add(tmpShippingItem);
+                shippingItemResults.add(tmpShippingItem);
             }
 
-            currentTradeDeliver.setShippingItems(shippingItems);
+            currentTradeDeliver.setShippingItems(shippingItemResults);
             tradeDelivers.add(currentTradeDeliver);
         }
 
