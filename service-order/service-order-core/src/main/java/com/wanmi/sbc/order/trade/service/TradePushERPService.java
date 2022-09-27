@@ -2079,6 +2079,22 @@ public class TradePushERPService {
             return;
         }
 
+        for (TradeItem tradeItem : trade.getTradeItems()) {
+            if (Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
+                tradeItem.setDeliveredNum(tradeItem.getNum());
+                tradeItem.setDeliverStatus(deliverStatus);
+                if (Objects.equals(deliverStatus, DeliverStatus.PART_SHIPPED)) {
+                    tradeItem.setDeliveredNum(1L);
+                }
+                if (Objects.equals(deliverStatus, DeliverStatus.NOT_YET_SHIPPED)) {
+                    tradeItem.setDeliveredNum(0L);
+                }
+                if (Objects.equals(deliverStatus, DeliverStatus.SHIPPED)) {
+                    tradeItem.setDeliveredNum(tradeItem.getNum());
+                }
+            }
+        }
+
 
 
         if (sumTrade <= 0) {
