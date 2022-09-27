@@ -55,7 +55,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @program: sbc-background
@@ -2024,6 +2027,7 @@ public class TradePushERPService {
             int sumProvider = 0;
             for (TradeItem tradeItem : providerTrade.getTradeItems()) {
                 if (Objects.equals(tradeItem.getDeliverStatus(), DeliverStatus.SHIPPED)) {
+                    sumProvider += 2;
                     continue;
                 }
                 if (Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
@@ -2156,21 +2160,29 @@ public class TradePushERPService {
         } else {
 
             List<ShippingItem> shippingItemResults = new ArrayList<>(currentTradeDeliver.getShippingItems());
-
-            ShippingItem tmpShippingItem = new ShippingItem();
-            tmpShippingItem.setItemName(currentTradeItem.getSpuName());
-            tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-            tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
-            tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
-            tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
-            tmpShippingItem.setPic(currentTradeItem.getPic());
-//                shippingItems.add(tmpShippingItem);
-            shippingItemResults.add(tmpShippingItem);
-
-            if (!CollectionUtils.isEmpty(shippingItemResults)) {
-                currentTradeDeliver.setShippingItems(shippingItemResults);
-//                tradeDelivers.add(currentTradeDeliver);
+            Map<String, ShippingItem> skuId2Model = shippingItemResults.stream().collect(Collectors.toMap(ShippingItem::getSkuId, Function.identity(), (k1, k2) -> k1));
+            ShippingItem shippingItem = skuId2Model.get(currentTradeItem.getSkuId());
+            if (shippingItem == null) {
+                ShippingItem tmpShippingItem = new ShippingItem();
+                tmpShippingItem.setItemName(currentTradeItem.getSpuName());
+                tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
+                tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
+                tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                tmpShippingItem.setPic(currentTradeItem.getPic());
+                shippingItemResults.add(tmpShippingItem);
+                if (!CollectionUtils.isEmpty(shippingItemResults)) {
+                    currentTradeDeliver.setShippingItems(shippingItemResults);
+                }
+            } else {
+                shippingItem.setItemName(currentTradeItem.getSpuName());
+                shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                shippingItem.setSpuId(currentTradeItem.getSpuId());
+                shippingItem.setSkuId(currentTradeItem.getSkuId());
+                shippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                shippingItem.setPic(currentTradeItem.getPic());
             }
+
 
         }
 
