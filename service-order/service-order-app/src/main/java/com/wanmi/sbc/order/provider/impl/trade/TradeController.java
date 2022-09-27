@@ -1,10 +1,15 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.dszt.TransferService;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
+import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.bean.vo.*;
 
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -23,6 +28,8 @@ import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
 import com.wanmi.sbc.order.trade.model.entity.*;
 import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
@@ -88,6 +95,12 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
+
+    @Autowired
+    private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private ShopCenterSaleAfterProvider shopCenterSaleAfterProvider;
 
 
     /**
@@ -858,9 +871,45 @@ public class TradeController implements TradeProvider {
     }
 
     @Override
+    public BaseResponse reInvokeCreateOrderReq(String tradeNo) {
+        Trade trade = tradeRepository.findById(tradeNo).get();
+        providerTradeService.singlePushOrder(Collections.singletonList(trade));
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse getSaleAfterCreateReq(String returnOrderNo) {
         ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
         return BaseResponse.success(transferService.changeSaleAfterCreateReq(returnOrder));
+    }
+
+    @Override
+    public BaseResponse reInvokeSaleAfterCreateReq(String returnOrderNo) {
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
+        try {
+            //创建售后订单
+            ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
+            if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+                log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                return BaseResponse.SUCCESSFUL();
+            }
+
+            //调用推送接口
+            SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+            long beginTime = System.currentTimeMillis();
+            log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
+            BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+            log.info("RefundReturnAction createSaleAfter result {} cost: {}s", JSON.toJSONString(saleAfter), (System.currentTimeMillis() - beginTime)/100);
+
+            if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+            } else {
+                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+            }
+        } catch (Exception ex) {
+            log.error("RefundReturnAction evaluateInternal error", ex);
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 
 }

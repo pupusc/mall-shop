@@ -539,6 +539,15 @@ public interface TradeProvider {
     BaseResponse getCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
 
 
+    @GetMapping("/order/${application.order.version}/trade/reInvokeCreateOrderReq/{tradeNo}")
+    BaseResponse reInvokeCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
+
+
     @GetMapping("/order/${application.order.version}/trade/getSaleAfterCreateReq/{returnOrderNO}")
     BaseResponse getSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
+
+    @GetMapping("/order/${application.order.version}/trade/reInvokeSaleAfterCreateReq/{returnOrderNO}")
+    BaseResponse reInvokeSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
+
+
 }
