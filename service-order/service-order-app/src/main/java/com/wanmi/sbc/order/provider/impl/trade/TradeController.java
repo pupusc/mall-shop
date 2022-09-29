@@ -1,9 +1,15 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.dszt.TransferService;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
+import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.bean.vo.*;
 
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -20,12 +26,17 @@ import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.PayCallBackType;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
 import com.wanmi.sbc.order.trade.model.entity.*;
 import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeGroup;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
 import com.wanmi.sbc.order.trade.service.*;
@@ -75,6 +86,21 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private TradeOrderService tradeOrderService;
+
+    @Autowired
+    private TransferService transferService;
+
+    @Autowired
+    private TradeRepository tradeRepository;
+
+    @Autowired
+    private ReturnOrderRepository returnOrderRepository;
+
+    @Autowired
+    private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private ShopCenterSaleAfterProvider shopCenterSaleAfterProvider;
 
 
     /**
@@ -182,18 +208,18 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
 
-    /**
-     * 移动端提交积分商品订单
-     *
-     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
-     * @return
-     */
-    @Override
-    public BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest) {
-        PointsTradeCommitResult result = tradeService.pointsCommit(pointsTradeCommitRequest);
-        return BaseResponse.success(new PointsTradeCommitResponse(KsBeanUtil.convert(result,
-                PointsTradeCommitResultVO.class)));
-    }
+//    /**
+//     * 移动端提交积分商品订单
+//     *
+//     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest) {
+//        PointsTradeCommitResult result = tradeService.pointsCommit(pointsTradeCommitRequest);
+//        return BaseResponse.success(new PointsTradeCommitResponse(KsBeanUtil.convert(result,
+//                PointsTradeCommitResultVO.class)));
+//    }
 
     /**
      * 移动端提交积分优惠券订单
@@ -704,35 +730,35 @@ public class TradeController implements TradeProvider {
     }
 
 
-    /**
-     * 周期购订单  定时器推送失败---手动推送
-     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
-     * @return
-     */
-    @Override
-    public BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
-        List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
-        providerTrades.forEach(providerTrade -> {
-            TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
-            List<DeliverCalendar> deliverCalendarList = tradeCycleBuyInfo.getDeliverCalendar();
-            deliverCalendarList.forEach(deliverCalendar -> {
-                if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.PUSHED_FAIL && Objects.equals(deliverCalendar.getDeliverDate(),cycleBuyPostponementRequest.getLocalDate().toLocalDate())) {
-                    int index = deliverCalendarList.indexOf(deliverCalendar);
-                    boolean isFirstCycle = Boolean.FALSE;
-                    if (index == 0) {
-                        isFirstCycle = Boolean.TRUE;
-                    }
-
-                    //推送订单
-                    tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
-
-                    log.info("================订单推送周期购订单---手动推送===:{}", providerTrade);
-
-                }
-            });
-        });
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 周期购订单  定时器推送失败---手动推送
+//     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+//     * @return
+//     */
+//    @Override
+//    public BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
+//        List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
+//        providerTrades.forEach(providerTrade -> {
+//            TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
+//            List<DeliverCalendar> deliverCalendarList = tradeCycleBuyInfo.getDeliverCalendar();
+//            deliverCalendarList.forEach(deliverCalendar -> {
+//                if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.PUSHED_FAIL && Objects.equals(deliverCalendar.getDeliverDate(),cycleBuyPostponementRequest.getLocalDate().toLocalDate())) {
+//                    int index = deliverCalendarList.indexOf(deliverCalendar);
+//                    boolean isFirstCycle = Boolean.FALSE;
+//                    if (index == 0) {
+//                        isFirstCycle = Boolean.TRUE;
+//                    }
+//
+//                    //推送订单
+//                    tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
+//
+//                    log.info("================订单推送周期购订单---手动推送===:{}", providerTrade);
+//
+//                }
+//            });
+//        });
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
 
 
@@ -800,15 +826,15 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(tradeResponse);
     }
 
-    @Override
-    public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
-        return tradePushERPService.syncProviderTradeStatus(request);
-    }
+//    @Override
+//    public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
+//        return tradePushERPService.syncProviderTradeStatus(request);
+//    }
 
-    @Override
-    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
-        return tradePushERPService.syncProviderTradeDeliveryStatus(request);
-    }
+//    @Override
+//    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
+//        return tradePushERPService.syncProviderTradeDeliveryStatus(request);
+//    }
 
     /**
      * C端提交订单-新,不用快照，无优惠信息
@@ -831,4 +857,59 @@ public class TradeController implements TradeProvider {
     public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
         return tradeService.updateInvoice(autoUpdateInvoiceRequest);
     }
+
+	@Override
+	public BaseResponse syncOrderDataAll(SyncOrderDataRequest syncOrderDataRequest) {
+		return tradeOrderService.syncOrderDataAll(syncOrderDataRequest);
+	}
+
+
+    @Override
+    public BaseResponse getCreateOrderReq(String tradeNo) {
+        Trade trade = tradeRepository.findById(tradeNo).get();
+        return BaseResponse.success(transferService.trade2CreateOrderReq(trade));
+    }
+
+    @Override
+    public BaseResponse reInvokeCreateOrderReq(String tradeNo) {
+        Trade trade = tradeRepository.findById(tradeNo).get();
+        providerTradeService.singlePushOrder(Collections.singletonList(trade));
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse getSaleAfterCreateReq(String returnOrderNo) {
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
+        return BaseResponse.success(transferService.changeSaleAfterCreateReq(returnOrder));
+    }
+
+    @Override
+    public BaseResponse reInvokeSaleAfterCreateReq(String returnOrderNo) {
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
+        try {
+            //创建售后订单
+            ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
+            if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+                log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                return BaseResponse.SUCCESSFUL();
+            }
+
+            //调用推送接口
+            SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+            long beginTime = System.currentTimeMillis();
+            log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
+            BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+            log.info("RefundReturnAction createSaleAfter result {} cost: {}s", JSON.toJSONString(saleAfter), (System.currentTimeMillis() - beginTime)/100);
+
+            if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+            } else {
+                thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+            }
+        } catch (Exception ex) {
+            log.error("RefundReturnAction evaluateInternal error", ex);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
 }

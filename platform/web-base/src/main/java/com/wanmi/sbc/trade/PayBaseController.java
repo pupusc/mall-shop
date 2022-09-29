@@ -1,5 +1,6 @@
 package com.wanmi.sbc.trade;
 
+import com.alibaba.fastjson.JSON;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -22,6 +23,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/pay")
 @Validated
+@Slf4j
 public class PayBaseController {
 
     @Autowired
@@ -121,6 +124,7 @@ public class PayBaseController {
     @GlobalTransactional
     @RequestMapping("/default")
     public BaseResponse defaultPayBatch(@RequestBody @Valid DefaultPayBatchRequest request) {
+        log.info("PayBaseController defaultPayBatch request {}", JSON.toJSONString(request));
         tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY));
         //异步推送订单到ERP系统
 

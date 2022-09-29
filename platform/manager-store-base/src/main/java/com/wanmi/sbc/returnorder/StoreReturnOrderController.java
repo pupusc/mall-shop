@@ -2,25 +2,18 @@ package com.wanmi.sbc.returnorder;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.aliyuncs.linkedmall.model.v20180116.QueryRefundApplicationDetailResponse;
-import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.aop.EmployeeCheck;
 import com.wanmi.sbc.client.BizSupplierClient;
-import com.wanmi.sbc.client.CancelOrderRequest;
-import com.wanmi.sbc.client.CancelOrderResponse;
 import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.constant.ErrorCodeConstant;
 import com.wanmi.sbc.common.enums.TerminalSource;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
@@ -28,13 +21,6 @@ import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
-import com.wanmi.sbc.erp.api.request.RefundTradeRequest;
-import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
-import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
-import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.linkedmall.api.request.returnorder.SbcQueryRefundApplicationDetailRequest;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
@@ -59,7 +45,6 @@ import com.wanmi.sbc.order.bean.dto.ReturnCustomerAccountDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
-import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
@@ -369,19 +354,19 @@ public class StoreReturnOrderController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
     public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
-        //获取退单信息
-        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
-        if (returnOrderVO == null) {
-            //退单不存在
-            throw new SbcRuntimeException("K-050003");
-        }
-        //管易云
-        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
-            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        } else {
-            //博库
-            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        }
+//        //获取退单信息
+//        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
+//        if (returnOrderVO == null) {
+//            //退单不存在
+//            throw new SbcRuntimeException("K-050003");
+//        }
+//        //管易云
+//        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
+//            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        } else {
+//            //博库
+//            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        }
         return BaseResponse.SUCCESSFUL();
     }
 

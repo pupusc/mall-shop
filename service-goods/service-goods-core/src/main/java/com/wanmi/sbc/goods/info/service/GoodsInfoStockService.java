@@ -162,8 +162,17 @@ public class GoodsInfoStockService {
      */
     public void decryFreezeStock(List<GoodsInfoMinusStockDTO> releaseFrozenStockList) {
         for (GoodsInfoMinusStockDTO goodsInfoMinusStockDTO : releaseFrozenStockList) {
-            redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoMinusStockDTO.getGoodsInfoId(),
-                    -goodsInfoMinusStockDTO.getStock());
+           try {
+               String key = RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoMinusStockDTO.getGoodsInfoId();
+               redisTemplate.opsForValue().increment(key, -goodsInfoMinusStockDTO.getStock());
+               Object objStock = redisTemplate.opsForValue().get(key);
+               log.info("GoodsInfoStockService decryFreezeStock key:{}", objStock);
+               if (objStock == null || Long.valueOf(objStock.toString()) < 0L) {
+                   redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoMinusStockDTO.getGoodsInfoId(), 0L);
+               }
+           } catch (Exception ex) {
+               log.info("GoodsInfoStockService decryFreezeStock error", ex);
+           }
         }
     }
 

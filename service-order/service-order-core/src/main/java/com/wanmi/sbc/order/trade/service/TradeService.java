@@ -1,5 +1,56 @@
 package com.wanmi.sbc.order.trade.service;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.bson.Document;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
@@ -72,7 +123,6 @@ import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerListF
 import com.wanmi.sbc.customer.api.request.email.NoDeleteCustomerEmailListByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.invoice.CustomerInvoiceByIdAndDelFlagRequest;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelByCustomerIdAndStoreIdRequest;
@@ -87,7 +137,6 @@ import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlag
 import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
-import com.wanmi.sbc.customer.bean.dto.PaidCardRedisDTO;
 import com.wanmi.sbc.customer.bean.enums.CheckState;
 import com.wanmi.sbc.customer.bean.enums.CommissionPriorityType;
 import com.wanmi.sbc.customer.bean.enums.CommissionUnhookType;
@@ -105,6 +154,11 @@ import com.wanmi.sbc.customer.bean.vo.DistributorLevelVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyAddressReq;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyDiscountReq;
+import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyGoodsReq;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.appointmentsalegoods.AppointmentSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -132,7 +186,6 @@ import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
 import com.wanmi.sbc.goods.api.request.restrictedrecord.RestrictedRecordBatchAddRequest;
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
@@ -269,7 +322,6 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.sensorsdata.SensorsDataService;
-import com.wanmi.sbc.order.thirdplatformtrade.model.entity.LinkedMallTradeResult;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
@@ -284,6 +336,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem.CouponSettlement;
 import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -327,7 +380,6 @@ import com.wanmi.sbc.pay.api.provider.AliPayProvider;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
-import com.wanmi.sbc.pay.api.request.AliPayRefundRequest;
 import com.wanmi.sbc.pay.api.request.ChannelItemByGatewayRequest;
 import com.wanmi.sbc.pay.api.request.ChannelItemByIdRequest;
 import com.wanmi.sbc.pay.api.request.ChannelItemSaveRequest;
@@ -337,17 +389,13 @@ import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
 import com.wanmi.sbc.pay.api.request.TradeRecordByOrderOrParentCodeRequest;
 import com.wanmi.sbc.pay.api.request.TradeRecordCountByOrderOrParentCodeRequest;
 import com.wanmi.sbc.pay.api.request.WxPayOrderDetailRequest;
-import com.wanmi.sbc.pay.api.request.WxPayRefundInfoRequest;
-import com.wanmi.sbc.pay.api.response.AliPayRefundResponse;
 import com.wanmi.sbc.pay.api.response.PayChannelItemListResponse;
 import com.wanmi.sbc.pay.api.response.PayChannelItemResponse;
 import com.wanmi.sbc.pay.api.response.PayGatewayConfigResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordCountResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import com.wanmi.sbc.pay.api.response.WxPayOrderDetailReponse;
-import com.wanmi.sbc.pay.api.response.WxPayRefundResponse;
 import com.wanmi.sbc.pay.api.response.WxPayResultResponse;
-import com.wanmi.sbc.pay.bean.enums.IsOpen;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
 import com.wanmi.sbc.pay.bean.enums.TradeType;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
@@ -364,58 +412,9 @@ import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import com.wanmi.sbc.setting.bean.enums.EmailStatus;
 import com.wanmi.sbc.setting.bean.enums.PointsUsageFlag;
 import com.wanmi.sbc.setting.bean.vo.ConfigVO;
+
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.bson.Document;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.BasicQuery;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 订单service
@@ -655,6 +654,9 @@ public class TradeService {
 
     @Autowired
     private OrderConfigProperties orderConfigProperties;
+    
+    @Autowired
+    private ShopCenterOrderProvider shopCenterOrderProvider;
 
     /**
      * 新增文档
@@ -1146,33 +1148,33 @@ public class TradeService {
     }
 
 
-    /**
-     * 移动端积分商品下单
-     */
-    @Transactional
-    @GlobalTransactional
-    public PointsTradeCommitResult pointsCommit(PointsTradeCommitRequest commitRequest) {
-        // 1.验证用户
-        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(commitRequest.getOperator().getUserId());
-        commitRequest.setCustomer(customer);
-
-        // 2.包装积分订单信息
-        Trade trade = this.wrapperPointsTrade(commitRequest);
-
-        //填充linkedMall类型
-        if (Objects.isNull(trade.getThirdPlatformType())) {
-            if (trade.getTradeItems().stream().anyMatch(i -> ThirdPlatformType.LINKED_MALL.equals(i.getThirdPlatformType()))) {
-                //验证linkedMall是否开启
-                if ((!linkedMallTradeService.isOpen())) {
-                    throw new SbcRuntimeException("K-050117");
-                }
-                trade.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
-            }
-        }
-
-        // 3.提交积分订单
-        return this.createPointsTrade(trade,commitRequest);
-    }
+//    /**
+//     * 移动端积分商品下单
+//     */
+//    @Transactional
+//    @GlobalTransactional
+//    public PointsTradeCommitResult pointsCommit(PointsTradeCommitRequest commitRequest) {
+//        // 1.验证用户
+//        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(commitRequest.getOperator().getUserId());
+//        commitRequest.setCustomer(customer);
+//
+//        // 2.包装积分订单信息
+//        Trade trade = this.wrapperPointsTrade(commitRequest);
+//
+//        //填充linkedMall类型
+//        if (Objects.isNull(trade.getThirdPlatformType())) {
+//            if (trade.getTradeItems().stream().anyMatch(i -> ThirdPlatformType.LINKED_MALL.equals(i.getThirdPlatformType()))) {
+//                //验证linkedMall是否开启
+//                if ((!linkedMallTradeService.isOpen())) {
+//                    throw new SbcRuntimeException("K-050117");
+//                }
+//                trade.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
+//            }
+//        }
+//
+//        // 3.提交积分订单
+//        return this.createPointsTrade(trade,commitRequest);
+//    }
 
     /**
      * 拼团订单--验证
@@ -3724,7 +3726,7 @@ public class TradeService {
     @GlobalTransactional
     public List<TradeCommitResult> createBatch(List<Trade> trades, TradeGroup tradeGroup, Operator operator) {
         //linkedMall验证
-        linkedMallTradeService.verify(trades);
+//        linkedMallTradeService.verify(trades);
 
         List<TradeCommitResult> resultList = new ArrayList<>();
         final String parentId = generatorService.generatePoId();
@@ -3826,81 +3828,81 @@ public class TradeService {
     }
 
 
-    /**
-     * 提交积分订单
-     *
-     * @param trade    积分订单
-     * @param commitRequest 请求参数
-     * @return 订单提交结果
-     */
-    @Transactional
-    @GlobalTransactional
-    public PointsTradeCommitResult createPointsTrade(Trade trade, PointsTradeCommitRequest commitRequest) {
-        Operator operator = commitRequest.getOperator();
-        //linkedMall验证
-        linkedMallTradeService.verify(Collections.singletonList(trade));
-        PointsTradeCommitResult commitResult = null;
-
-        //创建订单
-        try {
-            Trade result = createPoints(trade, operator);
-            this.splitProvideTrade(trade);
-            commitResult = new PointsTradeCommitResult(result.getId(), result.getTradePrice().getPoints());
-        } catch (Exception e) {
-            log.error("commit points trade error,trade={}", trade, e);
-            if (e instanceof SbcRuntimeException) {
-                throw e;
-            } else {
-                throw new SbcRuntimeException("K-020010");
-            }
-        }
-
-        //linkedMall订单同步
-        if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
-            LinkedMallTradeResult result = linkedMallTradeService.add(trade.getId());
-            if (CollectionUtils.isNotEmpty(result.getAutoRefundTrades())) {
-                throw new SbcRuntimeException("K-020010");
-            }
-            if (CollectionUtils.isNotEmpty(result.getSuccessTrades())) {
-                for (Trade tmpTrade : result.getSuccessTrades()) {
-                    try {
-                        int res = linkedMallTradeService.pay(tmpTrade.getId());
-                        if (res != 0) {
-                            throw new SbcRuntimeException("K-020010");
-                        }
-                    } catch (Exception e) {
-                        throw new SbcRuntimeException("K-020010");
-                    }
-                }
-            }
-        }
-
-        // 增加客户积分明细 扣除积分
-/*        customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
-                .customerId(trade.getBuyer().getId())
-                .type(OperateType.DEDUCT)
-                .serviceType(PointsServiceType.POINTS_EXCHANGE)
-                .points(trade.getTradePrice().getPoints())
-                .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
-                .build());*/
-        // 调用积分锁定 然后直接扣除，积分兑换 不需要支付回调修改状态
-        String deductCode = externalProvider.pointLock(FanDengPointLockRequest.builder()
-                .desc("提交订单锁定(订单号:"+trade.getId()+")")
-                .point(trade.getTradePrice().getPoints())
-                .userNo(commitRequest.
-                        getCustomer().getFanDengUserNo())
-                .sourceId(trade.getId())
-                .sourceType(NumberUtils.INTEGER_ONE)
-                .build()).getContext().getDeductionCode();
-        externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
-                .deductCode(deductCode).build());
-
-        // 扣除商品库存、积分商品可兑换数量
-        pointsGoodsSaveProvider.minusStock(PointsGoodsMinusStockRequest.builder().stock(trade.getTradeItems().get(0)
-                .getNum()).pointsGoodsId(trade.getTradeItems().get(0).getPointsGoodsId()).build());
-
-        return commitResult;
-    }
+//    /**
+//     * 提交积分订单
+//     *
+//     * @param trade    积分订单
+//     * @param commitRequest 请求参数
+//     * @return 订单提交结果
+//     */
+//    @Transactional
+//    @GlobalTransactional
+//    public PointsTradeCommitResult createPointsTrade(Trade trade, PointsTradeCommitRequest commitRequest) {
+//        Operator operator = commitRequest.getOperator();
+//        //linkedMall验证
+//        linkedMallTradeService.verify(Collections.singletonList(trade));
+//        PointsTradeCommitResult commitResult = null;
+//
+//        //创建订单
+//        try {
+//            Trade result = createPoints(trade, operator);
+//            this.splitProvideTrade(trade);
+//            commitResult = new PointsTradeCommitResult(result.getId(), result.getTradePrice().getPoints());
+//        } catch (Exception e) {
+//            log.error("commit points trade error,trade={}", trade, e);
+//            if (e instanceof SbcRuntimeException) {
+//                throw e;
+//            } else {
+//                throw new SbcRuntimeException("K-020010");
+//            }
+//        }
+//
+//        //linkedMall订单同步
+//        if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
+//            LinkedMallTradeResult result = linkedMallTradeService.add(trade.getId());
+//            if (CollectionUtils.isNotEmpty(result.getAutoRefundTrades())) {
+//                throw new SbcRuntimeException("K-020010");
+//            }
+//            if (CollectionUtils.isNotEmpty(result.getSuccessTrades())) {
+//                for (Trade tmpTrade : result.getSuccessTrades()) {
+//                    try {
+//                        int res = linkedMallTradeService.pay(tmpTrade.getId());
+//                        if (res != 0) {
+//                            throw new SbcRuntimeException("K-020010");
+//                        }
+//                    } catch (Exception e) {
+//                        throw new SbcRuntimeException("K-020010");
+//                    }
+//                }
+//            }
+//        }
+//
+//        // 增加客户积分明细 扣除积分
+///*        customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
+//                .customerId(trade.getBuyer().getId())
+//                .type(OperateType.DEDUCT)
+//                .serviceType(PointsServiceType.POINTS_EXCHANGE)
+//                .points(trade.getTradePrice().getPoints())
+//                .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
+//                .build());*/
+//        // 调用积分锁定 然后直接扣除，积分兑换 不需要支付回调修改状态
+//        String deductCode = externalProvider.pointLock(FanDengPointLockRequest.builder()
+//                .desc("提交订单锁定(订单号:"+trade.getId()+")")
+//                .point(trade.getTradePrice().getPoints())
+//                .userNo(commitRequest.
+//                        getCustomer().getFanDengUserNo())
+//                .sourceId(trade.getId())
+//                .sourceType(NumberUtils.INTEGER_ONE)
+//                .build()).getContext().getDeductionCode();
+//        externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
+//                .deductCode(deductCode).build());
+//
+//        // 扣除商品库存、积分商品可兑换数量
+//        pointsGoodsSaveProvider.minusStock(PointsGoodsMinusStockRequest.builder().stock(trade.getTradeItems().get(0)
+//                .getNum()).pointsGoodsId(trade.getTradeItems().get(0).getPointsGoodsId()).build());
+//
+//        return commitResult;
+//    }
 
     /**
      * 创建订单和订单组
@@ -8539,18 +8541,22 @@ public class TradeService {
      */
     public void pushTradeToErp(String tradeNo){
         //根据父订单号,查询子订单集合
-        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
+//        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
 //        List<ProviderTrade> providerTradeListin = providerTradeService.findListByParentIdList(Arrays.asList(tradeNo));
         Trade trade = tradeRepository.findById(tradeNo).get();
-        if (CollectionUtils.isNotEmpty(providerTradeList)){
-            providerTradeList.stream().forEach(providerTrade -> {
-                providerTrade.setPayWay(trade.getPayWay());
-                if (!providerTrade.getGrouponFlag()
-                        ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
-                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
-                    providerTradeService.singlePushOrder(providerTrade);
-                }
-            });
+//        if (CollectionUtils.isNotEmpty(providerTradeList)){
+//            providerTradeList.stream().forEach(providerTrade -> {
+//                providerTrade.setPayWay(trade.getPayWay());
+//                if (!providerTrade.getGrouponFlag()
+//                        ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+//                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
+//                    providerTradeService.singlePushOrder(providerTrade);
+//                }
+//            });
+//        }
+
+        if (!trade.getGrouponFlag() ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+            providerTradeService.singlePushOrder(Collections.singletonList(trade));
         }
     }
 
@@ -8732,4 +8738,5 @@ public class TradeService {
         recordMessageMq.setRecordMessageType(RecordMessageTypeEnum.CANCEL_ORDER.getCode());
         mqOrderGiftRecordProducer.sendCancelOrderGiftRecord(recordMessageMq);
     }
+
 }

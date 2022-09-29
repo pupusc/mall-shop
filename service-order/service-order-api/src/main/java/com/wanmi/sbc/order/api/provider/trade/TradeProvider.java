@@ -1,5 +1,13 @@
 package com.wanmi.sbc.order.api.provider.trade;
 
+import javax.validation.Valid;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
@@ -8,6 +16,7 @@ import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
+import com.wanmi.sbc.order.api.request.trade.SyncOrderDataRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchWithGroupRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAddInvoiceRequest;
@@ -57,13 +66,6 @@ import com.wanmi.sbc.order.api.response.trade.TradeCountByPayStateResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeDefaultPayResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeDeliverResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetBookingTypeByIdResponse;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import javax.validation.Valid;
 
 /**
  * @Author: ZhangLingKe
@@ -128,14 +130,14 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/commit-tail")
     BaseResponse<TradeCommitResponse> commitTail(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
-    /**
-     * 移动端提交积分商品订单
-     *
-     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/points-commit")
-    BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest);
+//    /**
+//     * 移动端提交积分商品订单
+//     *
+//     * @param pointsTradeCommitRequest 提交订单请求对象  {@link PointsTradeCommitRequest}
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/points-commit")
+//    BaseResponse<PointsTradeCommitResponse> pointsCommit(@RequestBody @Valid PointsTradeCommitRequest pointsTradeCommitRequest);
 
     /**
      * 移动端提交积分优惠券订单
@@ -449,13 +451,13 @@ public interface TradeProvider {
     BaseResponse cycleBuyPostponement(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
 
 
-    /**
-     * 周期购订单  定时器推送失败---手动推送
-     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
-     * @return 操作结果 {@link BaseResponse}
-     */
-    @PostMapping("/order/${application.order.version}/trade//cyclebuy-supplementary-push")
-    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
+//    /**
+//     * 周期购订单  定时器推送失败---手动推送
+//     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+//     * @return 操作结果 {@link BaseResponse}
+//     */
+//    @PostMapping("/order/${application.order.version}/trade//cyclebuy-supplementary-push")
+//    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
 
 
     /**
@@ -474,21 +476,21 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/query-trade-information")
     BaseResponse<TradeGetBookingTypeByIdResponse> queryTradeInformation(@RequestBody @Valid String tradeId);
 
-    /**
-     * 推送发货单同步状态
-     * @param request 订单号
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
-    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
+//    /**
+//     * 推送发货单同步状态
+//     * @param request 订单号
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
+//    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
 
-    /**
-     * 同步物流状态
-     * @param request
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
-    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody ProviderTradeDeliveryStatusSyncRequest request);
+//    /**
+//     * 同步物流状态
+//     * @param request
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
+//    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody ProviderTradeDeliveryStatusSyncRequest request);
 
 
     /**
@@ -525,4 +527,27 @@ public interface TradeProvider {
      */
     @PostMapping("/order/${application.order.version}/trade/update-invoice")
     BaseResponse updateInvoice(@RequestBody AutoUpdateInvoiceRequest autoUpdateInvoiceRequest);
+    
+    /**
+     * 订单同步
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/syncOrderDataAll")
+    BaseResponse syncOrderDataAll(@RequestBody SyncOrderDataRequest syncOrderDataRequest);
+
+    @GetMapping("/order/${application.order.version}/trade/getCreateOrderReq/{tradeNo}")
+    BaseResponse getCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
+
+
+    @GetMapping("/order/${application.order.version}/trade/reInvokeCreateOrderReq/{tradeNo}")
+    BaseResponse reInvokeCreateOrderReq(@PathVariable("tradeNo") String tradeNo);
+
+
+    @GetMapping("/order/${application.order.version}/trade/getSaleAfterCreateReq/{returnOrderNO}")
+    BaseResponse getSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
+
+    @GetMapping("/order/${application.order.version}/trade/reInvokeSaleAfterCreateReq/{returnOrderNO}")
+    BaseResponse reInvokeSaleAfterCreateReq(@PathVariable("returnOrderNO") String returnOrderNO);
+
+
 }

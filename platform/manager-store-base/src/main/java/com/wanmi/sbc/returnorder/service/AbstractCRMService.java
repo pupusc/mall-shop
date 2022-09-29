@@ -5,6 +5,8 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterDeliveryProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
@@ -29,8 +31,8 @@ import java.util.stream.Collectors;
  ********************************************************************/
 public abstract class AbstractCRMService {
 
-    @Autowired
-    protected GuanyierpProvider guanyierpProvider;
+//    @Autowired
+//    protected GuanyierpProvider guanyierpProvider;
 
     @Autowired
     protected ReturnOrderQueryProvider returnOrderQueryProvider;
@@ -40,6 +42,12 @@ public abstract class AbstractCRMService {
 
     @Autowired
     protected BizSupplierClient bizSupplierClient;
+
+    @Autowired
+    protected ShopCenterDeliveryProvider shopCenterDeliveryProvider;
+
+    @Autowired
+    protected ShopCenterOrderProvider shopCenterOrderProvider;
 
 
     /**
@@ -87,5 +95,5 @@ public abstract class AbstractCRMService {
     }
 
 
-    public abstract BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag);
+//    public abstract BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag);
 }

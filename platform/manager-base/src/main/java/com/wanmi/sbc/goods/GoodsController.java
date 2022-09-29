@@ -1,7 +1,6 @@
 package com.wanmi.sbc.goods;
 
-import com.alibaba.fastjson.JSON;
-import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -21,7 +20,8 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySalesNumBySpuIdReque
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySortNoBySpuIdRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
+import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -225,13 +225,15 @@ public class GoodsController {
     private RedisService redisService;
 
     @Autowired
-    private  CycleBuyQueryProvider cycleBuyQueryProvider;
+    private CycleBuyQueryProvider cycleBuyQueryProvider;
 
     @Autowired
     private GoodsInfoSpecDetailRelQueryProvider goodsInfoSpecDetailRelQueryProvider;
 
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+    @Autowired
+    private ShopCenterProductProvider shopCenterProductProvider;
 
     @Autowired
     private ClassifyProvider classifyProvider;
@@ -239,7 +241,7 @@ public class GoodsController {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
-    
+
     @Value("${fdds.provider.id}")
     private Long fddsProviderId;
 
@@ -300,9 +302,9 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
-                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext();
+                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }
@@ -430,9 +432,9 @@ public class GoodsController {
             List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
             goodsInfoDTOS.forEach(goodsInfoDTO -> {
                 if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
-                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoDTO.getErpGoodsInfoNo()).build()).getContext();
+                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+                        List<String> skuCodes = goodsInfoList.stream().map(info -> info.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }
@@ -536,9 +538,10 @@ public class GoodsController {
                     if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
                         continue;
                     }
-                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext();
+
+                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
                         if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
                             throw new SbcRuntimeException("K-800002");
                         }

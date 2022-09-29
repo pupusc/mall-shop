@@ -34,5 +34,12 @@ public class ErpLogisticsMappingQueryController implements ErpLogisticsMappingQu
 		return BaseResponse.success(new ErpLogisticsMappingByErpLogisticsCodeResponse(erpLogisticsMappingService.wrapperVo(erpLogisticsMapping)));
 	}
 
+
+	@Override
+	public BaseResponse<ErpLogisticsMappingByErpLogisticsCodeResponse> getWmLogisticsCode(@RequestBody @Valid ErpLogisticsMappingByErpLogisticsCodeRequest erpLogisticsMappingByErpLogisticsCodeRequest) {
+		ErpLogisticsMapping erpLogisticsMapping = erpLogisticsMappingService.getWmLogisticsCode(erpLogisticsMappingByErpLogisticsCodeRequest.getWmLogisticsCode());
+		return BaseResponse.success(new ErpLogisticsMappingByErpLogisticsCodeResponse(erpLogisticsMappingService.wrapperVo(erpLogisticsMapping)));
+	}
+
 }
 

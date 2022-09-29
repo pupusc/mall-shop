@@ -72,47 +72,47 @@ public interface ProviderTradeQueryProvider {
     BaseResponse<ProviderTradeCountCriteriaResponse> countCriteria(@RequestBody @Valid ProviderTradeCountCriteriaRequest tradeCountCriteriaRequest);
 
 
-    /**
-     * 定时任务推送周期购订单
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-push-cycle-order")
-    BaseResponse batchPushCycleOrder(@RequestBody @Valid ProviderTradeErpRequest providerTradePushErpRequest);
+//    /**
+//     * 定时任务推送周期购订单
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-push-cycle-order")
+//    BaseResponse batchPushCycleOrder(@RequestBody @Valid ProviderTradeErpRequest providerTradePushErpRequest);
 
-    /**
-     * 定时任务推送周期购订单
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status")
-    BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request);
+//    /**
+//     * 定时任务推送周期购订单
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status")
+//    BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
-    /**
-     * 定时任务推送周期购订单
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-push-order")
-    BaseResponse batchPushOrder(@RequestBody @Valid ProviderTradeErpRequest request);
+//    /**
+//     * 定时任务推送周期购订单
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-push-order")
+//    BaseResponse batchPushOrder(@RequestBody @Valid ProviderTradeErpRequest request);
 
-    /**
-     * 批量重置扫描次数（已发货，推送次数达到3次）
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-reset-push-count")
-    BaseResponse batchResetScanCount(@RequestBody @Valid ProviderTradeErpRequest request);
-
-    /**
-     * 扫描未发货订单
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/scan-not-yet-shipped")
-    BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request);
-
-    /**
-     * 同步历史未发货订单(7天前)
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
-    BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
+//    /**
+//     * 批量重置扫描次数（已发货，推送次数达到3次）
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-reset-push-count")
+//    BaseResponse batchResetScanCount(@RequestBody @Valid ProviderTradeErpRequest request);
+//
+//    /**
+//     * 扫描未发货订单
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/scan-not-yet-shipped")
+//    BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request);
+//
+//    /**
+//     * 同步历史未发货订单(7天前)
+//     * @return
+//     */
+//    @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
+//    BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
 
 

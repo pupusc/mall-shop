@@ -25,5 +25,13 @@ public interface ErpLogisticsMappingQueryProvider {
 	@PostMapping("/setting/${application.setting.version}/erp-logistics-mapping")
 	BaseResponse<ErpLogisticsMappingByErpLogisticsCodeResponse> getByErpLogisticsCode(@RequestBody @Valid ErpLogisticsMappingByErpLogisticsCodeRequest erpLogisticsMappingByIdRequest);
 
+	/**
+	 * 通过wm物流编码查询物流映射信息
+	 * @param erpLogisticsMappingByIdRequest
+	 * @return
+	 */
+	@PostMapping("/setting/${application.setting.version}/wm-logistics-mapping")
+	BaseResponse<ErpLogisticsMappingByErpLogisticsCodeResponse> getWmLogisticsCode(@RequestBody @Valid ErpLogisticsMappingByErpLogisticsCodeRequest erpLogisticsMappingByIdRequest);
+
 }
 

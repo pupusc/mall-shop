@@ -2573,7 +2573,9 @@ public class PurchaseService {
         //小程序购物车处理
         filterShopCartGoods(request.getShopCartSource(), goodsResp, buyCountMap);
         //填充商品的勾选情况
-        fillShopCartTicks(customer.getCustomerId(), goodsResp.getGoodsInfoList());
+        if (customer != null) {
+            fillShopCartTicks(customer.getCustomerId(), goodsResp.getGoodsInfoList());
+        }
 
         if (CollectionUtils.isEmpty(goodsResp.getGoodsList())) return response;
         List<GoodsInfoVO> goodsInfoList = goodsResp.getGoodsInfoList();

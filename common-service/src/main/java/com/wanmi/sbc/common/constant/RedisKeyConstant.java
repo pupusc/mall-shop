@@ -153,4 +153,9 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_SYNC_MARKET_PRICE_KEY = "GOODS_INFO_SYNC:MARKET_PRICE";
 
+    /**
+     * 保存交易记录
+     */
+    public static final String ORDER_PAY_TRADE_RECORD = "ORDER_PAY_TRADE_RECORD";
+
 }

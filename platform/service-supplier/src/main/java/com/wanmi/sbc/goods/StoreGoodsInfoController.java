@@ -1,5 +1,7 @@
 package com.wanmi.sbc.goods;
 
+import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DefaultFlag;
@@ -24,6 +26,8 @@ import com.wanmi.sbc.elastic.api.request.groupon.EsGrouponActivityPageRequest;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
+import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -91,8 +95,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -165,6 +171,9 @@ public class StoreGoodsInfoController {
     @Autowired
     private GuanyierpProvider guanyierpProvider;
     @Autowired
+    private ShopCenterProductProvider shopCenterProductProvider;
+
+    @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
     @Value("${fdds.provider.id}")
@@ -172,13 +181,33 @@ public class StoreGoodsInfoController {
 
     /**
      * 根据erp Spu编码查询sku列表
+     *
      * @param request
      * @return 商品详情
      */
     @ApiOperation(value = "根据erp Spu编码查询sku列表")
     @RequestMapping(value = "/erp/goods/syncGoodsInfo", method = RequestMethod.POST)
     public BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody SynGoodsInfoRequest request) {
-        return guanyierpProvider.syncGoodsInfo(request);
+        // 改为shopCenter查询并兼容字段
+        BaseResponse<List<NewGoodsInfoResp>> response = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(request.getSpuCode()).build());
+        List<NewGoodsInfoResp> infoList = response.getContext();
+        ArrayList<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(infoList)){
+            return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(Collections.emptyList()).build());
+        }
+        for (NewGoodsInfoResp vo : infoList) {
+            BigDecimal costPrice = Objects.isNull(vo.getWhStockCost()) ? null : new BigDecimal(vo.getWhStockCost()).divide(new BigDecimal(100));
+            ERPGoodsInfoVO infoVO = ERPGoodsInfoVO.builder()
+                    .skuCode(vo.getGoodsCode())
+                    .itemSkuName(vo.getName())
+                    .qty(vo.getWhStockSum())
+                    .salableQty(vo.getWhStockActual())
+                    .costPrice(costPrice)
+                    .warehouseCode(vo.getWhCode())
+                    .build();
+            erpGoodsInfoVOList.add(infoVO);
+        }
+        return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(erpGoodsInfoVOList).build());
     }
 
     /**

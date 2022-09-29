@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Created by of628-wenzhi on 2017-08-11-下午3:41.
@@ -19,6 +20,9 @@ import java.time.LocalDateTime;
 public interface TradeRecordRepository extends JpaRepository<PayTradeRecord, String>, JpaSpecificationExecutor<PayTradeRecord> {
 
     PayTradeRecord findByBusinessId(String businessId);
+
+    @Query(value = "select * from pay_trade_record where business_id = ?1", nativeQuery = true)
+    List<PayTradeRecord> listPayTradeRecord(String businessId);
 
     PayTradeRecord findTopByBusinessIdAndStatus(String businessId, TradeStatus status);
 

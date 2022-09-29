@@ -174,26 +174,26 @@ public class PointsTradeController {
         return BaseResponse.success(confirmResponse);
     }
 
-    /**
-     * 提交积分订单，用于生成积分订单操作
-     */
-    @ApiOperation(value = "提交订单，用于生成订单操作")
-    @RequestMapping(value = "/commit", method = RequestMethod.POST)
-    @MultiSubmit
-    @GlobalTransactional
-    public BaseResponse<PointsTradeCommitResultVO> commit(@RequestBody @Valid PointsTradeCommitRequest
-                                                                  pointsTradeCommitRequest) {
-        Operator operator = commonUtil.getOperator();
-        pointsTradeCommitRequest.setOperator(operator);
-
-        PointsTradeItemGroupVO pointsTradeItemGroup = wrapperGroupVO(pointsTradeCommitRequest.getPointsGoodsId(),
-                pointsTradeCommitRequest.getNum());
-        pointsTradeCommitRequest.setPointsTradeItemGroup(pointsTradeItemGroup);
-
-        PointsTradeCommitResultVO successResult =
-                tradeProvider.pointsCommit(pointsTradeCommitRequest).getContext().getPointsTradeCommitResult();
-        return BaseResponse.success(successResult);
-    }
+//    /**
+//     * 提交积分订单，用于生成积分订单操作
+//     */
+//    @ApiOperation(value = "提交订单，用于生成订单操作")
+//    @RequestMapping(value = "/commit", method = RequestMethod.POST)
+//    @MultiSubmit
+//    @GlobalTransactional
+//    public BaseResponse<PointsTradeCommitResultVO> commit(@RequestBody @Valid PointsTradeCommitRequest
+//                                                                  pointsTradeCommitRequest) {
+//        Operator operator = commonUtil.getOperator();
+//        pointsTradeCommitRequest.setOperator(operator);
+//
+//        PointsTradeItemGroupVO pointsTradeItemGroup = wrapperGroupVO(pointsTradeCommitRequest.getPointsGoodsId(),
+//                pointsTradeCommitRequest.getNum());
+//        pointsTradeCommitRequest.setPointsTradeItemGroup(pointsTradeItemGroup);
+//
+//        PointsTradeCommitResultVO successResult =
+//                tradeProvider.pointsCommit(pointsTradeCommitRequest).getContext().getPointsTradeCommitResult();
+//        return BaseResponse.success(successResult);
+//    }
 
     /**
      * 包装积分订单项数据

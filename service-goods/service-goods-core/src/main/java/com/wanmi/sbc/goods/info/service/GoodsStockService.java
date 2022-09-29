@@ -1,15 +1,15 @@
 package com.wanmi.sbc.goods.info.service;
 
 
-
 import com.alibaba.fastjson.JSON;
-import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
-import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
+import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
+import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
@@ -49,7 +49,13 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -60,105 +66,106 @@ import java.util.stream.Collectors;
 @Service
 public class GoodsStockService {
 
-    @Autowired
-    private RedisService redisService;
+	@Autowired
+	private RedisService redisService;
 
-    @Autowired
-    private GoodsRepository goodsRepository;
+	@Autowired
+	private GoodsRepository goodsRepository;
 
-    @Autowired
-    private GoodsInfoStockService goodsInfoStockService;
+	@Autowired
+	private GoodsInfoStockService goodsInfoStockService;
 
-    @Autowired
-    private GoodsInfoRepository goodsInfoRepository;
+	@Autowired
+	private GoodsInfoRepository goodsInfoRepository;
 
-    @Autowired
-    private GuanyierpProvider guanyierpProvider;
+	@Autowired
+	private GuanyierpProvider guanyierpProvider;
+	@Autowired
+	private ShopCenterProductProvider shopCenterProductProvider;
 
-    @Autowired
-    private GoodsStockSyncRepository goodsStockSyncRepository;
+	@Autowired
+	private GoodsStockSyncRepository goodsStockSyncRepository;
 
-    @Autowired
-    private GoodsStockService goodsStockService;
+	@Autowired
+	private GoodsStockService goodsStockService;
 
-    @Autowired
-    private GoodsBlackListService goodsBlackListService;
+	@Autowired
+	private GoodsBlackListService goodsBlackListService;
 
-    @Autowired
-    private BooKuuSupplierClient booKuuSupplierClient;
+	@Autowired
+	private BooKuuSupplierClient booKuuSupplierClient;
 
-    @Value("${default.providerId}")
-    private String defaultProviderId;
-
-
-
-    /**
-     * 批量加库存
-     *
-     * @param dtoList 增量库存参数
-     */
-    public void batchAddStock(List<GoodsPlusStockDTO> dtoList) {
-        if (CollectionUtils.isEmpty(dtoList)) {
-            return;
-        }
-        //缓存是扣库存性缓存，加库存则扣除
-        List<RedisHIncrBean> beans = dtoList.stream().map(g -> new RedisHIncrBean(g.getGoodsId(), -g.getStock()))
-                .collect(Collectors.toList());
-        redisService.hincrPipeline(CacheKeyConstant.GOODS_STOCK_SUB_CACHE, beans);
-    }
-
-    /**
-     * 批量减库存
-     *
-     * @param dtoList 减量库存参数
-     */
-    public void batchSubStock(List<GoodsMinusStockDTO> dtoList) {
-        if (CollectionUtils.isEmpty(dtoList)) {
-            return;
-        }
-        List<RedisHIncrBean> beans = dtoList.stream().map(g -> new RedisHIncrBean(g.getGoodsId(), g.getStock()))
-                .collect(Collectors.toList());
-        redisService.hincrPipeline(CacheKeyConstant.GOODS_STOCK_SUB_CACHE, beans);
-    }
-
-    @Transactional
-    public void syncStock() {
-        log.info("更新spu库存");
-        Map<String, String> res = redisService.hgetAll(CacheKeyConstant.GOODS_STOCK_SUB_CACHE);
-        List<GoodsMinusStockDTO> errStock = new ArrayList<>();//保存更新异常的数据
-        List<GoodsPlusStockDTO> resetStock = new ArrayList<>();//重置
-        if (MapUtils.isNotEmpty(res)) {
-            res.forEach((goodsId, stock) -> {
-                log.info("更新spu库存，扣除{} -> spuId:{}", stock, goodsId);
-                Long tmpStock = NumberUtils.toLong(stock, 0);
-                if (tmpStock != 0) {
-                    try {
-                        //持久至mysql
-                        goodsRepository.subStockById(tmpStock, goodsId);
-                        resetStock.add(new GoodsPlusStockDTO(tmpStock, goodsId));
-                    } catch (Exception e) {
-                        log.error("扣除spu库存异常", e);
-                        errStock.add(new GoodsMinusStockDTO(tmpStock, goodsId));
-                    }
-                }
-            });
+	@Value("${default.providerId}")
+	private String defaultProviderId;
 
 
-            LocalTime nowTime = LocalTime.now();
-            if (nowTime.getHour() > 0 && nowTime.getHour() < 8) {
-                //如果在夜间，全清
-                redisService.delete(CacheKeyConstant.GOODS_STOCK_SUB_CACHE);
-                //保留错误数据，以便下次同步继续
-                batchSubStock(errStock);
-            } else {//重置-扣除redis
-                batchAddStock(resetStock);
-            }
-        }
-    }
+	/**
+	 * 批量加库存
+	 *
+	 * @param dtoList 增量库存参数
+	 */
+	public void batchAddStock(List<GoodsPlusStockDTO> dtoList) {
+		if (CollectionUtils.isEmpty(dtoList)) {
+			return;
+		}
+		//缓存是扣库存性缓存，加库存则扣除
+		List<RedisHIncrBean> beans = dtoList.stream().map(g -> new RedisHIncrBean(g.getGoodsId(), -g.getStock()))
+				.collect(Collectors.toList());
+		redisService.hincrPipeline(CacheKeyConstant.GOODS_STOCK_SUB_CACHE, beans);
+	}
 
-    /**
-     * 同步ERP商品库存
-     */
+	/**
+	 * 批量减库存
+	 *
+	 * @param dtoList 减量库存参数
+	 */
+	public void batchSubStock(List<GoodsMinusStockDTO> dtoList) {
+		if (CollectionUtils.isEmpty(dtoList)) {
+			return;
+		}
+		List<RedisHIncrBean> beans = dtoList.stream().map(g -> new RedisHIncrBean(g.getGoodsId(), g.getStock()))
+				.collect(Collectors.toList());
+		redisService.hincrPipeline(CacheKeyConstant.GOODS_STOCK_SUB_CACHE, beans);
+	}
+
+	@Transactional
+	public void syncStock() {
+		log.info("更新spu库存");
+		Map<String, String> res = redisService.hgetAll(CacheKeyConstant.GOODS_STOCK_SUB_CACHE);
+		List<GoodsMinusStockDTO> errStock = new ArrayList<>();//保存更新异常的数据
+		List<GoodsPlusStockDTO> resetStock = new ArrayList<>();//重置
+		if (MapUtils.isNotEmpty(res)) {
+			res.forEach((goodsId, stock) -> {
+				log.info("更新spu库存，扣除{} -> spuId:{}", stock, goodsId);
+				Long tmpStock = NumberUtils.toLong(stock, 0);
+				if (tmpStock != 0) {
+					try {
+						//持久至mysql
+						goodsRepository.subStockById(tmpStock, goodsId);
+						resetStock.add(new GoodsPlusStockDTO(tmpStock, goodsId));
+					} catch (Exception e) {
+						log.error("扣除spu库存异常", e);
+						errStock.add(new GoodsMinusStockDTO(tmpStock, goodsId));
+					}
+				}
+			});
+
+
+			LocalTime nowTime = LocalTime.now();
+			if (nowTime.getHour() > 0 && nowTime.getHour() < 8) {
+				//如果在夜间，全清
+				redisService.delete(CacheKeyConstant.GOODS_STOCK_SUB_CACHE);
+				//保留错误数据，以便下次同步继续
+				batchSubStock(errStock);
+			} else {//重置-扣除redis
+				batchAddStock(resetStock);
+			}
+		}
+	}
+
+	/**
+	 * 同步ERP商品库存
+	 */
 //    @Transactional
 //    public Map<String, Map<String, Integer>> syncERPGoodsStock(String skuNo, int pageNum, int pageSize) {
 //        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
@@ -254,365 +261,320 @@ public class GoodsStockService {
 //    }
 
 
-    /**
-     * 批量更新库存 根据频率计算，此处可以考虑更新 前200个商品 以及剩余的商品
-     * @param hasSaveRedis 只有定时任务才设置为 true，保证每次采集到的都是上一次的数据
-     */
-    public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, long maxTmpId, int pageSize) {
-        long beginTime = System.currentTimeMillis();
-        String providerId = defaultProviderId; //管易云
-        List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(goodsIdList)) {
-            GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
-            goodsInfoQueryRequest.setGoodsIds(goodsIdList);
-            goodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-            goodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
-            List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(goodsInfoQueryRequest.getWhereCriteria());
-            List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests = new ArrayList<>();
-            for (GoodsInfo goodsInfoParam : goodsInfoList) {
-                GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncRequest = new GoodsInfoStockAndCostPriceSyncRequest();
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsId(goodsInfoParam.getGoodsId());
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoId(goodsInfoParam.getGoodsInfoId());
-                goodsInfoStockAndCostPriceSyncRequest.setErpGoodsNo(goodsInfoParam.getErpGoodsNo());
-                goodsInfoStockAndCostPriceSyncRequest.setErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
-                goodsInfoStockAndCostPriceSyncRequest.setCostPrice(goodsInfoParam.getCostPrice());
-                goodsInfoStockAndCostPriceSyncRequest.setCostPriceSyncFlag(goodsInfoParam.getCostPriceSyncFlag());
-                goodsInfoStockAndCostPriceSyncRequest.setStockQTY(goodsInfoParam.getStock());
-                goodsInfoStockAndCostPriceSyncRequest.setStockSyncFlag(goodsInfoParam.getStockSyncFlag());
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoParam.getGoodsInfoNo());
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
-                goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
-                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
-                goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
-            }
+	/**
+	 * 批量更新库存 根据频率计算，此处可以考虑更新 前200个商品 以及剩余的商品
+	 *
+	 * @param hasSaveRedis 只有定时任务才设置为 true，保证每次采集到的都是上一次的数据
+	 */
+	public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, long maxTmpId, int pageSize) {
+		long beginTime = System.currentTimeMillis();
+		String providerId = defaultProviderId; //管易云
+		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(goodsIdList)) {
+			GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
+			goodsInfoQueryRequest.setGoodsIds(goodsIdList);
+			goodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+			goodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+			List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(goodsInfoQueryRequest.getWhereCriteria());
+			List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests = new ArrayList<>();
+			for (GoodsInfo goodsInfoParam : goodsInfoList) {
+				GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncRequest = new GoodsInfoStockAndCostPriceSyncRequest();
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsId(goodsInfoParam.getGoodsId());
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoId(goodsInfoParam.getGoodsInfoId());
+				goodsInfoStockAndCostPriceSyncRequest.setErpGoodsNo(goodsInfoParam.getErpGoodsNo());
+				goodsInfoStockAndCostPriceSyncRequest.setErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+				goodsInfoStockAndCostPriceSyncRequest.setCostPrice(goodsInfoParam.getCostPrice());
+				goodsInfoStockAndCostPriceSyncRequest.setCostPriceSyncFlag(goodsInfoParam.getCostPriceSyncFlag());
+				goodsInfoStockAndCostPriceSyncRequest.setStockQTY(goodsInfoParam.getStock());
+				goodsInfoStockAndCostPriceSyncRequest.setStockSyncFlag(goodsInfoParam.getStockSyncFlag());
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoParam.getGoodsInfoNo());
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
+				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
+				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
+				goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
+			}
 
-            if (CollectionUtils.isNotEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
-                tmpResult.addAll(this.executeBatchUpdateStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests));
-            }
-        } else {
-            List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByMaxAutoId(providerId, maxTmpId, pageSize);
-            List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests = new ArrayList<>();
-            for (Map<String, Object> goodsParam : goodsInfoList) {
-                long tmpId = 0L;
-                String goodsId = "";
-                String goodsInfoId = "";
-                String erpGoodsNo = "";
-                String erpGoodsInfoNo = "";
-                BigDecimal costPrice = BigDecimal.ZERO;
-                int costPriceSyncFlag = 0;
-                Long stockQTY = 0L;
-                int stockSyncFlag = 0;
-                String goodsInfoNo = "";
-                String goodsInfoName = "";
-                BigDecimal marketPrice = BigDecimal.ZERO;
-                for (Map.Entry<String, Object> entry : goodsParam.entrySet()) {
+			if (CollectionUtils.isNotEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
+				tmpResult.addAll(this.executeBatchUpdateStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests));
+			}
+		} else {
+			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByMaxAutoId(providerId, maxTmpId, pageSize);
+			List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests = new ArrayList<>();
+			for (Map<String, Object> goodsParam : goodsInfoList) {
+				long tmpId = 0L;
+				String goodsId = "";
+				String goodsInfoId = "";
+				String erpGoodsNo = "";
+				String erpGoodsInfoNo = "";
+				BigDecimal costPrice = BigDecimal.ZERO;
+				int costPriceSyncFlag = 0;
+				Long stockQTY = 0L;
+				int stockSyncFlag = 0;
+				String goodsInfoNo = "";
+				String goodsInfoName = "";
+				BigDecimal marketPrice = BigDecimal.ZERO;
+				for (Map.Entry<String, Object> entry : goodsParam.entrySet()) {
 
-                    if ("tmp_id".equals(entry.getKey())) {
-                        tmpId = Long.parseLong(entry.getValue().toString());
-                    }
-                    if ("goods_id".equals(entry.getKey()))  {
-                        goodsId = entry.getValue().toString();
-                    }
-                    if ("goods_info_id".equals(entry.getKey())) {
-                        goodsInfoId = entry.getValue().toString();
-                    }
-                    if ("erp_goods_no".equals(entry.getKey())) {
-                        erpGoodsNo = entry.getValue().toString();
-                    }
-                    if ("erp_goods_info_no".equals(entry.getKey())) {
-                        erpGoodsInfoNo = entry.getValue() == null ? "" : entry.getValue().toString();
-                    }
-                    if ("cost_price".equals(entry.getKey())) {
-                        costPrice = new BigDecimal(entry.getValue().toString());
-                    }
-                    if ("cost_price_sync_flag".equals(entry.getKey())) {
-                        costPriceSyncFlag = Integer.parseInt(entry.getValue().toString());
-                    }
-                    if ("stock".equals(entry.getKey())) {
-                        stockQTY = Long.parseLong(entry.getValue().toString());
-                    }
-                    if ("stock_sync_flag".equals(entry.getKey())) {
-                        stockSyncFlag = Integer.parseInt(entry.getValue().toString());
-                    }
-                    if ("goods_info_no".equals(entry.getKey())) {
-                        goodsInfoNo = entry.getValue().toString();
-                    }
-                    if ("goods_info_name".equals(entry.getKey())) {
-                        goodsInfoName = entry.getValue().toString();
-                    }
-                    if ("market_price".equals(entry.getKey())) {
-                        marketPrice = new BigDecimal(entry.getValue().toString());
-                    }
-                }
-                GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncRequest = new GoodsInfoStockAndCostPriceSyncRequest();
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsId(goodsId);
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoId(goodsInfoId);
-                goodsInfoStockAndCostPriceSyncRequest.setErpGoodsNo(erpGoodsNo);
-                goodsInfoStockAndCostPriceSyncRequest.setErpGoodsInfoNo(erpGoodsInfoNo);
-                goodsInfoStockAndCostPriceSyncRequest.setCostPrice(costPrice);
-                goodsInfoStockAndCostPriceSyncRequest.setCostPriceSyncFlag(costPriceSyncFlag);
-                goodsInfoStockAndCostPriceSyncRequest.setStockQTY(stockQTY);
-                goodsInfoStockAndCostPriceSyncRequest.setStockSyncFlag(stockSyncFlag);
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoNo);
-                goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoName);
-                goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(marketPrice);
-                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
-                goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
-                if (maxTmpId < tmpId) {
-                    maxTmpId = tmpId;
-                }
-            }
+					if ("tmp_id".equals(entry.getKey())) {
+						tmpId = Long.parseLong(entry.getValue().toString());
+					}
+					if ("goods_id".equals(entry.getKey())) {
+						goodsId = entry.getValue().toString();
+					}
+					if ("goods_info_id".equals(entry.getKey())) {
+						goodsInfoId = entry.getValue().toString();
+					}
+					if ("erp_goods_no".equals(entry.getKey())) {
+						erpGoodsNo = entry.getValue().toString();
+					}
+					if ("erp_goods_info_no".equals(entry.getKey())) {
+						erpGoodsInfoNo = entry.getValue() == null ? "" : entry.getValue().toString();
+					}
+					if ("cost_price".equals(entry.getKey())) {
+						costPrice = new BigDecimal(entry.getValue().toString());
+					}
+					if ("cost_price_sync_flag".equals(entry.getKey())) {
+						costPriceSyncFlag = Integer.parseInt(entry.getValue().toString());
+					}
+					if ("stock".equals(entry.getKey())) {
+						stockQTY = Long.parseLong(entry.getValue().toString());
+					}
+					if ("stock_sync_flag".equals(entry.getKey())) {
+						stockSyncFlag = Integer.parseInt(entry.getValue().toString());
+					}
+					if ("goods_info_no".equals(entry.getKey())) {
+						goodsInfoNo = entry.getValue().toString();
+					}
+					if ("goods_info_name".equals(entry.getKey())) {
+						goodsInfoName = entry.getValue().toString();
+					}
+					if ("market_price".equals(entry.getKey())) {
+						marketPrice = new BigDecimal(entry.getValue().toString());
+					}
+				}
+				GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncRequest = new GoodsInfoStockAndCostPriceSyncRequest();
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsId(goodsId);
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoId(goodsInfoId);
+				goodsInfoStockAndCostPriceSyncRequest.setErpGoodsNo(erpGoodsNo);
+				goodsInfoStockAndCostPriceSyncRequest.setErpGoodsInfoNo(erpGoodsInfoNo);
+				goodsInfoStockAndCostPriceSyncRequest.setCostPrice(costPrice);
+				goodsInfoStockAndCostPriceSyncRequest.setCostPriceSyncFlag(costPriceSyncFlag);
+				goodsInfoStockAndCostPriceSyncRequest.setStockQTY(stockQTY);
+				goodsInfoStockAndCostPriceSyncRequest.setStockSyncFlag(stockSyncFlag);
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoNo);
+				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoName);
+				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(marketPrice);
+				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
+				goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
+				if (maxTmpId < tmpId) {
+					maxTmpId = tmpId;
+				}
+			}
 
-            if (CollectionUtils.isNotEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
-                tmpResult.addAll(this.executeBatchUpdateStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests));
-            }
-        }
+			if (CollectionUtils.isNotEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
+				tmpResult.addAll(this.executeBatchUpdateStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests));
+			}
+		}
 
-        if (CollectionUtils.isNotEmpty(tmpResult)) {
-            //更新goods库存
-            Map<String, Integer> spuId2ActualStockQtyMap =
-                    tmpResult.stream().collect(Collectors.groupingBy(GoodsInfoStockSyncProviderResponse::getSpuId, Collectors.summingInt(GoodsInfoStockSyncProviderResponse::getActualStockQty)));
-            spuId2ActualStockQtyMap.forEach((K, V) -> {
-                goodsRepository.updateStockByGoodsId(Long.valueOf(V), K);
-            });
-        }
-        GoodsInfoStockSyncMaxIdProviderResponse result = new GoodsInfoStockSyncMaxIdProviderResponse();
-        result.setMaxTmpId(maxTmpId);
-        result.setGoodsInfoStockSyncList(tmpResult);
-        log.info("GoodsStockService batchUpdateStock complete all cost: {} ms", (System.currentTimeMillis() - beginTime));
-        return result;
-    }
-
-
-    /**
-     * 执行批量更新库存
-     */
-    private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStockAndCostPrice(List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests) {
-        if (CollectionUtils.isEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
-            log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} erpGoodsCodeNo is null return ", JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests));
-            return new ArrayList<>();
-        }
-        //获取仓库黑名单
-        List<String> unStaticsKey = new ArrayList<>();
-        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
-                Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode()));
-        GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse = goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest);
-        if (goodsBlackListPageProviderResponse.getWareHouseListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList())) {
-            unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
-        }
+		if (CollectionUtils.isNotEmpty(tmpResult)) {
+			//更新goods库存
+			Map<String, Integer> spuId2ActualStockQtyMap =
+					tmpResult.stream().collect(Collectors.groupingBy(GoodsInfoStockSyncProviderResponse::getSpuId, Collectors.summingInt(GoodsInfoStockSyncProviderResponse::getActualStockQty)));
+			spuId2ActualStockQtyMap.forEach((K, V) -> {
+				goodsRepository.updateStockByGoodsId(Long.valueOf(V), K);
+			});
+		}
+		GoodsInfoStockSyncMaxIdProviderResponse result = new GoodsInfoStockSyncMaxIdProviderResponse();
+		result.setMaxTmpId(maxTmpId);
+		result.setGoodsInfoStockSyncList(tmpResult);
+		log.info("GoodsStockService batchUpdateStock complete all cost: {} ms", (System.currentTimeMillis() - beginTime));
+		return result;
+	}
 
 
-
-        List<ERPGoodsInfoVO> result = new ArrayList<>(100);
-        Set<String> erpGoodsCodeNoSet =
-                goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
-        log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ", JSON.toJSONString(erpGoodsCodeNoSet));
-        long benginTime = System.currentTimeMillis();
-        for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
-            int pageNum = 1;
-            int pageSize = 100;
-            while (true) {
-                BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(pageNum, pageSize, erpGoodsCodeNo);
-                ErpStockVo erpStockInfo = listWareHoseStock.getContext();
-                if (erpStockInfo.getStocks() == null) {
-                    erpStockInfo.setStocks(new ArrayList<>());
-                }
-                log.info("GoodsStockService batchUpdateStock pull warehostStock erpGoodsCodeNo:{} pageNum:{} pageSize:{} total:{}", erpGoodsCodeNo, pageNum, pageSize, erpStockInfo.getTotal());
-
-                int cycleCount = erpStockInfo.getTotal() / pageSize;
-                int remainder = erpStockInfo.getTotal() % pageSize;
-                cycleCount += remainder > 0 ? 1 : 0;
-                pageNum++;
-                result.addAll(erpStockInfo.getStocks());
-                if (pageNum > cycleCount) {
-                    break;
-                }
-            }
-        }
-        log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ERPGoodsInfoVO size:{} cost:{} s", JSON.toJSONString(erpGoodsCodeNoSet), result.size(), (System.currentTimeMillis() - benginTime)/1000);
-        Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
-        for (ERPGoodsInfoVO erpGoodsInfoVo : result) {
-            if (erpGoodsInfoVo.getDel() || unStaticsKey.contains(erpGoodsInfoVo.getWarehouseCode())) {
-                log.info("GoodsStockService batchUpdateStock itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
-                        erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemName(), erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemSkuName(), erpGoodsInfoVo.getWarehouseCode());
-                continue;
-            }
-            Integer saleableStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoVo.getSkuCode());
-            int tmpStockQty = saleableStockQty == null ? erpGoodsInfoVo.getSalableQty() : saleableStockQty + erpGoodsInfoVo.getSalableQty();
-            erpSkuCode2ErpStockQtyMap.put(erpGoodsInfoVo.getSkuCode(), tmpStockQty);
-        }
-
-        //获取sku 库存状态
-        Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
-        for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
-            try {
-                BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsCodeNo);
-                List<ERPGoodsInfoVO> erpGoodsInfoVOListTmp = erpGoodsInfoWithoutStock.getContext();
-                if (CollectionUtils.isEmpty(erpGoodsInfoVOListTmp)) {
-                    continue;
-                }
-                for (ERPGoodsInfoVO erpGoodsInfoParam : erpGoodsInfoVOListTmp) {
-                    long erpStockQty = 0L;
-                    if (Arrays.asList("1", "3", "2", "4").contains(erpGoodsInfoParam.getStockStatusCode())) {
-                        erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
-                                ? 0L: Long.parseLong(erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()).toString());
-                    } else if (Objects.equals("0", erpGoodsInfoParam.getStockStatusCode())) {
-                        erpStockQty = 9999L;
-                    }
-                    ErpGoodsInfoRequest erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-                    erpGoodsInfoRequest.setErpCostPrice(erpGoodsInfoParam.getCostPrice());
-                    erpGoodsInfoRequest.setErpStock(erpStockQty);
-                    erpSkuCode2ErpGoodsInfoMap.put(erpGoodsInfoParam.getSkuCode(), erpGoodsInfoRequest);
-                }
-            } catch (Exception ex) {
-                log.warn("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} 访问管易异常", erpGoodsCodeNo, ex);
-            }
-        }
-        log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequests:{} erpSkuCode2ErpGoodsInfoMap:{} "
-                , JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests), erpSkuCode2ErpGoodsInfoMap);
-        return goodsInfoStockService.batchUpdateGoodsInfoStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests, erpSkuCode2ErpGoodsInfoMap);
-    }
+	/**
+	 * 执行批量更新库存
+	 */
+	private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStockAndCostPrice(List<GoodsInfoStockAndCostPriceSyncRequest> goodsInfoStockAndCostPriceSyncRequests) {
+		if (CollectionUtils.isEmpty(goodsInfoStockAndCostPriceSyncRequests)) {
+			log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} erpGoodsCodeNo is null return ", JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests));
+			return new ArrayList<>();
+		}
+		//获取仓库黑名单
+		List<String> unStaticsKey = new ArrayList<>();
+		GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+		goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+				Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode()));
+		GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse = goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest);
+		if (goodsBlackListPageProviderResponse.getWareHouseListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList())) {
+			unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
+		}
 
 
+		List<NewGoodsInfoResp> result = new ArrayList<>(100);
+		Set<String> erpGoodsCodeNoSet = goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
+		log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ", JSON.toJSONString(erpGoodsCodeNoSet));
+		long benginTime = System.currentTimeMillis();
+		for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
+			NewGoodsInfoRequest request = new NewGoodsInfoRequest();
+			request.setGoodsCode(erpGoodsCodeNo);
+			request.setValidFlag(1);
+			List<NewGoodsInfoResp> infoList = shopCenterProductProvider.searchGoodsInfo(request).getContext();
+			result.addAll(infoList);
+		}
 
-    public long countGoodsStockSync() {
-        Specification<GoodsStockSync> request = (root, cquery, cbuild) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cbuild.equal(root.get("status"), 0));
-            predicates.add(cbuild.equal(root.get("deleted"), 0));
-            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
-            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
-        };
-        return goodsStockSyncRepository.count(request);
-    }
+		//获取sku 库存状态
+		Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
+		for (NewGoodsInfoResp infoVO : result) {
+			BigDecimal costPrice = Objects.isNull(infoVO.getWhStockCost()) ? null : new BigDecimal(infoVO.getWhStockCost()).divide(new BigDecimal(100));
+			ErpGoodsInfoRequest erpGoodsInfoRequest = new ErpGoodsInfoRequest();
+			erpGoodsInfoRequest.setErpCostPrice(costPrice);
+			erpGoodsInfoRequest.setErpStock(Objects.isNull(infoVO.getWhStockActual()) ? 0L : infoVO.getWhStockActual().longValue());
+			erpSkuCode2ErpGoodsInfoMap.put(infoVO.getGoodsCode(), erpGoodsInfoRequest);
+		}
+		log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequests:{} erpSkuCode2ErpGoodsInfoMap:{} "
+				, JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests), erpSkuCode2ErpGoodsInfoMap);
+		return goodsInfoStockService.batchUpdateGoodsInfoStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests, erpSkuCode2ErpGoodsInfoMap);
+	}
 
-    /**
-     * 查询goods_stock_sync并同步库存
-     *
-     * @param pageNum
-     * @param pageSize
-     * @return
-     */
-    public List<GoodsInfoStockSyncProviderResponse> syncGoodsStock(int pageNum, int pageSize) {
-        List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
-        GoodsStockSyncQueryRequest stockSyncQueryRequest = new GoodsStockSyncQueryRequest();
-        stockSyncQueryRequest.setStatus(0);
-        if (pageNum >= 0) {
-            stockSyncQueryRequest.setPageNum(pageNum);
-        }
-        stockSyncQueryRequest.setPageSize(pageSize);
-        Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(), stockSyncQueryRequest.getPageRequest());
-        if(CollectionUtils.isEmpty(stockPage.getContent())){
-            return result;
-        }
-        List<GoodsStockSync> goodsStockList = stockPage.getContent();
-        // 3 遍历商品列表并更新sku库存
-        for (GoodsStockSync goodsStockSyncParam : goodsStockList) {
-            GoodsInfoStockSyncProviderResponse goodsInfoStockSync = goodsStockService.updateGoodsStockSingle(goodsStockSyncParam);
-            if (goodsInfoStockSync == null) {
-                continue;
-            }
-            result.add(goodsInfoStockSync);
-        }
-        return result;
-    }
 
-    @Transactional
-    public GoodsInfoStockSyncProviderResponse updateGoodsStockSingle(GoodsStockSync stock){
-        //查询sku信息
-        GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
-        if (goodsInfo ==null) {
+	public long countGoodsStockSync() {
+		Specification<GoodsStockSync> request = (root, cquery, cbuild) -> {
+			List<Predicate> predicates = new ArrayList<>();
+			predicates.add(cbuild.equal(root.get("status"), 0));
+			predicates.add(cbuild.equal(root.get("deleted"), 0));
+			Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+			return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+		};
+		return goodsStockSyncRepository.count(request);
+	}
+
+	/**
+	 * 查询goods_stock_sync并同步库存
+	 *
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public List<GoodsInfoStockSyncProviderResponse> syncGoodsStock(int pageNum, int pageSize) {
+		List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
+		GoodsStockSyncQueryRequest stockSyncQueryRequest = new GoodsStockSyncQueryRequest();
+		stockSyncQueryRequest.setStatus(0);
+		if (pageNum >= 0) {
+			stockSyncQueryRequest.setPageNum(pageNum);
+		}
+		stockSyncQueryRequest.setPageSize(pageSize);
+		Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(), stockSyncQueryRequest.getPageRequest());
+		if (CollectionUtils.isEmpty(stockPage.getContent())) {
+			return result;
+		}
+		List<GoodsStockSync> goodsStockList = stockPage.getContent();
+		// 3 遍历商品列表并更新sku库存
+		for (GoodsStockSync goodsStockSyncParam : goodsStockList) {
+			GoodsInfoStockSyncProviderResponse goodsInfoStockSync = goodsStockService.updateGoodsStockSingle(goodsStockSyncParam);
+			if (goodsInfoStockSync == null) {
+				continue;
+			}
+			result.add(goodsInfoStockSync);
+		}
+		return result;
+	}
+
+	@Transactional
+	public GoodsInfoStockSyncProviderResponse updateGoodsStockSingle(GoodsStockSync stock) {
+		//查询sku信息
+		GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
+		if (goodsInfo == null) {
 //            goodsStockSyncRepository.updateStatus(stock.getId());
-            log.info("updateGoodsStockSingle there is no sku or stock,stockSyncFlag is false, goods:{},goodsInfo:{}", stock,goodsInfo);
-            return null;
-        }
+			log.info("updateGoodsStockSingle there is no sku or stock,stockSyncFlag is false, goods:{},goodsInfo:{}", stock, goodsInfo);
+			return null;
+		}
 
-        Long actualStock = goodsInfo.getStockQty();
-        if (Objects.equals(goodsInfo.getStockSyncFlag(), 1)) {
-            actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());
-            goodsInfoStockService.resetStockByGoodsInfoId(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
-            //更新spu库存
-            goodsRepository.resetGoodsStockById(actualStock, goodsInfo.getGoodsId());
-            //更新状态
-            goodsStockSyncRepository.updateStatus(stock.getId());
-        }
+		Long actualStock = goodsInfo.getStockQty();
+		if (Objects.equals(goodsInfo.getStockSyncFlag(), 1)) {
+			actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());
+			goodsInfoStockService.resetStockByGoodsInfoId(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(), actualStock);
+			//更新spu库存
+			goodsRepository.resetGoodsStockById(actualStock, goodsInfo.getGoodsId());
+			//更新状态
+			goodsStockSyncRepository.updateStatus(stock.getId());
+		}
 
-        GoodsInfoStockSyncProviderResponse goodsInfoStockSyncProviderResponse = new GoodsInfoStockSyncProviderResponse();
-        goodsInfoStockSyncProviderResponse.setSpuId(goodsInfo.getGoodsId());
-        goodsInfoStockSyncProviderResponse.setSkuId(goodsInfo.getGoodsInfoId());
-        goodsInfoStockSyncProviderResponse.setSkuNo(goodsInfo.getGoodsInfoNo());
-        goodsInfoStockSyncProviderResponse.setSkuName(goodsInfo.getGoodsInfoName());
-        goodsInfoStockSyncProviderResponse.setActualStockQty(actualStock.intValue());
+		GoodsInfoStockSyncProviderResponse goodsInfoStockSyncProviderResponse = new GoodsInfoStockSyncProviderResponse();
+		goodsInfoStockSyncProviderResponse.setSpuId(goodsInfo.getGoodsId());
+		goodsInfoStockSyncProviderResponse.setSkuId(goodsInfo.getGoodsInfoId());
+		goodsInfoStockSyncProviderResponse.setSkuNo(goodsInfo.getGoodsInfoNo());
+		goodsInfoStockSyncProviderResponse.setSkuName(goodsInfo.getGoodsInfoName());
+		goodsInfoStockSyncProviderResponse.setActualStockQty(actualStock.intValue());
 
-        //存入redis
-        String lastSyncStockKey = goodsInfo.getGoodsInfoId();
-
-
-        try {
-            String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey);
-            log.info("GoodsStockService lastSyncStockKey {} lastSyncStockValue {}", lastSyncStockKey, lastSyncStockValue);
-
-            if (!StringUtils.isBlank(lastSyncStockValue)) {
-                goodsInfoStockSyncProviderResponse.setLastStockQty(Integer.parseInt(lastSyncStockValue));
-            } else {
-                goodsInfoStockSyncProviderResponse.setLastStockQty(0);
-            }
-        } catch (Exception ex) {
-            log.error("GoodsStockService lastSyncStockKey {} lastSyncStockValue {} exception", lastSyncStockKey, ex);
-
-        }
-        redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey, actualStock.toString(),6 * 30 * 24 * 60 * 60);
-        return goodsInfoStockSyncProviderResponse;
-    }
+		//存入redis
+		String lastSyncStockKey = goodsInfo.getGoodsInfoId();
 
 
-    /**
-     * 指定商品同步库存
-     */
-    @Transactional
-    public void bookuuSyncGoodsStock(List<String> goodsIdList) {
-        log.info("GoodsStockService bookuuSyncGoodsStock begin param: {}", JSON.toJSONString(goodsIdList));
-        long beginTime = System.currentTimeMillis();
-        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
-        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
-        infoQueryRequest.setGoodsIds(goodsIdList);
-        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        if (CollectionUtils.isEmpty(goodsInfoList)) {
-            return;
-        }
+		try {
+			String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey);
+			log.info("GoodsStockService lastSyncStockKey {} lastSyncStockValue {}", lastSyncStockKey, lastSyncStockValue);
 
-        //获取库存
-        GoodsStockRequest request = new GoodsStockRequest();
-        request.setGoodsIdList(goodsIdList);
-        BaseResponse<List<GoodsStockResponse>> goodsStock = booKuuSupplierClient.getGoodsStock(request);
-        List<GoodsStockResponse> context = goodsStock.getContext();
-        if (CollectionUtils.isEmpty(context)) {
-            return;
-        }
+			if (!StringUtils.isBlank(lastSyncStockValue)) {
+				goodsInfoStockSyncProviderResponse.setLastStockQty(Integer.parseInt(lastSyncStockValue));
+			} else {
+				goodsInfoStockSyncProviderResponse.setLastStockQty(0);
+			}
+		} catch (Exception ex) {
+			log.error("GoodsStockService lastSyncStockKey {} lastSyncStockValue {} exception", lastSyncStockKey, ex);
 
-        Map<String, Integer> erpGoodsNo2StockQtyMap = new HashMap<>();
-        for (GoodsStockResponse goodsStockResponse : context) {
-            erpGoodsNo2StockQtyMap.put(goodsStockResponse.getErpGoodsNo(), goodsStockResponse.getStockQty());
-        }
+		}
+		redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey, actualStock.toString(), 6 * 30 * 24 * 60 * 60);
+		return goodsInfoStockSyncProviderResponse;
+	}
 
 
-        for (GoodsInfo goodsInfoParam : goodsInfoList) {
-            if (Objects.equals(goodsInfoParam.getStockSyncFlag(),0)) {
-                continue;
-            }
-            Integer stockQty = erpGoodsNo2StockQtyMap.get(goodsInfoParam.getErpGoodsNo());
-            stockQty = stockQty == null ? 0 : stockQty;
+	/**
+	 * 指定商品同步库存
+	 */
+	@Transactional
+	public void bookuuSyncGoodsStock(List<String> goodsIdList) {
+		log.info("GoodsStockService bookuuSyncGoodsStock begin param: {}", JSON.toJSONString(goodsIdList));
+		long beginTime = System.currentTimeMillis();
+		GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+		infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+		infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+		infoQueryRequest.setGoodsIds(goodsIdList);
+		List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+		if (CollectionUtils.isEmpty(goodsInfoList)) {
+			return;
+		}
 
-            Long actualStock = goodsInfoStockService.getActualStock(stockQty.longValue(), goodsInfoParam.getGoodsInfoId());
-            goodsInfoStockService.resetStockByGoodsInfoId(stockQty.longValue(), goodsInfoParam.getGoodsInfoId(), actualStock);
-            //更新状态
-            goodsStockSyncRepository.updateStatusByErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+		//获取库存
+		GoodsStockRequest request = new GoodsStockRequest();
+		request.setGoodsIdList(goodsIdList);
+		BaseResponse<List<GoodsStockResponse>> goodsStock = booKuuSupplierClient.getGoodsStock(request);
+		List<GoodsStockResponse> context = goodsStock.getContext();
+		if (CollectionUtils.isEmpty(context)) {
+			return;
+		}
 
-            goodsRepository.updateStockByGoodsId(actualStock, goodsInfoParam.getGoodsId());
-        }
-        log.info("GoodsStockService bookuuSyncGoodsStock end param: {} cost: {}", JSON.toJSONString(goodsIdList), (System.currentTimeMillis() - beginTime));
+		Map<String, Integer> erpGoodsNo2StockQtyMap = new HashMap<>();
+		for (GoodsStockResponse goodsStockResponse : context) {
+			erpGoodsNo2StockQtyMap.put(goodsStockResponse.getErpGoodsNo(), goodsStockResponse.getStockQty());
+		}
+
+
+		for (GoodsInfo goodsInfoParam : goodsInfoList) {
+			if (Objects.equals(goodsInfoParam.getStockSyncFlag(), 0)) {
+				continue;
+			}
+			Integer stockQty = erpGoodsNo2StockQtyMap.get(goodsInfoParam.getErpGoodsNo());
+			stockQty = stockQty == null ? 0 : stockQty;
+
+			Long actualStock = goodsInfoStockService.getActualStock(stockQty.longValue(), goodsInfoParam.getGoodsInfoId());
+			goodsInfoStockService.resetStockByGoodsInfoId(stockQty.longValue(), goodsInfoParam.getGoodsInfoId(), actualStock);
+			//更新状态
+			goodsStockSyncRepository.updateStatusByErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+
+			goodsRepository.updateStockByGoodsId(actualStock, goodsInfoParam.getGoodsId());
+		}
+		log.info("GoodsStockService bookuuSyncGoodsStock end param: {} cost: {}", JSON.toJSONString(goodsIdList), (System.currentTimeMillis() - beginTime));
 //        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
 //        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
 //        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
@@ -665,6 +627,6 @@ public class GoodsStockService {
 //        goodsId2StockQtyMap.forEach((K, V) -> {
 //            goodsRepository.updateStockByGoodsId(Long.valueOf(V), K);
 //        });
-    }
+	}
 
 }

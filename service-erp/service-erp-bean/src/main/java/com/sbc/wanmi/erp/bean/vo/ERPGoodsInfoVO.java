@@ -1,6 +1,5 @@
 package com.sbc.wanmi.erp.bean.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -63,13 +62,13 @@ public class ERPGoodsInfoVO implements Serializable {
      * 库存数量
      */
     @ApiModelProperty(value = "库存数量")
-    private int qty;
+    private Integer qty;
 
     /**
      * 可销售数
      */
     @ApiModelProperty(value = "可销售数")
-    private int salableQty;
+    private Integer salableQty;
 
     /**
      * 成本价
@@ -85,7 +84,7 @@ public class ERPGoodsInfoVO implements Serializable {
     /**
      * 在途数
      */
-    private int roadQty;
+    private Integer roadQty;
 
     /**
      * 库存状态
