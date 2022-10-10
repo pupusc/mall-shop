@@ -107,12 +107,12 @@ public interface ProviderTradeQueryProvider {
 //    @PostMapping("/order/${application.order.version}/trade/scan-not-yet-shipped")
 //    BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request);
 //
-//    /**
-//     * 同步历史未发货订单(7天前)
-//     * @return
-//     */
-//    @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
-//    BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
+    /**
+     * 同步历史未发货订单(7天前)
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
+    BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
 
 

@@ -1,4 +1,4 @@
-//package com.wanmi.sbc.erp.service;
+package com.wanmi.sbc.erp.service;
 //
 //import com.alibaba.fastjson.JSONObject;
 //import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,69 +23,92 @@
 //import java.net.URLEncoder;
 //import java.util.*;
 //
-///**
-// * @program: sbc-background
-// * @description: 管易ERP接口服务
-// * @author: 0F3685-wugongjiang
-// * @create: 2021-01-26 17:26
-// **/
-//@Service
-//@Slf4j
-//public class GuanyierpService {
-//
-//    /**
-//     * 管易云ERP平台申请的APPKEY
-//     */
-//    @Value("${guanyierp_appKey}")
-//    private String appkey;
-//
-//    /**
-//     * 管易云ERP平台申请的sessionkey
-//     */
-//    @Value("${guanyierp_sessionKey}")
-//    private String sessionkey;
-//
-//    /**
-//     * 管易云ERP接口地址
-//     */
-//    @Value("${guanyierp_path}")
-//    private String path;
-//
-//    /**
-//     * ERP店铺编号
-//     */
-//    @Value("${guanyierp_shopCode}")
-//    private String erpShopCode;
-//
-//    /**
-//     * ERP推送订单已发货物流编号
-//     */
-//    @Value("${guanyierp_expressCode}")
-//    private String expressCode;
-//
-//    /**
-//     * ERP推送订单已发货物流编号
-//     */
-//    @Value("${guanyierp_warehouseCode}")
-//    private String warehouseCode;
-//
-//    /**
-//     * ERP同步库存的仓库编号
-//     */
-//    @Value("${guanyierp_stockWarehouseCode}")
-//    private String stockwarehouseCode;
-//
-//    @Autowired
-//    private GuanyierpUtil guanyierpUtil;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    private static String buildSignParams = StringUtils.EMPTY;
-//
-//    private static String requestParamsJson = StringUtils.EMPTY;
-//
-//    private static String requestParamsEncode = StringUtils.EMPTY;
+
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.erp.api.constant.ErpErrorCode;
+import com.wanmi.sbc.erp.request.ERPDeliveryQueryRequest;
+import com.wanmi.sbc.erp.request.ERPHistoryDeliveryInfoRequest;
+import com.wanmi.sbc.erp.request.ERPTradeQueryRequest;
+import com.wanmi.sbc.erp.response.ERPDeliveryQueryResponse;
+import com.wanmi.sbc.erp.response.ERPTradeQueryResponse;
+import com.wanmi.sbc.erp.util.GuanyierpContants;
+import com.wanmi.sbc.erp.util.GuanyierpUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * @program: sbc-background
+ * @description: 管易ERP接口服务
+ * @author: 0F3685-wugongjiang
+ * @create: 2021-01-26 17:26
+ **/
+@Service
+@Slf4j
+public class GuanyierpService {
+
+    /**
+     * 管易云ERP平台申请的APPKEY
+     */
+    @Value("${guanyierp_appKey}")
+    private String appkey;
+
+    /**
+     * 管易云ERP平台申请的sessionkey
+     */
+    @Value("${guanyierp_sessionKey}")
+    private String sessionkey;
+
+    /**
+     * 管易云ERP接口地址
+     */
+    @Value("${guanyierp_path}")
+    private String path;
+
+    /**
+     * ERP店铺编号
+     */
+    @Value("${guanyierp_shopCode}")
+    private String erpShopCode;
+
+    /**
+     * ERP推送订单已发货物流编号
+     */
+    @Value("${guanyierp_expressCode}")
+    private String expressCode;
+
+    /**
+     * ERP推送订单已发货物流编号
+     */
+    @Value("${guanyierp_warehouseCode}")
+    private String warehouseCode;
+
+    /**
+     * ERP同步库存的仓库编号
+     */
+    @Value("${guanyierp_stockWarehouseCode}")
+    private String stockwarehouseCode;
+
+    @Autowired
+    private GuanyierpUtil guanyierpUtil;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private static String buildSignParams = StringUtils.EMPTY;
+
+    private static String requestParamsJson = StringUtils.EMPTY;
+
+    private static String requestParamsEncode = StringUtils.EMPTY;
 //
 //    /**
 //     * ERP订单推送接口
@@ -402,52 +425,52 @@
 //        }
 //    }
 //
-//    /**
-//     * ERP发货单查询接口
-//     * @param request
-//     * @return
-//     */
-//    public Optional<ERPDeliveryQueryResponse> getERPDeliveryInfo(ERPDeliveryQueryRequest request){
-//        // TODO: 2021/1/27
-//        request.setAppkey(appkey);
-//        request.setSessionkey(sessionkey);
-//        request.setMethod(GuanyierpContants.DELIVERY_QUERY_METHOD);
-//        //设置查询发货的状态
-//        if (Objects.nonNull(request.getDelivery())) {
-//            request.setDelivery(request.getDelivery());
-//        }
-//        try {
-//            buildSignParams = objectMapper.writeValueAsString(request);
-//        } catch (JsonProcessingException e) {
-//            log.error("#发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
-//        }
-//        String response = StringUtils.EMPTY;
-//        String buildSign = guanyierpUtil.buildSign(buildSignParams);
-//        request.setSign(buildSign);
-//        try {
-//            requestParamsJson = objectMapper.writeValueAsString(request);
-//            response = guanyierpUtil.execute(path, requestParamsJson);
-//        } catch (Exception e) {
-//            log.error("#发货单查询接口调用失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
-//        }
-//        log.info("response=========>:{}",response);
-//        ERPDeliveryQueryResponse deliveryQueryResponse = JSONObject.parseObject(response, ERPDeliveryQueryResponse.class);
-//        log.info("deliveryQueryResponse=========>:{}",deliveryQueryResponse);
-//        if (deliveryQueryResponse.isSuccess()){
-//            if (deliveryQueryResponse == null) {
-//                log.info("#订单:{}发货单查询接口调用成功,返回值显示为空!", request.getOuterCode());
-//                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
-//            }else{
-//                log.info("#订单:{}发货单查询接口调用成功,返回值:{}", request.getOuterCode(),deliveryQueryResponse.toString());
-//                return Optional.of(deliveryQueryResponse);
-//            }
-//        }else {
-//            log.info("#发货单查询接口调用成功,返回状态码:{}",deliveryQueryResponse.getErrorCode());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{deliveryQueryResponse.getErrorDesc()});
-//        }
-//    }
+    /**
+     * ERP发货单查询接口
+     * @param request
+     * @return
+     */
+    public Optional<ERPDeliveryQueryResponse> getERPDeliveryInfo(ERPDeliveryQueryRequest request){
+        // TODO: 2021/1/27
+        request.setAppkey(appkey);
+        request.setSessionkey(sessionkey);
+        request.setMethod(GuanyierpContants.DELIVERY_QUERY_METHOD);
+        //设置查询发货的状态
+        if (Objects.nonNull(request.getDelivery())) {
+            request.setDelivery(request.getDelivery());
+        }
+        try {
+            buildSignParams = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            log.error("#发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
+        }
+        String response = StringUtils.EMPTY;
+        String buildSign = guanyierpUtil.buildSign(buildSignParams);
+        request.setSign(buildSign);
+        try {
+            requestParamsJson = objectMapper.writeValueAsString(request);
+            response = guanyierpUtil.execute(path, requestParamsJson);
+        } catch (Exception e) {
+            log.error("#发货单查询接口调用失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
+        }
+        log.info("response=========>:{}",response);
+        ERPDeliveryQueryResponse deliveryQueryResponse = JSONObject.parseObject(response, ERPDeliveryQueryResponse.class);
+        log.info("deliveryQueryResponse=========>:{}",deliveryQueryResponse);
+        if (deliveryQueryResponse.isSuccess()){
+            if (deliveryQueryResponse == null) {
+                log.info("#订单:{}发货单查询接口调用成功,返回值显示为空!", request.getOuterCode());
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+            }else{
+                log.info("#订单:{}发货单查询接口调用成功,返回值:{}", request.getOuterCode(),deliveryQueryResponse.toString());
+                return Optional.of(deliveryQueryResponse);
+            }
+        }else {
+            log.info("#发货单查询接口调用成功,返回状态码:{}",deliveryQueryResponse.getErrorCode());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{deliveryQueryResponse.getErrorDesc()});
+        }
+    }
 //
 //    /**
 //     * ERP订单退款状态修改接口
@@ -652,97 +675,97 @@
 //        }
 //    }
 //
-//    /**
-//     * ERP历史发货单查询接口
-//     * @param request
-//     * @return
-//     */
-//    public Optional<ERPDeliveryQueryResponse> getERPHistoryDeliveryInfo(ERPHistoryDeliveryInfoRequest request){
-//        // TODO: 2021/1/27
-//        request.setAppkey(appkey);
-//        request.setSessionkey(sessionkey);
-//        request.setMethod(GuanyierpContants.DELIVERY_HISTORY_QUERY_METHOD);
-//        try {
-//            buildSignParams = objectMapper.writeValueAsString(request);
-//        } catch (JsonProcessingException e) {
-//            log.error("#【历史发货单】发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
-//        }
-//        String response = StringUtils.EMPTY;
-//        String buildSign = guanyierpUtil.buildSign(buildSignParams);
-//        request.setSign(buildSign);
-//        try {
-//            requestParamsJson = objectMapper.writeValueAsString(request);
-//            log.info("#【历史发货单】发货单组装传参,requestParamsJson:{}",requestParamsJson);
-//            response = guanyierpUtil.execute(path, requestParamsJson);
-//        } catch (Exception e) {
-//            log.error("#【历史发货单】发货单查询接口调用失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
-//        }
-//        log.info("response=========>:{}",response);
-//        ERPDeliveryQueryResponse deliveryQueryResponse = JSONObject.parseObject(response, ERPDeliveryQueryResponse.class);
-//        log.info("deliveryQueryResponse=========>:{}",deliveryQueryResponse);
-//        if (deliveryQueryResponse.isSuccess()){
-//            if (deliveryQueryResponse == null) {
-//                log.info("#【历史发货单】订单:{}发货单查询接口调用成功,返回值显示为空!", request.getOuterCode());
-//                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
-//            }else{
-//                log.info("#【历史发货单】订单:{}发货单查询接口调用成功,返回值:{}", request.getOuterCode(),deliveryQueryResponse.toString());
-//                return Optional.of(deliveryQueryResponse);
-//            }
-//        }else {
-//            log.info("#【历史发货单】发货单查询接口调用成功,返回状态码:{}",deliveryQueryResponse.getErrorCode());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{deliveryQueryResponse.getErrorDesc()});
-//        }
-//    }
-//
-//    /**
-//     * ERP订单查询接口
-//     * @param request
-//     * @return
-//     */
-//    public Optional<ERPTradeQueryResponse> getErpTradeInfo(ERPTradeQueryRequest request,int flag){
-//        // TODO: 2021/1/27
-//        request.setAppkey(appkey);
-//        request.setSessionkey(sessionkey);
-//        if (flag == 0){
-//            request.setMethod(GuanyierpContants.TRADE_GET_METHOD);
-//        }else {
-//            request.setMethod(GuanyierpContants.TRADE_HISTORY_GET_METHOD);
-//        }
-//        try {
-//            buildSignParams = objectMapper.writeValueAsString(request);
-//        } catch (JsonProcessingException e) {
-//            log.error("#【订单查询】发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
-//        }
-//        String response = StringUtils.EMPTY;
-//        String buildSign = guanyierpUtil.buildSign(buildSignParams);
-//        request.setSign(buildSign);
-//        try {
-//            requestParamsJson = objectMapper.writeValueAsString(request);
-//            log.info("#【订单查询】组装传参,requestParamsJson:{}",requestParamsJson);
-//            response = guanyierpUtil.execute(path, requestParamsJson);
-//        } catch (Exception e) {
-//            log.error("#【订单查询】接口调用失败,异常信息:{}",e.getMessage());
-//            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
-//        }
-//        log.info("response=========>:{}",response);
-//        ERPTradeQueryResponse erpTradeQueryResponse = JSONObject.parseObject(response, ERPTradeQueryResponse.class);
-//        log.info("erpTradeQueryResponse=========>:{}",erpTradeQueryResponse);
-//        if (erpTradeQueryResponse.isSuccess()){
-//            if (erpTradeQueryResponse == null) {
-//                log.info("#【订单查询】订单:{}接口调用成功,返回值显示为空!", request.getPlatformCode());
-//                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
-//            }else{
-//                log.info("#【订单查询】订单:{}接口调用成功,返回值:{}", request.getPlatformCode(),erpTradeQueryResponse.toString());
-//                return Optional.of(erpTradeQueryResponse);
-//            }
-//        }else {
-//            log.info("#【订单查询】接口调用成功,返回状态码:{}",erpTradeQueryResponse.getErrorCode());
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{erpTradeQueryResponse.getErrorDesc()});
-//        }
-//    }
+    /**
+     * ERP历史发货单查询接口
+     * @param request
+     * @return
+     */
+    public Optional<ERPDeliveryQueryResponse> getERPHistoryDeliveryInfo(ERPHistoryDeliveryInfoRequest request){
+        // TODO: 2021/1/27
+        request.setAppkey(appkey);
+        request.setSessionkey(sessionkey);
+        request.setMethod(GuanyierpContants.DELIVERY_HISTORY_QUERY_METHOD);
+        try {
+            buildSignParams = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            log.error("#【历史发货单】发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
+        }
+        String response = StringUtils.EMPTY;
+        String buildSign = guanyierpUtil.buildSign(buildSignParams);
+        request.setSign(buildSign);
+        try {
+            requestParamsJson = objectMapper.writeValueAsString(request);
+            log.info("#【历史发货单】发货单组装传参,requestParamsJson:{}",requestParamsJson);
+            response = guanyierpUtil.execute(path, requestParamsJson);
+        } catch (Exception e) {
+            log.error("#【历史发货单】发货单查询接口调用失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
+        }
+        log.info("response=========>:{}",response);
+        ERPDeliveryQueryResponse deliveryQueryResponse = JSONObject.parseObject(response, ERPDeliveryQueryResponse.class);
+        log.info("deliveryQueryResponse=========>:{}",deliveryQueryResponse);
+        if (deliveryQueryResponse.isSuccess()){
+            if (deliveryQueryResponse == null) {
+                log.info("#【历史发货单】订单:{}发货单查询接口调用成功,返回值显示为空!", request.getOuterCode());
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+            }else{
+                log.info("#【历史发货单】订单:{}发货单查询接口调用成功,返回值:{}", request.getOuterCode(),deliveryQueryResponse.toString());
+                return Optional.of(deliveryQueryResponse);
+            }
+        }else {
+            log.info("#【历史发货单】发货单查询接口调用成功,返回状态码:{}",deliveryQueryResponse.getErrorCode());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{deliveryQueryResponse.getErrorDesc()});
+        }
+    }
+
+    /**
+     * ERP订单查询接口
+     * @param request
+     * @return
+     */
+    public Optional<ERPTradeQueryResponse> getErpTradeInfo(ERPTradeQueryRequest request, int flag){
+        // TODO: 2021/1/27
+        request.setAppkey(appkey);
+        request.setSessionkey(sessionkey);
+        if (flag == 0){
+            request.setMethod(GuanyierpContants.TRADE_GET_METHOD);
+        }else {
+            request.setMethod(GuanyierpContants.TRADE_HISTORY_GET_METHOD);
+        }
+        try {
+            buildSignParams = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            log.error("#【订单查询】发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
+        }
+        String response = StringUtils.EMPTY;
+        String buildSign = guanyierpUtil.buildSign(buildSignParams);
+        request.setSign(buildSign);
+        try {
+            requestParamsJson = objectMapper.writeValueAsString(request);
+            log.info("#【订单查询】组装传参,requestParamsJson:{}",requestParamsJson);
+            response = guanyierpUtil.execute(path, requestParamsJson);
+        } catch (Exception e) {
+            log.error("#【订单查询】接口调用失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
+        }
+        log.info("response=========>:{}",response);
+        ERPTradeQueryResponse erpTradeQueryResponse = JSONObject.parseObject(response, ERPTradeQueryResponse.class);
+        log.info("erpTradeQueryResponse=========>:{}",erpTradeQueryResponse);
+        if (erpTradeQueryResponse.isSuccess()){
+            if (erpTradeQueryResponse == null) {
+                log.info("#【订单查询】订单:{}接口调用成功,返回值显示为空!", request.getPlatformCode());
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+            }else{
+                log.info("#【订单查询】订单:{}接口调用成功,返回值:{}", request.getPlatformCode(),erpTradeQueryResponse.toString());
+                return Optional.of(erpTradeQueryResponse);
+            }
+        }else {
+            log.info("#【订单查询】接口调用成功,返回状态码:{}",erpTradeQueryResponse.getErrorCode());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{erpTradeQueryResponse.getErrorDesc()});
+        }
+    }
 //
 //    /**
 //     * 接口测试方法
@@ -873,4 +896,4 @@
 //        Optional<ERPTradeQueryResponse> erpTradeInfo = this.getErpTradeInfo(build, 0);
 //        log.info("erpTradeInfo===>:{}",erpTradeInfo.get());*/
 //    }
-//}
+}

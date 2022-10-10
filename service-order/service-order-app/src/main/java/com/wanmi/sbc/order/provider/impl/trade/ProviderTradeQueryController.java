@@ -236,16 +236,16 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
 //        return BaseResponse.SUCCESSFUL();
 //    }
 //
-//    /**
-//     * 同步历史发货单
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
-//        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
-//        return BaseResponse.SUCCESSFUL();
-//    }
+    /**
+     * 同步历史发货单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
+        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
+        return BaseResponse.SUCCESSFUL();
+    }
 
 
 }

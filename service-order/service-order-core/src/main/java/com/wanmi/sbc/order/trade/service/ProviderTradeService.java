@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.trade.service;
 
 import com.alibaba.fastjson.JSON;
+import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -10,8 +11,10 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
 import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
@@ -45,6 +48,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -57,6 +62,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,12 +109,12 @@ public class ProviderTradeService {
     @Autowired
     private TradePushERPService tradePushERPService;
 
-//    @Autowired
-//    private GuanyierpProvider guanyierpProvider;
+    @Autowired
+    private GuanyierpProvider guanyierpProvider;
 
 
-//    @Autowired
-//    private RedissonClient redissonClient;
+    @Autowired
+    private RedissonClient redissonClient;
 
 //    @Autowired
 //    private StoreQueryProvider storeQueryProvider;
@@ -1385,48 +1392,48 @@ public class ProviderTradeService {
      * @param startTime 发货开始时间
      * @param endTime 发货结束时间
      */
-//    public void batchSyncHistoryOrderStatus(String startTime,String endTime,int pageSize,int pageNum) {
-//        RLock lock = redissonClient.getLock(HISTORY_NOT_YET_SHIPPED_ORDER);
-//        if (lock.isLocked()) {
-//            log.error("定时任务在执行中,下次执行.");
-//            return;
-//        }
-//        lock.lock();
-//        try {
-//            HistoryDeliveryInfoRequest historyDeliveryInfoRequest = HistoryDeliveryInfoRequest.builder()
-//                    .startDeliveryDate(startTime)
-//                    .pageSize(pageSize)
-//                    .endDeliveryDate(endTime)
-//                    .pageNum(pageNum)
-//                    .build();
-//
-//            List<DeliveryInfoVO> deliveryInfoVOList = guanyierpProvider
-//                    .getHistoryDeliveryStatus(historyDeliveryInfoRequest).getContext().getDeliveryInfoVOList();
-//
-//            if (CollectionUtils.isNotEmpty(deliveryInfoVOList)){
-//                deliveryInfoVOList.forEach(deliveryInfoVO -> {
-//                    // 获取所有子订单的商品信息
-//                    List<DeliveryInfoVO> deliveryInfoVOS = deliveryInfoVOList
-//                            .stream()
-//                            .filter(deliveryInfoVO1 -> deliveryInfoVO1.getPlatformCode().equals(deliveryInfoVO.getPlatformCode()))
-//                            .collect(Collectors.toList());
-//                    // 查询数据库中信息
-//                    ProviderTrade providerTrade = mongoTemplate.findById(deliveryInfoVO.getPlatformCode(), ProviderTrade.class);
-//                    if (!ObjectUtils.isEmpty(providerTrade) &&
-//                            DeliverStatus.SHIPPED != providerTrade.getTradeState().getDeliverStatus() &&
-//                            FlowState.VOID != providerTrade.getTradeState().getFlowState()){
-//                        log.info("#同步erp发货状态的订单:{},订单id:{},erp返回订单信息:{}", providerTrade.getTradeState(),providerTrade.getId(),deliveryInfoVOS);
-//                        tradePushERPService.syncDeliveryStatus(providerTrade,deliveryInfoVOS);
-//                    }
-//                });
-//            }
-//        } catch (Exception e) {
-//            log.error("Error message ： #同步历史发货单状态:{}",e.getMessage(), e);
-//        } finally {
-//            //释放锁
-//            lock.unlock();
-//        }
-//    }
+    public void batchSyncHistoryOrderStatus(String startTime,String endTime,int pageSize,int pageNum) {
+        RLock lock = redissonClient.getLock(HISTORY_NOT_YET_SHIPPED_ORDER);
+        if (lock.isLocked()) {
+            log.error("定时任务在执行中,下次执行.");
+            return;
+        }
+        lock.lock();
+        try {
+            HistoryDeliveryInfoRequest historyDeliveryInfoRequest = HistoryDeliveryInfoRequest.builder()
+                    .startDeliveryDate(startTime)
+                    .pageSize(pageSize)
+                    .endDeliveryDate(endTime)
+                    .pageNum(pageNum)
+                    .build();
+
+            List<DeliveryInfoVO> deliveryInfoVOList = guanyierpProvider
+                    .getHistoryDeliveryStatus(historyDeliveryInfoRequest).getContext().getDeliveryInfoVOList();
+
+            if (CollectionUtils.isNotEmpty(deliveryInfoVOList)){
+                deliveryInfoVOList.forEach(deliveryInfoVO -> {
+                    // 获取所有子订单的商品信息
+                    List<DeliveryInfoVO> deliveryInfoVOS = deliveryInfoVOList
+                            .stream()
+                            .filter(deliveryInfoVO1 -> deliveryInfoVO1.getPlatformCode().equals(deliveryInfoVO.getPlatformCode()))
+                            .collect(Collectors.toList());
+                    // 查询数据库中信息
+                    ProviderTrade providerTrade = mongoTemplate.findById(deliveryInfoVO.getPlatformCode(), ProviderTrade.class);
+                    if (!ObjectUtils.isEmpty(providerTrade) &&
+                            DeliverStatus.SHIPPED != providerTrade.getTradeState().getDeliverStatus() &&
+                            FlowState.VOID != providerTrade.getTradeState().getFlowState()){
+                        log.info("#同步erp发货状态的订单:{},订单id:{},erp返回订单信息:{}", providerTrade.getTradeState(),providerTrade.getId(),deliveryInfoVOS);
+                        tradePushERPService.syncDeliveryStatus(providerTrade,deliveryInfoVOS);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.error("Error message ： #同步历史发货单状态:{}",e.getMessage(), e);
+        } finally {
+            //释放锁
+            lock.unlock();
+        }
+    }
 
     /**
      * 查询订单的前置条件

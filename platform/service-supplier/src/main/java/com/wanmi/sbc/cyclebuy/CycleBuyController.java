@@ -238,15 +238,15 @@ public class CycleBuyController {
     }
 
 
-    /**
-     * 新增周期购活动信息查询ERP商品信息接口
-     * @return
-     */
-    @ApiOperation(value = "新增周期购活动信息查询ERP商品信息接口")
-    @PostMapping("/sync-goods-info")
-    BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest){
-        return guanyierpProvider.syncGoodsInfo(erpSynGoodsStockRequest);
-    }
+//    /**
+//     * 新增周期购活动信息查询ERP商品信息接口
+//     * @return
+//     */
+//    @ApiOperation(value = "新增周期购活动信息查询ERP商品信息接口")
+//    @PostMapping("/sync-goods-info")
+//    BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest){
+//        return guanyierpProvider.syncGoodsInfo(erpSynGoodsStockRequest);
+//    }
 
 
     /**
