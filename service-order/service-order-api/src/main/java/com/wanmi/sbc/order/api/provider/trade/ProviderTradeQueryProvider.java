@@ -100,13 +100,13 @@ public interface ProviderTradeQueryProvider {
 //    @PostMapping("/order/${application.order.version}/trade/batch-reset-push-count")
 //    BaseResponse batchResetScanCount(@RequestBody @Valid ProviderTradeErpRequest request);
 //
-//    /**
-//     * 扫描未发货订单
-//     * @return
-//     */
-//    @PostMapping("/order/${application.order.version}/trade/scan-not-yet-shipped")
-//    BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request);
-//
+    /**
+     * 扫描未发货订单
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/scan-not-yet-shipped")
+    BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request);
+
     /**
      * 同步历史未发货订单(7天前)
      * @return
