@@ -1,31 +1,20 @@
 package com.wanmi.sbc.order.trade.service;
-import com.google.common.collect.Lists;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
-import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
-import com.wanmi.sbc.common.util.GeneratorService;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterDeliveryProvider;
 import com.wanmi.sbc.erp.api.req.OrderDevItemReq;
 import com.wanmi.sbc.erp.api.resp.DevItemResp;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.order.api.req.ShopCenterSyncDeliveryReq;
-import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
-import com.wanmi.sbc.order.bean.vo.LogisticsVO;
-import com.wanmi.sbc.order.bean.vo.ShippingItemVO;
-import com.wanmi.sbc.order.bean.vo.TradeDeliverVO;
-import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.logistics.model.root.LogisticsLog;
 import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.OrderProducerService;
@@ -33,7 +22,6 @@ import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusReq
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
-import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
@@ -46,14 +34,10 @@ import com.wanmi.sbc.setting.bean.vo.ErpLogisticsMappingVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,20 +54,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TradePushERPService {
 
-//    @Autowired
-//    private PlatformAddressQueryProvider platformAddressQueryProvider;
-
-//    @Autowired
-//    private GuanyierpProvider guanyierpProvider;
-//
-//    @Autowired
-//    private MongoTemplate mongoTemplate;
-
     @Autowired
     private ProviderTradeService providerTradeService;
-
-//    @Autowired
-//    private GeneratorService generatorService;
 
     @Autowired
     private LogisticsLogService logisticsLogService;

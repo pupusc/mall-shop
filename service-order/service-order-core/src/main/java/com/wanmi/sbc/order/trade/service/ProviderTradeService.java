@@ -992,14 +992,21 @@ public class ProviderTradeService {
         if (!CollectionUtils.isEmpty(tradeList)) {
            try {
                for (Trade trade : tradeList) {
+
                    CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
                    if (createOrderReq == null) {
                        continue;
                    }
 
                    ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
-                   if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
-                       log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+                   if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())
+                        || Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.CANCEL.getCode())) {
+                       log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功或取消，重复提送", thirdInvokeDTO.getBusinessId());
+                       continue;
+                   }
+
+                   if (!Objects.equals(trade.getTradeState().getPayState(), PayState.PAID) || Objects.equals(trade.getTradeState().getFlowState(), FlowState.VOID)) {
+                       thirdInvokeService.update(thirdInvokeDTO.getId(), thirdInvokeDTO.getPlatformId(), ThirdInvokePublishStatusEnum.CANCEL, "取消推送");
                        continue;
                    }
 
@@ -1009,9 +1016,10 @@ public class ProviderTradeService {
                    BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
                    log.info("ProviderTradeService singlePushOrder result {} cost {}", JSON.toJSONString(createOrderRespBaseResponse), (System.currentTimeMillis() - beginTime)/1000);
                    CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
-                   if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)
-                           || Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
+                   if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
                        tradePushERPService.releaseFrozenStock(trade);
+                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+                   } else if (Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
                        thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
                    } else {
                        thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
