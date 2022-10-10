@@ -1013,18 +1013,25 @@ public class ProviderTradeService {
                    //调用推送接口
                    log.info("ProviderTradeService singlePushOrder createOrderReq {}", JSON.toJSONString(createOrderReq));
                    long beginTime = System.currentTimeMillis();
-                   BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
-                   log.info("ProviderTradeService singlePushOrder result {} cost {}", JSON.toJSONString(createOrderRespBaseResponse), (System.currentTimeMillis() - beginTime)/1000);
-                   CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
-                   if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
-                       tradePushERPService.releaseFrozenStock(trade);
-                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
-                   } else if (Objects.equals(createOrderRespBaseResponse.getCode(), "40000")) {
-                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
-                   } else {
-                       thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
+                   try {
+                       BaseResponse<CreateOrderResp> createOrderRespBaseResponse = shopCenterOrderProvider.createOrder(createOrderReq);
+                       log.info("ProviderTradeService singlePushOrder result {} cost {}", JSON.toJSONString(createOrderRespBaseResponse), (System.currentTimeMillis() - beginTime)/1000);
+                       CreateOrderResp createOrderResp = createOrderRespBaseResponse.getContext();
+                       if (Objects.equals(createOrderRespBaseResponse.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                           //重复推送
+                           if (Objects.equals(createOrderResp.getCode(), "40000")) {
+                               thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+                           } else {
+                               tradePushERPService.releaseFrozenStock(trade);
+                               thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+                           }
+                       } else {
+                           thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
+                       }
+                   } catch (Exception ex) {
+                       log.error("ProviderTradeService createOrder error", ex);
+                       thirdInvokeService.update(thirdInvokeDTO.getId(), "", ThirdInvokePublishStatusEnum.FAIL, "调用异常");
                    }
-
                }
            } catch (Exception ex) {
                log.error("ProviderTradeService singlePushOrder error", ex);
