@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * @author huqingjie
+ * @author huqingjie 兼容历史
  * @date 2021年04月12日
  */
 @JobHandler(value = "tradeDeliversScanCountJobHandler")
