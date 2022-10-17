@@ -184,7 +184,11 @@ public class PayController implements PayProvider {
         }
         //设置appid
         if (StringUtils.isNotBlank(request.getAppId())) {
-            payTradeRecord.setAppId(request.getAppId());
+            String appId = request.getAppId();
+            if (StringUtils.isNotBlank(request.getMchId())) {
+                appId = appId + "$" + request.getMchId();
+            }
+            payTradeRecord.setAppId(appId);
         }
 
         if (payTradeRecord.getTradeType() == null && request.getTradeType() != null) {

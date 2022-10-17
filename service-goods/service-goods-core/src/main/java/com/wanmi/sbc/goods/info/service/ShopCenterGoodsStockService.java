@@ -1,12 +1,14 @@
 package com.wanmi.sbc.goods.info.service;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterCostPriceSyncResp;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterStockSyncResp;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.redis.RedisService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,6 +30,8 @@ public class ShopCenterGoodsStockService {
 	private GoodsRepository goodsRepository;
 	@Autowired
 	private GoodsInfoRepository goodsInfoRepository;
+	@Autowired
+	private RedisService redisService;
 
 	/**
 	 * 更新库存
@@ -58,6 +62,7 @@ public class ShopCenterGoodsStockService {
 
 		// 修改goodsInfo 库存
 		for (GoodsInfo info : infoList) {
+			redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + info.getGoodsInfoId(), quantity.toString());
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改库存.quantity={},ids={}", quantity, goodsInfoStockMap.keySet());

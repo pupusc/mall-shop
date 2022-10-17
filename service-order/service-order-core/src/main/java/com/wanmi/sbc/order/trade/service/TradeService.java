@@ -7443,6 +7443,7 @@ public class TradeService {
         });
         //微信支付异步回调添加交易数据
         payTradeRecordRequest.setAppId(wxPayResultResponse.getAppid());
+        payTradeRecordRequest.setMchId(wxPayResultResponse.getMch_id());
         payProvider.wxPayCallBack(payTradeRecordRequest);
         //订单 支付单 操作信息
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
