@@ -651,7 +651,7 @@ public class PayCallbackController {
                     Object o = redisTemplate.opsForValue().get(key.toString());
                     PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                     paidCardRedisDTO.setPayType(0);
-                    paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getAppid());
+                    paidCardCallBack(paidCardRedisDTO, total_amount.toString(), type, wxPayResultResponse.getTransaction_id(), wxPayResultResponse.getAppid(), wxPayResultResponse.getMch_id());
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
                             .wxPayCallBackResultStr(retXmlStr)
@@ -815,6 +815,7 @@ public class PayCallbackController {
                     payTradeRecordRequest.setPracticalPrice(new BigDecimal(dataResponse.getTotal_fee()).
                             divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
                     payTradeRecordRequest.setAppId(refundCallBackResponse.getAppid());
+                    payTradeRecordRequest.setMchId(refundCallBackResponse.getMch_id());
                     payProvider.wxPayCallBack(payTradeRecordRequest);
                     returnOrderProvider.onlineRefund(
                             ReturnOrderOnlineRefundRequest.builder().operator(operator)
@@ -1041,7 +1042,7 @@ public class PayCallbackController {
 //        }
 //    }
 
-    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type, String transactionId, String appId) {
+    private void paidCardCallBack(PaidCardRedisDTO paidCardRedisDTO, String total_amount, String type, String transactionId, String appId, String mchId) {
         String businessId = paidCardRedisDTO.getBusinessId();
         // 查询在流水表中是否存在
         PaidCardBuyRecordByIdResponse context = paidCardBuyRecordQueryProvider.getById(PaidCardBuyRecordByIdRequest.builder()
@@ -1065,6 +1066,7 @@ public class PayCallbackController {
            payTradeRecordRequest.setPracticalPrice(new BigDecimal(total_amount));
            payTradeRecordRequest.setChannelItemId(Long.valueOf(type));
            payTradeRecordRequest.setAppId(appId);
+           payTradeRecordRequest.setMchId(mchId);
            //添加交易数据（与微信共用）
            payProvider.wxPayCallBack(payTradeRecordRequest);
        }
@@ -1131,7 +1133,7 @@ public class PayCallbackController {
                         PaidCardRedisDTO paidCardRedisDTO = JSON.parseObject(o.toString(), PaidCardRedisDTO.class);
                         paidCardRedisDTO.setPayType(1);
                         log.info("支付成功后回调 支付宝 付费会员回调逻辑 begin out_trade_no:{}", out_trade_no);
-                        paidCardCallBack(paidCardRedisDTO, total_amount, type, trade_no, appId);
+                        paidCardCallBack(paidCardRedisDTO, total_amount, type, trade_no, appId, "");
                         log.info("支付成功后回调 支付宝 付费会员回调逻辑 end out_trade_no:{}", out_trade_no);
                     }else{
                         payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder()
