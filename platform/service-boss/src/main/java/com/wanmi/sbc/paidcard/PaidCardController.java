@@ -164,20 +164,20 @@ public class PaidCardController {
     @Value("${application.erp.version}")
     private String version;
 
-    /**
-     * 根据spu编码查询sku编码
-     * @param request
-     * @return
-     */
-    @ApiOperation(value = "根据spu编码查询sku编码")
-    @PostMapping("/queryErpInfo")
-    public BaseResponse queryErpInfo(@RequestBody @Valid PaidCardErpQueryRequest request) {
-        BaseResponse<SyncGoodsInfoResponse> resp
-                = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder()
-                .spuCode(request.getSpuErpCode())
-                .build());
-        return resp;
-    }
+//    /**
+//     * 根据spu编码查询sku编码
+//     * @param request
+//     * @return
+//     */
+//    @ApiOperation(value = "根据spu编码查询sku编码")
+//    @PostMapping("/queryErpInfo")
+//    public BaseResponse queryErpInfo(@RequestBody @Valid PaidCardErpQueryRequest request) {
+//        BaseResponse<SyncGoodsInfoResponse> resp
+//                = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder()
+//                .spuCode(request.getSpuErpCode())
+//                .build());
+//        return resp;
+//    }
     /**
      * 导出列表数据具体实现
      */

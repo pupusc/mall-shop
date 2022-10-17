@@ -12,6 +12,7 @@ import lombok.Data;
 @Data
 public class CreateOrderResp {
 
+    private String code;
 
     /**
      * 第三方订单id

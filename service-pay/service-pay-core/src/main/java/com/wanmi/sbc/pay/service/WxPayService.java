@@ -167,7 +167,7 @@ public class WxPayService {
             addTradeRecord(payTradeRecordRequest);
             response = wxPayUnifiedOrder(xStream.toXML(baseRequest), WxPayForJSApiResponse.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("WxPayService wxPayForJSApi error ", e);
         }
         return response;
     }

@@ -17,7 +17,8 @@ public enum ThirdInvokePublishStatusEnum {
 //    1：初始状态，2：推送完成 3、推送失败
     INIT(1, "初始状态"),
     SUCCESS(2, "推送成功"),
-    FAIL(3, "推送失败");
+    FAIL(3, "推送失败"),
+    CANCEL(4, "推送取消");
 
     private Integer code;
     private String message;
