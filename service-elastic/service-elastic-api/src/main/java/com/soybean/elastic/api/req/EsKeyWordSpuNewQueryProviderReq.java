@@ -42,4 +42,6 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      * 指定展示的spuId
      */
     private List<String> spuIds;
+
+    private
 }

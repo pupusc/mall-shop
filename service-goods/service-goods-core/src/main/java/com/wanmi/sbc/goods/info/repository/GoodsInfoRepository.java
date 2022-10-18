@@ -600,4 +600,20 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     @Transactional
     @Query(value = "update GoodsInfo gi set gi.costPrice=?2 where gi.goodsInfoId in ?1")
     void updateCostPriceByIds(List<String> goodsInfoIds, BigDecimal price);
+
+    /**
+     * 采集数据
+     * @return
+     */
+    @Query(value = "select * from goods_info where update_time >=?1 and update_time < ?2 and tmp_id > ?3 order by tmp_id asc limit ?4", nativeQuery = true)
+    List<Map<String, Object>> collectSkuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId,  Integer pageSize);
+
+
+    /**
+     * 采集数据
+     * @return
+     */
+    @Query(value = "select * from goods_info where goods_id in ?1", nativeQuery = true)
+    List<Map<String, Object>> collectSkuBySpuIds(List<String> goodsIds);
+
 }

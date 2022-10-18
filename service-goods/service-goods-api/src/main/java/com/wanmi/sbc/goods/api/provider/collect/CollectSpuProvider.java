@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuImageProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuImageResp;
+import com.wanmi.sbc.goods.bean.vo.CollectSkuVO;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,4 +43,21 @@ public interface CollectSpuProvider {
      */
     @PostMapping("/goods/${application.goods.version}/collect/spu/collectSpuIdImageByTime")
     BaseResponse<List<CollectSpuImageResp>> collectSpuIdImageByTime(@RequestBody CollectSpuImageProviderReq req);
+
+
+    /**
+     * 根据时间获取sku商品
+     * @param req
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/collect/spu/collectSkuIdByTime")
+    BaseResponse<List<CollectSkuVO>> collectSkuIdByTime(@RequestBody CollectSpuProviderReq req);
+
+    /**
+     * 根据id时间获取商品
+     * @param req
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/collect/spu/collectSkuBySpuIds")
+    BaseResponse<List<CollectSkuVO>> collectSkuBySpuIds(@RequestBody CollectSpuProviderReq req);
 }
