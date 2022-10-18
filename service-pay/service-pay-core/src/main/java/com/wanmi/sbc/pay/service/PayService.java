@@ -200,7 +200,7 @@ public class PayService {
         PayTradeRecord payRecord = recordRepository.findTopByBusinessIdAndStatus(request.getBusinessId(), TradeStatus.SUCCEED);
         String appId = "";
         if (payRecord.getAppId().contains("$")) {
-            appId = payRecord.getAppId().split("$")[0];
+            appId = payRecord.getAppId().split("\\$")[0];
         } else {
             appId = payRecord.getAppId();
         }
