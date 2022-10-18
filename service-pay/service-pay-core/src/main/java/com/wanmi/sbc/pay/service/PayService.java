@@ -342,11 +342,11 @@ public class PayService {
             String sign = WXPayUtil.generateSignature(refundMap, gatewayConfig.getApiKey());
             refundRequest.setSign(sign);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("PayService wxPayRefundForPcH5Jsapi error", e);
         }
-//        log.info(">>>>>>>>>>>>>>>>>>调用微信退款入参:{}" ,refundRequest);
+        log.info(">>>>>>>>>>>>>>>>>>调用微信退款入参:{}" ,JSON.toJSONString(refundRequest));
         WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYATYPE, gatewayConfig);
-//        log.info(">>>>>>>>>>>>>>>>>>调用微信退款返回值:{}" ,wxPayRefundResponse);
+        log.info(">>>>>>>>>>>>>>>>>>调用微信退款返回值:{}" ,JSON.toJSONString(wxPayRefundResponse));
         if (wxPayRefundResponse.getReturn_code().equals(WXPayConstants.SUCCESS) &&
                 wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
             record.setTradeNo(wxPayRefundResponse.getTransaction_id());
