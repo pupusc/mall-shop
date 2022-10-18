@@ -21,7 +21,7 @@ public interface GatewayConfigRepository extends JpaRepository<PayGatewayConfig,
     @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.storeId = ?1")
     List<PayGatewayConfig> queryConfigByOpenAndStoreId(Long storeId);
 
-    @Query("select p from PayGatewayConfig p where p.payGateway.name=?1  and p.storeId = ?2 ")
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.payGateway.name=?1  and p.storeId = ?2 ")
     PayGatewayConfig queryConfigByNameAndStoreId(PayGatewayEnum payGatewayEnum,Long storeId);
 
     @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.payGateway.name=?1  and p.storeId = ?2 ")
