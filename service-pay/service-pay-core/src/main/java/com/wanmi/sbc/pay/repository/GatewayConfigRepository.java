@@ -40,7 +40,7 @@ public interface GatewayConfigRepository extends JpaRepository<PayGatewayConfig,
     PayGatewayConfig updateAppKey(PayGatewayEnum payGatewayEnum,Long storeId, String apiKey, String secret);
 
 
-    @Query("select p from PayGatewayConfig p where p.appId = ?1 and p.storeId = ?2")
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.appId = ?1 and p.storeId = ?2")
     List<PayGatewayConfig> queryConfigByAppIdAndStoreId(String appId, Long storeId);
 
 }
