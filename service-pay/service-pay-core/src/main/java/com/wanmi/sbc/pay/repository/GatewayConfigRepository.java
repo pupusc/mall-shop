@@ -43,4 +43,7 @@ public interface GatewayConfigRepository extends JpaRepository<PayGatewayConfig,
     @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.appId = ?1 and p.storeId = ?2")
     List<PayGatewayConfig> queryConfigByAppIdAndStoreId(String appId, Long storeId);
 
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.appId = ?1 and p.account = ?2 and p.storeId = ?3")
+    List<PayGatewayConfig> queryConfigByAppIdAndMchIdAndStoreId(String appId, String mchId, Long storeId);
+
 }
