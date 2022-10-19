@@ -36,7 +36,7 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 
 			// 先查询虚拟商品
 			JSONObject param = (JSONObject) JSON.toJSON(request);
-			param.put("bizType", 4);
+			param.put("includeVirtualGoods", 1);
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
 			JSONObject json = JSON.parseObject(str);
