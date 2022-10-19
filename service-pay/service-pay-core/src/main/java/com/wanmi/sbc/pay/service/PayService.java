@@ -328,7 +328,7 @@ public class PayService {
         PayGateway payGatewayNew = this.getPayGatewayNew(appId, request.getStoreId());
         PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
-//        refundRequest.setAppid(gatewayConfig.getAppId());
+        refundRequest.setAppid(gatewayConfig.getAppId());
         refundRequest.setMch_id(gatewayConfig.getAccount());
         refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
         refundRequest.setNotify_url(gatewayConfig.getBossBackUrl() + "/tradeCallback/WXPayRefundSuccessCallBack/"+request.getStoreId());
