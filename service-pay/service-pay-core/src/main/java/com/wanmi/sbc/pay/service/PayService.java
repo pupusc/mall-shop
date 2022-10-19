@@ -199,8 +199,10 @@ public class PayService {
         //未退款或退款失败的退单，调用网关执行退款操作
         PayTradeRecord payRecord = recordRepository.findTopByBusinessIdAndStatus(request.getBusinessId(), TradeStatus.SUCCEED);
         String appId = "";
+        String mchId = "";
         if (payRecord.getAppId().contains("$")) {
             appId = payRecord.getAppId().split("\\$")[0];
+            mchId = payRecord.getAppId().split("\\$")[1];
         } else {
             appId = payRecord.getAppId();
         }
@@ -326,7 +328,7 @@ public class PayService {
         PayGateway payGatewayNew = this.getPayGatewayNew(appId, request.getStoreId());
         PayGatewayConfig gatewayConfig = payGatewayNew.getConfig();
         WxPayRefundRequest refundRequest = new WxPayRefundRequest();
-        refundRequest.setAppid(gatewayConfig.getAppId());
+//        refundRequest.setAppid(gatewayConfig.getAppId());
         refundRequest.setMch_id(gatewayConfig.getAccount());
         refundRequest.setNonce_str(WXPayUtil.generateNonceStr());
         refundRequest.setNotify_url(gatewayConfig.getBossBackUrl() + "/tradeCallback/WXPayRefundSuccessCallBack/"+request.getStoreId());
