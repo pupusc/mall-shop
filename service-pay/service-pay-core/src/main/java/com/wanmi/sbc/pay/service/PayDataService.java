@@ -370,6 +370,15 @@ public class PayDataService {
         return gatewayConfigRepository.queryConfigByAppIdAndStoreId(appId, storeId);
     }
 
+    /**
+     * 根据网关名称获取网关配置
+     *
+     * @return
+     */
+    public List<PayGatewayConfig> queryConfigByAppIdAndMchIdAndStoreId(String appId, String mchId, Long storeId) {
+        return gatewayConfigRepository.queryConfigByAppIdAndMchIdAndStoreId(appId, mchId, storeId);
+    }
+
 
 //    /**
 //     * 根据网关名称获取网关配置

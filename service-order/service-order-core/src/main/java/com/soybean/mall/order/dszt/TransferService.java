@@ -502,10 +502,17 @@ public class TransferService {
 
         createOrderReq.setOrderSource(orderSourceEnum.getCode());
 //        createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
+        //收货地址
+        Consignee consignee = trade.getConsignee();
+
         CreateOrderReq.OrderUserInfoReq orderUserInfoReq = new CreateOrderReq.OrderUserInfoReq();
+
         if (!StringUtils.isEmpty(trade.getDirectChargeMobile())) {
             orderUserInfoReq.setArea("+86");
             orderUserInfoReq.setMobile(trade.getDirectChargeMobile());
+        } else if (!StringUtils.isEmpty(consignee.getPhone())) {
+            orderUserInfoReq.setArea("+86");
+            orderUserInfoReq.setMobile(consignee.getPhone());
         } else {
             orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
         }
@@ -523,8 +530,7 @@ public class TransferService {
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         //商品信息
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, orderSourceEnum));
-        //收货地址
-        Consignee consignee = trade.getConsignee();
+
         createOrderReq.setBuyAddressBO(this.packageAddress(trade, consignee, customerDetail));
         if (salePlatformResp.getTid() != null) {
         	createOrderReq.setShopId(salePlatformResp.getTid().toString());

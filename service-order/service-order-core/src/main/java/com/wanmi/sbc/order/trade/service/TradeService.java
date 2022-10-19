@@ -7196,6 +7196,7 @@ public class TradeService {
             request.setGatewayEnum(PayGatewayEnum.WECHAT);
             request.setStoreId(tradePayOnlineCallBackRequest.getStoreId());
             request.setAppId(wxPayResultResponse.getAppid());
+            request.setMchId(wxPayResultResponse.getMch_id());
             PayGatewayConfigResponse payGatewayConfigResponse =payQueryProvider.queryConfigByAppIdAndStoreId(request).getContext();
             String apiKey = payGatewayConfigResponse.getApiKey();
 

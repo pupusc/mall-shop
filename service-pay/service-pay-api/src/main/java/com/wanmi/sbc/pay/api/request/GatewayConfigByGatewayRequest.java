@@ -35,4 +35,9 @@ public class GatewayConfigByGatewayRequest extends PayBaseRequest{
     private Long storeId;
 
     private String appId;
+
+    /**
+     * 商户号
+     */
+    private String mchId;
 }
