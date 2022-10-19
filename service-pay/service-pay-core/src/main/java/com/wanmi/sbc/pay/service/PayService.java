@@ -771,7 +771,7 @@ public class PayService {
     public PayGateway getPayGatewayNew(String appId,String machId, Long storeId) {
         List<PayGateway> gateways;
         if (StringUtils.isNotBlank(machId)) {
-            gateways = gatewayRepository.queryPayGatewayByCondition(appId, machId);
+            gateways = gatewayRepository.queryPayGatewayByAppIdAndAccount(appId, machId);
         } else {
             gateways = gatewayRepository.queryPayGatewayByCondition(appId);
         }
