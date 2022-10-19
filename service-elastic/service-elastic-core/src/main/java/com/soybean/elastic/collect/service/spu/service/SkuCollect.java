@@ -99,7 +99,7 @@ public class SkuCollect extends AbstractSpuCollect {
                 labels = new ArrayList<>();
             }
             SubLabelNew subLabelNew = new SubLabelNew();
-            subLabelNew.setName(spuNewLabelCategoryEnum.getMessage());
+            subLabelNew.setLabelName(spuNewLabelCategoryEnum.getMessage());
             subLabelNew.setCategory(spuNewLabelCategoryEnum.getCode());
             labels.add(subLabelNew);
             esSpuNew.setLabels(labels);

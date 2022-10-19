@@ -1,6 +1,9 @@
 package com.soybean.elastic.spu.model.sub;
 
+import com.soybean.elastic.collect.constant.ConstantUtil;
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Description: 标签信息
@@ -15,10 +18,12 @@ public class SubLabelNew {
     /**
      * 标签名
      */
-    private String name;
+    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+    private String labelName;
 
     /**
      * 1、49包邮标签 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
      */
+    @Field(type = FieldType.Integer)
     private Integer category;
 }
