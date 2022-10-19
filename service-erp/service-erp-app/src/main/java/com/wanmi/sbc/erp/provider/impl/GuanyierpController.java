@@ -1,4 +1,4 @@
-//package com.wanmi.sbc.erp.provider.impl;
+package com.wanmi.sbc.erp.provider.impl;
 //
 //import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
 //import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
@@ -32,19 +32,51 @@
 //import java.util.*;
 //import java.util.stream.Collectors;
 //
-///**
-// * @program: sbc-background
-// * @description: 管易云ERP接口服务Controller
-// * @author: 0F3685-wugongjiang
-// * @create: 2021-01-28 18:11
-// **/
-//@RestController
-//@Validated
-//@Slf4j
-//public class GuanyierpController implements GuanyierpProvider {
-//
-//    @Autowired
-//    private GuanyierpService guanyierpService;
+
+import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
+import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
+import com.sbc.wanmi.erp.bean.vo.DeliveryItemVO;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
+import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
+import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
+import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
+import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
+import com.wanmi.sbc.erp.entity.ERPDelivery;
+import com.wanmi.sbc.erp.entity.ERPDeliveryItems;
+import com.wanmi.sbc.erp.entity.ERPTrade;
+import com.wanmi.sbc.erp.request.ERPDeliveryQueryRequest;
+import com.wanmi.sbc.erp.request.ERPHistoryDeliveryInfoRequest;
+import com.wanmi.sbc.erp.request.ERPTradeQueryRequest;
+import com.wanmi.sbc.erp.response.ERPDeliveryQueryResponse;
+import com.wanmi.sbc.erp.response.ERPTradeQueryResponse;
+import com.wanmi.sbc.erp.service.GuanyierpService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * @program: sbc-background
+ * @description: 管易云ERP接口服务Controller
+ * @author: 0F3685-wugongjiang
+ * @create: 2021-01-28 18:11
+ **/
+@RestController
+@Validated
+@Slf4j
+public class GuanyierpController implements GuanyierpProvider {
+
+    @Autowired
+    private GuanyierpService guanyierpService;
 //
 //    /**
 //     * 获取商品库存
@@ -210,26 +242,26 @@
 //        return BaseResponse.success(WareHouseListResponse.builder().build());
 //    }
 //
-//    /**
-//     * 获取订单对应的发货单
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@Valid DeliveryQueryRequest request) {
-//        ERPDeliveryQueryRequest deliveryQueryRequest = ERPDeliveryQueryRequest.builder()
-//                .outerCode(request.getTid())
-//                .delivery(request.getDelivery())
-//                .build();
-//        Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse =
-//                guanyierpService.getERPDeliveryInfo(deliveryQueryRequest);
-//        if (optionalDeliveryQueryResponse.isPresent() && CollectionUtils.isNotEmpty(optionalDeliveryQueryResponse.get().getDeliverys())){
-//            // 组装erp返回的发货单信息
-//            DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
-//            return BaseResponse.success(deliveryStatusResponse);
-//        }
-//        return BaseResponse.success(DeliveryStatusResponse.builder().deliveryInfoVOList(new ArrayList<>()).build());
-//    }
+    /**
+     * 获取订单对应的发货单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@Valid DeliveryQueryRequest request) {
+        ERPDeliveryQueryRequest deliveryQueryRequest = ERPDeliveryQueryRequest.builder()
+                .outerCode(request.getTid())
+                .delivery(request.getDelivery())
+                .build();
+        Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse =
+                guanyierpService.getERPDeliveryInfo(deliveryQueryRequest);
+        if (optionalDeliveryQueryResponse.isPresent() && CollectionUtils.isNotEmpty(optionalDeliveryQueryResponse.get().getDeliverys())){
+            // 组装erp返回的发货单信息
+            DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
+            return BaseResponse.success(deliveryStatusResponse);
+        }
+        return BaseResponse.success(DeliveryStatusResponse.builder().deliveryInfoVOList(new ArrayList<>()).build());
+    }
 //
 //
 //    /**
@@ -362,97 +394,97 @@
 //        return BaseResponse.FAILED();
 //    }
 //
-//    /**
-//     * 获取历史订单对应的发货单
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@Valid HistoryDeliveryInfoRequest request) {
-//        ERPHistoryDeliveryInfoRequest historyDeliveryInfoRequest = ERPHistoryDeliveryInfoRequest.builder()
-//                .startDeliveryDate(request.getStartDeliveryDate())
-//                .endDeliveryDate(request.getEndDeliveryDate())
-//                .pageSize(request.getPageSize())
-//                .pageNum(request.getPageNum())
-//                .build();
-//        Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse =
-//                guanyierpService.getERPHistoryDeliveryInfo(historyDeliveryInfoRequest);
-//        if (optionalDeliveryQueryResponse.isPresent() && CollectionUtils.isNotEmpty(optionalDeliveryQueryResponse.get().getDeliverys())){
-//            // 组装erp返回的发货单信息
-//            DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
-//            return BaseResponse.success(deliveryStatusResponse);
-//        }
-//        return BaseResponse.success(DeliveryStatusResponse.builder().build());
-//    }
-//
-//    /**
-//     * 查询ERP订单
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse<QueryTradeResponse> getTradeInfo(@Valid TradeQueryRequest request) {
-//        ERPTradeQueryRequest erpTradeQueryRequest = ERPTradeQueryRequest.builder().platformCode(request.getTid()).build();
-//        Optional<ERPTradeQueryResponse> optional = guanyierpService.getErpTradeInfo(erpTradeQueryRequest,request.getFlag());
-//        if (optional.isPresent() && CollectionUtils.isNotEmpty(optional.get().getOrders())){
-//            ERPTrade erpTrade = optional.get().getOrders().get(0);
-//            QueryTradeResponse response = QueryTradeResponse.builder().platformCode(erpTrade.getPlatformCode()).build();
-//            //将erp返回的发货状态转成商城的发货状态枚举值
-//            switch(erpTrade.getDeliveryState()){
-//                case 0:
-//                    response.setDeliveryState(DeliveryStatus.UN_DELIVERY);
-//                    break;
-//                case 1:
-//                    response.setDeliveryState(DeliveryStatus.PART_DELIVERY);
-//                    break;
-//                case 2:
-//                    response.setDeliveryState(DeliveryStatus.DELIVERY_COMPLETE);
-//                default:
-//                    break;
-//            }
-//            return BaseResponse.success(response);
-//        }else{
-//            return BaseResponse.success(QueryTradeResponse.builder().build());
-//        }
-//    }
-//
-//    /**
-//     * 组装erp返回的发货单信息
-//     * @param optionalDeliveryQueryResponse
-//     * @return
-//     */
-//    public DeliveryStatusResponse packageDeliveryData(Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse){
-//        List<ERPDelivery> erpDeliveryList = optionalDeliveryQueryResponse.get().getDeliverys();
-//        List<DeliveryInfoVO> deliveryInfoVOList =new ArrayList<>();
-//        erpDeliveryList.stream().forEach(erpDelivery -> {
-//            List<ERPDeliveryItems> erpDeliveryItems = erpDelivery.getDetails();
-//            List<DeliveryItemVO> list = KsBeanUtil.copyListProperties(erpDeliveryItems, DeliveryItemVO.class);
-//            DeliveryInfoVO deliveryInfoVO = KsBeanUtil.copyPropertiesThird(erpDelivery,
-//                    DeliveryInfoVO.class);
-//            //设置发货时间
-//            deliveryInfoVO.setDeliverTime(erpDelivery.getDeliveryStatusInfo().getDeliveryDate());
-//            deliveryInfoVO.setItemVOList(list);
-//
-//            //将erp返回的发货状态转成商城的发货状态枚举值
-//            switch(erpDelivery.getDeliveryStatusInfo().getDelivery()){
-//                case -1:
-//                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
-//                    break;
-//                case 0:
-//                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
-//                    break;
-//                case 1:
-//                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
-//                    break;
-//                case 2:
-//                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
-//                default:
-//                    break;
-//            }
-//            //deliveryInfoVO.setDeliveryStatus(erpDelivery.getDeliveryStatusInfo().getDelivery());
-//            deliveryInfoVOList.add(deliveryInfoVO);
-//        });
-//
-//        return DeliveryStatusResponse.builder().deliveryInfoVOList(deliveryInfoVOList).build();
-//    }
-//}
+    /**
+     * 获取历史订单对应的发货单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@Valid HistoryDeliveryInfoRequest request) {
+        ERPHistoryDeliveryInfoRequest historyDeliveryInfoRequest = ERPHistoryDeliveryInfoRequest.builder()
+                .startDeliveryDate(request.getStartDeliveryDate())
+                .endDeliveryDate(request.getEndDeliveryDate())
+                .pageSize(request.getPageSize())
+                .pageNum(request.getPageNum())
+                .build();
+        Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse =
+                guanyierpService.getERPHistoryDeliveryInfo(historyDeliveryInfoRequest);
+        if (optionalDeliveryQueryResponse.isPresent() && CollectionUtils.isNotEmpty(optionalDeliveryQueryResponse.get().getDeliverys())){
+            // 组装erp返回的发货单信息
+            DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
+            return BaseResponse.success(deliveryStatusResponse);
+        }
+        return BaseResponse.success(DeliveryStatusResponse.builder().build());
+    }
+
+    /**
+     * 查询ERP订单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<QueryTradeResponse> getTradeInfo(@Valid TradeQueryRequest request) {
+        ERPTradeQueryRequest erpTradeQueryRequest = ERPTradeQueryRequest.builder().platformCode(request.getTid()).build();
+        Optional<ERPTradeQueryResponse> optional = guanyierpService.getErpTradeInfo(erpTradeQueryRequest,request.getFlag());
+        if (optional.isPresent() && CollectionUtils.isNotEmpty(optional.get().getOrders())){
+            ERPTrade erpTrade = optional.get().getOrders().get(0);
+            QueryTradeResponse response = QueryTradeResponse.builder().platformCode(erpTrade.getPlatformCode()).build();
+            //将erp返回的发货状态转成商城的发货状态枚举值
+            switch(erpTrade.getDeliveryState()){
+                case 0:
+                    response.setDeliveryState(DeliveryStatus.UN_DELIVERY);
+                    break;
+                case 1:
+                    response.setDeliveryState(DeliveryStatus.PART_DELIVERY);
+                    break;
+                case 2:
+                    response.setDeliveryState(DeliveryStatus.DELIVERY_COMPLETE);
+                default:
+                    break;
+            }
+            return BaseResponse.success(response);
+        }else{
+            return BaseResponse.success(QueryTradeResponse.builder().build());
+        }
+    }
+
+    /**
+     * 组装erp返回的发货单信息
+     * @param optionalDeliveryQueryResponse
+     * @return
+     */
+    private DeliveryStatusResponse packageDeliveryData(Optional<ERPDeliveryQueryResponse> optionalDeliveryQueryResponse){
+        List<ERPDelivery> erpDeliveryList = optionalDeliveryQueryResponse.get().getDeliverys();
+        List<DeliveryInfoVO> deliveryInfoVOList =new ArrayList<>();
+        erpDeliveryList.stream().forEach(erpDelivery -> {
+            List<ERPDeliveryItems> erpDeliveryItems = erpDelivery.getDetails();
+            List<DeliveryItemVO> list = KsBeanUtil.copyListProperties(erpDeliveryItems, DeliveryItemVO.class);
+            DeliveryInfoVO deliveryInfoVO = KsBeanUtil.copyPropertiesThird(erpDelivery,
+                    DeliveryInfoVO.class);
+            //设置发货时间
+            deliveryInfoVO.setDeliverTime(erpDelivery.getDeliveryStatusInfo().getDeliveryDate());
+            deliveryInfoVO.setItemVOList(list);
+
+            //将erp返回的发货状态转成商城的发货状态枚举值
+            switch(erpDelivery.getDeliveryStatusInfo().getDelivery()){
+                case -1:
+                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
+                    break;
+                case 0:
+                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
+                    break;
+                case 1:
+                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.UN_DELIVERY);
+                    break;
+                case 2:
+                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
+                default:
+                    break;
+            }
+            //deliveryInfoVO.setDeliveryStatus(erpDelivery.getDeliveryStatusInfo().getDelivery());
+            deliveryInfoVOList.add(deliveryInfoVO);
+        });
+
+        return DeliveryStatusResponse.builder().deliveryInfoVOList(deliveryInfoVOList).build();
+    }
+}

@@ -1,12 +1,12 @@
-//package com.wanmi.sbc.erp.util;
-//
-///**
-// * @program: sbc-background
-// * @description: 管易云ERP接口常量参数
-// * @author: 0F3685-wugongjiang
-// * @create: 2021-01-28 14:12
-// **/
-//public class GuanyierpContants {
+package com.wanmi.sbc.erp.util;
+
+/**
+ * @program: sbc-background
+ * @description: 管易云ERP接口常量参数
+ * @author: 0F3685-wugongjiang
+ * @create: 2021-01-28 14:12
+ **/
+public class GuanyierpContants {
 //
 //    /**
 //     * 管易云ERP-订单创建接口名--未发货接口
@@ -43,10 +43,10 @@
 //     */
 //    public static final String REFUND_UPDATE_METHOD= "gy.erp.trade.refund.update";
 //
-//    /**
-//     * 管易云ERP-发货单查询接口名
-//     */
-//    public static final String DELIVERY_QUERY_METHOD= "gy.erp.trade.deliverys.get";
+    /**
+     * 管易云ERP-发货单查询接口名
+     */
+    public static final String DELIVERY_QUERY_METHOD= "gy.erp.trade.deliverys.get";
 //
 //    /**
 //     * 管易云ERP-订单拦截接口名
@@ -63,20 +63,20 @@
 //     */
 //    public static final String RETURN_TRADE_GET_METHOD = "gy.erp.trade.return.get";
 //
-//    /**
-//     * 管易云ERP-历史发货单查询接口名
-//     */
-//    public static final String DELIVERY_HISTORY_QUERY_METHOD= "gy.erp.trade.deliverys.history.get";
+    /**
+     * 管易云ERP-历史发货单查询接口名
+     */
+    public static final String DELIVERY_HISTORY_QUERY_METHOD= "gy.erp.trade.deliverys.history.get";
+
+    /**
+     * 管易云ERP-订单查询接口
+     */
+    public static final String TRADE_GET_METHOD = "gy.erp.trade.get";
+
+    /**
+     * 管易云ERP-历史订单查询接口
+     */
+    public static final String TRADE_HISTORY_GET_METHOD = "gy.erp.trade.history.get";
 //
-//    /**
-//     * 管易云ERP-订单查询接口
-//     */
-//    public static final String TRADE_GET_METHOD = "gy.erp.trade.get";
 //
-//    /**
-//     * 管易云ERP-历史订单查询接口
-//     */
-//    public static final String TRADE_HISTORY_GET_METHOD = "gy.erp.trade.history.get";
-//
-//
-//}
+}

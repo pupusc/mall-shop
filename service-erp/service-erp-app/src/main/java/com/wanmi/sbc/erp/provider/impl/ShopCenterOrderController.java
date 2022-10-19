@@ -51,6 +51,7 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 			CreateOrderResp createOrderResp = new CreateOrderResp();
 			if (Objects.equals("0000", status)) {
 				String data = json.getString("data");
+				createOrderResp.setCode("0000");
 				createOrderResp.setThirdOrderId(data);
 				return BaseResponse.success(createOrderResp);
 			}
@@ -58,7 +59,9 @@ public class ShopCenterOrderController implements ShopCenterOrderProvider {
 
 			// 重复订单
 			if ("40000".equals(status)) {
-				return BaseResponse.info("40000", errorContent);
+//				return BaseResponse.info("40000", errorContent);
+				createOrderResp.setCode("40000");
+				return BaseResponse.success(createOrderResp);
 			}
 
 		} catch (Exception e) {
