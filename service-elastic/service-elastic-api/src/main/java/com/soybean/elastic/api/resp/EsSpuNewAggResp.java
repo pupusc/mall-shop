@@ -22,6 +22,11 @@ public class EsSpuNewAggResp<S> implements Serializable {
     private List<String> labels;
 
     /**
+     * 店铺一级分类
+     */
+    private List<String> fclassifyName;
+
+    /**
      * 结果对象信息
      */
     private CommonPageResp<S> result;

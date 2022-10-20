@@ -11,6 +11,7 @@ import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.springframework.beans.BeanUtils;
@@ -65,8 +66,16 @@ public abstract class AbstractEsSpuNewService {
             resultLabels.add(bucket.getKeyAsString());
         }
 
+        List<String> resultFclassifyNames = new ArrayList<>();
+        Terms fclassifyNames = resultQueryPage.getAggregations().get("fclassifyName");
+        for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
+            resultFclassifyNames.add(bucket.getKeyAsString());
+        }
+
+
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
         esSpuNewAggResp.setLabels(resultLabels);
+        esSpuNewAggResp.setFclassifyName(resultFclassifyNames);
         esSpuNewAggResp.setResult(new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent())));
         return esSpuNewAggResp;
     }

@@ -299,8 +299,8 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                 AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelName").field("labels.labelName.keyword"));
         aggregationBuilderList.add(nestedAggregationBuilder);
 
-//        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
-//        aggregationBuilderList.add(fclassifyName);
+        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
+        aggregationBuilderList.add(fclassifyName);
 //
 //        NestedAggregationBuilder authorName =
 //                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"));
