@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.provider.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
@@ -413,13 +414,15 @@ public class PayQueryController implements PayQueryProvider {
     @Override
     public BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(GatewayConfigByGatewayRequest req) {
         List<PayGatewayConfig> configs = null;
+        log.info("PayQueryController queryConfigByAppIdAndStoreId param {}", JSON.toJSONString(req));
         if (Objects.equals(req.getGatewayEnum(), PayGatewayEnum.WECHAT)) {
             configs = payDataService.queryConfigByAppIdAndMchIdAndStoreId(req.getAppId(), req.getMchId(), req.getStoreId());
         } else if (Objects.equals(req.getGatewayEnum(), PayGatewayEnum.ALIPAY)) {
             configs = payDataService.queryConfigByAppIdAndStoreId(req.getAppId(), req.getStoreId());
         }
+        log.info("PayQueryController queryConfigByAppIdAndStoreId result {}", JSON.toJSONString(configs));
         if (CollectionUtils.isEmpty(configs)) {
-            log.info("PayQueryController queryConfigByAccountAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAppId(), req.getStoreId());
+            log.info("PayQueryController queryConfigByAppIdAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAppId(), req.getStoreId());
             throw new SbcRuntimeException("K-99999", String.format("account:%s storeId:%s 对应的配置信息不存在", req.getAppId(), req.getStoreId()));
         }
         return BaseResponse.success(wraperResponseForGatewayConfig(configs.get(0)));
