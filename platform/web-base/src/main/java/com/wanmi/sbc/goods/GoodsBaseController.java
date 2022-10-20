@@ -1,7 +1,9 @@
 package com.wanmi.sbc.goods;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.resp.BaseFixedAddressResp;
 import com.soybean.common.util.WebConstantUtil;
+import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
@@ -84,6 +86,7 @@ import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByGoodsAndSkuRes
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
@@ -116,12 +119,19 @@ import com.wanmi.sbc.marketing.bean.enums.GrouponDetailOptType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.order.api.provider.groupon.GrouponProvider;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.groupon.GrouponDetailQueryRequest;
 import com.wanmi.sbc.order.api.request.groupon.GrouponDetailWithGoodsRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFillBuyCountRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeParamsRequest;
 import com.wanmi.sbc.order.api.response.groupon.GrouponDetailQueryResponse;
 import com.wanmi.sbc.order.api.response.groupon.GrouponDetailWithGoodsResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseFillBuyCountResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetFreightResponse;
+import com.wanmi.sbc.order.bean.dto.ConsigneeDTO;
+import com.wanmi.sbc.order.bean.dto.SupplierDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
+import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
 import com.wanmi.sbc.order.bean.vo.GrouponDetailVO;
 import com.wanmi.sbc.order.bean.vo.GrouponDetailWithGoodsVO;
 import com.wanmi.sbc.setting.api.provider.WechatAuthProvider;
@@ -255,7 +265,7 @@ public class GoodsBaseController {
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
 
     @Autowired
-    private EnterpriseInfoQueryProvider enterpriseInfoQueryProvider;
+    private TradeQueryProvider tradeQueryProvider;
 
     //商品不存在
     private static final String GOODSNOTEXIST = "商品不存在";
@@ -847,6 +857,60 @@ public class GoodsBaseController {
             activity.setNum(skuNormalActivityResp.getNum());
             activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
             goodsInfo.setActivity(activity);
+        }
+
+        //获取49包邮标签信息
+        //获取地址信息
+        BaseFixedAddressResp fixedAddress = commonUtil.getFixedAddress();
+        GoodsVO goods = response.getGoods();
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+
+            TradeParamsRequest tradeParamsRequest = new TradeParamsRequest();
+            ConsigneeDTO consigneeDTO = new ConsigneeDTO();
+            consigneeDTO.setProvinceId(Long.valueOf(fixedAddress.getProvinceId()));
+            consigneeDTO.setCityId(Long.valueOf(fixedAddress.getCityId()));
+            tradeParamsRequest.setConsignee(consigneeDTO);
+
+            tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
+            TradePriceDTO tradePriceDTO = new TradePriceDTO();
+            tradePriceDTO.setTotalPrice(goodsInfo.getSalePrice());
+            tradeParamsRequest.setTradePrice(tradePriceDTO);
+
+            TradeItemDTO tradeItemDTO = new TradeItemDTO();
+            tradeItemDTO.setGoodsType(GoodsType.fromValue(goods.getGoodsType()));
+            tradeItemDTO.setFreightTempId(goods.getFreightTempId());
+            tradeItemDTO.setNum(1L);
+            tradeItemDTO.setGoodsWeight(goods.getGoodsWeight());
+            tradeItemDTO.setGoodsCubage(goods.getGoodsCubage());
+            tradeItemDTO.setSplitPrice(goods.getMarketPrice());
+            tradeParamsRequest.setOldTradeItems(Collections.singletonList(tradeItemDTO));
+
+            SupplierDTO supplierDTO = new SupplierDTO();
+            supplierDTO.setStoreId(goods.getStoreId());
+            supplierDTO.setFreightTemplateType(DefaultFlag.YES);
+            tradeParamsRequest.setSupplier(supplierDTO);
+            BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
+            if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
+                throw new SbcRuntimeException("999999", "所选地区不支持配送");
+            }
+
+            List<GoodsInfoVO.Label> labels = new ArrayList<>();
+            GoodsInfoVO.Label goodsInfoLabel = new GoodsInfoVO.Label();
+            if (Objects.equals(goods.getFreightTempId(), 0000000000L)) {
+                SearchSpuNewLabelCategoryEnum freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
+                goodsInfoLabel.setLabelName(freeDelivery.getMessage());
+                goodsInfoLabel.setLabelCategory(freeDelivery.getCode());
+                goodsInfoLabel.setDeliveryPrice(freight.getContext().getDeliveryPrice().toString());
+            } else if (freight.getContext().getDeliveryPrice().compareTo(BigDecimal.ZERO) == 0) {
+                SearchSpuNewLabelCategoryEnum freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY;
+                goodsInfoLabel.setLabelName(freeDelivery.getMessage());
+                goodsInfoLabel.setLabelCategory(freeDelivery.getCode());
+                goodsInfoLabel.setDeliveryPrice(freight.getContext().getDeliveryPrice().toString());
+            } else {
+                goodsInfoLabel.setDeliveryPrice(freight.getContext().getDeliveryPrice().toString());
+            }
+            labels.add(goodsInfoLabel);
+            goodsInfo.setLabels(labels);
         }
         return response;
     }

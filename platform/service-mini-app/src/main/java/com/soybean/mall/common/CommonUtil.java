@@ -1,6 +1,7 @@
 package com.soybean.mall.common;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.common.resp.BaseFixedAddressResp;
 import com.soybean.common.util.IntegerEncryptTool;
 import com.wanmi.ms.autoconfigure.JwtProperties;
 import com.wanmi.sbc.common.base.DistributeChannel;
@@ -162,6 +163,23 @@ public final class CommonUtil {
         String terminal = HttpUtil.getRequest().getHeader("terminal");
         String terminalScene = HttpUtil.getRequest().getHeader("terminalScene");
         return TerminalSource.getTerminalSource(terminal, TerminalScene.getTerminalScene(terminalScene));
+    }
+
+
+    /**
+     * 获取当前地址信息
+     * @return
+     */
+    public BaseFixedAddressResp getFixedAddress(){
+        BaseFixedAddressResp baseFixedAddressResp = new BaseFixedAddressResp();
+        String provinceName = HttpUtil.getRequest().getHeader("provinceName");
+        String cityName = HttpUtil.getRequest().getHeader("cityName");
+        if (StringUtils.isBlank(provinceName) || StringUtils.isBlank(cityName)) {
+            throw new SbcRuntimeException("999999", "请传递定位地址");
+        }
+        baseFixedAddressResp.setProvinceName(provinceName);
+        baseFixedAddressResp.setCityName(cityName);
+        return baseFixedAddressResp;
     }
 
     /**

@@ -83,8 +83,8 @@ public class SkuCollect extends AbstractSpuCollect {
                 continue;
             }
             BigDecimal diffPrice = skuVO.getMarketPrice().subtract(skuVO.getCostPrice());
-            if (diffPrice.compareTo(new BigDecimal(SearchSpuNewLabelCategoryEnum.FREE_DELIVERY.getThreshold().toString())) > 0) {
-                spuId2Model49FreeDeliveryMap.put(skuVO.getGoodsId(), SearchSpuNewLabelCategoryEnum.FREE_DELIVERY);
+            if (diffPrice.compareTo(new BigDecimal(SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49.getThreshold().toString())) > 0) {
+                spuId2Model49FreeDeliveryMap.put(skuVO.getGoodsId(), SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49);
             }
         }
 

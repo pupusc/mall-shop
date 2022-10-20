@@ -1,5 +1,6 @@
 package com.soybean.mall.address;
 
+import com.soybean.common.resp.BaseFixedAddressResp;
 import lombok.Data;
 
 /**
@@ -10,28 +11,19 @@ import lombok.Data;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class FixedAddressResp {
-
-
-    /**
-     * 省份id
-     */
-    private String provinceId;
+public class FixedAddressResp extends BaseFixedAddressResp {
 
     /**
      * 省份
      */
     private String provinceName;
 
-    /**
-     * 城市 id
-     */
-    private String cityId;
 
     /**
      * 城市名称
      */
     private String cityName;
+
 
     /**
      * 区域id

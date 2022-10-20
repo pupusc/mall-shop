@@ -10,7 +10,8 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum SearchSpuNewLabelCategoryEnum {
 
-    FREE_DELIVERY(1, "满49元包邮", 5);
+    FREE_DELIVERY_49(1, "满49元包邮", 5, 49),
+    FREE_DELIVERY(2, "包邮", 0, 0)
     ;
 
     private Integer code;
@@ -18,6 +19,8 @@ public enum SearchSpuNewLabelCategoryEnum {
     private String message;
 
     private Object threshold;
+
+    private Object realValue;
 
 
     public static SearchSpuNewLabelCategoryEnum get(Integer code) {

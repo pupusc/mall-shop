@@ -512,8 +512,6 @@ public class GoodsVO  implements Serializable {
      */
     private List<String> goodsChannelTypeSet;
 
-
-
     /**
      * 发货说明
      */
