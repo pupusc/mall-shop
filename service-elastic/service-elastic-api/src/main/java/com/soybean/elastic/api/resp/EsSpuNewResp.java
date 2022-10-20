@@ -65,6 +65,10 @@ public class EsSpuNewResp implements Serializable {
      */
     private Book book;
 
+    /**
+     * 标签信息
+     */
+    private List<SubLabel> labels;
 
     /**
      * 主播推荐
@@ -154,6 +158,23 @@ public class EsSpuNewResp implements Serializable {
 
             private String tagName;
         }
+    }
+
+    /**
+     * 同一标签
+     */
+    @Data
+    public static class SubLabel {
+
+        /**
+         * 标签名
+         */
+        private String labelName;
+
+        /**
+         * 1、49包邮标签 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+         */
+        private Integer category;
     }
 
 }

@@ -31,6 +31,7 @@ import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderReque
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -163,6 +164,12 @@ public class SearchController {
         return BaseResponse.success(commonPageResp);
     }
 
+
+    /**
+     * 图书商品
+     * @param request
+     * @return
+     */
     private EsSpuNewAggResp<List<SpuNewBookListResp>> spuSearch(KeyWordSpuQueryReq request) {
         request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         //获取搜索黑名单
@@ -186,7 +193,11 @@ public class SearchController {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
         EsSpuNewAggResp<List<SpuNewBookListResp>> result = new EsSpuNewAggResp<>();
-        result.setLabels(esSpuNewAggResp.getLabels());
+        result.setLabelAggs(esSpuNewAggResp.getLabelAggs());
+        result.setClumpAggs(esSpuNewAggResp.getClumpAggs());
+        result.setAwardAggs(esSpuNewAggResp.getAwardAggs());
+        result.setAuthorAggs(esSpuNewAggResp.getAuthorAggs());
+        result.setClassifyAggs(esSpuNewAggResp.getClassifyAggs());
         result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
         return result;
     }

@@ -15,4 +15,19 @@ import lombok.Data;
 public class KeyWordSpuQueryReq extends EsKeyWordSpuNewQueryProviderReq {
 
 
+    /**
+     * 省份id
+     */
+    private String provinceId;
+
+    /**
+     * 城市 id
+     */
+    private String cityId;
+
+    /**
+     * 区域id
+     */
+    private String areaId;
+
 }

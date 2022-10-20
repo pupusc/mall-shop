@@ -2,8 +2,6 @@ package com.soybean.elastic.api.req;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -63,4 +61,29 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      * 店铺分类id
      */
     private Integer classifyId;
+
+    /**
+     * 店铺分类 Name
+     */
+    private String classifyName;
+
+    /**
+     * 出版社 Name
+     */
+    private String publisherName;
+
+    /**
+     *  作者名
+     */
+    private String authorName;
+
+    /**
+     *  奖项Name
+     */
+    private String awardName;
+
+    /**
+     *  丛书Name
+     */
+    private String clumpName;
 }

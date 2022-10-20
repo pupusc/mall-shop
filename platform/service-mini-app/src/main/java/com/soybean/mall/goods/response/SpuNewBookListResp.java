@@ -90,6 +90,10 @@ public class SpuNewBookListResp {
      */
     private Long stock;
 
+    /**
+     * 标签信息
+     */
+    private List<Label> labels;
 
     /**
      * 氛围图
@@ -300,5 +304,22 @@ public class SpuNewBookListResp {
          */
         private String activityShow;
 
+    }
+
+    /**
+     * 标签信息
+     */
+    @Data
+    public static class Label {
+
+        /**
+         * 标签名
+         */
+        private String labelName;
+
+        /**
+         * 标签类别 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+         */
+        private Integer labelCategory;
     }
 }

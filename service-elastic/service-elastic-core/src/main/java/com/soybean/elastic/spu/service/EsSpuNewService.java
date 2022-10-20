@@ -105,7 +105,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
          * 标签类别
          */
         if (req.getLabelCategory() != null) {
-            boolQb.must(nestedQuery("labels", termQuery("category", req.getLabelCategory()), ScoreMode.None));
+            boolQb.must(nestedQuery("labels", termQuery("labels.category", req.getLabelCategory()), ScoreMode.None));
         }
 
         /**
@@ -113,6 +113,13 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
          */
         if (req.getClassifyId() != null) {
             boolQb.must(termQuery("classify.fclassifyId", req.getClassifyId()));
+        }
+
+        /**
+         * 店铺类别
+         */
+        if (StringUtils.isNotBlank(req.getClassifyName())) {
+            boolQb.must(termQuery("classify.fclassifyName", req.getClassifyName()));
         }
 
         /**
@@ -124,6 +131,35 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             salesPrice.lte(req.getToSalePrice());
             boolQb.must(salesPrice);
         }
+
+        /**
+         * 出版社
+         */
+        if (StringUtils.isNotBlank(req.getPublisherName())) {
+            boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", req.getPublisherName()), ScoreMode.None));
+        }
+
+        /**
+         * 作者
+         */
+        if (StringUtils.isNotBlank(req.getAuthorName())) {
+            boolQb.must(nestedQuery("book", termQuery("book.authorNames", req.getAuthorName()), ScoreMode.None));
+        }
+
+        /**
+         * 奖项
+         */
+        if (StringUtils.isNotBlank(req.getAwardName())) {
+            boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", req.getAwardName()), ScoreMode.None));
+        }
+
+        /**
+         * 从书
+         */
+        if (StringUtils.isNotBlank(req.getClumpName())) {
+            boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", req.getClumpName()), ScoreMode.None));
+        }
+
 
         //如果没有关键词，则直接返回查询条件数据
         if (StringUtils.isBlank(req.getKeyword())) {
@@ -296,23 +332,19 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
     private List<AbstractAggregationBuilder> packageAggregations() {
         List<AbstractAggregationBuilder> aggregationBuilderList = new ArrayList<>();
         NestedAggregationBuilder nestedAggregationBuilder =
-                AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelName").field("labels.labelName.keyword"));
+                AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
         aggregationBuilderList.add(nestedAggregationBuilder);
 
         TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
         aggregationBuilderList.add(fclassifyName);
-//
-//        NestedAggregationBuilder authorName =
-//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"));
-//        aggregationBuilderList.add(authorName);
-//
-//        NestedAggregationBuilder publisher =
-//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("publisher").field("book.publisher"));
-//        aggregationBuilderList.add(publisher);
-//
-//        NestedAggregationBuilder awardName =
-//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName"));
-//        aggregationBuilderList.add(awardName);
+
+        NestedAggregationBuilder book =
+                AggregationBuilders.nested("book", "book")
+                        .subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"))
+                        .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"))
+                        .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"))
+                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"));
+        aggregationBuilderList.add(book);
 
         return aggregationBuilderList;
     }

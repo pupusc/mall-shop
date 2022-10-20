@@ -337,6 +337,19 @@ public class SpuNewSearchService {
 //                spuNewBookListResp.setSkuId(skuNormalActivityResp.getSkuId());
             }
 
+            //标签信息
+            List<EsSpuNewResp.SubLabel> labelResps = esSpuNewRespParam.getLabels();
+            if (!CollectionUtils.isEmpty(labelResps)) {
+                List<SpuNewBookListResp.Label> labels = new ArrayList<>();
+                for (EsSpuNewResp.SubLabel labelResp : labelResps) {
+                    SpuNewBookListResp.Label label = new SpuNewBookListResp.Label();
+                    label.setLabelCategory(labelResp.getCategory());
+                    label.setLabelName(labelResp.getLabelName());
+                    labels.add(label);
+                }
+                spuNewBookListResp.setLabels(labels);
+            }
+
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());

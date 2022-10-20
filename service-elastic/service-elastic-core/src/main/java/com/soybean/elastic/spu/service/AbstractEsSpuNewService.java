@@ -2,6 +2,7 @@ package com.soybean.elastic.spu.service;
 
 import com.soybean.common.req.CommonPageQueryReq;
 import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.spu.model.EsSpuNew;
@@ -59,23 +60,87 @@ public abstract class AbstractEsSpuNewService {
      * @return
      */
     protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage) {
-        List<String> resultLabels = new ArrayList<>();
-        Nested labels = resultQueryPage.getAggregations().get("labels");
-        Terms labelNames = labels.getAggregations().get("labelName");
-        for (Terms.Bucket bucket : labelNames.getBuckets()) {
-            resultLabels.add(bucket.getKeyAsString());
-        }
+        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
 
-        List<String> resultFclassifyNames = new ArrayList<>();
+        //聚合标签
+        List<EsSpuNewAggResp.LabelAggs> resultLabels = new ArrayList<>();
+        Nested labels = resultQueryPage.getAggregations().get("labels");
+        Terms labelNames = labels.getAggregations().get("labelCategory");
+        for (Terms.Bucket bucket : labelNames.getBuckets()) {
+            SearchSpuNewLabelCategoryEnum spuNewLabelCategoryEnum = SearchSpuNewLabelCategoryEnum.get(bucket.getKeyAsNumber().intValue());
+            if (spuNewLabelCategoryEnum == null) {
+                continue;
+            }
+            EsSpuNewAggResp.LabelAggs labelAggs = new EsSpuNewAggResp.LabelAggs();
+            labelAggs.setCategory(spuNewLabelCategoryEnum.getCode());
+            labelAggs.setLabelName(spuNewLabelCategoryEnum.getMessage());
+            resultLabels.add(labelAggs);
+        }
+        esSpuNewAggResp.setLabelAggs(resultLabels);
+
+        /**
+         * 聚合1级店铺分类
+         */
+        List<EsSpuNewAggResp.ClassifyAggs> resultFclassifyNames = new ArrayList<>();
         Terms fclassifyNames = resultQueryPage.getAggregations().get("fclassifyName");
         for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
-            resultFclassifyNames.add(bucket.getKeyAsString());
+            EsSpuNewAggResp.ClassifyAggs classifyNameAggs = new EsSpuNewAggResp.ClassifyAggs();
+            classifyNameAggs.setClassifyName(bucket.getKeyAsString());
+            resultFclassifyNames.add(classifyNameAggs);
         }
+        esSpuNewAggResp.setClassifyAggs(resultFclassifyNames);
+
+        /**
+         * 作者
+         */
+        List<EsSpuNewAggResp.AuthorAggs> resulAuthors = new ArrayList<>();
+
+        Nested book = resultQueryPage.getAggregations().get("book");
+        Terms authorName = book.getAggregations().get("authorName");
+        for (Terms.Bucket bucket : authorName.getBuckets()) {
+            EsSpuNewAggResp.AuthorAggs authorNameAggs = new EsSpuNewAggResp.AuthorAggs();
+            authorNameAggs.setAuthorName(bucket.getKeyAsString());
+            resulAuthors.add(authorNameAggs);
+        }
+        esSpuNewAggResp.setAuthorAggs(resulAuthors);
+
+        /**
+         * 出版社
+         */
+        List<EsSpuNewAggResp.PublisherAggs> resultPublishers = new ArrayList<>();
+        Terms publisher = book.getAggregations().get("publisherName");
+        for (Terms.Bucket bucket : publisher.getBuckets()) {
+            EsSpuNewAggResp.PublisherAggs publishersAggs = new EsSpuNewAggResp.PublisherAggs();
+            publishersAggs.setPublisherName(bucket.getKeyAsString());
+            resultPublishers.add(publishersAggs);
+        }
+        esSpuNewAggResp.setPublisherAggs(resultPublishers);
+
+        /**
+         * 奖项
+         */
+        List<EsSpuNewAggResp.AwardAggs> resultAwards = new ArrayList<>();
+        Terms awardName = book.getAggregations().get("awardName");
+        for (Terms.Bucket bucket : awardName.getBuckets()) {
+            EsSpuNewAggResp.AwardAggs awardAggs = new EsSpuNewAggResp.AwardAggs();
+            awardAggs.setAwardName(bucket.getKeyAsString());
+            resultAwards.add(awardAggs);
+        }
+        esSpuNewAggResp.setAwardAggs(resultAwards);
+
+        /**
+         * 从书
+         */
+        List<EsSpuNewAggResp.ClumpAggs> resultClumps = new ArrayList<>();
+        Terms clumpName = book.getAggregations().get("clumpName");
+        for (Terms.Bucket bucket : clumpName.getBuckets()) {
+            EsSpuNewAggResp.ClumpAggs clumpAggs = new EsSpuNewAggResp.ClumpAggs();
+            clumpAggs.setClumpName(bucket.getKeyAsString());
+            resultClumps.add(clumpAggs);
+        }
+        esSpuNewAggResp.setClumpAggs(resultClumps);
 
 
-        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
-        esSpuNewAggResp.setLabels(resultLabels);
-        esSpuNewAggResp.setFclassifyName(resultFclassifyNames);
         esSpuNewAggResp.setResult(new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent())));
         return esSpuNewAggResp;
     }
