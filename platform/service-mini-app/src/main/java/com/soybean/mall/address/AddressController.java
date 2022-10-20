@@ -47,6 +47,7 @@ public class AddressController {
 
     /**
      * 定位地址转化
+     * @menu 搜索功能
      * @param fixedAddressReq
      * @return
      */

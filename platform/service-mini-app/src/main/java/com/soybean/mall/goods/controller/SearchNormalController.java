@@ -42,7 +42,7 @@ public class SearchNormalController {
     private SpuNewSearchService spuNewSearchService;
 
     /**
-     * 搜索 获取商品/图书
+     * 搜索 普通获取商品/图书
      * @menu 搜索功能
      * @param request
      * @return

@@ -183,13 +183,13 @@ public final class CommonUtil {
      */
     public BaseFixedAddressResp getFixedAddress(){
         BaseFixedAddressResp baseFixedAddressResp = new BaseFixedAddressResp();
-        String provinceName = HttpUtil.getRequest().getHeader("provinceName");
-        String cityName = HttpUtil.getRequest().getHeader("cityName");
-        if (StringUtils.isBlank(provinceName) || StringUtils.isBlank(cityName)) {
+        String provinceId = HttpUtil.getRequest().getHeader("provinceId");
+        String cityId = HttpUtil.getRequest().getHeader("cityId");
+        if (StringUtils.isBlank(provinceId) || StringUtils.isBlank(cityId)) {
             throw new SbcRuntimeException("999999", "请传递定位地址");
         }
-        baseFixedAddressResp.setProvinceName(provinceName);
-        baseFixedAddressResp.setCityName(cityName);
+        baseFixedAddressResp.setProvinceId(provinceId);
+        baseFixedAddressResp.setCityId(cityId);
         return baseFixedAddressResp;
     }
 
