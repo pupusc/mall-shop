@@ -39,4 +39,16 @@ public class PresetSearchTermsRequest extends SettingBaseRequest {
     @ApiModelProperty(value = "预置搜索词类型")
     private Integer presetChannel = 0;
 
+
+    /**
+     * 预置搜索词类型0-搜索结果页面 1-指定跳转页
+     */
+    private Integer presetSearchType;
+
+    /**
+     * 预置搜索词跳转地址
+     */
+    @Length(max = 400)
+    private String presetSearchKeywordPageUrl;
+
 }
