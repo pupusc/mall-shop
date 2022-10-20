@@ -401,7 +401,11 @@ public class TransferService {
                 buyPaymentReq.setMemo("支付");
                 buyPaymentReq.setPayGateway(108);
                 buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
-                buyPaymentReq.setPayMchid(payTradeRecordResponse.getAppId());
+                String appId = payTradeRecordResponse.getAppId();
+                if (StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("\\&")) {
+                    appId = payTradeRecordResponse.getAppId().split("\\$")[1];
+                }
+                buyPaymentReq.setPayMchid(appId);
                 buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
                 paymentReqList.add(buyPaymentReq);
             }
