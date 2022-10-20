@@ -58,4 +58,9 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      * 销售 结束价格
      */
     private Integer toSalePrice;
+
+    /**
+     * 店铺分类id
+     */
+    private Integer classifyId;
 }

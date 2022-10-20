@@ -28,6 +28,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -105,6 +106,13 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
          */
         if (req.getLabelCategory() != null) {
             boolQb.must(nestedQuery("labels", termQuery("category", req.getLabelCategory()), ScoreMode.None));
+        }
+
+        /**
+         * 店铺类别
+         */
+        if (req.getClassifyId() != null) {
+            boolQb.must(termQuery("classify.fclassifyId", req.getClassifyId()));
         }
 
         /**
@@ -289,8 +297,23 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         List<AbstractAggregationBuilder> aggregationBuilderList = new ArrayList<>();
         NestedAggregationBuilder nestedAggregationBuilder =
                 AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelName").field("labels.labelName.keyword"));
-
         aggregationBuilderList.add(nestedAggregationBuilder);
+
+//        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
+//        aggregationBuilderList.add(fclassifyName);
+//
+//        NestedAggregationBuilder authorName =
+//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"));
+//        aggregationBuilderList.add(authorName);
+//
+//        NestedAggregationBuilder publisher =
+//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("publisher").field("book.publisher"));
+//        aggregationBuilderList.add(publisher);
+//
+//        NestedAggregationBuilder awardName =
+//                AggregationBuilders.nested("book", "book").subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName"));
+//        aggregationBuilderList.add(awardName);
+
         return aggregationBuilderList;
     }
 
