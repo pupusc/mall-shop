@@ -43,5 +43,19 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      */
     private List<String> spuIds;
 
-    private
+
+    /**
+     * 标签类别 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+     */
+    private Integer labelCategory;
+
+    /**
+     * 销售 开始价格
+     */
+    private Integer fromSalePrice;
+
+    /**
+     * 销售 结束价格
+     */
+    private Integer toSalePrice;
 }

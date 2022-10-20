@@ -1,6 +1,8 @@
 package com.soybean.elastic.spu.service;
 
 import com.soybean.common.req.CommonPageQueryReq;
+import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
@@ -9,9 +11,12 @@ import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +52,24 @@ public abstract class AbstractEsSpuNewService {
         return boolQb;
     }
 
+    /**
+     * 聚合 列表信息
+     * @param resultQueryPage
+     * @return
+     */
+    protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage) {
+        List<String> resultLabels = new ArrayList<>();
+        Nested labels = resultQueryPage.getAggregations().get("labels");
+        Terms labelNames = labels.getAggregations().get("labelName");
+        for (Terms.Bucket bucket : labelNames.getBuckets()) {
+            resultLabels.add(bucket.getKeyAsString());
+        }
+
+        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
+        esSpuNewAggResp.setLabels(resultLabels);
+        esSpuNewAggResp.setResult(new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent())));
+        return esSpuNewAggResp;
+    }
 
     /**
      * 打包商品

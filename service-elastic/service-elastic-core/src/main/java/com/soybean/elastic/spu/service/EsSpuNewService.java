@@ -4,6 +4,7 @@ import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.enums.SearchSpuNewSortTypeEnum;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSortSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.constant.ConstantMultiMatchField;
@@ -18,8 +19,15 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -92,6 +100,23 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));
         }
 
+        /**
+         * 标签类别
+         */
+        if (req.getLabelCategory() != null) {
+            boolQb.must(nestedQuery("labels", termQuery("category", req.getLabelCategory()), ScoreMode.None));
+        }
+
+        /**
+         * 价格范围
+         */
+        if (req.getFromSalePrice() != null && req.getToSalePrice() != null) {
+            RangeQueryBuilder salesPrice = QueryBuilders.rangeQuery("salesPrice");
+            salesPrice.gte(req.getFromSalePrice());
+            salesPrice.lte(req.getToSalePrice());
+            boolQb.must(salesPrice);
+        }
+
         //如果没有关键词，则直接返回查询条件数据
         if (StringUtils.isBlank(req.getKeyword())) {
             return boolQb;
@@ -122,6 +147,10 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BINDINGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_TAGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
+
+        //标签
+        boolQbChild.should().add(nestedQuery("labels", matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
+        boolQbChild.should().add(nestedQuery("labels", matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME_KEYWORD, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQb.must(boolQbChild);
         return boolQb;
     }
@@ -205,7 +234,14 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                         , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost))),
                 new FunctionScoreQueryBuilder
                         .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME,req.getKeyword()), ScoreMode.None)
-                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)))
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost))),
+
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("labels", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_LABEL_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("labels", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_LABEL_DIM_NAME, defaultBoost)))
         };
         return arr;
     }
@@ -244,12 +280,26 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         return fieldSortBuilders;
     }
 
+
+    /**
+     * 聚合结果
+     * @return
+     */
+    private List<AbstractAggregationBuilder> packageAggregations() {
+        List<AbstractAggregationBuilder> aggregationBuilderList = new ArrayList<>();
+        NestedAggregationBuilder nestedAggregationBuilder =
+                AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelName").field("labels.labelName.keyword"));
+
+        aggregationBuilderList.add(nestedAggregationBuilder);
+        return aggregationBuilderList;
+    }
+
     /**
      * 关键词搜索
      * @param req
      * @return
      */
-    public CommonPageResp<List<EsSpuNewResp>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
+    public EsSpuNewAggResp<List<EsSpuNewResp>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(AbstractCollectFactory.INDEX_ES_SPU_NEW);
 
@@ -262,6 +312,12 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
 
         //查询 条件
         builder.withQuery(functionScoreQueryBuilder);
+
+        //聚合
+        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations()) {
+            builder.addAggregation(packageAggregation);
+        }
+
         //排序
         for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
             builder.withSort(fieldSortBuilder);
@@ -272,7 +328,9 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsBookListModelService.listKeyWorldEsSpu DSL: {}", build.getQuery().toString());
         AggregatedPage<EsSpuNew> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsSpuNew.class);
-        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+
+//        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+        return super.packageEsSpuNewAggResp(resultQueryPage);
     }
 
 

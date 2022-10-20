@@ -7,6 +7,7 @@ import com.soybean.elastic.api.provider.booklistmodel.EsBookListModelProvider;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.req.KeyWordBookListQueryReq;
@@ -96,7 +97,7 @@ public class SearchController {
             spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
             spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
-            CommonPageResp<List<SpuNewBookListResp>> bookPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
+            CommonPageResp<List<SpuNewBookListResp>> bookPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext().getResult();
             searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("图书", bookPage));
         } catch (Exception ex) {
             log.error("SearchController keywordSearch book", ex);
@@ -109,7 +110,7 @@ public class SearchController {
             spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.SPU.getCode());
             spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
-            CommonPageResp<List<SpuNewBookListResp>> spuPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
+            CommonPageResp<List<SpuNewBookListResp>> spuPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext().getResult();
             searchHomeResp.setSpus(new SearchHomeResp.SubSearchHomeResp<>("商品", spuPage));
         } catch (Exception ex) {
             log.error("SearchController keywordSearch spu", ex);
@@ -162,15 +163,7 @@ public class SearchController {
         return BaseResponse.success(commonPageResp);
     }
 
-
-    /**
-     * 搜索 获取商品/图书
-     * @menu 搜索功能
-     * @param request
-     * @return
-     */
-    @PostMapping("/keyword/keywordSpuSearch")
-    public BaseResponse<CommonPageResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+    private EsSpuNewAggResp<List<SpuNewBookListResp>> spuSearch(KeyWordSpuQueryReq request) {
         request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         //获取搜索黑名单
         List<String> unSpuIds = spuComponentService.listSearchBlackList(
@@ -190,9 +183,36 @@ public class SearchController {
             }
         }
 
-        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent(), customer);
-        return BaseResponse.success(new CommonPageResp<>(context.getTotal(), spuNewBookListResps));
+        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
+        EsSpuNewAggResp<List<SpuNewBookListResp>> result = new EsSpuNewAggResp<>();
+        result.setLabels(esSpuNewAggResp.getLabels());
+        result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
+        return result;
     }
 
+    /**
+     * 搜索 获取商品/图书
+     * @menu 搜索功能
+     * @param request
+     * @return
+     */
+    @PostMapping("/keyword/keywordSpuSearch")
+    public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+
+        return BaseResponse.success(this.spuSearch(request));
+    }
+
+
+    /**
+     * 凑单搜索 获取商品/图书
+     * @menu 搜索功能
+     * @param request
+     * @return
+     */
+    @PostMapping("/keyword/supplement/keywordSpuSearch")
+    public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> supplementKeywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+        return BaseResponse.success(this.spuSearch(request));
+
+    }
 }

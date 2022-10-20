@@ -5,6 +5,7 @@ import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.collect.CollectJobReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.realizer.CollectSpuFactory;
 import com.soybean.elastic.spu.service.EsNormalSpuNewService;
@@ -36,7 +37,7 @@ public class EsSpuNewController implements EsSpuNewProvider {
     private EsNormalSpuNewService esNormalSpuNewService;
 
     @Override
-    public BaseResponse<CommonPageResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
+    public BaseResponse<EsSpuNewAggResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
         return BaseResponse.success(esSpuNewService.listKeyWorldEsSpu(req));
     }
 
