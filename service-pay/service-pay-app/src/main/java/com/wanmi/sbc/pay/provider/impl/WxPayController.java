@@ -359,7 +359,7 @@ public class WxPayController implements WxPayProvider {
             //订单超时、关闭、单号重复
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{msg});
         } else if ("201 商户订单号重复".equalsIgnoreCase(msg)) {
-            throw new SbcRuntimeException("K-000020");
+            new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"请重新下单"});
         } else {
             throw new SbcRuntimeException(CommonErrorCode.WEAPP_FORBIDDEN);
         }
