@@ -21,7 +21,7 @@ public interface GatewayConfigRepository extends JpaRepository<PayGatewayConfig,
     @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.storeId = ?1")
     List<PayGatewayConfig> queryConfigByOpenAndStoreId(Long storeId);
 
-    @Query("select p from PayGatewayConfig p where p.payGateway.name=?1  and p.storeId = ?2 ")
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.payGateway.name=?1  and p.storeId = ?2 ")
     PayGatewayConfig queryConfigByNameAndStoreId(PayGatewayEnum payGatewayEnum,Long storeId);
 
     @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.payGateway.name=?1  and p.storeId = ?2 ")
@@ -40,7 +40,10 @@ public interface GatewayConfigRepository extends JpaRepository<PayGatewayConfig,
     PayGatewayConfig updateAppKey(PayGatewayEnum payGatewayEnum,Long storeId, String apiKey, String secret);
 
 
-    @Query("select p from PayGatewayConfig p where p.appId = ?1 and p.storeId = ?2")
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.appId = ?1 and p.storeId = ?2")
     List<PayGatewayConfig> queryConfigByAppIdAndStoreId(String appId, Long storeId);
+
+    @Query("select p from PayGatewayConfig p where p.payGateway.isOpen = 1 and p.appId = ?1 and p.account = ?2 and p.storeId = ?3")
+    List<PayGatewayConfig> queryConfigByAppIdAndMchIdAndStoreId(String appId, String mchId, Long storeId);
 
 }

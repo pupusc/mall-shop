@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.provider.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
@@ -8,6 +9,7 @@ import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.request.*;
 import com.wanmi.sbc.pay.api.response.*;
 import com.wanmi.sbc.pay.bean.enums.IsOpen;
+import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.bean.vo.PayGatewayConfigVO;
 import com.wanmi.sbc.pay.bean.vo.PayGatewayVO;
@@ -411,9 +413,16 @@ public class PayQueryController implements PayQueryProvider {
 
     @Override
     public BaseResponse<PayGatewayConfigResponse> queryConfigByAppIdAndStoreId(GatewayConfigByGatewayRequest req) {
-        List<PayGatewayConfig> configs = payDataService.queryConfigByAppIdAndStoreId(req.getAppId(), req.getStoreId());
+        List<PayGatewayConfig> configs = null;
+        log.info("PayQueryController queryConfigByAppIdAndStoreId param {}", JSON.toJSONString(req));
+        if (Objects.equals(req.getGatewayEnum(), PayGatewayEnum.WECHAT)) {
+            configs = payDataService.queryConfigByAppIdAndMchIdAndStoreId(req.getAppId(), req.getMchId(), req.getStoreId());
+        } else if (Objects.equals(req.getGatewayEnum(), PayGatewayEnum.ALIPAY)) {
+            configs = payDataService.queryConfigByAppIdAndStoreId(req.getAppId(), req.getStoreId());
+        }
+        log.info("PayQueryController queryConfigByAppIdAndStoreId result {}", JSON.toJSONString(configs));
         if (CollectionUtils.isEmpty(configs)) {
-            log.info("PayQueryController queryConfigByAccountAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAppId(), req.getStoreId());
+            log.info("PayQueryController queryConfigByAppIdAndStoreId account:{} storeId:{} 对应的配置信息不存在", req.getAppId(), req.getStoreId());
             throw new SbcRuntimeException("K-99999", String.format("account:%s storeId:%s 对应的配置信息不存在", req.getAppId(), req.getStoreId()));
         }
         return BaseResponse.success(wraperResponseForGatewayConfig(configs.get(0)));
@@ -422,7 +431,7 @@ public class PayQueryController implements PayQueryProvider {
 
     @Override
     public BaseResponse<PayGatewayConfigResponse> queryConfigByAppId(GatewayConfigByGatewayRequest req) {
-        PayGateway payGatewayNew = payService.getPayGatewayNew(req.getAppId(), req.getStoreId());
+        PayGateway payGatewayNew = payService.getPayGatewayNew(req.getAppId(), req.getMchId(), req.getStoreId());
         return BaseResponse.success(wraperResponseForGatewayConfig(payGatewayNew.getConfig()));
     }
 }

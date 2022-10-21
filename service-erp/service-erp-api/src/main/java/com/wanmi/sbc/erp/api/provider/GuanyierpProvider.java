@@ -47,13 +47,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/get-erp-goods")
 //    BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(@RequestParam("erpGoodsNum") String erpGoodsNum);
 
-    /**
-     * 同步商品信息
-     * @param erpSynGoodsStockRequest
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-info")
-    BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
+//    /**
+//     * 同步商品信息
+//     * @param erpSynGoodsStockRequest
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-info")
+//    BaseResponse<SyncGoodsInfoResponse> syncGoodsInfo(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
 
 //    /**
 //     * 推动订单
@@ -80,13 +80,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/get-warehouse-list")
 //    BaseResponse<WareHouseListResponse> getWareHouseList(@RequestBody @Valid WareHouseQueryRequest wareHouseQueryRequest);
 
-//    /**
-//     * 发货单查询
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-delivery-status")
-//    BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
+    /**
+     * 发货单查询
+     * @param request
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/get-delivery-status")
+    BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
 
 //    /**
 //     * 退款商品终止发货
@@ -129,13 +129,13 @@ public interface GuanyierpProvider {
 //    @PostMapping("/erp/${application.erp.version}/guanyierp/get-return-trade-status")
 //    BaseResponse<ReturnTradeResponse> getReturnTradeStatus(@RequestBody @Valid  ReturnTradeQueryRequest request);
 
-//    /**
-//     * 历史发货单查询
-//     * @param request
-//     * @return
-//     */
-//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-history-delivery-status")
-//    BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@RequestBody @Valid HistoryDeliveryInfoRequest request);
+    /**
+     * 历史发货单查询
+     * @param request
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/get-history-delivery-status")
+    BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@RequestBody @Valid HistoryDeliveryInfoRequest request);
 
 
     /**

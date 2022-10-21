@@ -26,9 +26,10 @@ public class ShopCenterSaleAfterController implements ShopCenterSaleAfterProvide
 		try {
 			String host = routerConfig.getHost();
 			String url = routerConfig.getUrl("saleAfter.createSaleAfter");
-
+			log.info("ShopCenterSaleAfterController createSaleAfter param: {}", JSON.toJSONString(request));
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterSaleAfterController createSaleAfter result: {}", str);
 			JSONObject json = JSON.parseObject(str);
 			Long data = JSON.parseObject(json.getString("data"), Long.class);
 			if (data == null) {

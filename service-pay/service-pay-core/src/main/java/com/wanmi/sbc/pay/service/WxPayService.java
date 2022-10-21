@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -167,7 +168,7 @@ public class WxPayService {
             addTradeRecord(payTradeRecordRequest);
             response = wxPayUnifiedOrder(xStream.toXML(baseRequest), WxPayForJSApiResponse.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("WxPayService wxPayForJSApi error ", e);
         }
         return response;
     }
@@ -290,56 +291,99 @@ public class WxPayService {
             XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
             xStream.alias("xml", WxPayForNativeRequest.class);//根元素名需要是xml
             String refundXmlStr = xStream.toXML(wxPayOrderDetailBaseRequest);
+            log.info("WxPayService getWxPayOrderDetail refundXmlStr {}", refundXmlStr);
             wxPayOrderDetailReponse = wxPayOrderDetail(refundXmlStr,WxPayOrderDetailReponse.class, WXPAYORDERQUERY);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("WxPayService getWxPayOrderDetail error", e);
         }
         return wxPayOrderDetailReponse;
     }
 
-    private <T> T wxPayOrderDetail(String orderInfo, Class<T> valueType,String url) throws IllegalAccessException, InstantiationException {
+    private <T> T wxPayOrderDetail(String orderInfo, Class<T> valueType,String url) throws IllegalAccessException, InstantiationException, IOException {
         T t = valueType.newInstance();
+
+        HttpClient httpClient = HttpClients.createDefault();
+        HttpPost httpPost = null;
         BufferedReader reader = null;
-        BufferedOutputStream buffOutStr = null;
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            //加入数据
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            buffOutStr = new BufferedOutputStream(conn.getOutputStream());
-            buffOutStr.write(orderInfo.getBytes());
-            buffOutStr.flush();
-            buffOutStr.close();
-            //获取输入流
-            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+            httpPost = new HttpPost(url);
+            StringEntity myEntity = new StringEntity(orderInfo, "UTF-8");
+            httpPost.addHeader("Content-Type", "text/xml; charset=UTF-8");
+            httpPost.setEntity(myEntity);
+            HttpResponse response = httpClient.execute(httpPost);
+            HttpEntity resEntity = response.getEntity();
+            if (resEntity != null) {
+                reader = new BufferedReader(new InputStreamReader(resEntity
+                        .getContent(), "UTF-8"));
+                StringBuffer sb = new StringBuffer();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+                String resultXml = sb.toString();
+                resultXml = resultXml.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
+                resultXml = resultXml.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
+                resultXml = resultXml.replaceAll("<coupon_fee_[0-9]{0,11}[^>]*>(.*?)</coupon_fee_[0-9]{0,11}>", "");
+                XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));//说明3(见文末)
+                //将请求返回的内容通过xStream转换为UnifiedOrderResponse对象
+                xStream.alias("xml", valueType);
+                t = (T) xStream.fromXML(resultXml);
             }
-            String resultXml = sb.toString();
-            resultXml = resultXml.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
-            resultXml = resultXml.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
-            resultXml = resultXml.replaceAll("<coupon_fee_[0-9]{0,11}[^>]*>(.*?)</coupon_fee_[0-9]{0,11}>", "");
-            XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));//说明3(见文末)
-            //将请求返回的内容通过xStream转换为UnifiedOrderResponse对象
-            xStream.alias("xml", valueType);
-            t = (T) xStream.fromXML(resultXml);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                if (null != buffOutStr) {
-                    buffOutStr.close();
-                }
-                if (null != reader) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        } catch (Exception ex) {
+            log.error("WxPayService wxPayOrderDetail error", ex);
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (httpPost != null) {
+                httpPost.releaseConnection();
             }
         }
         return t;
+//
+//
+//
+//        BufferedReader reader = null;
+//        BufferedOutputStream buffOutStr = null;
+//        try {
+//            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+//            //加入数据
+//            conn.setRequestMethod("POST");
+//            conn.setDoOutput(true);
+//            buffOutStr = new BufferedOutputStream(conn.getOutputStream());
+//            buffOutStr.write(orderInfo.getBytes());
+//            buffOutStr.flush();
+//            buffOutStr.close();
+//            //获取输入流
+//            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+//            String line;
+//            StringBuilder sb = new StringBuilder();
+//            while ((line = reader.readLine()) != null) {
+//                sb.append(line);
+//            }
+//            String resultXml = sb.toString();
+//            resultXml = resultXml.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
+//            resultXml = resultXml.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
+//            resultXml = resultXml.replaceAll("<coupon_fee_[0-9]{0,11}[^>]*>(.*?)</coupon_fee_[0-9]{0,11}>", "");
+//            XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));//说明3(见文末)
+//            //将请求返回的内容通过xStream转换为UnifiedOrderResponse对象
+//            xStream.alias("xml", valueType);
+//            t = (T) xStream.fromXML(resultXml);
+//        } catch (Exception e) {
+//            log.error("WxPayService wxPayOrderDetail error", e);
+//        }finally {
+//            try {
+//                if (null != buffOutStr) {
+//                    buffOutStr.close();
+//                }
+//                if (null != reader) {
+//                    reader.close();
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return t;
     }
 
     /**

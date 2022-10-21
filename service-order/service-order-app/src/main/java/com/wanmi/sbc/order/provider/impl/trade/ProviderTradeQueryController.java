@@ -224,28 +224,28 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
 //        providerTradeService.batchResetScanCount(request.getPtid());
 //        return BaseResponse.SUCCESSFUL();
 //    }
-//
-//    /**
-//     * 扫描未发货订单同步erp发货状态
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request) {
-//        providerTradeService.scanNotYetShippedTrade(request.getPageSize(),request.getPtid());
-//        return BaseResponse.SUCCESSFUL();
-//    }
-//
-//    /**
-//     * 同步历史发货单
-//     * @param request
-//     * @return
-//     */
-//    @Override
-//    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
-//        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
-//        return BaseResponse.SUCCESSFUL();
-//    }
+
+    /**
+     * 扫描未发货订单同步erp发货状态
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse scanNotYetShippedTrade(@RequestBody @Valid ProviderTradeErpRequest request) {
+        providerTradeService.scanNotYetShippedTrade(request.getPageSize(),request.getPtid());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 同步历史发货单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse batchSyncHistoryOrderStatus(@Valid ProviderTradeErpRequest request) {
+        providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
+        return BaseResponse.SUCCESSFUL();
+    }
 
 
 }

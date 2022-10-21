@@ -401,7 +401,11 @@ public class TransferService {
                 buyPaymentReq.setMemo("支付");
                 buyPaymentReq.setPayGateway(108);
                 buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
-                buyPaymentReq.setPayMchid(payTradeRecordResponse.getAppId());
+                String appId = payTradeRecordResponse.getAppId();
+                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("$")) {
+                    appId = payTradeRecordResponse.getAppId().split("\\$")[1];
+                }
+                buyPaymentReq.setPayMchid(appId);
                 buyPaymentReq.setPayTime(trade.getTradeState().getPayTime());
                 paymentReqList.add(buyPaymentReq);
             }
@@ -502,10 +506,17 @@ public class TransferService {
 
         createOrderReq.setOrderSource(orderSourceEnum.getCode());
 //        createOrderReq.setUserId(Long.valueOf(customer.getFanDengUserNo()));
+        //收货地址
+        Consignee consignee = trade.getConsignee();
+
         CreateOrderReq.OrderUserInfoReq orderUserInfoReq = new CreateOrderReq.OrderUserInfoReq();
+
         if (!StringUtils.isEmpty(trade.getDirectChargeMobile())) {
             orderUserInfoReq.setArea("+86");
             orderUserInfoReq.setMobile(trade.getDirectChargeMobile());
+        } else if (!StringUtils.isEmpty(consignee.getPhone())) {
+            orderUserInfoReq.setArea("+86");
+            orderUserInfoReq.setMobile(consignee.getPhone());
         } else {
             orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
         }
@@ -523,8 +534,7 @@ public class TransferService {
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         //商品信息
         createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, orderSourceEnum));
-        //收货地址
-        Consignee consignee = trade.getConsignee();
+
         createOrderReq.setBuyAddressBO(this.packageAddress(trade, consignee, customerDetail));
         if (salePlatformResp.getTid() != null) {
         	createOrderReq.setShopId(salePlatformResp.getTid().toString());
@@ -680,33 +690,35 @@ public class TransferService {
                         //金额
                         if (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0) {
                             BigDecimal tmpPrice = returnItem.getApplyRealPrice().multiply(exchangeRate).multiply(divide);
-
+                            int intValue = tmpPrice.intValue();
                             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
-                            saleAfterRefundDetailReq.setAmount(tmpPrice.intValue());
+                            saleAfterRefundDetailReq.setAmount(intValue);
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
                             saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
-                            surplusPrice = surplusPrice.subtract(tmpPrice);
+                            surplusPrice = surplusPrice.subtract(new BigDecimal(intValue + ""));
                         }
                         //积分
                         if (returnItem.getApplyPoint() != null && returnItem.getApplyPoint() > 0) {
                             BigDecimal tmpPoint = new BigDecimal(returnItem.getApplyPoint().toString()).multiply(divide);
+                            int intValue = tmpPoint.intValue();
                             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
-                            saleAfterRefundDetailReq.setAmount(tmpPoint.intValue());
+                            saleAfterRefundDetailReq.setAmount(intValue);
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
                             saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
-                            surplusPoint = surplusPoint.subtract(tmpPoint);
+                            surplusPoint = surplusPoint.subtract(new BigDecimal(intValue + ""));
                         }
                         //金额
                         if (returnItem.getApplyKnowledge() != null && returnItem.getApplyKnowledge() > 0) {
                             BigDecimal tmpKnowledge = new BigDecimal(returnItem.getApplyKnowledge().toString()).multiply(divide);
+                            int intValue = tmpKnowledge.intValue();
                             SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
-                            saleAfterRefundDetailReq.setAmount(tmpKnowledge.intValue());
+                            saleAfterRefundDetailReq.setAmount(intValue);
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
                             saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
-                            surplusKnowledge = surplusKnowledge.subtract(tmpKnowledge);
+                            surplusKnowledge = surplusKnowledge.subtract(new BigDecimal(intValue + ""));
                         }
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     }
