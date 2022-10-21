@@ -117,7 +117,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
          */
         if (CollectionUtils.isNotEmpty(req.getClassifyIds())) {
             if (req.getClassifyIds().size() > 1) {
-                boolQb.must(termsQuery("classify.fclassifyId", req.getClassifyIds().get(0)));
+                boolQb.must(termsQuery("classify.fclassifyId", req.getClassifyIds()));
             } else {
                 boolQb.must(termQuery("classify.fclassifyId", req.getClassifyIds().get(0)));
             }
