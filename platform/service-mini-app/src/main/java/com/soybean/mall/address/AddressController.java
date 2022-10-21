@@ -21,7 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -64,15 +68,31 @@ public class AddressController {
             BaseResponse<CustomerDeliveryAddressResponse> customerDeliveryAddressResponseBaseResponse = customerDeliveryAddressQueryProvider.getDefaultOrAnyOneByCustomerId(request);
             CustomerDeliveryAddressResponse customerDeliveryAddressResponse = customerDeliveryAddressResponseBaseResponse.getContext();
             if (!Objects.isNull(customerDeliveryAddressResponse)) {
-                fixedAddressResp.setProvinceId(customerDeliveryAddressResponse.getProvinceId()+"");
-                fixedAddressResp.setProvinceName(customerDeliveryAddressResponse.getProvinceName());
-                fixedAddressResp.setCityId(customerDeliveryAddressResponse.getCityId() + "");
-                fixedAddressResp.setCityName(customerDeliveryAddressResponse.getCityName());
-                fixedAddressResp.setAreaId(customerDeliveryAddressResponse.getAreaId() + "");
-                fixedAddressResp.setAreaName(customerDeliveryAddressResponse.getAreaName());
-                fixedAddressResp.setStreetId(customerDeliveryAddressResponse.getStreetId() + "");
-                fixedAddressResp.setStreetName(customerDeliveryAddressResponse.getStreetName());
-                return BaseResponse.success(fixedAddressResp);
+
+                PlatformAddressListRequest platformAddressListRequest = new PlatformAddressListRequest();
+                platformAddressListRequest.setDelFlag(DeleteFlag.NO);
+                platformAddressListRequest.setAddrLevel(AddrLevel.PROVINCE);
+                platformAddressListRequest.setLeafFlag(false);
+                platformAddressListRequest.setAddrIdList(Arrays.asList(customerDeliveryAddressResponse.getProvinceId() + "",
+                        customerDeliveryAddressResponse.getCityId() + "",
+                        customerDeliveryAddressResponse.getAreaId() + "",
+                        customerDeliveryAddressResponse.getStreetId() + ""
+                        ));
+                PlatformAddressListResponse context = platformAddressQueryProvider.list(platformAddressListRequest).getContext();
+                if (CollectionUtils.isNotEmpty(context.getPlatformAddressVOList())) {
+
+                    Map<String, PlatformAddressVO> collect =
+                            context.getPlatformAddressVOList().stream().collect(Collectors.toMap(PlatformAddressVO::getAddrId, Function.identity(), (k1, k2) -> k1));
+                    fixedAddressResp.setProvinceId(customerDeliveryAddressResponse.getProvinceId()+"");
+                    fixedAddressResp.setProvinceName(collect.get(customerDeliveryAddressResponse.getProvinceId()+"") == null ? "" : collect.get(customerDeliveryAddressResponse.getProvinceId()+"").getAddrName());
+                    fixedAddressResp.setCityId(customerDeliveryAddressResponse.getCityId() + "");
+                    fixedAddressResp.setCityName(collect.get(customerDeliveryAddressResponse.getCityId()+"") == null ? "" : collect.get(customerDeliveryAddressResponse.getCityId()+"").getAddrName());
+                    fixedAddressResp.setAreaId(customerDeliveryAddressResponse.getAreaId() + "");
+                    fixedAddressResp.setAreaName(collect.get(customerDeliveryAddressResponse.getAreaId()+"") == null ? "" : collect.get(customerDeliveryAddressResponse.getAreaId()+"").getAddrName());
+                    fixedAddressResp.setStreetId(customerDeliveryAddressResponse.getStreetId() + "");
+                    fixedAddressResp.setStreetName(collect.get(customerDeliveryAddressResponse.getStreetId()+"") == null ? "" : collect.get(customerDeliveryAddressResponse.getStreetId()+"").getAddrName());
+                    return BaseResponse.success(fixedAddressResp);
+                }
             }
         }
 
