@@ -155,11 +155,6 @@ public class WxPayController implements WxPayProvider {
             return getSignResultCommon(jsApiRequest.getAppid(), payGatewayConfig.getApiKey(), response.getPrepay_id());
         }
         log.error("微信支付[JSApi]统一下单接口调用失败,入参:{},返回结果为:{}", jsApiRequest, response);
-        if (Objects.equals(response.getReturn_code(), "SUCCESS")
-                && Objects.equals(response.getResult_code(), "FAIL")
-                && Objects.equals(response.getErr_code_des(), "201 商户订单号重复")) {
-            return BaseResponse.info("999999", "请在下单的地方支付或者取消重新下单");
-        }
         this.throwErrMsg(response.getErr_code(), response.getErr_code_des());
         return BaseResponse.error(response.getErr_code_des());
     }
@@ -363,6 +358,8 @@ public class WxPayController implements WxPayProvider {
                 || "OUT_TRADE_NO_USED".equalsIgnoreCase(code)) {
             //订单超时、关闭、单号重复
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{msg});
+        } else if ("201 商户订单号重复".equalsIgnoreCase(msg)) {
+            throw new SbcRuntimeException("K-000020");
         } else {
             throw new SbcRuntimeException(CommonErrorCode.WEAPP_FORBIDDEN);
         }
