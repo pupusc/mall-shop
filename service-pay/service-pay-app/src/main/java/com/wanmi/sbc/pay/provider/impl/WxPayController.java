@@ -28,6 +28,7 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 微信支付接口
@@ -154,6 +155,11 @@ public class WxPayController implements WxPayProvider {
             return getSignResultCommon(jsApiRequest.getAppid(), payGatewayConfig.getApiKey(), response.getPrepay_id());
         }
         log.error("微信支付[JSApi]统一下单接口调用失败,入参:{},返回结果为:{}", jsApiRequest, response);
+        if (Objects.equals(response.getReturn_code(), "SUCCESS")
+                && Objects.equals(response.getResult_code(), "FAIL")
+                && Objects.equals(response.getErr_code_des(), "201 商户订单号重复")) {
+            return BaseResponse.info("999999", "请在下单的地方支付或者取消重新下单");
+        }
         this.throwErrMsg(response.getErr_code(), response.getErr_code_des());
         return BaseResponse.error(response.getErr_code_des());
     }
