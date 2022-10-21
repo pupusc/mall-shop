@@ -402,7 +402,7 @@ public class TransferService {
                 buyPaymentReq.setPayGateway(108);
                 buyPaymentReq.setPayTradeNo(payTradeRecordResponse.getTradeNo());
                 String appId = payTradeRecordResponse.getAppId();
-                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("\\&")) {
+                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("\\$")) {
                     appId = payTradeRecordResponse.getAppId().split("\\$")[1];
                 }
                 buyPaymentReq.setPayMchid(appId);
