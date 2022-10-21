@@ -418,7 +418,7 @@ public class PayController {
         jsApiRequest.setOut_trade_no(id);
         jsApiRequest.setTotal_fee(totalPrice);
         jsApiRequest.setSpbill_create_ip(HttpUtil.getIpAddr());
-        jsApiRequest.setTrade_type(WxPayTradeType.JSAPI.toString());
+        jsApiRequest.setTrade_type(WxPayTradeType.MWEB.toString());
         jsApiRequest.setOpenid(weiXinPayRequest.getOpenid());
         jsApiRequest.setStoreId(Constants.BOSS_DEFAULT_STORE_ID);
         return jsApiRequest;
