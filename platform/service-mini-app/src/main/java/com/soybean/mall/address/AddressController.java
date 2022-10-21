@@ -71,7 +71,6 @@ public class AddressController {
 
                 PlatformAddressListRequest platformAddressListRequest = new PlatformAddressListRequest();
                 platformAddressListRequest.setDelFlag(DeleteFlag.NO);
-                platformAddressListRequest.setAddrLevel(AddrLevel.PROVINCE);
                 platformAddressListRequest.setLeafFlag(false);
                 platformAddressListRequest.setAddrIdList(Arrays.asList(customerDeliveryAddressResponse.getProvinceId() + "",
                         customerDeliveryAddressResponse.getCityId() + "",
