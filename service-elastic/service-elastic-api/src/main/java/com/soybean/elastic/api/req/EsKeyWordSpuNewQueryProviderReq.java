@@ -45,7 +45,7 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     /**
      * 标签类别 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
      */
-    private Integer labelCategory;
+    private List<Integer> labelCategorys;
 
     /**
      * 销售 开始价格
@@ -60,30 +60,30 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     /**
      * 店铺分类id
      */
-    private Integer classifyId;
+    private List<Integer> classifyIds;
 
     /**
      * 店铺分类 Name
      */
-    private String classifyName;
+    private List<String> classifyNames;
 
     /**
      * 出版社 Name
      */
-    private String publisherName;
+    private List<String> publisherNames;
 
     /**
      *  作者名
      */
-    private String authorName;
+    private List<String> authorNames;
 
     /**
      *  奖项Name
      */
-    private String awardName;
+    private List<String> awardNames;
 
     /**
      *  丛书Name
      */
-    private String clumpName;
+    private List<String> clumpNames;
 }

@@ -104,22 +104,34 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         /**
          * 标签类别
          */
-        if (req.getLabelCategory() != null) {
-            boolQb.must(nestedQuery("labels", termQuery("labels.category", req.getLabelCategory()), ScoreMode.None));
+        if (CollectionUtils.isNotEmpty(req.getLabelCategorys())) {
+            if (req.getLabelCategorys().size() > 1) {
+                boolQb.must(nestedQuery("labels", termsQuery("labels.category", req.getLabelCategorys()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("labels", termQuery("labels.category", req.getLabelCategorys().get(0)), ScoreMode.None));
+            }
         }
 
         /**
          * 店铺类别
          */
-        if (req.getClassifyId() != null) {
-            boolQb.must(termQuery("classify.fclassifyId", req.getClassifyId()));
+        if (CollectionUtils.isNotEmpty(req.getClassifyIds())) {
+            if (req.getClassifyIds().size() > 1) {
+                boolQb.must(termsQuery("classify.fclassifyId", req.getClassifyIds().get(0)));
+            } else {
+                boolQb.must(termQuery("classify.fclassifyId", req.getClassifyIds().get(0)));
+            }
         }
 
         /**
          * 店铺类别
          */
-        if (StringUtils.isNotBlank(req.getClassifyName())) {
-            boolQb.must(termQuery("classify.fclassifyName", req.getClassifyName()));
+        if (CollectionUtils.isNotEmpty(req.getClassifyNames())) {
+            if (req.getClassifyIds().size() > 1) {
+                boolQb.must(termsQuery("classify.fclassifyName", req.getClassifyNames()));
+            } else {
+                boolQb.must(termQuery("classify.fclassifyName", req.getClassifyNames().get(0)));
+            }
         }
 
         /**
@@ -135,29 +147,45 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         /**
          * 出版社
          */
-        if (StringUtils.isNotBlank(req.getPublisherName())) {
-            boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", req.getPublisherName()), ScoreMode.None));
+        if (CollectionUtils.isNotEmpty(req.getPublisherNames())) {
+            if (req.getPublisherNames().size() > 1) {
+                boolQb.must(nestedQuery("book", termsQuery("book.publisher.keyword", req.getPublisherNames()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", req.getPublisherNames().get(0)), ScoreMode.None));
+            }
         }
 
         /**
          * 作者
          */
-        if (StringUtils.isNotBlank(req.getAuthorName())) {
-            boolQb.must(nestedQuery("book", termQuery("book.authorNames", req.getAuthorName()), ScoreMode.None));
+        if (CollectionUtils.isNotEmpty(req.getAuthorNames())) {
+            if (req.getAuthorNames().size() > 1) {
+                boolQb.must(nestedQuery("book", termsQuery("book.authorNames", req.getAuthorNames()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("book", termQuery("book.authorNames", req.getAuthorNames().get(0)), ScoreMode.None));
+            }
         }
 
         /**
          * 奖项
          */
-        if (StringUtils.isNotBlank(req.getAwardName())) {
-            boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", req.getAwardName()), ScoreMode.None));
+        if (CollectionUtils.isNotEmpty(req.getAwardNames())) {
+            if (req.getAwardNames().size() > 1) {
+                boolQb.must(nestedQuery("book", termsQuery("book.awards.awardName.keyword", req.getAwardNames()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", req.getAwardNames().get(0)), ScoreMode.None));
+            }
         }
 
         /**
          * 从书
          */
-        if (StringUtils.isNotBlank(req.getClumpName())) {
-            boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", req.getClumpName()), ScoreMode.None));
+        if (CollectionUtils.isNotEmpty(req.getClumpNames())) {
+            if (req.getClumpNames().size() > 1) {
+                boolQb.must(nestedQuery("book", termsQuery("book.clumpName.keyword", req.getClumpNames()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", req.getClumpNames().get(0)), ScoreMode.None));
+            }
         }
 
 
