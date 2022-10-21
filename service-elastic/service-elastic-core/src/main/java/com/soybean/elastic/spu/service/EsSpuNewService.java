@@ -127,7 +127,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
          * 店铺类别
          */
         if (CollectionUtils.isNotEmpty(req.getClassifyNames())) {
-            if (req.getClassifyIds().size() > 1) {
+            if (req.getClassifyNames().size() > 1) {
                 boolQb.must(termsQuery("classify.fclassifyName", req.getClassifyNames()));
             } else {
                 boolQb.must(termQuery("classify.fclassifyName", req.getClassifyNames().get(0)));
