@@ -50,7 +50,7 @@ public class SearchNormalController {
     @PostMapping("/spu")
     public BaseResponse<CommonPageResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody EsSpuNewQueryProviderReq request) {
         CommonPageResp<List<EsSpuNewResp>> commonPageResp = esSpuNewProvider.listNormalEsSpuNew(request).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(commonPageResp.getContent());
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(commonPageResp.getContent(), request.getShowSkuIds());
         return BaseResponse.success(new CommonPageResp<>(commonPageResp.getTotal(), spuNewBookListResps));
     }
 
