@@ -1,5 +1,6 @@
-package com.soybean.mall.address;
+package com.soybean.mall.address.controller;
 
+import com.soybean.mall.address.resp.FixedAddressResp;
 import com.soybean.mall.address.req.FixedAddressReq;
 import com.soybean.mall.common.CommonUtil;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -169,4 +170,5 @@ public class AddressController {
         }
         return BaseResponse.success(fixedAddressResp);
     }
+
 }

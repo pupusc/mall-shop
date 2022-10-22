@@ -171,14 +171,15 @@ public final class CommonUtil {
      * @return
      */
     public BaseFixedAddressResp getFixedAddress(){
-        BaseFixedAddressResp baseFixedAddressResp = new BaseFixedAddressResp();
-//        String provinceId = HttpUtil.getRequest().getHeader("provinceId");
-//        String cityId = HttpUtil.getRequest().getHeader("cityId");
-//        if (StringUtils.isBlank(provinceId) || StringUtils.isBlank(cityId)) {
+//        String distributeChannel = HttpUtil.getRequest().getHeader("distribute-channel");
+//        if (StringUtils.isBlank(distributeChannel)) {
 //            throw new SbcRuntimeException("999999", "请传递定位地址");
 //        }
-//        baseFixedAddressResp.setProvinceId(provinceId);
-//        baseFixedAddressResp.setCityId(cityId);
+//        BaseFixedAddressResp baseFixedAddressResp = JSONObject.parseObject(distributeChannel, BaseFixedAddressResp.class);
+//        if (StringUtils.isBlank(baseFixedAddressResp.getCityId()) || StringUtils.isBlank(baseFixedAddressResp.getProvinceId())) {
+//            throw new SbcRuntimeException("999999", "请传递具体定位地址");
+//        }
+        BaseFixedAddressResp baseFixedAddressResp = new BaseFixedAddressResp();
         baseFixedAddressResp.setProvinceId("310000");
         baseFixedAddressResp.setCityId("310100");
         return baseFixedAddressResp;

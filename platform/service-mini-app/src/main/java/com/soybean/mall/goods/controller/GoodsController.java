@@ -186,4 +186,7 @@ public class GoodsController {
         request.setShowSiteLabelFlag(true);
         return goodsQueryProvider.getCacheViewById(request).getContext();
     }
+
+
+
 }

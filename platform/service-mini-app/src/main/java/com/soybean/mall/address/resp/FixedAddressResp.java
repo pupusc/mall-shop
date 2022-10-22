@@ -1,4 +1,4 @@
-package com.soybean.mall.address;
+package com.soybean.mall.address.resp;
 
 import com.soybean.common.resp.BaseFixedAddressResp;
 import lombok.Data;
