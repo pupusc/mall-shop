@@ -1,4 +1,4 @@
-package com.wanmi.sbc.setting.api.response.weight;
+package com.wanmi.sbc.setting.api.response.search;
 
 import lombok.Data;
 

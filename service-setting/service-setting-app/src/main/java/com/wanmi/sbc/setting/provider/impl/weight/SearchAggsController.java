@@ -1,13 +1,14 @@
 package com.wanmi.sbc.setting.provider.impl.weight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.setting.api.provider.search.SearchWeightProvider;
-import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
-import com.wanmi.sbc.setting.search.service.SearchWeightService;
+import com.wanmi.sbc.setting.api.provider.search.SearchAggsProvider;
+import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
+import com.wanmi.sbc.setting.search.service.SearchAggsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 
 /**
  * Description:
@@ -17,21 +18,19 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @RestController
-public class SearchWeightController implements SearchWeightProvider {
+public class SearchAggsController implements SearchAggsProvider {
 
     @Autowired
-    private SearchWeightService searchWeightService;
+    private SearchAggsService searchAggsService;
 
     @Override
-    public BaseResponse<List<SearchWeightResp>> list(String key) {
-        return BaseResponse.success(searchWeightService.list(key));
+    public BaseResponse<List<SearchAggsResp>> list(String key) {
+        return BaseResponse.success(searchAggsService.list(key));
     }
-
 
     @Override
     public BaseResponse delete(String key) {
-        searchWeightService.delete(key);
+        searchAggsService.delete(key);
         return BaseResponse.SUCCESSFUL();
     }
-
 }

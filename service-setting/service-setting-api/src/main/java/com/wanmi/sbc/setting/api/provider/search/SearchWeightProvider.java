@@ -1,8 +1,8 @@
-package com.wanmi.sbc.setting.api.provider.weight;
+package com.wanmi.sbc.setting.api.provider.search;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
+import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

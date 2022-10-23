@@ -1,12 +1,11 @@
-package com.wanmi.sbc.setting.weight.service;
+package com.wanmi.sbc.setting.search.service;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
-import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
+import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
 import com.wanmi.sbc.setting.redis.RedisService;
-import com.wanmi.sbc.setting.weight.model.SearchWeightModel;
-import com.wanmi.sbc.setting.weight.repository.SearchWeightRepository;
-import org.apache.commons.lang3.StringUtils;
+import com.wanmi.sbc.setting.search.model.SearchWeightModel;
+import com.wanmi.sbc.setting.search.repository.SearchWeightRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;

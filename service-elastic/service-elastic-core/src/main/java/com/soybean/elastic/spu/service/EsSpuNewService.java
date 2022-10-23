@@ -1,6 +1,5 @@
 package com.soybean.elastic.spu.service;
 
-import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.enums.SearchSpuNewSortTypeEnum;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSortSpuNewQueryProviderReq;
@@ -9,8 +8,10 @@ import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.constant.ConstantMultiMatchField;
 import com.soybean.elastic.spu.model.EsSpuNew;
+import com.wanmi.sbc.setting.api.constant.SearchAggsConstant;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
-import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
+import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
+import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +24,8 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
@@ -357,14 +355,47 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
      * 聚合结果
      * @return
      */
-    private List<AbstractAggregationBuilder> packageAggregations() {
+    private List<AbstractAggregationBuilder> packageAggregations(/*List<SearchAggsResp> context*/) {
         List<AbstractAggregationBuilder> aggregationBuilderList = new ArrayList<>();
+
+//        for (SearchAggsResp searchAggsResp : context) {
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY)) {
+//                NestedAggregationBuilder nestedAggregationBuilder =
+//                        AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
+//                aggregationBuilderList.add(nestedAggregationBuilder);
+//            }
+//
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY)) {
+//                TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
+//                aggregationBuilderList.add(fclassifyName);
+//            }
+//
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY)) {
+//                NestedAggregationBuilder nested = AggregationBuilders.nested("book", "book");
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"));
+//                }
+//                aggregationBuilderList.add(nested);
+//            }
+//        }
         NestedAggregationBuilder nestedAggregationBuilder =
-                AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
-        aggregationBuilderList.add(nestedAggregationBuilder);
+                        AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
+                aggregationBuilderList.add(nestedAggregationBuilder);
 
         TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
-        aggregationBuilderList.add(fclassifyName);
+                aggregationBuilderList.add(fclassifyName);
 
         NestedAggregationBuilder book =
                 AggregationBuilders.nested("book", "book")
@@ -397,7 +428,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         builder.withQuery(functionScoreQueryBuilder);
 
         //聚合
-        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations()) {
+        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations(/*context*/)) {
             builder.addAggregation(packageAggregation);
         }
 

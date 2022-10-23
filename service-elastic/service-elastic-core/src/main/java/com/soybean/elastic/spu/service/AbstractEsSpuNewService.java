@@ -9,10 +9,12 @@ import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.spu.model.sub.SubBookLabelNew;
 import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
-import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
+import com.wanmi.sbc.setting.api.constant.SearchAggsConstant;
+import com.wanmi.sbc.setting.api.provider.search.SearchAggsProvider;
+import com.wanmi.sbc.setting.api.provider.search.SearchWeightProvider;
+import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.springframework.beans.BeanUtils;
@@ -21,7 +23,10 @@ import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -39,6 +44,9 @@ public abstract class AbstractEsSpuNewService {
 
     @Autowired
     protected ElasticsearchTemplate elasticsearchTemplate;
+
+    @Autowired
+    protected SearchAggsProvider searchAggsProvider;
 
     /**
      * 二次封装请求的正常的对象信息
@@ -62,6 +70,18 @@ public abstract class AbstractEsSpuNewService {
     protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage) {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
 
+        List<SearchAggsResp> searchAggsResps = searchAggsProvider.list(SearchAggsConstant.SPU_SEARCH_AGGS_KEY).getContext();
+
+        Map<String, List<String>> key2SearchAggsMap = new HashMap<>();
+        for (SearchAggsResp searchAggsResp : searchAggsResps) {
+            List<String> tmpSearchAggsResps = key2SearchAggsMap.get(searchAggsResp.getAggsKey());
+            if (tmpSearchAggsResps == null) {
+                tmpSearchAggsResps = new ArrayList<>();
+                key2SearchAggsMap.put(searchAggsResp.getAggsKey(), tmpSearchAggsResps);
+            }
+            tmpSearchAggsResps.add(searchAggsResp.getAggsValue());
+        }
+
         //聚合标签
         List<EsSpuNewAggResp.LabelAggs> resultLabels = new ArrayList<>();
         Nested labels = resultQueryPage.getAggregations().get("labels");
@@ -71,10 +91,14 @@ public abstract class AbstractEsSpuNewService {
             if (spuNewLabelCategoryEnum == null) {
                 continue;
             }
-            EsSpuNewAggResp.LabelAggs labelAggs = new EsSpuNewAggResp.LabelAggs();
-            labelAggs.setCategory(spuNewLabelCategoryEnum.getCode());
-            labelAggs.setLabelName(spuNewLabelCategoryEnum.getMessage());
-            resultLabels.add(labelAggs);
+
+            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY) != null
+                && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY).contains(spuNewLabelCategoryEnum.getMessage())) {
+                EsSpuNewAggResp.LabelAggs labelAggs = new EsSpuNewAggResp.LabelAggs();
+                labelAggs.setCategory(spuNewLabelCategoryEnum.getCode());
+                labelAggs.setLabelName(spuNewLabelCategoryEnum.getMessage());
+                resultLabels.add(labelAggs);
+            }
         }
         esSpuNewAggResp.setLabelAggs(resultLabels);
 
@@ -84,23 +108,31 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.ClassifyAggs> resultFclassifyNames = new ArrayList<>();
         Terms fclassifyNames = resultQueryPage.getAggregations().get("fclassifyName");
         for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
-            EsSpuNewAggResp.ClassifyAggs classifyNameAggs = new EsSpuNewAggResp.ClassifyAggs();
-            classifyNameAggs.setClassifyName(bucket.getKeyAsString());
-            resultFclassifyNames.add(classifyNameAggs);
+            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY) != null
+                    && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
+                EsSpuNewAggResp.ClassifyAggs classifyNameAggs = new EsSpuNewAggResp.ClassifyAggs();
+                classifyNameAggs.setClassifyName(bucket.getKeyAsString());
+                resultFclassifyNames.add(classifyNameAggs);
+            }
+
         }
         esSpuNewAggResp.setClassifyAggs(resultFclassifyNames);
+
+
+        Nested book = resultQueryPage.getAggregations().get("book");
 
         /**
          * 作者
          */
         List<EsSpuNewAggResp.AuthorAggs> resulAuthors = new ArrayList<>();
-
-        Nested book = resultQueryPage.getAggregations().get("book");
         Terms authorName = book.getAggregations().get("authorName");
         for (Terms.Bucket bucket : authorName.getBuckets()) {
-            EsSpuNewAggResp.AuthorAggs authorNameAggs = new EsSpuNewAggResp.AuthorAggs();
-            authorNameAggs.setAuthorName(bucket.getKeyAsString());
-            resulAuthors.add(authorNameAggs);
+            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY) != null
+                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
+                EsSpuNewAggResp.AuthorAggs authorNameAggs = new EsSpuNewAggResp.AuthorAggs();
+                authorNameAggs.setAuthorName(bucket.getKeyAsString());
+                resulAuthors.add(authorNameAggs);
+            }
         }
         esSpuNewAggResp.setAuthorAggs(resulAuthors);
 
@@ -110,9 +142,13 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.PublisherAggs> resultPublishers = new ArrayList<>();
         Terms publisher = book.getAggregations().get("publisherName");
         for (Terms.Bucket bucket : publisher.getBuckets()) {
-            EsSpuNewAggResp.PublisherAggs publishersAggs = new EsSpuNewAggResp.PublisherAggs();
-            publishersAggs.setPublisherName(bucket.getKeyAsString());
-            resultPublishers.add(publishersAggs);
+            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
+                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
+                EsSpuNewAggResp.PublisherAggs publishersAggs = new EsSpuNewAggResp.PublisherAggs();
+                publishersAggs.setPublisherName(bucket.getKeyAsString());
+                resultPublishers.add(publishersAggs);
+            }
+
         }
         esSpuNewAggResp.setPublisherAggs(resultPublishers);
 
@@ -122,9 +158,12 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AwardAggs> resultAwards = new ArrayList<>();
         Terms awardName = book.getAggregations().get("awardName");
         for (Terms.Bucket bucket : awardName.getBuckets()) {
-            EsSpuNewAggResp.AwardAggs awardAggs = new EsSpuNewAggResp.AwardAggs();
-            awardAggs.setAwardName(bucket.getKeyAsString());
-            resultAwards.add(awardAggs);
+            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
+                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
+                EsSpuNewAggResp.AwardAggs awardAggs = new EsSpuNewAggResp.AwardAggs();
+                awardAggs.setAwardName(bucket.getKeyAsString());
+                resultAwards.add(awardAggs);
+            }
         }
         esSpuNewAggResp.setAwardAggs(resultAwards);
 
@@ -134,12 +173,14 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.ClumpAggs> resultClumps = new ArrayList<>();
         Terms clumpName = book.getAggregations().get("clumpName");
         for (Terms.Bucket bucket : clumpName.getBuckets()) {
-            EsSpuNewAggResp.ClumpAggs clumpAggs = new EsSpuNewAggResp.ClumpAggs();
-            clumpAggs.setClumpName(bucket.getKeyAsString());
-            resultClumps.add(clumpAggs);
+            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
+                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
+                EsSpuNewAggResp.ClumpAggs clumpAggs = new EsSpuNewAggResp.ClumpAggs();
+                clumpAggs.setClumpName(bucket.getKeyAsString());
+                resultClumps.add(clumpAggs);
+            }
         }
         esSpuNewAggResp.setClumpAggs(resultClumps);
-
 
         esSpuNewAggResp.setResult(new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent())));
         return esSpuNewAggResp;

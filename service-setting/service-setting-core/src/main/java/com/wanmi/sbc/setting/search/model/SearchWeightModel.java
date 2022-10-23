@@ -1,4 +1,4 @@
-package com.wanmi.sbc.setting.weight.model;
+package com.wanmi.sbc.setting.search.model;
 
 import lombok.Data;
 
