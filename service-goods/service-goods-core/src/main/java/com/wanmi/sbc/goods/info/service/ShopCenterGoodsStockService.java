@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class ShopCenterGoodsStockService {
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改库存.quantity={},ids={}", quantity, goodsInfoStockMap.keySet());
-		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue());
+		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue(), LocalDateTime.now());
 
 		// 修改goods 库存
 		List<String> goodsIds = infoList.stream().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
@@ -115,7 +116,7 @@ public class ShopCenterGoodsStockService {
 		List<String> goodsInfoIds = infoList.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
 
 		// 更新成本价
-		goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price);
+		goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price, LocalDateTime.now());
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改价格.price={},ids={}", price, goodsInfoIds);
 		resp.setGoodsInfoIds(goodsInfoIds);
 		return BaseResponse.success(resp);

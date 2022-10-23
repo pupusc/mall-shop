@@ -327,4 +327,9 @@ public class EsGoodsVO implements Serializable {
      * 销售渠道
      */
     private List<Integer> goodsChannelTypeList;
+
+    /**
+     * 运费模版id
+     */
+    private Integer freightTempId;
 }

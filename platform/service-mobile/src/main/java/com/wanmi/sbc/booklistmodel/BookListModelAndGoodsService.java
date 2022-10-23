@@ -1,5 +1,6 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
@@ -28,6 +29,7 @@ import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
@@ -40,6 +42,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
+import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
@@ -49,17 +52,12 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
-import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -107,13 +105,13 @@ public class BookListModelAndGoodsService {
     private ChooseRuleProvider chooseRuleProvider;
 
     @Autowired
-    private RedisTemplate redisTemplate;
-
-    @Autowired
     private RedisService redisService;
 
     @Value("${stock.size:5}")
     private Long stockSize;
+
+    @Autowired
+    private GoodsNacosConfigProvider goodsNacosConfigProvider;
 
     /**
      * 获取是否是知识顾问
@@ -167,31 +165,31 @@ public class BookListModelAndGoodsService {
      * 根据 书单模版id 获取 商品spuId 书单Map信息
      * @return
      */
-    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(List<BookListMixProviderResponse> bookListMixList) {
-        //根据书单id列表 获取商品列表id信息
-        if (CollectionUtils.isEmpty(bookListMixList)) {
-            return new HashMap<>();
-        }
-
-        //goodsId -> BookListModelProviderResponse
-        Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
-
-        //获取商品id列表
-        for (BookListMixProviderResponse bookListMixProviderParam : bookListMixList) {
-            if (bookListMixProviderParam.getChooseRuleMode() == null) {
-                continue;
-            }
-            List<BookListGoodsProviderResponse> bookListGoodsList = bookListMixProviderParam.getChooseRuleMode().getBookListGoodsList();
-            if (CollectionUtils.isEmpty(bookListGoodsList)) {
-                continue;
-            }
-            for (BookListGoodsProviderResponse bookListGoodsProviderParam: bookListGoodsList) {
-                //这里方便后续 房源查找模版
-                supId2BookListMixMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam);
-            }
-        }
-        return supId2BookListMixMap;
-    }
+//    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(List<BookListMixProviderResponse> bookListMixList) {
+//        //根据书单id列表 获取商品列表id信息
+//        if (CollectionUtils.isEmpty(bookListMixList)) {
+//            return new HashMap<>();
+//        }
+//
+//        //goodsId -> BookListModelProviderResponse
+//        Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
+//
+//        //获取商品id列表
+//        for (BookListMixProviderResponse bookListMixProviderParam : bookListMixList) {
+//            if (bookListMixProviderParam.getChooseRuleMode() == null) {
+//                continue;
+//            }
+//            List<BookListGoodsProviderResponse> bookListGoodsList = bookListMixProviderParam.getChooseRuleMode().getBookListGoodsList();
+//            if (CollectionUtils.isEmpty(bookListGoodsList)) {
+//                continue;
+//            }
+//            for (BookListGoodsProviderResponse bookListGoodsProviderParam: bookListGoodsList) {
+//                //这里方便后续 房源查找模版
+//                supId2BookListMixMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam);
+//            }
+//        }
+//        return supId2BookListMixMap;
+//    }
 
 
     /**
@@ -564,6 +562,17 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
         esGoodsCustomResponse.setStock(stock);
+
+        //获取 49免运费模版信息
+        GoodsNacosConfigResp context = goodsNacosConfigProvider.getNacosConfig().getContext();
+        if (context != null && Objects.equals(context.getFreeDelivery49(), goodsVO.getFreightTempId().toString())) {
+            SearchSpuNewLabelCategoryEnum freeDelivery49Enum = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
+            GoodsCustomResponse.Label freightLabel = new GoodsCustomResponse.Label();
+            freightLabel.setLabelName(freeDelivery49Enum.getMessage());
+            freightLabel.setLabelCategory(freeDelivery49Enum.getCode());
+
+            esGoodsCustomResponse.setFreightLabel(freightLabel);
+        }
         //主播推荐标签
         List<AnchorPushEnum> anchorPushEnumList = new ArrayList<>();
         if (!StringUtils.isEmpty(goodsVO.getAnchorPushs())) {

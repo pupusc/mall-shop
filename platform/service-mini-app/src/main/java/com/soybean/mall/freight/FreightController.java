@@ -10,8 +10,10 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -57,6 +59,9 @@ public class FreightController {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    @Autowired
+    private GoodsNacosConfigProvider goodsNacosConfigProvider;
 
 
     /**
@@ -113,8 +118,9 @@ public class FreightController {
             throw new SbcRuntimeException("999999", "所选地区不支持配送");
         }
 
+        GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
         FreightPriceResp.Label preightPriceLabel = new FreightPriceResp.Label();
-        if (Objects.equals(goods.getFreightTempId(), 0000000000L)) {
+        if (Objects.equals(goods.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
             SearchSpuNewLabelCategoryEnum freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
             preightPriceLabel.setLabelName(freeDelivery.getMessage());
             preightPriceLabel.setLabelCategory(freeDelivery.getCode());
