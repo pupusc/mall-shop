@@ -571,7 +571,7 @@ public class BookListModelAndGoodsService {
             freightLabel.setLabelName(freeDelivery49Enum.getMessage());
             freightLabel.setLabelCategory(freeDelivery49Enum.getCode());
 
-            esGoodsCustomResponse.setFreightLabel(freightLabel);
+            esGoodsCustomResponse.setLabels(Collections.singletonList(freightLabel));
         }
         //主播推荐标签
         List<AnchorPushEnum> anchorPushEnumList = new ArrayList<>();

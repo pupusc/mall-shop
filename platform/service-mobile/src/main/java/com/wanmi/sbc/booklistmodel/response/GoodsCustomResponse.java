@@ -133,7 +133,7 @@ public class GoodsCustomResponse implements Serializable{
     /**
      * 标签信息
      */
-    private Label freightLabel;
+    private List<Label> labels;
 
     /**
      * 活动信息
