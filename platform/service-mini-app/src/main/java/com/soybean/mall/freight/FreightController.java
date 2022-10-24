@@ -3,16 +3,24 @@ package com.soybean.mall.freight;
 import com.soybean.common.resp.BaseFixedAddressResp;
 import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.mall.common.CommonUtil;
+import com.soybean.mall.freight.req.FreightPriceListReq;
 import com.soybean.mall.freight.req.FreightPriceReq;
+import com.soybean.mall.freight.resp.FreightPriceListResp;
 import com.soybean.mall.freight.resp.FreightPriceResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -28,6 +36,7 @@ import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description: 运费信息
@@ -63,6 +76,8 @@ public class FreightController {
     @Autowired
     private GoodsNacosConfigProvider goodsNacosConfigProvider;
 
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     /**
      * 根据skuid获取商品标签/运费信息
@@ -143,4 +158,109 @@ public class FreightController {
         return BaseResponse.success(freightPriceResp);
     }
 
+
+    @PostMapping("/getFreightPriceList")
+    public BaseResponse<FreightPriceListResp> listFreightPrice(@RequestBody FreightPriceListReq freightPriceListReq){
+        if (CollectionUtils.isEmpty(freightPriceListReq.getSkus())) {
+            throw new SbcRuntimeException("999999", "请传递商品信息");
+        }
+
+        List<String> goodsInfoIds = new ArrayList<>();
+        for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
+            if (sku.getNum() == null || sku.getNum() <= 0) {
+                throw new SbcRuntimeException("999999", "传递的数量有误");
+            }
+            goodsInfoIds.add(sku.getSkuId());
+        }
+
+        //获取sku信息
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(goodsInfoIds);
+        goodsInfoViewByIdsRequest.setDeleteFlag(DeleteFlag.NO);
+        GoodsInfoViewByIdsResponse context = goodsInfoQueryProvider.listViewByIds(goodsInfoViewByIdsRequest).getContext();
+        if (CollectionUtils.isEmpty(context.getGoodsInfos())) {
+            throw new SbcRuntimeException("99999", "sku信息不存在");
+        }
+
+        BigDecimal sumPrice = BigDecimal.ZERO;
+        List<String> spuIds = new ArrayList<>();
+        Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap = new HashMap<>();
+        for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
+            sumPrice = sumPrice.add(goodsInfo.getSalePrice());
+            spuIds.add(goodsInfo.getGoodsId());
+            skuId2GoodsInfoVoMap.put(goodsInfo.getGoodsInfoId(), goodsInfo);
+        }
+
+        //获取spu信息
+        GoodsListByIdsRequest goodsListByIdsRequest = new GoodsListByIdsRequest();
+        goodsListByIdsRequest.setGoodsIds(spuIds);
+        GoodsListByIdsResponse spuContext = goodsQueryProvider.listByIds(goodsListByIdsRequest).getContext();
+        if (CollectionUtils.isEmpty(spuContext.getGoodsVOList())) {
+            throw new SbcRuntimeException("99999", "spu信息不存在");
+        }
+        if (spuContext.getGoodsVOList().size() != spuIds.size()) {
+            throw new SbcRuntimeException("99999", "spu信息数量不同");
+        }
+
+        Map<String, GoodsVO> spuId2ModelMap =
+                spuContext.getGoodsVOList().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+
+        BaseFixedAddressResp fixedAddress = null;
+        if (StringUtils.isBlank(freightPriceListReq.getProvinceId()) || StringUtils.isBlank(freightPriceListReq.getCityId())) {
+            fixedAddress = commonUtil.getFixedAddress();
+        } else {
+            fixedAddress = new BaseFixedAddressResp();
+            fixedAddress.setProvinceId(freightPriceListReq.getProvinceId());
+            fixedAddress.setCityId(freightPriceListReq.getCityId());
+        }
+
+        //获取地址信息
+        TradeParamsRequest tradeParamsRequest = new TradeParamsRequest();
+        ConsigneeDTO consigneeDTO = new ConsigneeDTO();
+        consigneeDTO.setProvinceId(Long.valueOf(fixedAddress.getProvinceId()));
+        consigneeDTO.setCityId(Long.valueOf(fixedAddress.getCityId()));
+        tradeParamsRequest.setConsignee(consigneeDTO);
+
+        tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
+        TradePriceDTO tradePriceDTO = new TradePriceDTO();
+        tradePriceDTO.setTotalPrice(sumPrice);
+        tradeParamsRequest.setTradePrice(tradePriceDTO);
+
+        Long storeId = 0L;
+        List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
+        for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
+            GoodsInfoVO goodsInfoVO = skuId2GoodsInfoVoMap.get(sku.getSkuId());
+            if (goodsInfoVO == null) {
+                continue;
+            }
+            GoodsVO goodsVO = spuId2ModelMap.get(goodsInfoVO.getGoodsId());
+            if (goodsVO == null) {
+                continue;
+            }
+            storeId = goodsVO.getStoreId();
+            TradeItemDTO tradeItemDTO = new TradeItemDTO();
+            tradeItemDTO.setGoodsType(GoodsType.fromValue(goodsVO.getGoodsType()));
+            tradeItemDTO.setFreightTempId(goodsVO.getFreightTempId());
+            tradeItemDTO.setNum(sku.getNum().longValue());
+            tradeItemDTO.setGoodsWeight(goodsVO.getGoodsWeight());
+            tradeItemDTO.setGoodsCubage(goodsVO.getGoodsCubage());
+            tradeItemDTO.setSplitPrice(goodsInfoVO.getMarketPrice());
+            tradeItemDTOList.add(tradeItemDTO);
+        }
+
+        tradeParamsRequest.setOldTradeItems(tradeItemDTOList);
+
+        SupplierDTO supplierDTO = new SupplierDTO();
+        supplierDTO.setStoreId(storeId);
+        supplierDTO.setFreightTemplateType(DefaultFlag.YES);
+        tradeParamsRequest.setSupplier(supplierDTO);
+        BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
+        if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
+            throw new SbcRuntimeException("999999", "所选地区不支持配送");
+        }
+
+        FreightPriceListResp freightPriceListResp = new FreightPriceListResp();
+        freightPriceListResp.setDeliveryPrice(freight.getContext().getDeliveryPrice().toString());
+        return BaseResponse.success(freightPriceListResp);
+    }
 }

@@ -2,7 +2,6 @@ package com.soybean.mall.freight.resp;
 
 import lombok.Data;
 
-import java.util.List;
 
 /**
  * Description:
