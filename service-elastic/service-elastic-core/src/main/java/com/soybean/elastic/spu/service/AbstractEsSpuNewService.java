@@ -12,7 +12,6 @@ import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.constant.SearchAggsConstant;
 import com.wanmi.sbc.setting.api.provider.search.SearchAggsProvider;
 import com.wanmi.sbc.setting.api.provider.search.SearchWeightProvider;
-import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
@@ -23,10 +22,8 @@ import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -70,17 +67,16 @@ public abstract class AbstractEsSpuNewService {
     protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage) {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
 
-        List<SearchAggsResp> searchAggsResps = searchAggsProvider.list(SearchAggsConstant.SPU_SEARCH_AGGS_KEY).getContext();
-
-        Map<String, List<String>> key2SearchAggsMap = new HashMap<>();
-        for (SearchAggsResp searchAggsResp : searchAggsResps) {
-            List<String> tmpSearchAggsResps = key2SearchAggsMap.get(searchAggsResp.getAggsKey());
-            if (tmpSearchAggsResps == null) {
-                tmpSearchAggsResps = new ArrayList<>();
-                key2SearchAggsMap.put(searchAggsResp.getAggsKey(), tmpSearchAggsResps);
-            }
-            tmpSearchAggsResps.add(searchAggsResp.getAggsValue());
-        }
+        Map<String, List<String>> key2SearchAggsMap = searchAggsProvider.list(SearchAggsConstant.SPU_SEARCH_AGGS_KEY).getContext();
+//        Map<String, List<String>> key2SearchAggsMap = new HashMap<>();
+//        for (SearchAggsResp searchAggsResp : searchAggsResps) {
+//            List<String> tmpSearchAggsResps = key2SearchAggsMap.get(searchAggsResp.getAggsKey());
+//            if (tmpSearchAggsResps == null) {
+//                tmpSearchAggsResps = new ArrayList<>();
+//                key2SearchAggsMap.put(searchAggsResp.getAggsKey(), tmpSearchAggsResps);
+//            }
+//            tmpSearchAggsResps.add(searchAggsResp.getAggsValue());
+//        }
 
         //聚合标签
         List<EsSpuNewAggResp.LabelAggs> resultLabels = new ArrayList<>();

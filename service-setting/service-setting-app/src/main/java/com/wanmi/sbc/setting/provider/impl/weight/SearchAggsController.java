@@ -2,12 +2,12 @@ package com.wanmi.sbc.setting.provider.impl.weight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.provider.search.SearchAggsProvider;
-import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
 import com.wanmi.sbc.setting.search.service.SearchAggsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -24,7 +24,7 @@ public class SearchAggsController implements SearchAggsProvider {
     private SearchAggsService searchAggsService;
 
     @Override
-    public BaseResponse<List<SearchAggsResp>> list(String key) {
+    public BaseResponse<Map<String, List<String>>> list(String key) {
         return BaseResponse.success(searchAggsService.list(key));
     }
 

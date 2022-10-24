@@ -1,12 +1,12 @@
 package com.wanmi.sbc.setting.search.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.setting.api.constant.SearchAggsConstant;
-import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
-import com.wanmi.sbc.setting.api.response.search.SearchAggsResp;
 import com.wanmi.sbc.setting.redis.RedisService;
 import com.wanmi.sbc.setting.search.model.SearchAggsModel;
 import com.wanmi.sbc.setting.search.repository.SearchAggsRepository;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,27 +42,35 @@ public class SearchAggsService {
      * @param key
      * @return
      */
-    public List<SearchAggsResp> list(String key) {
+    public Map<String, List<String>> list(String key) {
 
-        List<SearchAggsResp> result = new ArrayList<>();
+        Map<String, List<String>> result = new HashMap<>();
         Map<Object, Object> hashValue = redisService.getHashValue(key);
         if (!hashValue.isEmpty()) {
             hashValue.forEach((K, V) -> {
-                SearchAggsResp searchAggsResp = new SearchAggsResp();
-                searchAggsResp.setAggsKey((String) K);
-                searchAggsResp.setAggsValue((String) V);
-                result.add(searchAggsResp);
+//                SearchAggsResp searchAggsResp = new SearchAggsResp();
+//                searchAggsResp.setAggsKey((String) K);
+//                searchAggsResp.setAggsValue((String) V);
+//                result.add(searchAggsResp);
+                List<String> values = JSON.parseArray(V.toString(), String.class);
+                result.put(K.toString(), values);
             });
             return result;
         }
 
+        Map<String, List<String>> aggsKey2ValueMap = new HashMap<>();
         List<SearchAggsModel> searchAggsModelList = searchAggsRepository.findAll(this.packageWhere());
         for (SearchAggsModel searchAggsModel : searchAggsModelList) {
-            SearchAggsResp searchAggsResp = new SearchAggsResp();
-            searchAggsResp.setAggsKey(searchAggsModel.getAggsKey());
-            searchAggsResp.setAggsValue(searchAggsModel.getAggsValue());
-            redisService.putHash(SearchAggsConstant.SPU_SEARCH_AGGS_KEY, searchAggsModel.getAggsKey(), searchAggsModel.getAggsValue(), 4 * 60 * 60);
-            result.add(searchAggsResp);
+            List<String> aggsValues = aggsKey2ValueMap.get(searchAggsModel.getAggsKey());
+            if (CollectionUtils.isEmpty(aggsValues)) {
+                aggsValues = new ArrayList<>();
+                aggsKey2ValueMap.put(searchAggsModel.getAggsKey(), aggsValues);
+            }
+            aggsValues.add(searchAggsModel.getAggsValue());
+        }
+
+        for (Map.Entry<String, List<String>> stringListEntry : aggsKey2ValueMap.entrySet()) {
+            redisService.putHash(SearchAggsConstant.SPU_SEARCH_AGGS_KEY, stringListEntry.getKey(), JSON.toJSONString(stringListEntry.getValue()), 4 * 60 * 60);
         }
         return result;
     }
