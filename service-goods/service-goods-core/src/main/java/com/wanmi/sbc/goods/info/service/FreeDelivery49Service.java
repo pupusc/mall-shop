@@ -95,7 +95,7 @@ public class FreeDelivery49Service {
         //更新为指定模版
         for (Map.Entry<String, GoodsVO> stringGoodsVOEntry : updateSpuId2GoodsVoMap.entrySet()) {
             GoodsVO goodsVO = stringGoodsVOEntry.getValue();
-            if (CollectionUtils.isNotEmpty(goodsNacosConfig.getUnFreeDelivery49s()) && goodsNacosConfig.getFreeDelivery49().contains(goodsVO.getFreightTempId().toString())) {
+            if (CollectionUtils.isNotEmpty(goodsNacosConfig.getUnFreeDelivery49()) && goodsNacosConfig.getFreeDelivery49().contains(goodsVO.getFreightTempId().toString())) {
                 continue;
             }
             //记录当前的模版id，

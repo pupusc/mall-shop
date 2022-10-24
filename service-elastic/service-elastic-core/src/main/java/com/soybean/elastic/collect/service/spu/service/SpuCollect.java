@@ -1,4 +1,5 @@
 package com.soybean.elastic.collect.service.spu.service;
+import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum;
 import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
@@ -20,6 +21,7 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class SpuCollect extends AbstractSpuCollect {
 
     @Autowired
@@ -126,6 +129,7 @@ public class SpuCollect extends AbstractSpuCollect {
         }
         //获取49包邮配置信息
         GoodsNacosConfigResp goodsNacosConfigResp = goodsNacosConfigProvider.getNacosConfig().getContext();
+        log.info("SpuCollect collect goodsNacosConfigResp {}", JSON.toJSONString(goodsNacosConfigResp));
 
         Map<String, CollectSpuVO> spuId2CollectGoodsVoMap =
                 context.stream().collect(Collectors.toMap(CollectSpuVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
