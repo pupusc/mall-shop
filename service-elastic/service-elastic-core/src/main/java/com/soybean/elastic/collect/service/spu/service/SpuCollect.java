@@ -174,7 +174,8 @@ public class SpuCollect extends AbstractSpuCollect {
             }
 
             //49包邮标签信息
-            if (goodsNacosConfigResp != null && Objects.equals(collectSpuVO.getFreightTempId().toString(), goodsNacosConfigResp.getFreeDelivery49())) {
+            log.info("SpuCollect collect spuId:{} freightTempId is empty", collectSpuVO.getGoodsId());
+            if (goodsNacosConfigResp != null && collectSpuVO.getFreightTempId() != null && Objects.equals(collectSpuVO.getFreightTempId().toString(), goodsNacosConfigResp.getFreeDelivery49())) {
                 SearchSpuNewLabelCategoryEnum freeDelivery49 = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
                 List<SubLabelNew> labels = esSpuNew.getLabels();
                 if (CollectionUtils.isEmpty(labels)) {
