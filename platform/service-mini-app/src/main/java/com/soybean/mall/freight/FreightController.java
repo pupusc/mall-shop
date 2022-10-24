@@ -82,8 +82,14 @@ public class FreightController {
         if (context.getGoods() == null || context.getGoodsInfo() == null) {
             throw new SbcRuntimeException("skuId对应的商品信息不存在");
         }
-
-        BaseFixedAddressResp fixedAddress = commonUtil.getFixedAddress();
+        BaseFixedAddressResp fixedAddress = null;
+        if (StringUtils.isBlank(freightPriceReq.getProvinceId()) || StringUtils.isBlank(freightPriceReq.getCityId())) {
+            fixedAddress = commonUtil.getFixedAddress();
+        } else {
+            fixedAddress = new BaseFixedAddressResp();
+            fixedAddress.setProvinceId(freightPriceReq.getProvinceId());
+            fixedAddress.setCityId(freightPriceReq.getCityId());
+        }
 
         FreightPriceResp freightPriceResp = new FreightPriceResp();
         //获取地址信息

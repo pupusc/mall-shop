@@ -13,4 +13,14 @@ import lombok.Data;
 public class FreightPriceReq {
 
     private String skuId;
+
+    /**
+     * 省份id
+     */
+    private String provinceId;
+
+    /**
+     * 市id
+     */
+    private String cityId;
 }
