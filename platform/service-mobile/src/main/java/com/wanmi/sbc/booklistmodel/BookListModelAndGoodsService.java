@@ -565,7 +565,10 @@ public class BookListModelAndGoodsService {
 
         //获取 49免运费模版信息
         GoodsNacosConfigResp context = goodsNacosConfigProvider.getNacosConfig().getContext();
-        if (context != null && Objects.equals(context.getFreeDelivery49(), goodsVO.getFreightTempId().toString())) {
+        log.info("BookListModelAndGoodsService packageGoodsCustomResponse spuId {} freightTmpId:{}",
+                goodsVO.getGoodsId(), goodsVO.getFreightTempId());
+        if (context != null && goodsVO.getFreightTempId() != null &&
+                Objects.equals(context.getFreeDelivery49(), goodsVO.getFreightTempId().toString())) {
             SearchSpuNewLabelCategoryEnum freeDelivery49Enum = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
             GoodsCustomResponse.Label freightLabel = new GoodsCustomResponse.Label();
             freightLabel.setLabelName(freeDelivery49Enum.getMessage());
