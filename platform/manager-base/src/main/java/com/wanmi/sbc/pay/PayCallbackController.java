@@ -774,7 +774,7 @@ public class PayCallbackController {
                 Map<String, String> aesMap = WXPayUtil.xmlToMap(resultStr);
                 WxPayRefundCallBackDataResponse dataResponse = (WxPayRefundCallBackDataResponse) WXPayUtil.
                         mapToObject(aesMap, WxPayRefundCallBackDataResponse.class);
-
+                log.info("支付退款回调 微信支付异步通知回调解析结果为：{}", JSON.toJSONString(dataResponse));
                 /** 以下为返回的加密字段： **/
                 //  商户退款单号  是   String(64)  1.21775E+27 商户退款单号
                 String out_refund_no = dataResponse.getOut_refund_no();
