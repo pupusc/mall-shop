@@ -26,6 +26,8 @@ public abstract class AbstractCollectFactory {
 
     public static final String INDEX_ES_SPU_NEW = "es_spu_new";
 
+    public static final Integer MAX_SIZE = 10000;
+
     /**
      * 根据key生成要拼装的对象信息
      * @param <S>

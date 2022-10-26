@@ -29,6 +29,7 @@ import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
+import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
@@ -44,6 +45,7 @@ import com.wanmi.sbc.goods.api.request.brand.GoodsBrandByIdsRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
+import com.wanmi.sbc.goods.api.request.freight.FreightTemplate49ChangeReq;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddAllRequest;
@@ -238,6 +240,9 @@ public class GoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+    @Autowired
+    private FreightTemplateGoodsProvider freightTemplateGoodsProvider;
+
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
@@ -353,6 +358,11 @@ public class GoodsController {
             guanYiSyncGoodsStockRequest.setPageSize(0);
             goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
         }
+
+        //更新运费模版
+        FreightTemplate49ChangeReq freightTemplate49ChangeReq = new FreightTemplate49ChangeReq();
+        freightTemplate49ChangeReq.setSpuIds(Collections.singletonList(goodsId));
+        freightTemplateGoodsProvider.changeFreeDelivery49(freightTemplate49ChangeReq);
 
 
         //ares埋点-商品-后台添加商品sku
@@ -649,6 +659,11 @@ public class GoodsController {
 //            guanYiSyncGoodsStockRequest.setPageSize(0);
 //            goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
 //        }
+
+        //更新运费模版
+        FreightTemplate49ChangeReq freightTemplate49ChangeReq = new FreightTemplate49ChangeReq();
+        freightTemplate49ChangeReq.setSpuIds(Collections.singletonList(request.getGoods().getGoodsId()));
+        freightTemplateGoodsProvider.changeFreeDelivery49(freightTemplate49ChangeReq);
 
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {

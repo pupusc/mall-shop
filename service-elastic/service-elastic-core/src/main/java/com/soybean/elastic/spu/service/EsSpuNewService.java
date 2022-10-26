@@ -442,7 +442,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         AggregatedPage<EsSpuNew> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsSpuNew.class);
 
 //        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
-        return super.packageEsSpuNewAggResp(resultQueryPage);
+        return super.packageEsSpuNewAggResp(resultQueryPage, req);
     }
 
 

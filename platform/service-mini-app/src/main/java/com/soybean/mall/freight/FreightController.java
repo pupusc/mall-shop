@@ -12,6 +12,13 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
@@ -43,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,6 +87,13 @@ public class FreightController {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
+
     /**
      * 根据skuid获取商品标签/运费信息
      * @param freightPriceReq
@@ -106,6 +121,19 @@ public class FreightController {
             fixedAddress.setCityId(freightPriceReq.getCityId());
         }
 
+        String userId = commonUtil.getOperatorId();
+        BigDecimal discountRate = BigDecimal.ONE; //折扣率
+        if (!org.springframework.util.StringUtils.isEmpty(userId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+
+            MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+            maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+            List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+            if (!CollectionUtils.isEmpty(paidCardVOList)) {
+                discountRate = paidCardVOList.get(0).getDiscountRate();
+            }
+        }
+
         FreightPriceResp freightPriceResp = new FreightPriceResp();
         //获取地址信息
         GoodsVO goods = context.getGoods();
@@ -118,7 +146,7 @@ public class FreightController {
 
         tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
         TradePriceDTO tradePriceDTO = new TradePriceDTO();
-        tradePriceDTO.setTotalPrice(goodsInfo.getSalePrice());
+        tradePriceDTO.setTotalPrice(goodsInfo.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
         tradeParamsRequest.setTradePrice(tradePriceDTO);
 
         TradeItemDTO tradeItemDTO = new TradeItemDTO();
@@ -159,6 +187,12 @@ public class FreightController {
     }
 
 
+    /**
+     * 获取49包邮运费信息
+     * @menu 搜索功能
+     * @param freightPriceListReq
+     * @return
+     */
     @PostMapping("/getFreightPriceList")
     public BaseResponse<FreightPriceListResp> listFreightPrice(@RequestBody FreightPriceListReq freightPriceListReq){
         if (CollectionUtils.isEmpty(freightPriceListReq.getSkus())) {
@@ -173,6 +207,19 @@ public class FreightController {
             goodsInfoIds.add(sku.getSkuId());
         }
 
+        String userId = commonUtil.getOperatorId();
+        BigDecimal discountRate = BigDecimal.ONE; //折扣率
+        if (!org.springframework.util.StringUtils.isEmpty(userId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+
+            MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+            maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+            List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+            if (!CollectionUtils.isEmpty(paidCardVOList)) {
+                discountRate = paidCardVOList.get(0).getDiscountRate();
+            }
+        }
+
         //获取sku信息
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(goodsInfoIds);
@@ -182,11 +229,10 @@ public class FreightController {
             throw new SbcRuntimeException("99999", "sku信息不存在");
         }
 
-        BigDecimal sumPrice = BigDecimal.ZERO;
+
         List<String> spuIds = new ArrayList<>();
         Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap = new HashMap<>();
         for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
-            sumPrice = sumPrice.add(goodsInfo.getSalePrice());
             spuIds.add(goodsInfo.getGoodsId());
             skuId2GoodsInfoVoMap.put(goodsInfo.getGoodsInfoId(), goodsInfo);
         }
@@ -222,12 +268,12 @@ public class FreightController {
         tradeParamsRequest.setConsignee(consigneeDTO);
 
         tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
-        TradePriceDTO tradePriceDTO = new TradePriceDTO();
-        tradePriceDTO.setTotalPrice(sumPrice);
-        tradeParamsRequest.setTradePrice(tradePriceDTO);
 
+        BigDecimal sumPrice = BigDecimal.ZERO;
         Long storeId = 0L;
         List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
+        boolean hasFreeDelivery49 = false;
+        SearchSpuNewLabelCategoryEnum freeDelivery = null;
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
             GoodsInfoVO goodsInfoVO = skuId2GoodsInfoVoMap.get(sku.getSkuId());
             if (goodsInfoVO == null) {
@@ -237,30 +283,49 @@ public class FreightController {
             if (goodsVO == null) {
                 continue;
             }
-            storeId = goodsVO.getStoreId();
-            TradeItemDTO tradeItemDTO = new TradeItemDTO();
-            tradeItemDTO.setGoodsType(GoodsType.fromValue(goodsVO.getGoodsType()));
-            tradeItemDTO.setFreightTempId(goodsVO.getFreightTempId());
-            tradeItemDTO.setNum(sku.getNum().longValue());
-            tradeItemDTO.setGoodsWeight(goodsVO.getGoodsWeight());
-            tradeItemDTO.setGoodsCubage(goodsVO.getGoodsCubage());
-            tradeItemDTO.setSplitPrice(goodsInfoVO.getMarketPrice());
-            tradeItemDTOList.add(tradeItemDTO);
+
+            GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
+            if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
+                freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
+                hasFreeDelivery49 = true;
+                sumPrice = sumPrice.add(goodsInfoVO.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
+
+                storeId = goodsVO.getStoreId();
+                TradeItemDTO tradeItemDTO = new TradeItemDTO();
+                tradeItemDTO.setGoodsType(GoodsType.fromValue(goodsVO.getGoodsType()));
+                tradeItemDTO.setFreightTempId(goodsVO.getFreightTempId());
+                tradeItemDTO.setNum(sku.getNum().longValue());
+                tradeItemDTO.setGoodsWeight(goodsVO.getGoodsWeight());
+                tradeItemDTO.setGoodsCubage(goodsVO.getGoodsCubage());
+                tradeItemDTO.setSplitPrice(goodsInfoVO.getMarketPrice());
+                tradeItemDTOList.add(tradeItemDTO);
+            }
         }
 
-        tradeParamsRequest.setOldTradeItems(tradeItemDTOList);
+        BigDecimal freightPrice = BigDecimal.ZERO;
+        if (!CollectionUtils.isEmpty(tradeItemDTOList)) {
+            tradeParamsRequest.setOldTradeItems(tradeItemDTOList);
 
-        SupplierDTO supplierDTO = new SupplierDTO();
-        supplierDTO.setStoreId(storeId);
-        supplierDTO.setFreightTemplateType(DefaultFlag.YES);
-        tradeParamsRequest.setSupplier(supplierDTO);
-        BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
-        if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
-            throw new SbcRuntimeException("999999", "所选地区不支持配送");
+            TradePriceDTO tradePriceDTO = new TradePriceDTO();
+            tradePriceDTO.setTotalPrice(sumPrice);
+            tradeParamsRequest.setTradePrice(tradePriceDTO);
+
+            SupplierDTO supplierDTO = new SupplierDTO();
+            supplierDTO.setStoreId(storeId);
+            supplierDTO.setFreightTemplateType(DefaultFlag.YES);
+            tradeParamsRequest.setSupplier(supplierDTO);
+            BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
+            if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
+                throw new SbcRuntimeException("999999", "所选地区不支持配送");
+            }
+            freightPrice = freight.getContext().getDeliveryPrice();
         }
-
+        BigDecimal diffSumPrice = new BigDecimal(SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49.getRealValue().toString()).subtract(sumPrice);
+        diffSumPrice = diffSumPrice.compareTo(BigDecimal.ZERO) > 0 ? diffSumPrice : BigDecimal.ZERO;
         FreightPriceListResp freightPriceListResp = new FreightPriceListResp();
-        freightPriceListResp.setDeliveryPrice(freight.getContext().getDeliveryPrice().toString());
+        freightPriceListResp.setDeliveryPrice(freightPrice.toString());
+        freightPriceListResp.setHasFreeDelivery(hasFreeDelivery49);
+        freightPriceListResp.setDiffFreeDelivery(freightPrice.compareTo(BigDecimal.ZERO) > 0 ? diffSumPrice.toString() : freightPrice.toString());
         return BaseResponse.success(freightPriceListResp);
     }
 }

@@ -10,7 +10,9 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoAdjustPriceRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.ShopCenterGoodsProvider;
+import com.wanmi.sbc.goods.api.request.freight.FreightTemplate49ChangeReq;
 import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncCostPriceReq;
 import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncStockReq;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterCostPriceSyncResp;
@@ -50,6 +52,8 @@ public class ShopCenterSyncController {
 	private EsGoodsStockProvider esGoodsStockProvider;
 	@Autowired
 	private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
+	@Autowired
+	private FreightTemplateGoodsProvider freightTemplateGoodsProvider;
 
 	@PostMapping("/syncData")
 	public ShopCenterSyncResponse<Boolean> syncData(@RequestBody SyncDataReq request) {
@@ -84,6 +88,11 @@ public class ShopCenterSyncController {
 					ShopCenterSyncCostPriceReq syncPrice = JSON.parseObject(data, ShopCenterSyncCostPriceReq.class);
 					BaseResponse<ShopCenterCostPriceSyncResp> priceResp = shopCenterGoodsProvider.shopCenterSyncCostPrice(syncPrice);
 					refreshCostPrice(priceResp.getContext());
+					if (!CollectionUtils.isEmpty(priceResp.getContext().getGoodsIds())) {
+						FreightTemplate49ChangeReq freightTemplate49ChangeReq = new FreightTemplate49ChangeReq();
+						freightTemplate49ChangeReq.setSpuIds(priceResp.getContext().getGoodsIds());
+						freightTemplateGoodsProvider.changeFreeDelivery49(freightTemplate49ChangeReq);
+					}
 					break;
 				default:
 					logger.warn("电商中台推送同步，未知的数据类型，tag={}!", tag);

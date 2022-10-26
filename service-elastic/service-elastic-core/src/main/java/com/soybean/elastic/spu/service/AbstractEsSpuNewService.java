@@ -3,6 +3,7 @@ package com.soybean.elastic.spu.service;
 import com.soybean.common.req.CommonPageQueryReq;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
+import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.spu.model.EsSpuNew;
@@ -64,7 +65,7 @@ public abstract class AbstractEsSpuNewService {
      * @param resultQueryPage
      * @return
      */
-    protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage) {
+    protected EsSpuNewAggResp<List<EsSpuNewResp>> packageEsSpuNewAggResp(AggregatedPage<EsSpuNew> resultQueryPage, EsKeyWordSpuNewQueryProviderReq req) {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
 
         Map<String, List<String>> key2SearchAggsMap = searchAggsProvider.list(SearchAggsConstant.SPU_SEARCH_AGGS_KEY).getContext();
@@ -97,6 +98,28 @@ public abstract class AbstractEsSpuNewService {
             }
         }
         esSpuNewAggResp.setLabelAggs(resultLabels);
+
+        //请求参数信息
+        List<EsSpuNewAggResp.LabelAggs> reqs = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(req.getLabelCategorys())) {
+            for (Integer labelCategory : req.getLabelCategorys()) {
+                SearchSpuNewLabelCategoryEnum spuNewLabelCategoryEnum = SearchSpuNewLabelCategoryEnum.get(labelCategory);
+                if (spuNewLabelCategoryEnum == null) {
+                    continue;
+                }
+                EsSpuNewAggResp.LabelAggs param = new EsSpuNewAggResp.LabelAggs();
+                param.setCategory(spuNewLabelCategoryEnum.getCode());
+                param.setLabelName(spuNewLabelCategoryEnum.getMessage());
+                reqs.add(param);
+            }
+            for (EsSpuNewAggResp.LabelAggs resultLabel : resultLabels) {
+                if (!req.getLabelCategorys().contains(resultLabel.getCategory())) {
+                    reqs.add(resultLabel);
+                }
+            }
+        }
+        esSpuNewAggResp.setReqs(reqs);
+
 
         /**
          * 聚合1级店铺分类

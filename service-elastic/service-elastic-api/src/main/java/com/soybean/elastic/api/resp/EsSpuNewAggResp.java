@@ -48,6 +48,11 @@ public class EsSpuNewAggResp<S> implements Serializable {
     private List<ClumpAggs> clumpAggs;
 
     /**
+     * 请求参数信息
+     */
+    private List<LabelAggs> reqs;
+
+    /**
      * 结果对象信息
      */
     private CommonPageResp<S> result;

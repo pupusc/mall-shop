@@ -16,4 +16,6 @@ import java.util.List;
 public class ShopCenterCostPriceSyncResp implements Serializable {
 
 	private List<String> goodsInfoIds;
+
+	private List<String> goodsIds;
 }

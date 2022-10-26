@@ -31,8 +31,8 @@ public class ShopCenterGoodsStockService {
 	private GoodsRepository goodsRepository;
 	@Autowired
 	private GoodsInfoRepository goodsInfoRepository;
-	@Autowired
-	private RedisService redisService;
+//	@Autowired
+//	private FreeDelivery49Service freeDelivery49Service;
 
 	/**
 	 * 更新库存
@@ -114,11 +114,13 @@ public class ShopCenterGoodsStockService {
 		BigDecimal price = costPrice == 0 ? new BigDecimal("0")
 				: new BigDecimal(costPrice).divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN);
 		List<String> goodsInfoIds = infoList.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
-
+		List<String> goodsIds = infoList.stream().distinct().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
 		// 更新成本价
 		goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price, LocalDateTime.now());
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改价格.price={},ids={}", price, goodsInfoIds);
 		resp.setGoodsInfoIds(goodsInfoIds);
+		resp.setGoodsIds(goodsIds);
+//		freeDelivery49Service.changeFreeDelivery49(goodsIds);
 		return BaseResponse.success(resp);
 	}
 }
