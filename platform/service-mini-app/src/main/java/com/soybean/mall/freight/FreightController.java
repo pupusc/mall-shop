@@ -273,7 +273,6 @@ public class FreightController {
         Long storeId = 0L;
         List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
         boolean hasFreeDelivery49 = false;
-        SearchSpuNewLabelCategoryEnum freeDelivery = null;
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
             GoodsInfoVO goodsInfoVO = skuId2GoodsInfoVoMap.get(sku.getSkuId());
             if (goodsInfoVO == null) {
@@ -286,7 +285,6 @@ public class FreightController {
 
             GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
             if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
-                freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
                 hasFreeDelivery49 = true;
                 sumPrice = sumPrice.add(goodsInfoVO.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
 
