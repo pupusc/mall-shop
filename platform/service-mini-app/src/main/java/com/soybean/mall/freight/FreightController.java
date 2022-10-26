@@ -286,7 +286,7 @@ public class FreightController {
             GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
             if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
                 hasFreeDelivery49 = true;
-                sumPrice = sumPrice.add(goodsInfoVO.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
+                sumPrice = sumPrice.add(goodsInfoVO.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP).multiply(new BigDecimal(sku.getNum().toString())));
 
                 storeId = goodsVO.getStoreId();
                 TradeItemDTO tradeItemDTO = new TradeItemDTO();
