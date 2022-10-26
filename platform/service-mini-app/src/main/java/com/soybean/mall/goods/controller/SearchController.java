@@ -198,6 +198,7 @@ public class SearchController {
         result.setAwardAggs(esSpuNewAggResp.getAwardAggs());
         result.setAuthorAggs(esSpuNewAggResp.getAuthorAggs());
         result.setClassifyAggs(esSpuNewAggResp.getClassifyAggs());
+        result.setReqs(esSpuNewAggResp.getReqs());
         result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
         return result;
     }
