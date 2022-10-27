@@ -114,6 +114,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         /**
          * 拼接参数信息
          */
+        req.setAggsReqs(req.getAggsReqs() == null ? new ArrayList<>() : req.getAggsReqs());
         for (EsKeyWordSpuNewQueryProviderReq.AggsCategoryReq aggsReq : req.getAggsReqs()) {
             Integer category = aggsReq.getCategory();
             SearchSpuNewAggsCategoryEnum searchSpuNewAggsCategoryEnum = SearchSpuNewAggsCategoryEnum.get(category);
