@@ -54,6 +54,11 @@ public class GoodsInfoSimpleVO implements Serializable {
     private BigDecimal marketPrice;
 
     /**
+     * 销售价
+     */
+    private BigDecimal salePrice;
+
+    /**
      * 新增时，模拟多个规格值 ID
      * 查询详情返回响应，扁平化多个规格值ID
      */

@@ -1,5 +1,7 @@
 package com.soybean.elastic.spu.service;
 
+import com.soybean.elastic.api.enums.SearchSpuNewAggsCategoryEnum;
+import com.soybean.elastic.api.enums.SearchSpuNewPriceRangeEnum;
 import com.soybean.elastic.api.enums.SearchSpuNewSortTypeEnum;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSortSpuNewQueryProviderReq;
@@ -40,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -109,78 +112,118 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         }
 
         /**
-         * 店铺类别
+         * 拼接参数信息
          */
-        if (CollectionUtils.isNotEmpty(req.getClassifyIds())) {
-            if (req.getClassifyIds().size() > 1) {
-                boolQb.must(termsQuery("classify.fclassifyId", req.getClassifyIds()));
-            } else {
-                boolQb.must(termQuery("classify.fclassifyId", req.getClassifyIds().get(0)));
+        for (EsKeyWordSpuNewQueryProviderReq.AggsCategoryReq aggsReq : req.getAggsReqs()) {
+            Integer category = aggsReq.getCategory();
+            SearchSpuNewAggsCategoryEnum searchSpuNewAggsCategoryEnum = SearchSpuNewAggsCategoryEnum.get(category);
+            List<EsKeyWordSpuNewQueryProviderReq.AggsReq> aggsList = aggsReq.getAggsList();
+            if (CollectionUtils.isEmpty(aggsList)) {
+                continue;
             }
-        }
 
-        /**
-         * 店铺类别
-         */
-        if (CollectionUtils.isNotEmpty(req.getClassifyNames())) {
-            if (req.getClassifyNames().size() > 1) {
-                boolQb.must(termsQuery("classify.fclassifyName", req.getClassifyNames()));
-            } else {
-                boolQb.must(termQuery("classify.fclassifyName", req.getClassifyNames().get(0)));
-            }
-        }
+            List<String> aggsNameList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsName).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+            List<String> aggsIdList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsId).filter(StringUtils::isNotBlank).collect(Collectors.toList());
 
-        /**
-         * 价格范围
-         */
-        if (req.getFromSalePrice() != null && req.getToSalePrice() != null) {
-            RangeQueryBuilder salesPrice = QueryBuilders.rangeQuery("salesPrice");
-            salesPrice.gte(req.getFromSalePrice());
-            salesPrice.lte(req.getToSalePrice());
-            boolQb.must(salesPrice);
-        }
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_SPU_CATEGORY, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 商品类别
+                 */
+                if (aggsIdList.size() > 1) {
+                    boolQb.must(termsQuery("spuCategory", aggsIdList));
+                } else {
+                    boolQb.must(termQuery("spuCategory", aggsIdList.get(0)));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 价格范围
+                 */
+                int from = 0;
+                int to = 0;
+                for (String aggsId : aggsIdList) {
+                    SearchSpuNewPriceRangeEnum searchSpuNewPriceRangeEnum = SearchSpuNewPriceRangeEnum.get(Integer.valueOf(aggsId));
+                    if (searchSpuNewPriceRangeEnum == null) {
+                        continue;
+                    }
+                    from = Math.min(from, searchSpuNewPriceRangeEnum.getFrom());
+                    to = Math.max(to, searchSpuNewPriceRangeEnum.getTo());
+                }
 
-        /**
-         * 出版社
-         */
-        if (CollectionUtils.isNotEmpty(req.getPublisherNames())) {
-            if (req.getPublisherNames().size() > 1) {
-                boolQb.must(nestedQuery("book", termsQuery("book.publisher.keyword", req.getPublisherNames()), ScoreMode.None));
-            } else {
-                boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", req.getPublisherNames().get(0)), ScoreMode.None));
-            }
-        }
+                if (to > from) {
+                    RangeQueryBuilder salesPrice = QueryBuilders.rangeQuery("salesPrice");
+                    salesPrice.gte(from);
+                    salesPrice.lte(to);
+                    boolQb.must(salesPrice);
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 标签类别
+                 */
+                if (aggsIdList.size() > 1) {
+                    boolQb.must(nestedQuery("labels", termsQuery("labels.category", aggsIdList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("labels", termQuery("labels.category", aggsIdList.get(0)), ScoreMode.None));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 店铺类别
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(termsQuery("classify.fclassifyName", aggsNameList));
+                } else {
+                    boolQb.must(termQuery("classify.fclassifyName", aggsNameList.get(0)));
+                }
 
-        /**
-         * 作者
-         */
-        if (CollectionUtils.isNotEmpty(req.getAuthorNames())) {
-            if (req.getAuthorNames().size() > 1) {
-                boolQb.must(nestedQuery("book", termsQuery("book.authorNames", req.getAuthorNames()), ScoreMode.None));
-            } else {
-                boolQb.must(nestedQuery("book", termQuery("book.authorNames", req.getAuthorNames().get(0)), ScoreMode.None));
-            }
-        }
-
-        /**
-         * 奖项
-         */
-        if (CollectionUtils.isNotEmpty(req.getAwardNames())) {
-            if (req.getAwardNames().size() > 1) {
-                boolQb.must(nestedQuery("book", termsQuery("book.awards.awardName.keyword", req.getAwardNames()), ScoreMode.None));
-            } else {
-                boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", req.getAwardNames().get(0)), ScoreMode.None));
-            }
-        }
-
-        /**
-         * 从书
-         */
-        if (CollectionUtils.isNotEmpty(req.getClumpNames())) {
-            if (req.getClumpNames().size() > 1) {
-                boolQb.must(nestedQuery("book", termsQuery("book.clumpName.keyword", req.getClumpNames()), ScoreMode.None));
-            } else {
-                boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", req.getClumpNames().get(0)), ScoreMode.None));
+//                if (aggsList.size() > 1) {
+//                    boolQb.must(termsQuery("classify.fclassifyId", aggsList));
+//                } else {
+//                    boolQb.must(termQuery("classify.fclassifyId", aggsList.get(0)));
+//                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 作者
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.authorNames", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.authorNames", aggsNameList.get(0)), ScoreMode.None));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 出版社
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.publisher.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AWARD, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 奖项
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.awards.awardName.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 从书
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.clumpName.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, searchSpuNewAggsCategoryEnum)) {
+                /**
+                 * 从书
+                 */
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.producer.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.producer.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
             }
         }
 
@@ -390,17 +433,21 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
 //        }
         NestedAggregationBuilder nestedAggregationBuilder =
                         AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
-                aggregationBuilderList.add(nestedAggregationBuilder);
+        aggregationBuilderList.add(nestedAggregationBuilder);
 
         TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
-                aggregationBuilderList.add(fclassifyName);
+        aggregationBuilderList.add(fclassifyName);
+
+        TermsAggregationBuilder spuCategory = AggregationBuilders.terms("spuCategory").field("spuCategory");
+        aggregationBuilderList.add(spuCategory);
 
         NestedAggregationBuilder book =
                 AggregationBuilders.nested("book", "book")
                         .subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"))
                         .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"))
                         .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"))
-                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"));
+                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"))
+                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword"));
         aggregationBuilderList.add(book);
 
         return aggregationBuilderList;

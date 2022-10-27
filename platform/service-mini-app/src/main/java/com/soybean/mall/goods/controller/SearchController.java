@@ -1,5 +1,6 @@
 package com.soybean.mall.goods.controller;
 import com.soybean.elastic.api.enums.SearchBookListCategoryEnum;
+import com.soybean.elastic.api.enums.SearchSpuNewAggsCategoryEnum;
 import com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum;
 import com.soybean.elastic.api.enums.SearchSpuNewSortTypeEnum;
 
@@ -193,11 +194,8 @@ public class SearchController {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
         EsSpuNewAggResp<List<SpuNewBookListResp>> result = new EsSpuNewAggResp<>();
-        result.setLabelAggs(esSpuNewAggResp.getLabelAggs());
-        result.setClumpAggs(esSpuNewAggResp.getClumpAggs());
-        result.setAwardAggs(esSpuNewAggResp.getAwardAggs());
-        result.setAuthorAggs(esSpuNewAggResp.getAuthorAggs());
-        result.setClassifyAggs(esSpuNewAggResp.getClassifyAggs());
+        result.setReqs(esSpuNewAggResp.getReqs());
+        result.setAggsCategorys(esSpuNewAggResp.getAggsCategorys());
         result.setReqs(esSpuNewAggResp.getReqs());
         result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
         return result;
@@ -211,7 +209,6 @@ public class SearchController {
      */
     @PostMapping("/keyword/keywordSpuSearch")
     public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
-
         return BaseResponse.success(this.spuSearch(request));
     }
 
@@ -224,7 +221,17 @@ public class SearchController {
      */
     @PostMapping("/keyword/supplement/keywordSpuSearch")
     public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> supplementKeywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
-        return BaseResponse.success(this.spuSearch(request));
+        EsSpuNewAggResp<List<SpuNewBookListResp>> listEsSpuNewAggResp = this.spuSearch(request);
+        //凑单页面 显示价格区间
+        for (EsSpuNewAggResp.AggsCategoryResp aggsCategory : listEsSpuNewAggResp.getAggsCategorys()) {
+            if (!Objects.equals(aggsCategory.getCategory(), SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE.getCode())) {
+                continue;
+            }
+            for (EsSpuNewAggResp.AggsResp aggsResp : aggsCategory.getAggsList()) {
+                aggsResp.setHasShow(true);
+            }
+        }
+        return BaseResponse.success(listEsSpuNewAggResp);
 
     }
 }

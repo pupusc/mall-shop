@@ -43,4 +43,9 @@ public class SearchAggsConstant {
      * 字段内容信息 clumpName
      */
     public static final String BOOK_SEARCH_AGGS_CLUMP_NAME_KEY = "BOOK_SEARCH_AGGS_CLUMP_NAME_KEY";
+
+    /**
+     * 字段内容信息 producerName
+     */
+    public static final String BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY = "BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY";
 }
