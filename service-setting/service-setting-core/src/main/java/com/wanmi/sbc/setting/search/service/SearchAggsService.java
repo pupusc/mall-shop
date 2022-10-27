@@ -44,7 +44,7 @@ public class SearchAggsService {
      */
     public Map<String, List<String>> list(String key) {
 
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, List<String>> aggsKey2ValueMap = new HashMap<>();
         Map<Object, Object> hashValue = redisService.getHashValue(key);
         if (!hashValue.isEmpty()) {
             hashValue.forEach((K, V) -> {
@@ -53,12 +53,12 @@ public class SearchAggsService {
 //                searchAggsResp.setAggsValue((String) V);
 //                result.add(searchAggsResp);
                 List<String> values = JSON.parseArray(V.toString(), String.class);
-                result.put(K.toString(), values);
+                aggsKey2ValueMap.put(K.toString(), values);
             });
-            return result;
+            return aggsKey2ValueMap;
         }
 
-        Map<String, List<String>> aggsKey2ValueMap = new HashMap<>();
+//        Map<String, List<String>> aggsKey2ValueMap = new HashMap<>();
         List<SearchAggsModel> searchAggsModelList = searchAggsRepository.findAll(this.packageWhere());
         for (SearchAggsModel searchAggsModel : searchAggsModelList) {
             List<String> aggsValues = aggsKey2ValueMap.get(searchAggsModel.getAggsKey());
@@ -72,7 +72,7 @@ public class SearchAggsService {
         for (Map.Entry<String, List<String>> stringListEntry : aggsKey2ValueMap.entrySet()) {
             redisService.putHash(SearchAggsConstant.SPU_SEARCH_AGGS_KEY, stringListEntry.getKey(), JSON.toJSONString(stringListEntry.getValue()), 4 * 60 * 60);
         }
-        return result;
+        return aggsKey2ValueMap;
     }
 
     /**

@@ -199,5 +199,7 @@ public class EsSpuNewAggResp<S> implements Serializable {
          * 是否展示
          */
         private boolean hasShow = false;
+
+        private String hash;
     }
 }

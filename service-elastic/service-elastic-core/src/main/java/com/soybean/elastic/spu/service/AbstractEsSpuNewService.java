@@ -82,14 +82,16 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> spuAggsList = new ArrayList<>();
         Terms spuCategory = resultQueryPage.getAggregations().get("spuCategory");
         for (Terms.Bucket bucket : spuCategory.getBuckets()) {
-            EsSpuNewAggResp.AggsResp spuAggsResp = new EsSpuNewAggResp.AggsResp();
+//            EsSpuNewAggResp.AggsResp spuAggsResp = new EsSpuNewAggResp.AggsResp();
             SearchSpuNewCategoryEnum searchSpuNewCategoryEnum = SearchSpuNewCategoryEnum.get(bucket.getKeyAsNumber().intValue());
             if (searchSpuNewCategoryEnum == null) {
                 continue;
             }
-            spuAggsResp.setAggsId(searchSpuNewCategoryEnum.getCode().toString());
-            spuAggsResp.setAggsName(searchSpuNewCategoryEnum.getMessage());
-            spuAggsList.add(spuAggsResp);
+//            spuAggsResp.setAggsId(searchSpuNewCategoryEnum.getCode().toString());
+//            spuAggsResp.setAggsName(searchSpuNewCategoryEnum.getMessage());
+//            spuAggsList.add(spuAggsResp);
+            spuAggsList.add(this.packageAggsResp(searchSpuNewCategoryEnum.getCode().toString(),
+                    searchSpuNewCategoryEnum.getMessage(), false, searchSpuNewCategoryEnum.getCode().toString()));
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_SPU_CATEGORY, spuAggsList));
 
@@ -108,11 +110,13 @@ public abstract class AbstractEsSpuNewService {
 
             if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY) != null
                 && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY).contains(spuNewLabelCategoryEnum.getMessage())) {
-                EsSpuNewAggResp.AggsResp labelAggs = new EsSpuNewAggResp.AggsResp();
-                labelAggs.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
-                labelAggs.setAggsName(spuNewLabelCategoryEnum.getMessage());
-                labelAggs.setHasShow(hasShowLabel);
-                labelsAggsList.add(labelAggs);
+//                EsSpuNewAggResp.AggsResp labelAggs = new EsSpuNewAggResp.AggsResp();
+//                labelAggs.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
+//                labelAggs.setAggsName(spuNewLabelCategoryEnum.getMessage());
+//                labelAggs.setHasShow(hasShowLabel);
+//                labelsAggsList.add(labelAggs);
+                spuAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+                        spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, labelsAggsList));
@@ -127,11 +131,13 @@ public abstract class AbstractEsSpuNewService {
                 if (spuNewLabelCategoryEnum == null) {
                     continue;
                 }
-                EsSpuNewAggResp.AggsResp param = new EsSpuNewAggResp.AggsResp();
-                param.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
-                param.setAggsName(spuNewLabelCategoryEnum.getMessage());
-                param.setHasShow(hasShowLabel);
-                reqs.add(param);
+//                EsSpuNewAggResp.AggsResp param = new EsSpuNewAggResp.AggsResp();
+//                param.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
+//                param.setAggsName(spuNewLabelCategoryEnum.getMessage());
+//                param.setHasShow(hasShowLabel);
+//                reqs.add(param);
+                spuAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+                        spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString()));
             }
         }
         esSpuNewAggResp.setReq(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, reqs));
@@ -145,10 +151,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp classifyNameAggs = new EsSpuNewAggResp.AggsResp();
-                classifyNameAggs.setAggsId("");
-                classifyNameAggs.setAggsName(bucket.getKeyAsString());
-                fclassifyAggsList.add(classifyNameAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, fclassifyAggsList));
@@ -164,10 +167,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : authorName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp authorAggs = new EsSpuNewAggResp.AggsResp();
-                authorAggs.setAggsId("");
-                authorAggs.setAggsName(bucket.getKeyAsString());
-                authorAggsList.add(authorAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, authorAggsList));
@@ -181,10 +181,8 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : publisher.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp publishersAggs = new EsSpuNewAggResp.AggsResp();
-                publishersAggs.setAggsId("");
-                publishersAggs.setAggsName(bucket.getKeyAsString());
-                publisherAggsList.add(publishersAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, publisherAggsList));
@@ -198,10 +196,8 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : awardName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp awardAggs = new EsSpuNewAggResp.AggsResp();
-                awardAggs.setAggsId("");
-                awardAggs.setAggsName(bucket.getKeyAsString());
-                awardAggsList.add(awardAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, awardAggsList));
@@ -214,10 +210,8 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : clumpName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp clumpAggs = new EsSpuNewAggResp.AggsResp();
-                clumpAggs.setAggsId("");
-                clumpAggs.setAggsName(bucket.getKeyAsString());
-                clumpAggsList.add(clumpAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, clumpAggsList));
@@ -231,10 +225,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : producerName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                EsSpuNewAggResp.AggsResp producerAggs = new EsSpuNewAggResp.AggsResp();
-                producerAggs.setAggsId("");
-                producerAggs.setAggsName(bucket.getKeyAsString());
-                producerAggsList.add(producerAggs);
+                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, producerAggsList));
@@ -244,10 +235,7 @@ public abstract class AbstractEsSpuNewService {
          */
         List<EsSpuNewAggResp.AggsResp> priceRangeAggsList = new ArrayList<>();
         for (SearchSpuNewPriceRangeEnum value : SearchSpuNewPriceRangeEnum.values()) {
-            EsSpuNewAggResp.AggsResp priceRange = new EsSpuNewAggResp.AggsResp();
-            priceRange.setAggsId(value.getCode().toString());
-            priceRange.setAggsName(value.getMessage());
-            priceRangeAggsList.add(priceRange);
+            spuAggsList.add(this.packageAggsResp(value.getCode().toString(), value.getMessage(), false, value.getCode().toString()));
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, priceRangeAggsList));
 
@@ -339,5 +327,22 @@ public abstract class AbstractEsSpuNewService {
         aggsCategoryResp.setSort(searchSpuNewAggsCategoryEnum.getSort());
         aggsCategoryResp.setAggsList(aggsList);
         return aggsCategoryResp;
+    }
+
+    /**
+     * 打包aggsResp
+     * @param aggsId
+     * @param aggsName
+     * @param hasShow
+     * @param hash
+     * @return
+     */
+    private EsSpuNewAggResp.AggsResp packageAggsResp(String aggsId, String aggsName, boolean hasShow, String hash) {
+        EsSpuNewAggResp.AggsResp aggsResp = new EsSpuNewAggResp.AggsResp();
+        aggsResp.setAggsId(aggsId);
+        aggsResp.setAggsName(aggsName);
+        aggsResp.setHasShow(hasShow);
+        aggsResp.setHash(hash);
+        return aggsResp;
     }
 }
