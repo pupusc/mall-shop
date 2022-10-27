@@ -115,7 +115,7 @@ public abstract class AbstractEsSpuNewService {
 //                labelAggs.setAggsName(spuNewLabelCategoryEnum.getMessage());
 //                labelAggs.setHasShow(hasShowLabel);
 //                labelsAggsList.add(labelAggs);
-                spuAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+                labelsAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
                         spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString()));
             }
         }
@@ -136,7 +136,7 @@ public abstract class AbstractEsSpuNewService {
 //                param.setAggsName(spuNewLabelCategoryEnum.getMessage());
 //                param.setHasShow(hasShowLabel);
 //                reqs.add(param);
-                spuAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+                reqs.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
                         spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString()));
             }
         }
@@ -151,7 +151,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                fclassifyAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, fclassifyAggsList));
@@ -167,7 +167,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : authorName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                authorAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, authorAggsList));
@@ -181,7 +181,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : publisher.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                publisherAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
 
             }
         }
@@ -196,7 +196,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : awardName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                awardAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
 
             }
         }
@@ -210,7 +210,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : clumpName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                clumpAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
 
             }
         }
@@ -225,7 +225,7 @@ public abstract class AbstractEsSpuNewService {
         for (Terms.Bucket bucket : producerName.getBuckets()) {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                spuAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
+                producerAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString()));
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, producerAggsList));
@@ -235,7 +235,7 @@ public abstract class AbstractEsSpuNewService {
          */
         List<EsSpuNewAggResp.AggsResp> priceRangeAggsList = new ArrayList<>();
         for (SearchSpuNewPriceRangeEnum value : SearchSpuNewPriceRangeEnum.values()) {
-            spuAggsList.add(this.packageAggsResp(value.getCode().toString(), value.getMessage(), false, value.getCode().toString()));
+            priceRangeAggsList.add(this.packageAggsResp(value.getCode().toString(), value.getMessage(), false, value.getCode().toString()));
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, priceRangeAggsList));
 
