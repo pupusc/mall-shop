@@ -65,7 +65,7 @@ public class EsSpuNewAggResp<S> implements Serializable {
     /**
      * 请求参数信息
      */
-    private List<ParamResp> reqs;
+    private AggsCategoryResp req;
 
     /**
      * 结果对象信息
@@ -153,23 +153,6 @@ public class EsSpuNewAggResp<S> implements Serializable {
 //        private String spuCategoryName;
 //    }
 
-    @Data
-    public static class ParamResp {
-        /**
-         * id
-         */
-        private String reqId;
-
-        /**
-         * 名称
-         */
-        private String reqName;
-
-        /**
-         * 是否展示
-         */
-        private boolean hasShow = false;
-    }
 
     /**
      * 聚合类别

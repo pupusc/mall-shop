@@ -120,21 +120,21 @@ public abstract class AbstractEsSpuNewService {
 
 
 //        //请求参数信息
-        List<EsSpuNewAggResp.ParamResp> reqs = new ArrayList<>();
+        List<EsSpuNewAggResp.AggsResp> reqs = new ArrayList<>();
         if (!CollectionUtils.isEmpty(req.getLabelCategorys())) {
             for (Integer labelCategory : req.getLabelCategorys()) {
                 SearchSpuNewLabelCategoryEnum spuNewLabelCategoryEnum = SearchSpuNewLabelCategoryEnum.get(labelCategory);
                 if (spuNewLabelCategoryEnum == null) {
                     continue;
                 }
-                EsSpuNewAggResp.ParamResp param = new EsSpuNewAggResp.ParamResp();
-                param.setReqId(spuNewLabelCategoryEnum.getCode().toString());
-                param.setReqName(spuNewLabelCategoryEnum.getMessage());
+                EsSpuNewAggResp.AggsResp param = new EsSpuNewAggResp.AggsResp();
+                param.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
+                param.setAggsName(spuNewLabelCategoryEnum.getMessage());
                 param.setHasShow(hasShowLabel);
                 reqs.add(param);
             }
         }
-        esSpuNewAggResp.setReqs(reqs);
+        esSpuNewAggResp.setReq(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, reqs));
 
 
         /**

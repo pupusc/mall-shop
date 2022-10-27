@@ -194,9 +194,9 @@ public class SearchController {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
         EsSpuNewAggResp<List<SpuNewBookListResp>> result = new EsSpuNewAggResp<>();
-        result.setReqs(esSpuNewAggResp.getReqs());
+        result.setReq(esSpuNewAggResp.getReq());
         result.setAggsCategorys(esSpuNewAggResp.getAggsCategorys());
-        result.setReqs(esSpuNewAggResp.getReqs());
+        result.setReq(esSpuNewAggResp.getReq());
         result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
         return result;
     }
