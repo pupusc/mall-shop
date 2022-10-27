@@ -431,6 +431,9 @@ public class PayQueryController implements PayQueryProvider {
 
     @Override
     public BaseResponse<PayGatewayConfigResponse> queryConfigByAppId(GatewayConfigByGatewayRequest req) {
+        if (Objects.equals(req.getAppId(), "wxfec78ba019558f6a")) { //强制兼容历史订单
+            req.setAppId("wxfa722c70762ed8cc");
+        }
         PayGateway payGatewayNew = payService.getPayGatewayNew(req.getAppId(), req.getMchId(), req.getStoreId());
         return BaseResponse.success(wraperResponseForGatewayConfig(payGatewayNew.getConfig()));
     }
