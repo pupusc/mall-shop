@@ -741,7 +741,7 @@ public class PayCallbackController {
             log.info("支付退款回调 微信支付异步通知回调结果 map:{} refundCallBackResponse:{}", map, JSON.toJSONString(refundCallBackResponse));
             GatewayConfigByGatewayRequest gatewayConfigByGatewayRequest = new GatewayConfigByGatewayRequest();
 //            gatewayConfigByGatewayRequest.setGatewayEnum(PayGatewayEnum.WECHAT);
-//            gatewayConfigByGatewayRequest.setStoreId(storeId);
+            gatewayConfigByGatewayRequest.setStoreId(storeId);
             gatewayConfigByGatewayRequest.setAppId(refundCallBackResponse.getAppid());
             gatewayConfigByGatewayRequest.setMchId(refundCallBackResponse.getMch_id());
             PayGatewayConfigResponse payGatewayConfig =payQueryProvider.queryConfigByAppId(gatewayConfigByGatewayRequest).getContext();
