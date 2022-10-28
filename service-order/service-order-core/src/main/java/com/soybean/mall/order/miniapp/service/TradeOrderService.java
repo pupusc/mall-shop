@@ -334,7 +334,7 @@ public class TradeOrderService {
 			start.set(false);
 			return BaseResponse.success(true);
 		}
-		if (start.get()) {
+		if (start.compareAndSet(false, true)) {
 			return BaseResponse.error("正在进行中，请重置处理状态!");
 		}
 
