@@ -348,11 +348,7 @@ public class TradeOrderService {
 			return BaseResponse.success(true);
 		}
 
-		String queryId = (String) redisTemplate.opsForValue().get(SYNC_ORDER_DATA_REDIS_KEY);
-		if (StringUtil.isBlank(queryId)) {
-			queryId = "0";
-		}
-
+		String queryId = "0";
 		Query query = new Query(Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
 		Long count = mongoTemplate.count(query, Trade.class);
 		if (count == 0) {
