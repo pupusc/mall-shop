@@ -126,20 +126,24 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             List<String> aggsNameList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsName).filter(StringUtils::isNotBlank).collect(Collectors.toList());
             List<String> aggsIdList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsId).filter(StringUtils::isNotBlank).collect(Collectors.toList());
 
+            /**
+             * 商品类别
+             */
             if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_SPU_CATEGORY, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 商品类别
-                 */
+
                 if (aggsIdList.size() > 1) {
                     boolQb.must(termsQuery("spuCategory", aggsIdList));
                 } else {
                     boolQb.must(termQuery("spuCategory", aggsIdList.get(0)));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 价格范围
-                 */
-                int from = 0;
+            }
+
+            /**
+             * 价格范围
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, searchSpuNewAggsCategoryEnum)) {
+
+                int from = 9999;
                 int to = 0;
                 for (String aggsId : aggsIdList) {
                     SearchSpuNewPriceRangeEnum searchSpuNewPriceRangeEnum = SearchSpuNewPriceRangeEnum.get(Integer.valueOf(aggsId));
@@ -156,19 +160,22 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                     salesPrice.lte(to);
                     boolQb.must(salesPrice);
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 标签类别
-                 */
+            }
+            /**
+             * 标签类别
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, searchSpuNewAggsCategoryEnum)) {
                 if (aggsIdList.size() > 1) {
                     boolQb.must(nestedQuery("labels", termsQuery("labels.category", aggsIdList), ScoreMode.None));
                 } else {
                     boolQb.must(nestedQuery("labels", termQuery("labels.category", aggsIdList.get(0)), ScoreMode.None));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 店铺类别
-                 */
+            }
+            /**
+             * 店铺类别
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, searchSpuNewAggsCategoryEnum)) {
+
                 if (aggsNameList.size() > 1) {
                     boolQb.must(termsQuery("classify.fclassifyName", aggsNameList));
                 } else {
@@ -180,46 +187,60 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
 //                } else {
 //                    boolQb.must(termQuery("classify.fclassifyId", aggsList.get(0)));
 //                }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 作者
-                 */
+            }
+
+            /**
+             * 作者
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, searchSpuNewAggsCategoryEnum)) {
+
                 if (aggsNameList.size() > 1) {
                     boolQb.must(nestedQuery("book", termsQuery("book.authorNames", aggsNameList), ScoreMode.None));
                 } else {
                     boolQb.must(nestedQuery("book", termQuery("book.authorNames", aggsNameList.get(0)), ScoreMode.None));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 出版社
-                 */
+            }
+
+            /**
+             * 出版社
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, searchSpuNewAggsCategoryEnum)) {
+
                 if (aggsNameList.size() > 1) {
                     boolQb.must(nestedQuery("book", termsQuery("book.publisher.keyword", aggsNameList), ScoreMode.None));
                 } else {
                     boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", aggsNameList.get(0)), ScoreMode.None));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AWARD, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 奖项
-                 */
+            }
+
+            /**
+             * 奖项
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AWARD, searchSpuNewAggsCategoryEnum)) {
+
                 if (aggsNameList.size() > 1) {
                     boolQb.must(nestedQuery("book", termsQuery("book.awards.awardName.keyword", aggsNameList), ScoreMode.None));
                 } else {
                     boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", aggsNameList.get(0)), ScoreMode.None));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 从书
-                 */
+            }
+
+            /**
+             * 从书
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, searchSpuNewAggsCategoryEnum)) {
+
                 if (aggsNameList.size() > 1) {
                     boolQb.must(nestedQuery("book", termsQuery("book.clumpName.keyword", aggsNameList), ScoreMode.None));
                 } else {
                     boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", aggsNameList.get(0)), ScoreMode.None));
                 }
-            } else if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, searchSpuNewAggsCategoryEnum)) {
-                /**
-                 * 从书
-                 */
+            }
+
+            /**
+             * 从书
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, searchSpuNewAggsCategoryEnum)) {
                 if (aggsNameList.size() > 1) {
                     boolQb.must(nestedQuery("book", termsQuery("book.producer.keyword", aggsNameList), ScoreMode.None));
                 } else {

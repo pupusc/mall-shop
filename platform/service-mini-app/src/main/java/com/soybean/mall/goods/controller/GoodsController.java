@@ -10,8 +10,11 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -46,6 +49,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -70,6 +75,9 @@ public class GoodsController {
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
 
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
     /**
      * @description 商品详情页
      * @param spuId
@@ -89,6 +97,20 @@ public class GoodsController {
             request.setGoodsId(goodsInfo.getContext().getGoodsId());
         }
         GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
+
+        String customerId = commonUtil.getOperatorId();
+        BigDecimal discountRate = BigDecimal.ONE;
+        if (!StringUtils.isEmpty(customerId)) {
+            MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+            maxDiscountPaidCardRequest.setCustomerId(customerId);
+            List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+            if (!org.springframework.util.CollectionUtils.isEmpty(paidCardVOList)) {
+                discountRate = paidCardVOList.get(0).getDiscountRate();
+            }
+        }
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+            goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
+        }
         return BaseResponse.success(KsBeanUtil.convert(response,GoodsDetailResponse.class));
     }
 

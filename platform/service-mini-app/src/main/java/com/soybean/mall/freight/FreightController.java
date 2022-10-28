@@ -12,12 +12,8 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
-import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
-import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -54,9 +50,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -87,8 +85,8 @@ public class FreightController {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
-    @Autowired
-    private CustomerQueryProvider customerQueryProvider;
+//    @Autowired
+//    private CustomerQueryProvider customerQueryProvider;
 
     @Autowired
     private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
@@ -124,10 +122,8 @@ public class FreightController {
         String userId = commonUtil.getOperatorId();
         BigDecimal discountRate = BigDecimal.ONE; //折扣率
         if (!org.springframework.util.StringUtils.isEmpty(userId)) {
-            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
-
             MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
-            maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+            maxDiscountPaidCardRequest.setCustomerId(userId);
             List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
             if (!CollectionUtils.isEmpty(paidCardVOList)) {
                 discountRate = paidCardVOList.get(0).getDiscountRate();
@@ -210,10 +206,9 @@ public class FreightController {
         String userId = commonUtil.getOperatorId();
         BigDecimal discountRate = BigDecimal.ONE; //折扣率
         if (!org.springframework.util.StringUtils.isEmpty(userId)) {
-            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
 
             MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
-            maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+            maxDiscountPaidCardRequest.setCustomerId(userId);
             List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
             if (!CollectionUtils.isEmpty(paidCardVOList)) {
                 discountRate = paidCardVOList.get(0).getDiscountRate();
@@ -230,7 +225,7 @@ public class FreightController {
         }
 
 
-        List<String> spuIds = new ArrayList<>();
+        Set<String> spuIds = new HashSet<>();
         Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap = new HashMap<>();
         for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
             spuIds.add(goodsInfo.getGoodsId());
@@ -239,7 +234,7 @@ public class FreightController {
 
         //获取spu信息
         GoodsListByIdsRequest goodsListByIdsRequest = new GoodsListByIdsRequest();
-        goodsListByIdsRequest.setGoodsIds(spuIds);
+        goodsListByIdsRequest.setGoodsIds(new ArrayList<>(spuIds));
         GoodsListByIdsResponse spuContext = goodsQueryProvider.listByIds(goodsListByIdsRequest).getContext();
         if (CollectionUtils.isEmpty(spuContext.getGoodsVOList())) {
             throw new SbcRuntimeException("99999", "spu信息不存在");
