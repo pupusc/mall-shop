@@ -414,6 +414,9 @@ public class TradeOrderService {
 				new Update().set("sVersion", version),
 				Trade.class);
 
+		if (doingVersion.equals(version)) {
+			return;
+		}
 		if (updateResult.getModifiedCount() != 1) {
 			log.warn("更新订单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", id, version, updateResult.getModifiedCount());
 			throw new RuntimeException("更新订单的版本信息错误");
