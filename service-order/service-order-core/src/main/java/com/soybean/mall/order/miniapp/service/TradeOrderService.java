@@ -18,6 +18,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.order.api.request.trade.SyncOrderDataRequest;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
@@ -378,9 +379,12 @@ public class TradeOrderService {
 				createOrderReq.setPlatformCode("WAN_MI");
 				createOrderReq.setPlatformOrderId(trade.getId());
 				updateVersion(trade.getId(), 0);
-				shopCenterOrderProvider.createOrder(createOrderReq);
-				updateVersion(trade.getId(), 1);
-				log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+				BaseResponse<CreateOrderResp> crtResult = shopCenterOrderProvider.createOrder(createOrderReq);
+				if ("0000".equals(crtResult.getCode()) || "40000".equals(crtResult.getCode())) {
+					updateVersion(trade.getId(), 1);
+					log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+				}
+				throw new RuntimeException("调用电商中台创建订单结果异常，code=" + crtResult.getCode());
 			} catch (Exception e) {
 				log.error("e:{}", e);
 				log.warn("==>>电商中台订单同步错误：tradeId={}", trade.getId());
