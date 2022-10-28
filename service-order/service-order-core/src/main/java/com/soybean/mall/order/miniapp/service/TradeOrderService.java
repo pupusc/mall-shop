@@ -343,6 +343,7 @@ public class TradeOrderService {
 		if (StringUtil.isNotBlank(syncOrderDataRequest.getId())) {
 			Query query = new Query(Criteria.where("_id").is(syncOrderDataRequest.getId()));
 			export(query, false);
+			log.info("====>>电商中台订单同步结束1<<====");
 			return BaseResponse.success(true);
 		}
 
@@ -354,6 +355,7 @@ public class TradeOrderService {
 		Query query = new Query(Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
 		Long count = mongoTemplate.count(query, Trade.class);
 		if (count == 0) {
+			log.info("====>>电商中台订单同步结束2<<====");
 			return BaseResponse.success(true);
 		}
 
@@ -363,7 +365,7 @@ public class TradeOrderService {
 			query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
 			export(query, true);
 		}
-		log.info("====>>电商中台订单同步结束<<====");
+		log.info("====>>电商中台订单同步结束3<<====");
 		return BaseResponse.success(true);
 	}
 
