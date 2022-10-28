@@ -72,4 +72,9 @@ public class GoodsInfoSimpleVO implements Serializable {
      */
     @ApiModelProperty(value = "商品分页，扁平化多个商品规格值ID")
     private List<Long> specDetailRelIds;
+
+    /**
+     * 图片信息
+     */
+    private String pic;
 }
