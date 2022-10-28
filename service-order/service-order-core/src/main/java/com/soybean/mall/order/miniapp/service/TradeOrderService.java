@@ -15,6 +15,7 @@ import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
@@ -388,11 +389,13 @@ public class TradeOrderService {
 				createOrderReq.setPlatformOrderId(trade.getId());
 				updateVersion(trade.getId(), doingVersion);
 				BaseResponse<CreateOrderResp> crtResult = shopCenterOrderProvider.createOrder(createOrderReq);
-				if ("0000".equals(crtResult.getCode()) || "40000".equals(crtResult.getCode())) {
+
+				if (CommonErrorCode.SUCCESSFUL.equals(crtResult.getCode())
+						&& ("0000".equals(crtResult.getContext().getCode()) || "40000".equals(crtResult.getContext().getCode()))) {
 					updateVersion(trade.getId(), doneVersion);
 					log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
 				}
-				throw new RuntimeException("调用电商中台创建订单结果异常，code=" + crtResult.getCode());
+				throw new RuntimeException("调用电商中台创建订单结果异常，result=" + JSON.toJSONString(crtResult));
 			} catch (Exception e) {
 				log.error("e:{}", e);
 				log.warn("==>>电商中台订单同步错误：tradeId={}", trade.getId());
