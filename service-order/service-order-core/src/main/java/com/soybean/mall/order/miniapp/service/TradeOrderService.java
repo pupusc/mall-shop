@@ -369,21 +369,27 @@ public class TradeOrderService {
 		return BaseResponse.success(true);
 	}
 
+	private Integer doingVersion = Integer.valueOf(0);
+	private Integer doneVersion = Integer.valueOf(1);
+
 	private void export(Query query, boolean setRedis) {
 		List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
 		for (Trade trade : tradeList) {
 			if (!start.get()) {
 				return;
 			}
+			if (trade.getSVersion() != null) {
+				continue;
+			}
 			try {
 				log.warn("==>>电商中台订单同步开始：tradeId={}", trade.getId());
 				CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
 				createOrderReq.setPlatformCode("WAN_MI");
 				createOrderReq.setPlatformOrderId(trade.getId());
-				updateVersion(trade.getId(), 0);
+				updateVersion(trade.getId(), doingVersion);
 				BaseResponse<CreateOrderResp> crtResult = shopCenterOrderProvider.createOrder(createOrderReq);
 				if ("0000".equals(crtResult.getCode()) || "40000".equals(crtResult.getCode())) {
-					updateVersion(trade.getId(), 1);
+					updateVersion(trade.getId(), doneVersion);
 					log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
 				}
 				throw new RuntimeException("调用电商中台创建订单结果异常，code=" + crtResult.getCode());
