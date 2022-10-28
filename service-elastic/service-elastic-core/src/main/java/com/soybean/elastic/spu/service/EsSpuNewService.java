@@ -453,24 +453,27 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
 //                aggregationBuilderList.add(nested);
 //            }
 //        }
+        int aggsSize = 5000;
+
         NestedAggregationBuilder nestedAggregationBuilder =
-                        AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
+                        AggregationBuilders.nested("labels", "labels")
+                                .subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category").size(aggsSize));
         aggregationBuilderList.add(nestedAggregationBuilder);
 
-        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
+        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").size(aggsSize);
         aggregationBuilderList.add(fclassifyName);
 
-        TermsAggregationBuilder spuCategory = AggregationBuilders.terms("spuCategory").field("spuCategory");
+        TermsAggregationBuilder spuCategory = AggregationBuilders.terms("spuCategory").field("spuCategory").size(aggsSize);
         aggregationBuilderList.add(spuCategory);
 
         NestedAggregationBuilder book =
                 AggregationBuilders.nested("book", "book")
-                        .subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"))
-                        .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"))
-                        .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"))
-                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"))
-                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword"))
-                        .subAggregation(AggregationBuilders.terms("tagName").field("book.tags.tagName"));
+                        .subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames").size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword").size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword").size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword").size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword").size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("tagName").field("book.tags.tagName").size(aggsSize));
         aggregationBuilderList.add(book);
 
         return aggregationBuilderList;
