@@ -39,7 +39,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
-import java.io.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -521,4 +521,8 @@ public class Trade implements Serializable {
      * 小程序订单场景：0普通订单；1小程序；2视频号；
      */
     private Integer miniProgramScene;
+    /**
+     * 同步版本，内部使用
+     */
+    private Integer sVersion;
 }
