@@ -12,8 +12,13 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -25,10 +30,14 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeParamsRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetFreightResponse;
@@ -85,11 +94,11 @@ public class FreightController {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
-//    @Autowired
-//    private CustomerQueryProvider customerQueryProvider;
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
 
     @Autowired
-    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+    private MarketingPluginProvider marketingPluginProvider;
 
 
     /**
@@ -119,15 +128,24 @@ public class FreightController {
             fixedAddress.setCityId(freightPriceReq.getCityId());
         }
 
-        String userId = commonUtil.getOperatorId();
-        BigDecimal discountRate = BigDecimal.ONE; //折扣率
-        if (!org.springframework.util.StringUtils.isEmpty(userId)) {
-            MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
-            maxDiscountPaidCardRequest.setCustomerId(userId);
-            List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
-            if (!CollectionUtils.isEmpty(paidCardVOList)) {
-                discountRate = paidCardVOList.get(0).getDiscountRate();
+        //计算营销价格
+        String customerId = commonUtil.getOperatorId();
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(Collections.singletonList(context.getGoodsInfo()), GoodsInfoDTO.class));
+        filterRequest.setIsIndependent(Boolean.FALSE);
+        if (!StringUtils.isEmpty(customerId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             }
+        }
+        GoodsInfoListByGoodsInfoResponse contextGoodsInfo = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        GoodsInfoVO goodsInfoVONew = null;
+        for (GoodsInfoVO goodsInfoVO : contextGoodsInfo.getGoodsInfoVOList()) {
+            goodsInfoVONew = goodsInfoVO;
+        }
+        if (goodsInfoVONew == null) {
+            throw new SbcRuntimeException("999999", "商品信息不存在");
         }
 
         FreightPriceResp freightPriceResp = new FreightPriceResp();
@@ -142,7 +160,7 @@ public class FreightController {
 
         tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
         TradePriceDTO tradePriceDTO = new TradePriceDTO();
-        tradePriceDTO.setTotalPrice(goodsInfo.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP));
+        tradePriceDTO.setTotalPrice(goodsInfoVONew.getSalePrice());
         tradeParamsRequest.setTradePrice(tradePriceDTO);
 
         TradeItemDTO tradeItemDTO = new TradeItemDTO();
@@ -203,33 +221,20 @@ public class FreightController {
             goodsInfoIds.add(sku.getSkuId());
         }
 
-        String userId = commonUtil.getOperatorId();
-        BigDecimal discountRate = BigDecimal.ONE; //折扣率
-        if (!org.springframework.util.StringUtils.isEmpty(userId)) {
-
-            MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
-            maxDiscountPaidCardRequest.setCustomerId(userId);
-            List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
-            if (!CollectionUtils.isEmpty(paidCardVOList)) {
-                discountRate = paidCardVOList.get(0).getDiscountRate();
-            }
-        }
 
         //获取sku信息
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(goodsInfoIds);
         goodsInfoViewByIdsRequest.setDeleteFlag(DeleteFlag.NO);
-        GoodsInfoViewByIdsResponse context = goodsInfoQueryProvider.listViewByIds(goodsInfoViewByIdsRequest).getContext();
-        if (CollectionUtils.isEmpty(context.getGoodsInfos())) {
+        GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = goodsInfoQueryProvider.listViewByIds(goodsInfoViewByIdsRequest).getContext();
+        if (CollectionUtils.isEmpty(goodsInfoViewByIdsResponse.getGoodsInfos())) {
             throw new SbcRuntimeException("99999", "sku信息不存在");
         }
 
 
         Set<String> spuIds = new HashSet<>();
-        Map<String, GoodsInfoVO> skuId2GoodsInfoVoMap = new HashMap<>();
-        for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
+        for (GoodsInfoVO goodsInfo : goodsInfoViewByIdsResponse.getGoodsInfos()) {
             spuIds.add(goodsInfo.getGoodsId());
-            skuId2GoodsInfoVoMap.put(goodsInfo.getGoodsInfoId(), goodsInfo);
         }
 
         //获取spu信息
@@ -241,6 +246,25 @@ public class FreightController {
         }
         if (spuContext.getGoodsVOList().size() != spuIds.size()) {
             throw new SbcRuntimeException("99999", "spu信息数量不同");
+        }
+
+        //获取营销价格信息
+        Map<String, GoodsInfoVO> skuId2GoodsInfoNewVoMap = new HashMap<>();
+
+        String customerId = commonUtil.getOperatorId();
+        //计算营销价格
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoViewByIdsResponse.getGoodsInfos(), GoodsInfoDTO.class));
+        filterRequest.setIsIndependent(Boolean.FALSE);
+        if (!StringUtils.isEmpty(customerId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            }
+        }
+        GoodsInfoListByGoodsInfoResponse contextGoodsInfo = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        for (GoodsInfoVO goodsInfoVO : contextGoodsInfo.getGoodsInfoVOList()) {
+            skuId2GoodsInfoNewVoMap.put(goodsInfoVO.getGoodsInfoId(), goodsInfoVO);
         }
 
         Map<String, GoodsVO> spuId2ModelMap =
@@ -269,7 +293,7 @@ public class FreightController {
         List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
         boolean hasFreeDelivery49 = false;
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
-            GoodsInfoVO goodsInfoVO = skuId2GoodsInfoVoMap.get(sku.getSkuId());
+            GoodsInfoVO goodsInfoVO = skuId2GoodsInfoNewVoMap.get(sku.getSkuId());
             if (goodsInfoVO == null) {
                 continue;
             }
@@ -281,7 +305,7 @@ public class FreightController {
             GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
             if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
                 hasFreeDelivery49 = true;
-                sumPrice = sumPrice.add(goodsInfoVO.getMarketPrice().multiply(discountRate).setScale(2, RoundingMode.HALF_UP).multiply(new BigDecimal(sku.getNum().toString())));
+                sumPrice = sumPrice.add(goodsInfoVO.getSalePrice());
 
                 storeId = goodsVO.getStoreId();
                 TradeItemDTO tradeItemDTO = new TradeItemDTO();
