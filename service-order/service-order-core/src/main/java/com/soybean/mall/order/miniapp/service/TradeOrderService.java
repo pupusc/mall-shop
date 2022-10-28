@@ -358,7 +358,7 @@ public class TradeOrderService {
 
 		Integer foreachTimes = (int) (count / 1000) + 1;
 		for (int i = 0; i < foreachTimes; i++) {
-			Integer offset = (i - 1) * 1000;
+			Integer offset = (i) * 1000;
 			query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
 			export(query, true);
 		}
