@@ -16,15 +16,16 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum SearchSpuNewAggsCategoryEnum {
 
-    AGGS_SPU_CATEGORY(100, "商品分类", 100),
+    AGGS_SPU_CATEGORY(100, "商品分类", 300),
     AGGS_PRICE_RANGE(200, "价格区间", 200),
-    AGGS_LABEL(300, "服务", 300),
+    AGGS_LABEL(300, "服务", 100),
     AGGS_FCLASSIFY(400, "店铺分类", 400),
     AGGS_AUTHOR(500, "作者", 500),
     AGGS_PUBLISHER(600, "出版社", 600),
     AGGS_AWARD(700, "奖项", 700),
     AGGS_CLUMP(800, "丛书", 800),
     AGGS_PRODUCER(900, "出品方", 900),
+    AGGS_TAG(1000, "标签", 1000),
     ;
 
     private Integer code;

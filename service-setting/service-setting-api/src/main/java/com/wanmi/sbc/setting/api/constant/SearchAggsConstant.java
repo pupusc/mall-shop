@@ -48,4 +48,9 @@ public class SearchAggsConstant {
      * 字段内容信息 producerName
      */
     public static final String BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY = "BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY";
+
+    /**
+     * 字段内容信息 tagName
+     */
+    public static final String BOOK_SEARCH_AGGS_TAG_NAME_KEY = "BOOK_SEARCH_AGGS_TAG_NAME_KEY";
 }

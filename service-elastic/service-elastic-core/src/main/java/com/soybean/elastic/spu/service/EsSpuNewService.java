@@ -469,7 +469,8 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                         .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"))
                         .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"))
                         .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"))
-                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword"));
+                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword"))
+                        .subAggregation(AggregationBuilders.terms("tagName").field("book.tags.tagName"));
         aggregationBuilderList.add(book);
 
         return aggregationBuilderList;
