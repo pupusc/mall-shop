@@ -379,7 +379,7 @@ public class TradeOrderService {
 			if (!start.get()) {
 				return;
 			}
-			if (trade.getSVersion() != null) {
+			if (trade.getSVersion() != null && !doingVersion.equals(trade.getSVersion())) {
 				continue;
 			}
 			try {
@@ -394,6 +394,7 @@ public class TradeOrderService {
 						&& ("0000".equals(crtResult.getContext().getCode()) || "40000".equals(crtResult.getContext().getCode()))) {
 					updateVersion(trade.getId(), doneVersion);
 					log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+					return;
 				}
 				throw new RuntimeException("调用电商中台创建订单结果异常，result=" + JSON.toJSONString(crtResult));
 			} catch (Exception e) {
