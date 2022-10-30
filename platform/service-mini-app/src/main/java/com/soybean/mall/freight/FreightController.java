@@ -1,5 +1,6 @@
 package com.soybean.mall.freight;
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.common.resp.BaseFixedAddressResp;
 import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.mall.common.CommonUtil;
@@ -331,6 +332,7 @@ public class FreightController {
             supplierDTO.setStoreId(storeId);
             supplierDTO.setFreightTemplateType(DefaultFlag.YES);
             tradeParamsRequest.setSupplier(supplierDTO);
+            log.info("FreightController listFreightPrice invoke getFreight param {}", JSON.toJSONString(tradeParamsRequest));
             BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
             if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
                 throw new SbcRuntimeException("999999", "所选地区不支持配送");

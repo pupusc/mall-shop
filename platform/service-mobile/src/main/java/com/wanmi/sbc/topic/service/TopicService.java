@@ -232,6 +232,8 @@ public class TopicService {
                     goods.setGoodsScore(goodsCustom.get().getGoodsScore());
                     goods.setStock(goodsCustom.get().getStock());
                     goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
+                    goods.setLabels(goodsCustom.get().getLabels());
+                    goods.setActivities(goodsCustom.get().getActivities());
                     if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
                         goods.setAtmosType(p.getAtmosType());
                         goods.setImageUrl(p.getImageUrl());

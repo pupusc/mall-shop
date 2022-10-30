@@ -542,24 +542,24 @@ public class GoodsController {
             }
 
             //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-            for (GoodsInfoVO goodsInfoVO : request.getGoodsInfos()) {
-                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
-                    GoodsInfoVO goodsInfoTmp = skuId2GoodsInfoMap.get(goodsInfoVO.getGoodsInfoId());
-                    if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
-                        continue;
-                    }
-                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext();
-
-                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
-                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
-                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
-                            throw new SbcRuntimeException("K-800002");
-                        }
-                    } else {
-                        throw new SbcRuntimeException("K-800003");
-                    }
-                }
-            }
+//            for (GoodsInfoVO goodsInfoVO : request.getGoodsInfos()) {
+//                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+//                    GoodsInfoVO goodsInfoTmp = skuId2GoodsInfoMap.get(goodsInfoVO.getGoodsInfoId());
+//                    if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
+//                        continue;
+//                    }
+//                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext();
+//
+//                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+//                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
+//                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+//                            throw new SbcRuntimeException("K-800002");
+//                        }
+//                    } else {
+//                        throw new SbcRuntimeException("K-800003");
+//                    }
+//                }
+//            }
 //            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
 //            goodsInfoVOS.forEach(goodsInfoVO -> {
 //                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {

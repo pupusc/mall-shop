@@ -74,6 +74,7 @@ public abstract class AbstractEsSpuNewService {
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = new EsSpuNewAggResp<>();
 
         Map<String, List<String>> key2SearchAggsMap = searchAggsProvider.list(SearchAggsConstant.SPU_SEARCH_AGGS_KEY).getContext();
+        int aggsMaxCount = 15;
 
         List<EsSpuNewAggResp.AggsCategoryResp> resultCategoryAggs = new ArrayList<>();
 
@@ -119,6 +120,10 @@ public abstract class AbstractEsSpuNewService {
                 labelsAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
                         spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString(), SearchSpuNewAggsCategoryEnum.AGGS_LABEL));
             }
+
+            if (labelsAggsList.size() >= aggsMaxCount) {
+                break;
+            }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, labelsAggsList));
 
@@ -154,6 +159,9 @@ public abstract class AbstractEsSpuNewService {
                     && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
                 fclassifyAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY));
             }
+            if (fclassifyAggsList.size() >= aggsMaxCount) {
+                break;
+            }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, fclassifyAggsList));
 
@@ -170,6 +178,9 @@ public abstract class AbstractEsSpuNewService {
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
                 authorAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR));
             }
+            if (authorAggsList.size() >= aggsMaxCount) {
+                break;
+            }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, authorAggsList));
 
@@ -183,7 +194,9 @@ public abstract class AbstractEsSpuNewService {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
                 publisherAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER));
-
+            }
+            if (publisherAggsList.size() >= aggsMaxCount) {
+                break;
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, publisherAggsList));
@@ -198,7 +211,9 @@ public abstract class AbstractEsSpuNewService {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
                 awardAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AWARD));
-
+            }
+            if (awardAggsList.size() >= aggsMaxCount) {
+                break;
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_AWARD, awardAggsList));
@@ -212,7 +227,9 @@ public abstract class AbstractEsSpuNewService {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
                 clumpAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_CLUMP));
-
+            }
+            if (clumpAggsList.size() >= aggsMaxCount) {
+                break;
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, clumpAggsList));
@@ -228,6 +245,9 @@ public abstract class AbstractEsSpuNewService {
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY).contains(bucket.getKeyAsString())) {
                 producerAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER));
             }
+            if (producerAggsList.size() >= aggsMaxCount) {
+                break;
+            }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, producerAggsList));
 
@@ -240,6 +260,9 @@ public abstract class AbstractEsSpuNewService {
             if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY) != null
                     && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY).contains(bucket.getKeyAsString())) {
                 tagAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_TAG));
+            }
+            if (tagAggsList.size() >= aggsMaxCount) {
+                break;
             }
         }
         resultCategoryAggs.add(this.packageAggsCategory(SearchSpuNewAggsCategoryEnum.AGGS_TAG, tagAggsList));
