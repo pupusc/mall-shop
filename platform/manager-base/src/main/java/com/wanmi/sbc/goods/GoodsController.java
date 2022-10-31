@@ -560,20 +560,20 @@ public class GoodsController {
                     }
                 }
             }
-            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
-            goodsInfoVOS.forEach(goodsInfoVO -> {
-                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
-                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
-                            throw new SbcRuntimeException("K-800002");
-                        }
-                    } else {
-                        throw new SbcRuntimeException("K-800003");
-                    }
-                }
-            });
+//            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
+//            goodsInfoVOS.forEach(goodsInfoVO -> {
+//                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+//                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+//                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+//                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+//                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+//                            throw new SbcRuntimeException("K-800002");
+//                        }
+//                    } else {
+//                        throw new SbcRuntimeException("K-800003");
+//                    }
+//                }
+//            });
         }
 
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
