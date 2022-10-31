@@ -71,11 +71,10 @@ public class FreeDelivery49Service {
         if (CollectionUtils.isEmpty(goodsList)) {
             return;
         }
-        Map<String, Goods> spuId2GoodsMap = new HashMap<>();
-        for (Goods goods : goodsList) {
-            spuId2GoodsMap.put(goods.getGoodsId(), goods);
-        }
-
+//        Map<String, Goods> spuId2GoodsMap = new HashMap<>();
+//        for (Goods goods : goodsList) {
+//            spuId2GoodsMap.put(goods.getGoodsId(), goods);
+//        }
 
         GoodsInfoQueryRequest param = new GoodsInfoQueryRequest();
         param.setGoodsIds(spuIds);
@@ -88,13 +87,25 @@ public class FreeDelivery49Service {
             return;
         }
 
-        String freeDelivery49 = goodsNacosConfig.getFreeDelivery49();
         log.info("FreeDelivery49Service changeFreeDelivery49 goodsNacosConfig {} ", JSON.toJSONString(goodsNacosConfig));
+
+        Map<String, Goods> directUpdateGoodsFreightTmpIdMap = new HashMap<>();
+        Map<String, Goods> calcUpdateGoodsFreightTmpIdMap = new HashMap<>();
+
+        for (Goods goods : goodsList) {
+            if (CollectionUtils.isNotEmpty(goodsNacosConfig.getUnFreeDelivery49())
+                    && goodsNacosConfig.getUnFreeDelivery49().contains(goods.getFreightTempId().toString())) {
+                directUpdateGoodsFreightTmpIdMap.put(goods.getGoodsId(), goods);
+            } else {
+                calcUpdateGoodsFreightTmpIdMap.put(goods.getGoodsId(), goods);
+            }
+        }
 
         Map<String, Goods> updateSpuId2GoodsMap = new HashMap<>();
         List<GoodsFreightHistory> updateResetFreightGoodsIdList = new ArrayList<>();
         for (GoodsInfo goodsInfo : goodsInfoList) {
-            Goods goods = spuId2GoodsMap.get(goodsInfo.getGoodsId());
+            //非计算的模版直接返回
+            Goods goods = calcUpdateGoodsFreightTmpIdMap.get(goodsInfo.getGoodsId());
             if (goods == null) {
                 continue;
             }
@@ -108,7 +119,7 @@ public class FreeDelivery49Service {
             if (diffPrice.compareTo(new BigDecimal("5")) > 0) {
                 updateSpuId2GoodsMap.put(goodsInfo.getGoodsId(), goods);
             } else {
-                //如果为指定模版id，则还原模版id
+                //如果存在历史模版，则还原模版id
                 GoodsFreightHistory  goodsFreightHistoryParam = new GoodsFreightHistory();
                 goodsFreightHistoryParam.setGoodsId(goods.getGoodsId());
                 goodsFreightHistoryParam.setDelFlag(DeleteFlag.NO.toValue());
@@ -120,6 +131,8 @@ public class FreeDelivery49Service {
             }
         }
 
+        String freeDelivery49 = goodsNacosConfig.getFreeDelivery49();
+
         //更新为指定模版
         List<String> updateFreightGoodsIdList = new ArrayList<>();
         List<GoodsFreightHistory> goodsFreightHistoryList = new ArrayList<>();
@@ -128,9 +141,7 @@ public class FreeDelivery49Service {
             if (goods.getFreightTempId() == null) {
                 continue;
             }
-            if (CollectionUtils.isNotEmpty(goodsNacosConfig.getUnFreeDelivery49()) && goodsNacosConfig.getUnFreeDelivery49().contains(goods.getFreightTempId().toString())) {
-                continue;
-            }
+
             //记录当前的模版id，
             if (!Objects.equals(freeDelivery49, goods.getFreightTempId().toString())) {
                 GoodsFreightHistory  goodsFreightHistoryParam = new GoodsFreightHistory();
@@ -156,6 +167,8 @@ public class FreeDelivery49Service {
             updateFreightGoodsIdList.add(goods.getGoodsId());
         }
 
+        log.info("FreeDelivery49Service changeFreeDelivery49 直接使用模版不做任何处理的商品列表是 {}", directUpdateGoodsFreightTmpIdMap.keySet());
+        
         log.info("FreeDelivery49Service changeFreeDelivery49 save goodsFreightHistoryList {} ", JSON.toJSONString(goodsFreightHistoryList));
         if (!CollectionUtils.isEmpty(goodsFreightHistoryList)) {
             goodsFreightHistoryRepository.saveAll(goodsFreightHistoryList);
