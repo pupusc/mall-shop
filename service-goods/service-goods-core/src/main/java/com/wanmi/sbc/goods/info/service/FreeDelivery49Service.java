@@ -66,6 +66,7 @@ public class FreeDelivery49Service {
      * @param spuIds
      */
     public void changeFreeDelivery49(List<String> spuIds) {
+        log.info("FreeDelivery49Service changeFreeDelivery49 spuIds {}", JSON.toJSONString(spuIds));
         List<Goods> goodsList = goodsService.listByGoodsIds(spuIds);
         if (CollectionUtils.isEmpty(goodsList)) {
             return;
@@ -83,10 +84,12 @@ public class FreeDelivery49Service {
         param.setAddedFlag(AddedFlag.YES.toValue());
         List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(param);
         if (CollectionUtils.isEmpty(goodsInfoList)) {
+            log.info("FreeDelivery49Service changeFreeDelivery49 goodsInfoList isEmpty spuIds {} ", JSON.toJSONString(goodsInfoList));
             return;
         }
 
         String freeDelivery49 = goodsNacosConfig.getFreeDelivery49();
+        log.info("FreeDelivery49Service changeFreeDelivery49 goodsNacosConfig {} ", JSON.toJSONString(goodsNacosConfig));
 
         Map<String, Goods> updateSpuId2GoodsMap = new HashMap<>();
         List<GoodsFreightHistory> updateResetFreightGoodsIdList = new ArrayList<>();
@@ -100,6 +103,8 @@ public class FreeDelivery49Service {
             }
             BigDecimal marketPrice = goodsInfo.getMarketPrice().multiply(new BigDecimal("0.96"));
             BigDecimal diffPrice = marketPrice.subtract(goodsInfo.getCostPrice());
+            log.info("FreeDelivery49Service changeFreeDelivery49 skuId: {} marketPrice:{} 96MarketPrice:{} costPrice:{} diffPrice:{} ",
+                    goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice(), marketPrice, goodsInfo.getCostPrice(), diffPrice);
             if (diffPrice.compareTo(new BigDecimal("5")) > 0) {
                 updateSpuId2GoodsMap.put(goodsInfo.getGoodsId(), goods);
             } else {
