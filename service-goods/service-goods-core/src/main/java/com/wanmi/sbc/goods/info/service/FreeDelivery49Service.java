@@ -177,11 +177,14 @@ public class FreeDelivery49Service {
         log.info("FreeDelivery49Service changeFreeDelivery49 save updateResetFreightGoodsIdList {} ", JSON.toJSONString(updateResetFreightGoodsIdList));
         if (!CollectionUtils.isEmpty(updateResetFreightGoodsIdList)) {
             for (GoodsFreightHistory goodsFreightHistory : updateResetFreightGoodsIdList) {
+                if (directUpdateGoodsFreightTmpIdMap.get(goodsFreightHistory.getGoodsId()) != null) {
+                    continue;
+                }
                 goodsService.updateFreight(goodsFreightHistory.getHisFreightId().longValue(), Collections.singletonList(goodsFreightHistory.getGoodsId()));
             }
         }
 
-        log.info("FreeDelivery49Service changeFreeDelivery49 goodsId {} freightId{}", JSON.toJSONString(updateFreightGoodsIdList), freeDelivery49);
+        log.info("FreeDelivery49Service changeFreeDelivery49 goodsId {} freightId {}", JSON.toJSONString(updateFreightGoodsIdList), freeDelivery49);
         if (!CollectionUtils.isEmpty(updateFreightGoodsIdList)) {
             goodsService.updateFreight(Long.valueOf(freeDelivery49), updateFreightGoodsIdList);
         }
