@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import springfox.documentation.spring.web.json.Json;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -93,6 +94,7 @@ public class FreeDelivery49Service {
         Map<String, Goods> calcUpdateGoodsFreightTmpIdMap = new HashMap<>();
 
         for (Goods goods : goodsList) {
+            log.info("FreeDelivery49Service changeFreeDelivery49 goodsId:{} freightTempId:{}", goods.getGoodsId(), goods.getFreightTempId());
             if (CollectionUtils.isNotEmpty(goodsNacosConfig.getUnFreeDelivery49())
                     && goodsNacosConfig.getUnFreeDelivery49().contains(goods.getFreightTempId().toString())) {
                 directUpdateGoodsFreightTmpIdMap.put(goods.getGoodsId(), goods);
@@ -166,6 +168,10 @@ public class FreeDelivery49Service {
             //更新goods信息的模版id为指定的id
             updateFreightGoodsIdList.add(goods.getGoodsId());
         }
+
+        goodsList = goodsService.listByGoodsIds(spuIds);
+        log.info("FreeDelivery49Service changeFreeDelivery49 last goodsList {}", JSON.toJSONString(goodsList.get(0)));
+
 
         log.info("FreeDelivery49Service changeFreeDelivery49 直接使用模版不做任何处理的商品列表是 {}", directUpdateGoodsFreightTmpIdMap.keySet());
         
