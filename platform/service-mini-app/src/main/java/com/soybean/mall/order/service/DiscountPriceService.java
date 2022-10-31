@@ -434,14 +434,14 @@ public class DiscountPriceService {
                     goodsIntervalPriceProvider.putByCustomerId(goodsIntervalPriceByCustomerIdRequest).getContext();
             skuResp.setGoodsIntervalPrices(priceResponse.getGoodsIntervalPriceVOList());
 //            List<TradeItemDTO> tradeItemDTOList = KsBeanUtil.convert(response.getGoodsInfos(), TradeItemDTO.class);
-            response.setGoodsInfos(priceResponse.getGoodsInfoVOList());
+            skuResp.setGoodsInfos(priceResponse.getGoodsInfoVOList());
 
             //计算会员价
             MarketingLevelGoodsListFilterRequest marketingLevelGoodsListFilterRequest = new MarketingLevelGoodsListFilterRequest();
             marketingLevelGoodsListFilterRequest.setGoodsInfos(KsBeanUtil.convert(response.getGoodsInfos(), GoodsInfoDTO.class));
             marketingLevelGoodsListFilterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingLevelPluginProvider.goodsListFilter(marketingLevelGoodsListFilterRequest).getContext().getGoodsInfoVOList();
-            response.setGoodsInfos(goodsInfoVOList);
+            skuResp.setGoodsInfos(goodsInfoVOList);
         }
 
         skuResp.setGoodses(response.getGoodses());

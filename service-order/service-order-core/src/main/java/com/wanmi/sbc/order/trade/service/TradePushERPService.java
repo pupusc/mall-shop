@@ -2353,14 +2353,19 @@ public class TradePushERPService {
             BaseResponse<List<DevItemResp>> listBaseResponse = shopCenterDeliveryProvider.listDevItem(orderDevItemReq);
             log.info("TradePushERrPService fillShopCenterDelivery response {}", JSON.toJSONString(listBaseResponse));
             for (DevItemResp devItemResp : listBaseResponse.getContext()) {
-                if (Objects.equals(devItemResp.getStatus(), 0)) {
-                    sum += 0;
-                }
-                if (Objects.equals(devItemResp.getStatus(), 1)) {
-                    sum += 1;
-                }
-                if (Objects.equals(devItemResp.getStatus(), 2)) {
+                //拦截成功，直接为发货完成
+                if (Objects.equals(devItemResp.getInterceptStatus(), 2)) {
                     sum += 2;
+                } else {
+                    if (Objects.equals(devItemResp.getStatus(), 0)) {
+                        sum += 0;
+                    }
+                    if (Objects.equals(devItemResp.getStatus(), 1)) {
+                        sum += 1;
+                    }
+                    if (Objects.equals(devItemResp.getStatus(), 2)) {
+                        sum += 2;
+                    }
                 }
             }
         }
