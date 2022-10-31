@@ -104,6 +104,7 @@ public class FreeDelivery49Service {
         }
 
         Map<String, Goods> updateSpuId2GoodsMap = new HashMap<>();
+        List<GoodsFreightHistory> goodsFreightHistoryList = new ArrayList<>();
         List<GoodsFreightHistory> updateResetFreightGoodsIdList = new ArrayList<>();
         for (GoodsInfo goodsInfo : goodsInfoList) {
             //非计算的模版直接返回
@@ -129,6 +130,9 @@ public class FreeDelivery49Service {
                 if (!CollectionUtils.isEmpty(goodsFreightHistories)) {
                     GoodsFreightHistory goodsFreightHistory = goodsFreightHistories.get(0);
                     updateResetFreightGoodsIdList.add(goodsFreightHistory);
+                } else {
+                    //此处直接保存运费模版,如果为空，则记录当前的历史模版
+                    goodsFreightHistoryList.add(this.packageGoodsFreightHistory(goods));
                 }
             }
         }
@@ -137,7 +141,7 @@ public class FreeDelivery49Service {
 
         //更新为指定模版
         List<String> updateFreightGoodsIdList = new ArrayList<>();
-        List<GoodsFreightHistory> goodsFreightHistoryList = new ArrayList<>();
+
         for (Map.Entry<String, Goods> stringGoodsEntry : updateSpuId2GoodsMap.entrySet()) {
             Goods goods = stringGoodsEntry.getValue();
             if (goods.getFreightTempId() == null) {
@@ -146,24 +150,7 @@ public class FreeDelivery49Service {
 
             //记录当前的模版id，
             if (!Objects.equals(freeDelivery49, goods.getFreightTempId().toString())) {
-                GoodsFreightHistory  goodsFreightHistoryParam = new GoodsFreightHistory();
-                goodsFreightHistoryParam.setGoodsId(goods.getGoodsId());
-                goodsFreightHistoryParam.setDelFlag(DeleteFlag.NO.toValue());
-                List<GoodsFreightHistory> goodsFreightHistories = goodsFreightHistoryRepository.findAll(Example.of(goodsFreightHistoryParam));
-                GoodsFreightHistory goodsFreightHistory = null;
-                if (!CollectionUtils.isEmpty(goodsFreightHistories)) {
-                    goodsFreightHistory = goodsFreightHistories.get(0);
-                }
-
-                if (goodsFreightHistory == null) {
-                    goodsFreightHistory = new GoodsFreightHistory();
-                    goodsFreightHistory.setHisFreightId(goods.getFreightTempId().intValue());
-                    goodsFreightHistory.setCreateTime(LocalDateTime.now());
-                }
-                goodsFreightHistory.setGoodsId(goods.getGoodsId());
-                goodsFreightHistory.setDelFlag(DeleteFlag.NO.toValue());
-                goodsFreightHistory.setUpdateTime(LocalDateTime.now());
-                goodsFreightHistoryList.add(goodsFreightHistory);
+                goodsFreightHistoryList.add(this.packageGoodsFreightHistory(goods));
             }
             //更新goods信息的模版id为指定的id
             updateFreightGoodsIdList.add(goods.getGoodsId());
@@ -194,8 +181,27 @@ public class FreeDelivery49Service {
         if (!CollectionUtils.isEmpty(updateFreightGoodsIdList)) {
             goodsService.updateFreight(Long.valueOf(freeDelivery49), updateFreightGoodsIdList);
         }
+    }
 
+    private GoodsFreightHistory packageGoodsFreightHistory(Goods goods) {
+        GoodsFreightHistory  goodsFreightHistoryParam = new GoodsFreightHistory();
+        goodsFreightHistoryParam.setGoodsId(goods.getGoodsId());
+        goodsFreightHistoryParam.setDelFlag(DeleteFlag.NO.toValue());
+        List<GoodsFreightHistory> goodsFreightHistories = goodsFreightHistoryRepository.findAll(Example.of(goodsFreightHistoryParam));
+        GoodsFreightHistory goodsFreightHistory = null;
+        if (!CollectionUtils.isEmpty(goodsFreightHistories)) {
+            goodsFreightHistory = goodsFreightHistories.get(0);
+        }
 
+        if (goodsFreightHistory == null) {
+            goodsFreightHistory = new GoodsFreightHistory();
+            goodsFreightHistory.setHisFreightId(goods.getFreightTempId().intValue());
+            goodsFreightHistory.setCreateTime(LocalDateTime.now());
+        }
+        goodsFreightHistory.setGoodsId(goods.getGoodsId());
+        goodsFreightHistory.setDelFlag(DeleteFlag.NO.toValue());
+        goodsFreightHistory.setUpdateTime(LocalDateTime.now());
+        return goodsFreightHistoryParam;
     }
 
 }
