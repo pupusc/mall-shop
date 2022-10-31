@@ -348,6 +348,7 @@ public class FreightController {
             tradeParamsRequest.setSupplier(supplierDTO);
             log.info("FreightController listFreightPrice invoke getFreight param {}", JSON.toJSONString(tradeParamsRequest));
             BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParamsRequest);
+            log.info("FreightController listFreightPrice invoke getFreight result {}", JSON.toJSONString(freight));
             if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
                 throw new SbcRuntimeException("999999", "所选地区不支持配送");
             }
