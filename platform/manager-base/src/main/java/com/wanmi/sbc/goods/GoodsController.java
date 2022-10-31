@@ -360,6 +360,7 @@ public class GoodsController {
         }
 
         //更新运费模版
+        log.info("GoodsController add changeFreeDelivery49 goodsId:{}", goodsId);
         FreightTemplate49ChangeReq freightTemplate49ChangeReq = new FreightTemplate49ChangeReq();
         freightTemplate49ChangeReq.setSpuIds(Collections.singletonList(goodsId));
         freightTemplateGoodsProvider.changeFreeDelivery49(freightTemplate49ChangeReq);
@@ -661,6 +662,7 @@ public class GoodsController {
 //        }
 
         //更新运费模版
+        log.info("GoodsController edit changeFreeDelivery49 goodsId:{}", request.getGoods().getGoodsId());
         FreightTemplate49ChangeReq freightTemplate49ChangeReq = new FreightTemplate49ChangeReq();
         freightTemplate49ChangeReq.setSpuIds(Collections.singletonList(request.getGoods().getGoodsId()));
         freightTemplateGoodsProvider.changeFreeDelivery49(freightTemplate49ChangeReq);
