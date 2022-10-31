@@ -1,4 +1,5 @@
 package com.soybean.mall.freight;
+import com.google.common.collect.Lists;
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.common.resp.BaseFixedAddressResp;
@@ -49,6 +50,8 @@ import com.wanmi.sbc.order.bean.dto.ConsigneeDTO;
 import com.wanmi.sbc.order.bean.dto.SupplierDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
+import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,7 +174,6 @@ public class FreightController {
         FreightPriceResp freightPriceResp = new FreightPriceResp();
         //获取地址信息
         GoodsVO goods = context.getGoods();
-        GoodsInfoVO goodsInfo = context.getGoodsInfo();
         TradeParamsRequest tradeParamsRequest = new TradeParamsRequest();
         ConsigneeDTO consigneeDTO = new ConsigneeDTO();
         consigneeDTO.setProvinceId(Long.valueOf(fixedAddress.getProvinceId()));
@@ -234,61 +236,54 @@ public class FreightController {
         }
 
         List<String> goodsInfoIds = new ArrayList<>();
+
+        List<DiscountPriceReq.DiscountPriceSkuReq> skus = new ArrayList<>();
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
             if (sku.getNum() == null || sku.getNum() <= 0) {
                 throw new SbcRuntimeException("999999", "传递的数量有误");
             }
             goodsInfoIds.add(sku.getSkuId());
+
+            DiscountPriceReq.DiscountPriceSkuReq discountPriceSkuReq = new DiscountPriceReq.DiscountPriceSkuReq();
+            discountPriceSkuReq.setSkuId(sku.getSkuId());
+            discountPriceSkuReq.setNum(sku.getNum());
+            skus.add(discountPriceSkuReq);
         }
 
-
-        //获取sku信息
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
-        goodsInfoViewByIdsRequest.setGoodsInfoIds(goodsInfoIds);
-        goodsInfoViewByIdsRequest.setDeleteFlag(DeleteFlag.NO);
-        GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = goodsInfoQueryProvider.listViewByIds(goodsInfoViewByIdsRequest).getContext();
-        if (CollectionUtils.isEmpty(goodsInfoViewByIdsResponse.getGoodsInfos())) {
-            throw new SbcRuntimeException("99999", "sku信息不存在");
-        }
-
-
-        Set<String> spuIds = new HashSet<>();
-        for (GoodsInfoVO goodsInfo : goodsInfoViewByIdsResponse.getGoodsInfos()) {
-            spuIds.add(goodsInfo.getGoodsId());
-        }
-
-        //获取spu信息
-        GoodsListByIdsRequest goodsListByIdsRequest = new GoodsListByIdsRequest();
-        goodsListByIdsRequest.setGoodsIds(new ArrayList<>(spuIds));
-        GoodsListByIdsResponse spuContext = goodsQueryProvider.listByIds(goodsListByIdsRequest).getContext();
-        if (CollectionUtils.isEmpty(spuContext.getGoodsVOList())) {
-            throw new SbcRuntimeException("99999", "spu信息不存在");
-        }
-        if (spuContext.getGoodsVOList().size() != spuIds.size()) {
-            throw new SbcRuntimeException("99999", "spu信息数量不同");
-        }
-
-        //获取营销价格信息
-        Map<String, GoodsInfoVO> skuId2GoodsInfoNewVoMap = new HashMap<>();
-
-        String customerId = commonUtil.getOperatorId();
-        //计算营销价格
-        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoViewByIdsResponse.getGoodsInfos(), GoodsInfoDTO.class));
-        filterRequest.setIsIndependent(Boolean.FALSE);
-        if (!StringUtils.isEmpty(customerId)) {
-            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
-            if (Objects.nonNull(customer)) {
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        List<DiscountPriceReq.DiscountMarketingSkuReq> marketings = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(freightPriceListReq.getMarketings())) {
+            for (FreightPriceListReq.DiscountMarketingSkuReq marketing : freightPriceListReq.getMarketings()) {
+                DiscountPriceReq.DiscountMarketingSkuReq discountMarketingSkuReq = new DiscountPriceReq.DiscountMarketingSkuReq();
+                discountMarketingSkuReq.setMarketingId(marketing.getMarketingId());
+                discountMarketingSkuReq.setMarketingLevelId(marketing.getMarketingLevelId());
+                if (CollectionUtils.isEmpty(marketing.getSkuIds())) {
+                    continue;
+                }
+                discountMarketingSkuReq.setSkuIds(marketing.getSkuIds());
+                marketings.add(discountMarketingSkuReq);
             }
         }
-        GoodsInfoListByGoodsInfoResponse contextGoodsInfo = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
-        for (GoodsInfoVO goodsInfoVO : contextGoodsInfo.getGoodsInfoVOList()) {
-            skuId2GoodsInfoNewVoMap.put(goodsInfoVO.getGoodsInfoId(), goodsInfoVO);
+
+        String customerId = commonUtil.getOperatorId();
+        CustomerGetByIdResponse customer = null;
+        if (!StringUtils.isEmpty(customerId)) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
         }
 
-        Map<String, GoodsVO> spuId2ModelMap =
-                spuContext.getGoodsVOList().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        DiscountPriceReq discountPriceReq = new DiscountPriceReq();
+        discountPriceReq.setItems(skus);
+        discountPriceReq.setMarketings(marketings);
+        TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
+        if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
+            throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
+        }
+
+        BigDecimal sumPrice = tradeConfirmResp.getTotalPrice();
+        TradeConfirmItemVO tradeConfirmItemVO = tradeConfirmResp.getTradeConfirmItems().get(0);
+        Map<String, TradeItemVO> skuId2TradeItemMap = new HashMap<>();
+        for (TradeItemVO tradeItem : tradeConfirmItemVO.getTradeItems()) {
+            skuId2TradeItemMap.put(tradeItem.getSkuId(), tradeItem);
+        }
 
         BaseFixedAddressResp fixedAddress = null;
         if (StringUtils.isBlank(freightPriceListReq.getProvinceId()) || StringUtils.isBlank(freightPriceListReq.getCityId())) {
@@ -308,33 +303,33 @@ public class FreightController {
 
         tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
 
-        BigDecimal sumPrice = BigDecimal.ZERO;
+//        BigDecimal sumPrice = BigDecimal.ZERO;
         Long storeId = 0L;
         List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
         boolean hasFreeDelivery49 = false;
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
-            GoodsInfoVO goodsInfoVO = skuId2GoodsInfoNewVoMap.get(sku.getSkuId());
-            if (goodsInfoVO == null) {
+            TradeItemVO tradeItemVO = skuId2TradeItemMap.get(sku.getSkuId());
+            if (tradeItemVO == null) {
                 continue;
             }
-            GoodsVO goodsVO = spuId2ModelMap.get(goodsInfoVO.getGoodsId());
-            if (goodsVO == null) {
-                continue;
-            }
+//            GoodsVO goodsVO = spuId2ModelMap.get(tradeItemVO.getSpuId());
+//            if (goodsVO == null) {
+//                continue;
+//            }
 
             GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
-            if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
+            if (Objects.equals(tradeItemVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
                 hasFreeDelivery49 = true;
 //                sumPrice = sumPrice.add(goodsInfoVO.getSalePrice());
 
-                storeId = goodsVO.getStoreId();
+                storeId = tradeItemVO.getStoreId();
                 TradeItemDTO tradeItemDTO = new TradeItemDTO();
-                tradeItemDTO.setGoodsType(GoodsType.fromValue(goodsVO.getGoodsType()));
-                tradeItemDTO.setFreightTempId(goodsVO.getFreightTempId());
+                tradeItemDTO.setGoodsType(tradeItemVO.getGoodsType());
+                tradeItemDTO.setFreightTempId(tradeItemVO.getFreightTempId());
                 tradeItemDTO.setNum(sku.getNum().longValue());
-                tradeItemDTO.setGoodsWeight(goodsVO.getGoodsWeight());
-                tradeItemDTO.setGoodsCubage(goodsVO.getGoodsCubage());
-                tradeItemDTO.setSplitPrice(goodsInfoVO.getMarketPrice());
+                tradeItemDTO.setGoodsWeight(tradeItemVO.getGoodsWeight());
+                tradeItemDTO.setGoodsCubage(tradeItemVO.getGoodsCubage());
+                tradeItemDTO.setSplitPrice(tradeItemVO.getSplitPrice());
                 tradeItemDTOList.add(tradeItemDTO);
             }
         }

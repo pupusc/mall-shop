@@ -404,7 +404,7 @@ public class DiscountPriceService {
 
 
         // 加价购填充
-        markupForGoodsInfo(confirmResponse);
+        markupForGoodsInfo(confirmResponse, customer);
 
         return confirmResponse;
     }
@@ -424,7 +424,7 @@ public class DiscountPriceService {
 
         skuResp.setGoodsInfos(response.getGoodsInfos());
         //获取客户的等级
-        if (StringUtils.isNotBlank(customer.getCustomerId())) {
+        if (customer != null && StringUtils.isNotBlank(customer.getCustomerId())) {
             //计算区间价
             List<GoodsInfoDTO> goodsInfoDTOList = KsBeanUtil.convert(response.getGoodsInfos(), GoodsInfoDTO.class);
             GoodsIntervalPriceByCustomerIdRequest goodsIntervalPriceByCustomerIdRequest = new GoodsIntervalPriceByCustomerIdRequest();
@@ -684,7 +684,7 @@ public class DiscountPriceService {
      *
      * @param confirmResponse
      */
-    private void markupForGoodsInfo(TradeConfirmResp confirmResponse) {
+    private void markupForGoodsInfo(TradeConfirmResp confirmResponse, CustomerGetByIdResponse customer) {
         // 是否有加价购
         List<TradeConfirmMarketingVO> tradeConfirmMarketingVOS = confirmResponse.getTradeConfirmItems().stream()
                 .filter(i -> CollectionUtils.isNotEmpty(i.getTradeConfirmMarketingList()))
@@ -710,16 +710,19 @@ public class DiscountPriceService {
                 || item.getIsFlashSaleGoods()) {
             return;
         }
-        // 获取用户在店铺里的等级
-        CustomerVO customer = commonUtil.getCustomer();
-        List<Long> storeIds =
-                confirmResponse.getTradeConfirmItems().stream().map(i -> i.getSupplier().getStoreId()).collect(Collectors.toList());
-        final HashMap<Long, CommonLevelVO> commonLevelVOMap = marketingPluginQueryProvider.getCustomerLevelsByStoreIds(
-                        MarketingPluginGetCustomerLevelsByStoreIdsRequest.builder().storeIds(storeIds)
-                                .customer(KsBeanUtil.convert(customer, CustomerDTO.class)).build()).getContext()
-                .getCommonLevelVOMap();
+
+        HashMap<Long, CommonLevelVO> commonLevelVOMap = new HashMap<>();
         List<PaidCardCustomerRelVO> relVOList = new ArrayList<>();
         if (Objects.nonNull(customer)) {
+
+            // 获取用户在店铺里的等级
+            List<Long> storeIds =
+                    confirmResponse.getTradeConfirmItems().stream().map(i -> i.getSupplier().getStoreId()).collect(Collectors.toList());
+            commonLevelVOMap = marketingPluginQueryProvider.getCustomerLevelsByStoreIds(
+                            MarketingPluginGetCustomerLevelsByStoreIdsRequest.builder().storeIds(storeIds)
+                                    .customer(KsBeanUtil.convert(customer, CustomerDTO.class)).build()).getContext()
+                    .getCommonLevelVOMap();
+
             relVOList = paidCardCustomerRelQueryProvider
                     .list(PaidCardCustomerRelListRequest.builder()
                             .delFlag(DeleteFlag.NO)
@@ -738,10 +741,10 @@ public class DiscountPriceService {
         if (CollectionUtils.isNotEmpty(relVOList)) {
             markupLevelBySkuRequest.getMarketingJoinLevelList().add(MarketingJoinLevel.PAID_CARD_CUSTOMER);
         }
-        // 企业会员
-        if (EnterpriseCheckState.CHECKED.equals(customer.getEnterpriseCheckState())) {
-            markupLevelBySkuRequest.getMarketingJoinLevelList().add(MarketingJoinLevel.ENTERPRISE_CUSTOMER);
-        }
+//        // 企业会员
+//        if (EnterpriseCheckState.CHECKED.equals(customer.getEnterpriseCheckState())) {
+//            markupLevelBySkuRequest.getMarketingJoinLevelList().add(MarketingJoinLevel.ENTERPRISE_CUSTOMER);
+//        }
         markupLevelBySkuRequest.setLevelMap(commonLevelVOMap);
         MarkupLevelBySkuResponse levelBySkuResponse = markupQueryProvider.getMarkupListBySku(markupLevelBySkuRequest).getContext();
         List<MarkupLevelVO> levelList = levelBySkuResponse.getLevelList();

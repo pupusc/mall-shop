@@ -26,10 +26,25 @@ public class FreightPriceListReq {
      */
     private String cityId;
 
+    /**
+     * 折扣信息
+     */
+    private List<DiscountMarketingSkuReq> marketings;
+
+
     @Data
     public static class FreightSkuReq {
         private String skuId;
 
         private Integer num;
+    }
+
+    @Data
+    public static class DiscountMarketingSkuReq {
+        private Long marketingId;
+
+        private Long marketingLevelId;
+
+        private List<String> skuIds;
     }
 }
