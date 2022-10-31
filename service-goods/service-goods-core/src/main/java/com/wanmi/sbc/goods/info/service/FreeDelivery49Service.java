@@ -201,7 +201,7 @@ public class FreeDelivery49Service {
         goodsFreightHistory.setGoodsId(goods.getGoodsId());
         goodsFreightHistory.setDelFlag(DeleteFlag.NO.toValue());
         goodsFreightHistory.setUpdateTime(LocalDateTime.now());
-        return goodsFreightHistoryParam;
+        return goodsFreightHistory;
     }
 
 }
