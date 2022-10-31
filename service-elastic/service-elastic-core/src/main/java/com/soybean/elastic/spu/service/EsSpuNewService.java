@@ -472,8 +472,8 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                                 .subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category").order(BucketOrder.count(false)).size(aggsSize));
         aggregationBuilderList.add(nestedAggregationBuilder);
 
-        TermsAggregationBuilder fclassifyNameBuilder = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").order(BucketOrder.count(false)).size(aggsSize);
-        aggregationBuilderList.add(fclassifyNameBuilder);
+//        TermsAggregationBuilder fclassifyNameBuilder = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").order(BucketOrder.count(false)).size(aggsSize);
+//        aggregationBuilderList.add(fclassifyNameBuilder);
 
         TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").order(BucketOrder.count(false)).size(aggsSize);
         aggregationBuilderList.add(fclassifyName);
