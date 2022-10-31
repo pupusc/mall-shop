@@ -224,8 +224,7 @@ public class SearchController {
         EsSpuNewAggResp<List<SpuNewBookListResp>> listEsSpuNewAggResp = this.spuSearch(request);
         //凑单页面 显示价格区间
         for (EsSpuNewAggResp.AggsCategoryResp aggsCategory : listEsSpuNewAggResp.getAggsCategorys()) {
-            if (!Objects.equals(aggsCategory.getCategory(), SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE.getCode())
-                && !Objects.equals(aggsCategory.getCategory(), SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR.getCode())) {
+            if (!Objects.equals(aggsCategory.getCategory(), SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE.getCode())) {
                 continue;
             }
             for (EsSpuNewAggResp.AggsResp aggsResp : aggsCategory.getAggsList()) {
