@@ -249,7 +249,7 @@ public class FreightController {
             discountPriceSkuReq.setNum(sku.getNum());
             skus.add(discountPriceSkuReq);
         }
-
+        log.info("FreightController listFreightPrice request {}", JSON.toJSONString(freightPriceListReq));
         List<DiscountPriceReq.DiscountMarketingSkuReq> marketings = new ArrayList<>();
         if (!CollectionUtils.isEmpty(freightPriceListReq.getMarketings())) {
             for (FreightPriceListReq.DiscountMarketingSkuReq marketing : freightPriceListReq.getMarketings()) {
@@ -274,6 +274,7 @@ public class FreightController {
         discountPriceReq.setItems(skus);
         discountPriceReq.setMarketings(marketings);
         TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
+        log.info("FreightController listFreightPrice tradeConfirmResp {}", JSON.toJSONString(tradeConfirmResp));
         if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
             throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
         }
