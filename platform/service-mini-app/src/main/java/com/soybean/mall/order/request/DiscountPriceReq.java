@@ -15,7 +15,15 @@ import java.util.List;
 public class DiscountPriceReq {
 
 
+    /**
+     * 商品信息
+     */
     private List<DiscountPriceSkuReq> items;
+
+    /**
+     * 折扣信息
+     */
+    private List<DiscountMarketingSkuReq> marketings;
 
 
     @Data
@@ -31,5 +39,15 @@ public class DiscountPriceReq {
          * 数量
          */
         private Integer num;
+    }
+
+
+    @Data
+    public static class DiscountMarketingSkuReq {
+        private Long marketingId;
+
+        private Long marketingLevelId;
+
+        private List<String> skuIds;
     }
 }

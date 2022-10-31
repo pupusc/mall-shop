@@ -8,6 +8,9 @@ import com.soybean.mall.freight.req.FreightPriceListReq;
 import com.soybean.mall.freight.req.FreightPriceReq;
 import com.soybean.mall.freight.resp.FreightPriceListResp;
 import com.soybean.mall.freight.resp.FreightPriceResp;
+import com.soybean.mall.order.request.DiscountPriceReq;
+import com.soybean.mall.order.response.TradeConfirmResp;
+import com.soybean.mall.order.service.DiscountPriceService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -100,6 +103,22 @@ public class FreightController {
 
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private DiscountPriceService discountPriceService;
+
+    @PostMapping("/computePayPrice")
+    public BaseResponse<TradeConfirmResp> computePayPrice(@RequestBody DiscountPriceReq discountPriceReq) {
+        String customerId = commonUtil.getOperatorId();
+        CustomerGetByIdResponse customer =  null;
+        if (!StringUtils.isEmpty(customerId)) {
+             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+        } else {
+            customer = new CustomerGetByIdResponse();
+        }
+        TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
+        return BaseResponse.success(tradeConfirmResp);
+    }
 
 
     /**
@@ -306,7 +325,7 @@ public class FreightController {
             GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
             if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
                 hasFreeDelivery49 = true;
-                sumPrice = sumPrice.add(goodsInfoVO.getSalePrice());
+//                sumPrice = sumPrice.add(goodsInfoVO.getSalePrice());
 
                 storeId = goodsVO.getStoreId();
                 TradeItemDTO tradeItemDTO = new TradeItemDTO();

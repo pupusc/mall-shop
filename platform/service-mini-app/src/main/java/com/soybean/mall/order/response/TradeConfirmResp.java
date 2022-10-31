@@ -43,4 +43,9 @@ public class TradeConfirmResp {
      * 购买积分，被用于普通订单的积分+金额混合商品
      */
     private Long totalBuyPoint = 0L;
+
+    public BigDecimal getTotalPrice() {
+        return tradeConfirmItems.stream().map(i -> i.getTradePrice().getTotalPrice())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }
