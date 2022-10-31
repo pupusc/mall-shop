@@ -343,8 +343,8 @@ public class TradeOrderService {
 		//指定id
 		if (StringUtil.isNotBlank(syncOrderDataRequest.getId())) {
 			Query query = new Query(Criteria.where("_id").is(syncOrderDataRequest.getId()));
-			export(query, false);
-			log.info("====>>电商中台订单同步结束1<<====");
+			export(mongoTemplate.find((query), Trade.class));
+			log.info("====>>电商中台订单同步结束：指定id执行<<====");
 			return BaseResponse.success(true);
 		}
 
@@ -352,30 +352,36 @@ public class TradeOrderService {
 		Query query = new Query(Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
 		Long count = mongoTemplate.count(query, Trade.class);
 		if (count == 0) {
-			log.info("====>>电商中台订单同步结束2<<====");
+			log.info("====>>电商中台订单同步结束：没有查到符合条件的订单<<====");
 			return BaseResponse.success(true);
 		}
 
-		Integer foreachTimes = (int) (count / 1000) + 1;
+		int queryCount = 0;
+		int finishCount = 0;
+
+		int foreachTimes = (int) (count / 1000) + 1;
 		for (int i = 0; i < foreachTimes; i++) {
-			Integer offset = (i) * 1000;
-			query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
-			export(query, true);
+			query = query.skip(i * 1000).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
+			List<Trade> trades = mongoTemplate.find((query), Trade.class);
+			queryCount += trades.size();
+			finishCount += export(trades);
 		}
-		log.info("====>>电商中台订单同步结束3<<====");
+		log.info("====>>电商中台订单同步结束3, count={}, listSize={}, finishSize={}<<====", count, queryCount, finishCount);
 		return BaseResponse.success(true);
 	}
 
 	private Integer doingVersion = Integer.valueOf(0);
 	private Integer doneVersion = Integer.valueOf(1);
 
-	private void export(Query query, boolean setRedis) {
-		List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
+	private int export(List<Trade> tradeList) {
+		int finishCount = 0;
+
 		for (Trade trade : tradeList) {
 			if (!start.get()) {
-				return;
+				return finishCount;
 			}
-			if (trade.getSVersion() != null && !doingVersion.equals(trade.getSVersion())) {
+			if (doneVersion.equals(trade.getSVersion())) {
+				finishCount++;
 				continue;
 			}
 			try {
@@ -383,24 +389,25 @@ public class TradeOrderService {
 				CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
 				createOrderReq.setPlatformCode("WAN_MI");
 				createOrderReq.setPlatformOrderId(trade.getId());
+				createOrderReq.setImportOrder(true);
 				updateVersion(trade.getId(), doingVersion);
 				BaseResponse<CreateOrderResp> crtResult = shopCenterOrderProvider.createOrder(createOrderReq);
 
-				if (CommonErrorCode.SUCCESSFUL.equals(crtResult.getCode())
-						&& ("0000".equals(crtResult.getContext().getCode()) || "40000".equals(crtResult.getContext().getCode()))) {
-					updateVersion(trade.getId(), doneVersion);
-					log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
-					return;
+				if (!CommonErrorCode.SUCCESSFUL.equals(crtResult.getCode())
+						|| (!"0000".equals(crtResult.getContext().getCode()) && !"40000".equals(crtResult.getContext().getCode()))) {
+					throw new RuntimeException("调用电商中台创建订单结果异常，result=" + JSON.toJSONString(crtResult));
 				}
-				throw new RuntimeException("调用电商中台创建订单结果异常，result=" + JSON.toJSONString(crtResult));
+
+				updateVersion(trade.getId(), doneVersion);
+				log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+				finishCount++;
 			} catch (Exception e) {
 				log.error("e:{}", e);
 				log.warn("==>>电商中台订单同步错误：tradeId={}", trade.getId());
 			}
-			if (setRedis) {
-				redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, trade.getId());
-			}
 		}
+
+		return finishCount;
 	}
 
 	private void updateVersion(String id, int version) {
