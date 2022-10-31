@@ -542,38 +542,38 @@ public class GoodsController {
             }
 
             //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-//            for (GoodsInfoVO goodsInfoVO : request.getGoodsInfos()) {
-//                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
-//                    GoodsInfoVO goodsInfoTmp = skuId2GoodsInfoMap.get(goodsInfoVO.getGoodsInfoId());
-//                    if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
-//                        continue;
-//                    }
-//                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext();
-//
-//                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
-//                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
-//                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
-//                            throw new SbcRuntimeException("K-800002");
-//                        }
-//                    } else {
-//                        throw new SbcRuntimeException("K-800003");
-//                    }
-//                }
-//            }
-//            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
-//            goodsInfoVOS.forEach(goodsInfoVO -> {
-//                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
-//                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-//                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-//                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-//                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
-//                            throw new SbcRuntimeException("K-800002");
-//                        }
-//                    } else {
-//                        throw new SbcRuntimeException("K-800003");
-//                    }
-//                }
-//            });
+            for (GoodsInfoVO goodsInfoVO : request.getGoodsInfos()) {
+                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+                    GoodsInfoVO goodsInfoTmp = skuId2GoodsInfoMap.get(goodsInfoVO.getGoodsInfoId());
+                    if (goodsInfoTmp != null && Objects.equals(goodsInfoTmp.getAddedFlag(), AddedFlag.NO.toValue())) {
+                        continue;
+                    }
+                    List<NewGoodsInfoResp> goodsInfoList = shopCenterProductProvider.searchGoodsInfo(NewGoodsInfoRequest.builder().goodsCode(goodsInfoVO.getErpGoodsInfoNo()).build()).getContext();
+
+                    if (CollectionUtils.isNotEmpty(goodsInfoList)) {
+                        List<String> skuCodes = goodsInfoList.stream().map(infoVO -> infoVO.getGoodsCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
+                    }
+                }
+            }
+            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
+            goodsInfoVOS.forEach(goodsInfoVO -> {
+                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
+                    }
+                }
+            });
         }
 
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
