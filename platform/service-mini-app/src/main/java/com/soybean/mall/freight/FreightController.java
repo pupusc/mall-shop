@@ -29,9 +29,11 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
@@ -237,32 +239,26 @@ public class FreightController {
 
         List<String> goodsInfoIds = new ArrayList<>();
 
-        List<DiscountPriceReq.DiscountPriceSkuReq> skus = new ArrayList<>();
         for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()) {
             if (sku.getNum() == null || sku.getNum() <= 0) {
                 throw new SbcRuntimeException("999999", "传递的数量有误");
             }
             goodsInfoIds.add(sku.getSkuId());
-
-            DiscountPriceReq.DiscountPriceSkuReq discountPriceSkuReq = new DiscountPriceReq.DiscountPriceSkuReq();
-            discountPriceSkuReq.setSkuId(sku.getSkuId());
-            discountPriceSkuReq.setNum(sku.getNum());
-            skus.add(discountPriceSkuReq);
         }
         log.info("FreightController listFreightPrice request {}", JSON.toJSONString(freightPriceListReq));
-        List<DiscountPriceReq.DiscountMarketingSkuReq> marketings = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(freightPriceListReq.getMarketings())) {
-            for (FreightPriceListReq.DiscountMarketingSkuReq marketing : freightPriceListReq.getMarketings()) {
-                DiscountPriceReq.DiscountMarketingSkuReq discountMarketingSkuReq = new DiscountPriceReq.DiscountMarketingSkuReq();
-                discountMarketingSkuReq.setMarketingId(marketing.getMarketingId());
-                discountMarketingSkuReq.setMarketingLevelId(marketing.getMarketingLevelId());
-                if (CollectionUtils.isEmpty(marketing.getSkuIds())) {
-                    continue;
-                }
-                discountMarketingSkuReq.setSkuIds(marketing.getSkuIds());
-                marketings.add(discountMarketingSkuReq);
-            }
-        }
+//        List<DiscountPriceReq.DiscountMarketingSkuReq> marketings = new ArrayList<>();
+//        if (!CollectionUtils.isEmpty(freightPriceListReq.getMarketings())) {
+//            for (FreightPriceListReq.DiscountMarketingSkuReq marketing : freightPriceListReq.getMarketings()) {
+//                DiscountPriceReq.DiscountMarketingSkuReq discountMarketingSkuReq = new DiscountPriceReq.DiscountMarketingSkuReq();
+//                discountMarketingSkuReq.setMarketingId(marketing.getMarketingId());
+//                discountMarketingSkuReq.setMarketingLevelId(marketing.getMarketingLevelId());
+//                if (CollectionUtils.isEmpty(marketing.getSkuIds())) {
+//                    continue;
+//                }
+//                discountMarketingSkuReq.setSkuIds(marketing.getSkuIds());
+//                marketings.add(discountMarketingSkuReq);
+//            }
+//        }
 
         String customerId = commonUtil.getOperatorId();
         CustomerGetByIdResponse customer = null;
@@ -270,21 +266,97 @@ public class FreightController {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
         }
 
-        DiscountPriceReq discountPriceReq = new DiscountPriceReq();
-        discountPriceReq.setItems(skus);
-        discountPriceReq.setMarketings(marketings);
-        TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
-        log.info("FreightController listFreightPrice tradeConfirmResp {}", JSON.toJSONString(tradeConfirmResp));
-        if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
-            throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
+        //只是获取49包邮的商品列表
+        GoodsInfoListByIdsRequest goodsInfoListByIdsRequest = new GoodsInfoListByIdsRequest();
+        goodsInfoListByIdsRequest.setGoodsInfoIds(goodsInfoIds);
+        GoodsInfoListByIdsResponse context = goodsInfoQueryProvider.listByIds(goodsInfoListByIdsRequest).getContext();
+        if (CollectionUtils.isEmpty(context.getGoodsInfos())) {
+            throw new SbcRuntimeException("skuId对应的商品信息不存在");
+        }
+        //对应goodsId到goodsInfo的关系
+        Map<String, List<GoodsInfoVO>> goodsId2GoodsInfoListMap = new HashMap<>();
+        for (GoodsInfoVO goodsInfo : context.getGoodsInfos()) {
+            List<GoodsInfoVO> goodsInfoVOS = goodsId2GoodsInfoListMap.get(goodsInfo.getGoodsId());
+            if (CollectionUtils.isEmpty(goodsInfoVOS)) {
+                goodsInfoVOS = new ArrayList<>();
+                goodsId2GoodsInfoListMap.put(goodsInfo.getGoodsId(), goodsInfoVOS);
+            }
+            goodsInfoVOS.add(goodsInfo);
+        }
+        GoodsListByIdsRequest goodsListByIdsRequest = new GoodsListByIdsRequest();
+        goodsListByIdsRequest.setGoodsIds(new ArrayList<>(goodsId2GoodsInfoListMap.keySet()));
+        GoodsListByIdsResponse goodsListByIdsResponse = goodsQueryProvider.listByIds(goodsListByIdsRequest).getContext();
+        if (CollectionUtils.isEmpty(goodsListByIdsResponse.getGoodsVOList())) {
+            throw new SbcRuntimeException("spId对应的商品信息不存在");
         }
 
-        BigDecimal sumPrice = tradeConfirmResp.getTotalPrice();
-        TradeConfirmItemVO tradeConfirmItemVO = tradeConfirmResp.getTradeConfirmItems().get(0);
-        Map<String, TradeItemVO> skuId2TradeItemMap = new HashMap<>();
-        for (TradeItemVO tradeItem : tradeConfirmItemVO.getTradeItems()) {
-            skuId2TradeItemMap.put(tradeItem.getSkuId(), tradeItem);
+        //过滤非49包邮的运费模版
+        GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
+
+        List<DiscountPriceReq.DiscountPriceSkuReq> skus = new ArrayList<>();
+        List<DiscountPriceReq.DiscountMarketingSkuReq> marketings = new ArrayList<>();
+
+        for (GoodsVO goodsVO : goodsListByIdsResponse.getGoodsVOList()) {
+            List<GoodsInfoVO> goodsInfoVOS = goodsId2GoodsInfoListMap.get(goodsVO.getGoodsId());
+            if (CollectionUtils.isEmpty(goodsInfoVOS)) {
+                continue;
+            }
+            if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
+                List<String> skuIdList = goodsInfoVOS.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+                for (FreightPriceListReq.FreightSkuReq sku : freightPriceListReq.getSkus()){
+                    if (skuIdList.contains(sku.getSkuId())) {
+                        DiscountPriceReq.DiscountPriceSkuReq discountPriceSkuReq = new DiscountPriceReq.DiscountPriceSkuReq();
+                        discountPriceSkuReq.setSkuId(sku.getSkuId());
+                        discountPriceSkuReq.setNum(sku.getNum());
+                        skus.add(discountPriceSkuReq);
+                    }
+                }
+            }
         }
+
+        if (!CollectionUtils.isEmpty(freightPriceListReq.getMarketings())) {
+            List<String> skuIds = skus.stream().map(DiscountPriceReq.DiscountPriceSkuReq::getSkuId).collect(Collectors.toList());
+            for (FreightPriceListReq.DiscountMarketingSkuReq marketing : freightPriceListReq.getMarketings()) {
+                DiscountPriceReq.DiscountMarketingSkuReq discountMarketingSkuReq = new DiscountPriceReq.DiscountMarketingSkuReq();
+                discountMarketingSkuReq.setMarketingId(marketing.getMarketingId());
+                discountMarketingSkuReq.setMarketingLevelId(marketing.getMarketingLevelId());
+                if (CollectionUtils.isEmpty(marketing.getSkuIds())) {
+                    continue;
+                }
+                List<String> marketSkuIds = new ArrayList<>();
+                for (String skuId : marketing.getSkuIds()) {
+                    if (!skuIds.contains(skuId)) {
+                        continue;
+                    }
+                    marketSkuIds.add(skuId);
+                }
+                discountMarketingSkuReq.setSkuIds(marketSkuIds);
+                if (!CollectionUtils.isEmpty(marketSkuIds)) {
+                    marketings.add(discountMarketingSkuReq);
+                }
+            }
+        }
+
+        BigDecimal sumPrice = BigDecimal.ZERO;
+        Map<String, TradeItemVO> skuId2TradeItemMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(skus)) {
+            DiscountPriceReq discountPriceReq = new DiscountPriceReq();
+            discountPriceReq.setItems(skus);
+            discountPriceReq.setMarketings(marketings);
+            TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
+            log.info("FreightController listFreightPrice tradeConfirmResp {}", JSON.toJSONString(tradeConfirmResp));
+            if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
+                throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
+            }
+            sumPrice = tradeConfirmResp.getTotalPrice();
+            TradeConfirmItemVO tradeConfirmItemVO = tradeConfirmResp.getTradeConfirmItems().get(0);
+            for (TradeItemVO tradeItem : tradeConfirmItemVO.getTradeItems()) {
+                skuId2TradeItemMap.put(tradeItem.getSkuId(), tradeItem);
+            }
+        }
+
+
+
 
         BaseFixedAddressResp fixedAddress = null;
         if (StringUtils.isBlank(freightPriceListReq.getProvinceId()) || StringUtils.isBlank(freightPriceListReq.getCityId())) {
@@ -318,7 +390,6 @@ public class FreightController {
 //                continue;
 //            }
 
-            GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
             if (Objects.equals(tradeItemVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
                 hasFreeDelivery49 = true;
 //                sumPrice = sumPrice.add(goodsInfoVO.getSalePrice());
