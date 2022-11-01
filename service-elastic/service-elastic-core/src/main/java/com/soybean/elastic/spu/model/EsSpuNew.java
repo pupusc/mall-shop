@@ -8,6 +8,7 @@ import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
 import com.soybean.elastic.spu.model.sub.SubClassifyNew;
 import com.soybean.elastic.spu.model.sub.SubCommentNew;
+import com.soybean.elastic.spu.model.sub.SubLabelNew;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -168,4 +169,9 @@ public class EsSpuNew {
     private SubCommentNew comment;
 
 
+    /**
+     * 49包邮标签
+     */
+    @Field(type = FieldType.Nested)
+    private List<SubLabelNew> labels;
 }

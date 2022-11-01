@@ -88,14 +88,14 @@ public class SpuNewSearchService {
      * @return
      */
     public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
-        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false);
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false, new ArrayList<>());
     }
 
     /**
      * 搜索商品书单信息并以及关联的skus
      */
     public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus){
-        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, fetchSkus);
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, fetchSkus, new ArrayList<>());
     }
 
     /**
@@ -103,13 +103,13 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
-    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList){
+    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, List<String> showSkuIds){
         CustomerGetByIdResponse customer = null;
         String userId = commonUtil.getOperatorId();
         if (!StringUtils.isEmpty(userId)) {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
         }
-        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false);
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer, false, showSkuIds);
     }
 
     /**
@@ -117,7 +117,7 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
-    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus){
+    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus, List<String> showSkuIds){
         if (CollectionUtils.isEmpty(esSpuNewRespList)) {
             return new ArrayList<>();
         }
@@ -130,6 +130,9 @@ public class SpuNewSearchService {
 //        BigDecimal salePrice = new BigDecimal("9999");
         Map<String, GoodsInfoVO> spuId2HasStockGoodsInfoVoMap = new HashMap<>();
         Map<String, GoodsInfoVO> spuId2UnHasStockGoodsInfoVoMap = new HashMap<>();
+        //指定showSkuId信息
+        Map<String, GoodsInfoVO> skuId2DirectGoodsInfoVoMap = new HashMap<>();
+
         boolean hasCustomerVip = false;
 
         GoodsInfoListByConditionRequest request = new GoodsInfoListByConditionRequest();
@@ -165,6 +168,12 @@ public class SpuNewSearchService {
                  if (goodsInfoParam.getStock() <= RedisKeyConstant.GOODS_INFO_MIN_STOCK_SIZE) {
                      goodsInfoParam.setStock(0L); //设置库存为0
                  }
+
+                 //如果制定skuId则使用对应的skuid
+                if (!CollectionUtils.isEmpty(showSkuIds) && showSkuIds.contains(goodsInfoParam.getGoodsInfoId())) {
+                    skuId2DirectGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                    continue;
+                }
 
                  //存在库存 规格：如果有库存则取库存里面价格最低的商品，如果没有商品则获取 库存最低里面价格最低的商品 skuInfo 设置skuid
                  if (goodsInfoParam.getStock() > 0) {
@@ -244,10 +253,17 @@ public class SpuNewSearchService {
         List<SpuNewBookListResp> result = new ArrayList<>();
 
         for (EsSpuNewResp esSpuNewRespParam : esSpuNewRespList) {
-            GoodsInfoVO goodsInfoVOTmp = spuId2HasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
-            GoodsInfoVO goodsInfoVO = goodsInfoVOTmp != null ? goodsInfoVOTmp
-                    : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId()) == null
-                    ? null : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+            GoodsInfoVO goodsInfoVOShow = skuId2DirectGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+            GoodsInfoVO goodsInfoVO = null;
+            if (goodsInfoVOShow == null) {
+                GoodsInfoVO goodsInfoVOTmp = spuId2HasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+                goodsInfoVO = goodsInfoVOTmp != null ? goodsInfoVOTmp
+                        : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId()) == null
+                        ? null : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+            } else {
+                goodsInfoVO = goodsInfoVOShow;
+            }
+
             if (goodsInfoVO == null) {
                 continue;
             }
@@ -335,6 +351,19 @@ public class SpuNewSearchService {
                 activities.add(activity);
                 spuNewBookListResp.setActivities(activities);
 //                spuNewBookListResp.setSkuId(skuNormalActivityResp.getSkuId());
+            }
+
+            //标签信息
+            List<EsSpuNewResp.SubLabel> labelResps = esSpuNewRespParam.getLabels();
+            if (!CollectionUtils.isEmpty(labelResps)) {
+                List<SpuNewBookListResp.Label> labels = new ArrayList<>();
+                for (EsSpuNewResp.SubLabel labelResp : labelResps) {
+                    SpuNewBookListResp.Label label = new SpuNewBookListResp.Label();
+                    label.setLabelCategory(labelResp.getCategory());
+                    label.setLabelName(labelResp.getLabelName());
+                    labels.add(label);
+                }
+                spuNewBookListResp.setLabels(labels);
             }
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());

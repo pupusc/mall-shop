@@ -1,15 +1,17 @@
 package com.soybean.elastic.spu.service;
 
-import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.enums.SearchSpuNewAggsCategoryEnum;
+import com.soybean.elastic.api.enums.SearchSpuNewPriceRangeEnum;
 import com.soybean.elastic.api.enums.SearchSpuNewSortTypeEnum;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSortSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.constant.ConstantMultiMatchField;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
-import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
+import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,8 +20,14 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.BucketOrder;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -35,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -92,6 +101,167 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));
         }
 
+        /**
+         * 标签类别
+         */
+        if (CollectionUtils.isNotEmpty(req.getLabelCategorys())) {
+            if (req.getLabelCategorys().size() > 1) {
+                boolQb.must(nestedQuery("labels", termsQuery("labels.category", req.getLabelCategorys()), ScoreMode.None));
+            } else {
+                boolQb.must(nestedQuery("labels", termQuery("labels.category", req.getLabelCategorys().get(0)), ScoreMode.None));
+            }
+        }
+
+        /**
+         * 拼接参数信息
+         */
+        req.setAggsReqs(req.getAggsReqs() == null ? new ArrayList<>() : req.getAggsReqs());
+        for (EsKeyWordSpuNewQueryProviderReq.AggsCategoryReq aggsReq : req.getAggsReqs()) {
+            Integer category = aggsReq.getCategory();
+            SearchSpuNewAggsCategoryEnum searchSpuNewAggsCategoryEnum = SearchSpuNewAggsCategoryEnum.get(category);
+            List<EsKeyWordSpuNewQueryProviderReq.AggsReq> aggsList = aggsReq.getAggsList();
+            if (CollectionUtils.isEmpty(aggsList)) {
+                continue;
+            }
+
+            List<String> aggsNameList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsName).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+            List<String> aggsIdList = aggsList.stream().map(EsKeyWordSpuNewQueryProviderReq.AggsReq::getAggsId).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+
+            /**
+             * 商品类别
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_SPU_CATEGORY, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsIdList.size() > 1) {
+                    boolQb.must(termsQuery("spuCategory", aggsIdList));
+                } else {
+                    boolQb.must(termQuery("spuCategory", aggsIdList.get(0)));
+                }
+            }
+
+            /**
+             * 价格范围
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRICE_RANGE, searchSpuNewAggsCategoryEnum)) {
+
+                int from = 9999;
+                int to = 0;
+                for (String aggsId : aggsIdList) {
+                    SearchSpuNewPriceRangeEnum searchSpuNewPriceRangeEnum = SearchSpuNewPriceRangeEnum.get(Integer.valueOf(aggsId));
+                    if (searchSpuNewPriceRangeEnum == null) {
+                        continue;
+                    }
+                    from = Math.min(from, searchSpuNewPriceRangeEnum.getFrom());
+                    to = Math.max(to, searchSpuNewPriceRangeEnum.getTo());
+                }
+
+                if (to > from) {
+                    RangeQueryBuilder salesPrice = QueryBuilders.rangeQuery("salesPrice");
+                    salesPrice.gte(from);
+                    salesPrice.lte(to);
+                    boolQb.must(salesPrice);
+                }
+            }
+            /**
+             * 标签类别
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_LABEL, searchSpuNewAggsCategoryEnum)) {
+                if (aggsIdList.size() > 1) {
+                    boolQb.must(nestedQuery("labels", termsQuery("labels.category", aggsIdList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("labels", termQuery("labels.category", aggsIdList.get(0)), ScoreMode.None));
+                }
+            }
+            /**
+             * 店铺类别
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(termsQuery("classify.fclassifyName", aggsNameList));
+                } else {
+                    boolQb.must(termQuery("classify.fclassifyName", aggsNameList.get(0)));
+                }
+
+//                if (aggsList.size() > 1) {
+//                    boolQb.must(termsQuery("classify.fclassifyId", aggsList));
+//                } else {
+//                    boolQb.must(termQuery("classify.fclassifyId", aggsList.get(0)));
+//                }
+            }
+
+            /**
+             * 作者
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.authorNames", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.authorNames", aggsNameList.get(0)), ScoreMode.None));
+                }
+            }
+
+            /**
+             * 出版社
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.publisher.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.publisher.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            }
+
+            /**
+             * 奖项
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_AWARD, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.awards.awardName.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.awards.awardName.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            }
+
+            /**
+             * 从书
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_CLUMP, searchSpuNewAggsCategoryEnum)) {
+
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.clumpName.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.clumpName.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            }
+
+            /**
+             * 出品方
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER, searchSpuNewAggsCategoryEnum)) {
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(nestedQuery("book", termsQuery("book.producer.keyword", aggsNameList), ScoreMode.None));
+                } else {
+                    boolQb.must(nestedQuery("book", termQuery("book.producer.keyword", aggsNameList.get(0)), ScoreMode.None));
+                }
+            }
+
+            /**
+             * tag
+             */
+            if (Objects.equals(SearchSpuNewAggsCategoryEnum.AGGS_TAG, searchSpuNewAggsCategoryEnum)) {
+                if (aggsNameList.size() > 1) {
+                    boolQb.must(termsQuery("tags.tagName", aggsNameList));
+                } else {
+                    boolQb.must(termQuery("tags.tagName", aggsNameList.get(0)));
+                }
+            }
+        }
+
+
         //如果没有关键词，则直接返回查询条件数据
         if (StringUtils.isBlank(req.getKeyword())) {
             return boolQb;
@@ -105,6 +275,8 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_ANCHORRECOMS_RECOMNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_CLASSIFYNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_FCLASSIFYNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
+//        boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_FCLASSIFYNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
+
 
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME_KEYWORD, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
@@ -120,6 +292,10 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BINDINGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_TAGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQbChild.should().add(nestedQuery("book", matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
+
+        //标签
+        boolQbChild.should().add(nestedQuery("labels", matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
+        boolQbChild.should().add(nestedQuery("labels", matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME_KEYWORD, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
         boolQb.must(boolQbChild);
         return boolQb;
     }
@@ -203,7 +379,14 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
                         , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost))),
                 new FunctionScoreQueryBuilder
                         .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME,req.getKeyword()), ScoreMode.None)
-                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)))
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost))),
+
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("labels", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_LABEL_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("labels", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_LABEL_NAME_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_LABEL_DIM_NAME, defaultBoost)))
         };
         return arr;
     }
@@ -242,12 +425,81 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         return fieldSortBuilders;
     }
 
+
+    /**
+     * 聚合结果
+     * @return
+     */
+    private List<AbstractAggregationBuilder> packageAggregations(/*List<SearchAggsResp> context*/) {
+        List<AbstractAggregationBuilder> aggregationBuilderList = new ArrayList<>();
+
+//        for (SearchAggsResp searchAggsResp : context) {
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY)) {
+//                NestedAggregationBuilder nestedAggregationBuilder =
+//                        AggregationBuilders.nested("labels", "labels").subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category"));
+//                aggregationBuilderList.add(nestedAggregationBuilder);
+//            }
+//
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY)) {
+//                TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName");
+//                aggregationBuilderList.add(fclassifyName);
+//            }
+//
+//            if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY)
+//                || Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY)) {
+//                NestedAggregationBuilder nested = AggregationBuilders.nested("book", "book");
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword"));
+//                }
+//                if (Objects.equals(searchAggsResp.getAggsKey(), SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY)) {
+//                    nested.subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword"));
+//                }
+//                aggregationBuilderList.add(nested);
+//            }
+//        }
+        int aggsSize = 5000;
+
+        NestedAggregationBuilder nestedAggregationBuilder =
+                        AggregationBuilders.nested("labels", "labels")
+                                .subAggregation(AggregationBuilders.terms("labelCategory").field("labels.category").order(BucketOrder.count(false)).size(aggsSize));
+        aggregationBuilderList.add(nestedAggregationBuilder);
+
+//        TermsAggregationBuilder fclassifyNameBuilder = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").order(BucketOrder.count(false)).size(aggsSize);
+//        aggregationBuilderList.add(fclassifyNameBuilder);
+
+        TermsAggregationBuilder fclassifyName = AggregationBuilders.terms("fclassifyName").field("classify.fclassifyName").order(BucketOrder.count(false)).size(aggsSize);
+        aggregationBuilderList.add(fclassifyName);
+
+        TermsAggregationBuilder spuCategory = AggregationBuilders.terms("spuCategory").field("spuCategory").order(BucketOrder.count(false)).size(aggsSize);
+        aggregationBuilderList.add(spuCategory);
+
+        NestedAggregationBuilder book =
+                AggregationBuilders.nested("book", "book")
+                        .subAggregation(AggregationBuilders.terms("authorName").field("book.authorNames").order(BucketOrder.count(false)).size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("publisherName").field("book.publisher.keyword").order(BucketOrder.count(false)).size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("awardName").field("book.awards.awardName.keyword").order(BucketOrder.count(false)).size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("clumpName").field("book.clumpName.keyword").order(BucketOrder.count(false)).size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("producerName").field("book.producer.keyword").order(BucketOrder.count(false)).size(aggsSize))
+                        .subAggregation(AggregationBuilders.terms("tagName").field("book.tags.tagName").order(BucketOrder.count(false)).size(aggsSize));
+        aggregationBuilderList.add(book);
+
+        return aggregationBuilderList;
+    }
+
     /**
      * 关键词搜索
      * @param req
      * @return
      */
-    public CommonPageResp<List<EsSpuNewResp>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
+    public EsSpuNewAggResp<List<EsSpuNewResp>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(AbstractCollectFactory.INDEX_ES_SPU_NEW);
 
@@ -260,6 +512,12 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
 
         //查询 条件
         builder.withQuery(functionScoreQueryBuilder);
+
+        //聚合
+        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations(/*context*/)) {
+            builder.addAggregation(packageAggregation);
+        }
+
         //排序
         for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
             builder.withSort(fieldSortBuilder);
@@ -270,7 +528,9 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsBookListModelService.listKeyWorldEsSpu DSL: {}", build.getQuery().toString());
         AggregatedPage<EsSpuNew> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsSpuNew.class);
-        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+
+//        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+        return super.packageEsSpuNewAggResp(resultQueryPage, req);
     }
 
 

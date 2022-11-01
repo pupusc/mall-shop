@@ -1,9 +1,8 @@
 package com.soybean.elastic.api.req;
 
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -42,4 +41,88 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      * 指定展示的spuId
      */
     private List<String> spuIds;
+
+    /**
+     * 标签类别 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+     */
+    private List<Integer> labelCategorys;
+
+
+    /**
+     * 聚合查询
+     */
+    private List<AggsCategoryReq> aggsReqs;
+
+
+    /**
+     * 聚合类别
+     */
+    @Data
+    public static class AggsCategoryReq{
+        /**
+         * 聚合类别 {@link com.soybean.elastic.api.enums.SearchSpuNewAggsCategoryEnum}
+         */
+        private Integer category;
+
+        /**
+         * 聚合内容信息
+         */
+        private List<AggsReq> aggsList;
+    }
+
+    /**
+     * 聚合对象
+     */
+    @Data
+    public static class AggsReq {
+        /**
+         * id
+         */
+        private String aggsId;
+
+        /**
+         * 名称
+         */
+        private String aggsName;
+    }
+//
+//    /**
+//     * 销售 开始价格
+//     */
+//    private Integer fromSalePrice;
+//
+//    /**
+//     * 销售 结束价格
+//     */
+//    private Integer toSalePrice;
+//
+//    /**
+//     * 店铺分类id
+//     */
+//    private List<Integer> classifyIds;
+//
+//    /**
+//     * 店铺分类 Name
+//     */
+//    private List<String> classifyNames;
+//
+//    /**
+//     * 出版社 Name
+//     */
+//    private List<String> publisherNames;
+//
+//    /**
+//     *  作者名
+//     */
+//    private List<String> authorNames;
+//
+//    /**
+//     *  奖项Name
+//     */
+//    private List<String> awardNames;
+//
+//    /**
+//     *  丛书Name
+//     */
+//    private List<String> clumpNames;
 }

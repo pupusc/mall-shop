@@ -37,4 +37,16 @@ public class PresetSearchTerms implements Serializable {
      */
     @Column(name = "preset_channel")
     private Integer presetChannel = 0;
+
+    /**
+     * 预置搜索词类型0-搜索结果页面 1-指定跳转页
+     */
+    @Column(name = "preset_search_type")
+    private Integer presetSearchType;
+
+    /**
+     * 预置搜索词跳转地址
+     */
+    @Column(name = "page_url")
+    private String presetSearchKeywordPageUrl;
 }

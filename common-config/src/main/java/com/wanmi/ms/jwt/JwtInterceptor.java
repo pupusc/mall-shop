@@ -116,12 +116,15 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/wx/order/purchase")
                     || requestURI.startsWith("/invoice/callback")
                     || requestURI.startsWith("/wx/image")
+                    || requestURI.startsWith("/wx/goods")
                     || requestURI.startsWith("/search/keyword")
                     || requestURI.startsWith("/home")
                     || requestURI.startsWith("/normal-activity")
                     || requestURI.startsWith("/popular_search_terms")
                     || requestURI.startsWith("/shopCenterSync")
-
+                    || requestURI.startsWith("/address/fixedChangeAddress")
+                    || requestURI.startsWith("/freight/getFreightPrice")
+                    || requestURI.startsWith("/freight/getFreightPriceList")
             ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);

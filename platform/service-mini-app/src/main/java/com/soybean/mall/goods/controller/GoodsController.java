@@ -10,6 +10,10 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
@@ -31,6 +35,7 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponInfoDetailByIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.MarketingGetByIdRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoDetailByIdResponse;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingGetByIdForCustomerResponse;
 import com.wanmi.sbc.marketing.bean.vo.CouponGoodsVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
@@ -70,6 +75,9 @@ public class GoodsController {
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
 
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+
     /**
      * @description 商品详情页
      * @param spuId
@@ -89,6 +97,25 @@ public class GoodsController {
             request.setGoodsId(goodsInfo.getContext().getGoodsId());
         }
         GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
+
+        String customerId = commonUtil.getOperatorId();
+        //计算营销价格
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(response.getGoodsInfos(), GoodsInfoDTO.class));
+        filterRequest.setIsIndependent(Boolean.FALSE);
+        if (!StringUtils.isEmpty(customerId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            }
+        }
+        // 注意这边是取反，非全量营销时isFlashSaleMarketing=true
+        if (Objects.nonNull(response.getFullMarketing()) && Objects.equals(response.getFullMarketing(), Boolean.FALSE)) {
+            // 排除秒杀
+            filterRequest.setIsFlashSaleMarketing(Boolean.TRUE);
+        }
+        GoodsInfoListByGoodsInfoResponse context = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        response.setGoodsInfos(context.getGoodsInfoVOList());
         return BaseResponse.success(KsBeanUtil.convert(response,GoodsDetailResponse.class));
     }
 
@@ -186,4 +213,7 @@ public class GoodsController {
         request.setShowSiteLabelFlag(true);
         return goodsQueryProvider.getCacheViewById(request).getContext();
     }
+
+
+
 }

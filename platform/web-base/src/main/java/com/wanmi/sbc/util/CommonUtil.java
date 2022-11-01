@@ -1,6 +1,7 @@
 package com.wanmi.sbc.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.common.resp.BaseFixedAddressResp;
 import com.wanmi.ms.autoconfigure.JwtProperties;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
@@ -174,6 +175,22 @@ public final class CommonUtil {
         String terminal = HttpUtil.getRequest().getHeader("terminal");
         String terminalScene = HttpUtil.getRequest().getHeader("terminalScene");
         return TerminalSource.getTerminalSource(terminal, TerminalScene.getTerminalScene(terminalScene));
+    }
+
+    /**
+     * 获取当前地址信息
+     * @return
+     */
+    public BaseFixedAddressResp getFixedAddress(){
+        String distributeChannel = HttpUtil.getRequest().getHeader("distribute-channel");
+        if (StringUtils.isBlank(distributeChannel)) {
+            throw new SbcRuntimeException("999999", "请传递定位地址");
+        }
+        BaseFixedAddressResp baseFixedAddressResp = JSONObject.parseObject(distributeChannel, BaseFixedAddressResp.class);
+        if (StringUtils.isBlank(baseFixedAddressResp.getCityId()) || StringUtils.isBlank(baseFixedAddressResp.getProvinceId())) {
+            throw new SbcRuntimeException("999999", "请传递具体定位地址");
+        }
+        return baseFixedAddressResp;
     }
 
     /**

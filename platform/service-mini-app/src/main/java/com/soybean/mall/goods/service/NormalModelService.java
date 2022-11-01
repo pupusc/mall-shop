@@ -116,7 +116,7 @@ public class NormalModelService {
         EsSpuNewQueryProviderReq esSpuNewQueryProviderReq = new EsSpuNewQueryProviderReq();
         esSpuNewQueryProviderReq.setSpuIds(spuIds);
         CommonPageResp<List<EsSpuNewResp>> listCommonPageResp = esSpuNewSearchService.listNormalEsSpuNew(esSpuNewQueryProviderReq);
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(listCommonPageResp.getContent());
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(listCommonPageResp.getContent(), new ArrayList<>());
         //排序展示
         Map<String, SpuNewBookListResp> spuId2RespMap =
                 spuNewBookListResps.stream().collect(Collectors.toMap(SpuNewBookListResp::getSpuId, Function.identity(), (k1, k2) -> k1));

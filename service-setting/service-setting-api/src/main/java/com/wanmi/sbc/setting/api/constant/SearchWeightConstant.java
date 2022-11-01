@@ -76,6 +76,16 @@ public class SearchWeightConstant {
     public static final String SPU_CLASSY_SECOND_NAME = "SPU_CLASSY_SECOND_NAME";
 
     /**
+     * 标签名称
+     */
+    public static final String SPU_LABEL_NAME = "SPU_LABEL_NAME";
+
+    /**
+     * 标签详细名称
+     */
+    public static final String SPU_LABEL_DIM_NAME = "SPU_LABEL_DIM_NAME";
+
+    /**
      * 图书名称
      */
     public static final String BOOK_NAME = "BOOK_NAME";
@@ -149,5 +159,6 @@ public class SearchWeightConstant {
      * 标签二级分类名称
      */
     public static final String BOOK_SECOND_TAG_NAME = "BOOK_SECOND_TAG_NAME";
+
 
 }

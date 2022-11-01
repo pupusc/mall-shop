@@ -102,4 +102,11 @@ public interface FreightTemplateGoodsProvider {
     @PostMapping("/goods/${application.goods.version}/freight/goods/init-by-store-id")
     BaseResponse initByStoreId(@RequestBody @Valid FreightTemplateGoodsInitByStoreIdRequest request);
 
+    /**
+     * 更新运费模版
+     *
+     * @return {@link BaseResponse}
+     */
+    @PostMapping("/goods/${application.goods.version}/freight49/goods/changeFreeDelivery49")
+    BaseResponse changeFreeDelivery49(@RequestBody @Valid FreightTemplate49ChangeReq request);
 }

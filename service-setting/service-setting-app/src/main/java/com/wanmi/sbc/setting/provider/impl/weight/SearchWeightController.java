@@ -1,9 +1,9 @@
 package com.wanmi.sbc.setting.provider.impl.weight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
-import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
-import com.wanmi.sbc.setting.weight.service.SearchWeightService;
+import com.wanmi.sbc.setting.api.provider.search.SearchWeightProvider;
+import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
+import com.wanmi.sbc.setting.search.service.SearchWeightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 

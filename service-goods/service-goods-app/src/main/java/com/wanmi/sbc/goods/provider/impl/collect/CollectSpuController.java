@@ -5,8 +5,10 @@ import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuImageProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuImageResp;
+import com.wanmi.sbc.goods.bean.vo.CollectSkuVO;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.collect.CollectSpuImageService;
+import com.wanmi.sbc.goods.collect.CollectSkuService;
 import com.wanmi.sbc.goods.collect.CollectSpuService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ public class CollectSpuController implements CollectSpuProvider {
     private CollectSpuService collectSpuService;
     @Autowired
     private CollectSpuImageService collectSpuImageService;
+    @Autowired
+    private CollectSkuService collectSkuService;
 
 
     @Override
@@ -47,4 +51,16 @@ public class CollectSpuController implements CollectSpuProvider {
     public BaseResponse<List<CollectSpuImageResp>> collectSpuIdImageByTime(@RequestBody CollectSpuImageProviderReq req) {
         return BaseResponse.success(collectSpuImageService.collectSpuIdImageByTime(req));
     }
+
+    @Override
+    public BaseResponse<List<CollectSkuVO>> collectSkuIdByTime(@RequestBody CollectSpuProviderReq req) {
+        return BaseResponse.success(collectSkuService.collectSkuIdByTime(req));
+    }
+
+    @Override
+    public BaseResponse<List<CollectSkuVO>> collectSkuBySpuIds(@RequestBody CollectSpuProviderReq req) {
+        return BaseResponse.success(collectSkuService.collectSkuBySpuIds(req));
+    }
+
+
 }

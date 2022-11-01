@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.freight.model.root.ExpressNotSupport;
 import com.wanmi.sbc.goods.freight.service.CityAndCodeMapping;
 import com.wanmi.sbc.goods.freight.service.FreightTemplateGoodsService;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
+import com.wanmi.sbc.goods.info.service.FreeDelivery49Service;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -38,6 +39,9 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
 
     @Autowired
     private FreightTemplateGoodsService freightTemplateGoodsService;
+
+    @Autowired
+    private FreeDelivery49Service freeDelivery49Service;
 
     /**
      * 新增/更新单品运费模板
@@ -176,6 +180,12 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
 
     public BaseResponse initByStoreId(@RequestBody @Valid FreightTemplateGoodsInitByStoreIdRequest request){
         freightTemplateGoodsService.initFreightTemplate(request.getStoreId());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse changeFreeDelivery49(@RequestBody @Valid FreightTemplate49ChangeReq request){
+        freeDelivery49Service.changeFreeDelivery49(request.getSpuIds());
         return BaseResponse.SUCCESSFUL();
     }
 

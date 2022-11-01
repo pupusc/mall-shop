@@ -1,21 +1,27 @@
 package com.soybean.elastic.collect.service.spu.service;
+import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum;
+import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
+import com.soybean.elastic.spu.model.sub.SubLabelNew;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuPropProvider;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
+import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuPropProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuPropResp;
+import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,6 +45,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class SpuCollect extends AbstractSpuCollect {
 
     @Autowired
@@ -45,6 +53,8 @@ public class SpuCollect extends AbstractSpuCollect {
 
 //    @Autowired
 //    private CollectSpuPropProvider collectSpuPropProvider;
+    @Autowired
+    private GoodsNacosConfigProvider goodsNacosConfigProvider;
 
     /**
      * 获取商品对象信息
@@ -117,6 +127,10 @@ public class SpuCollect extends AbstractSpuCollect {
             }
             return list;
         }
+        //获取49包邮配置信息
+        GoodsNacosConfigResp goodsNacosConfigResp = goodsNacosConfigProvider.getNacosConfig().getContext();
+        log.info("SpuCollect collect goodsNacosConfigResp {}", JSON.toJSONString(goodsNacosConfigResp));
+
         Map<String, CollectSpuVO> spuId2CollectGoodsVoMap =
                 context.stream().collect(Collectors.toMap(CollectSpuVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
 
@@ -158,6 +172,22 @@ public class SpuCollect extends AbstractSpuCollect {
                 }
                 esSpuNew.setAnchorRecoms(subAnchorRecomNewList);
             }
+
+            //49包邮标签信息
+            log.info("SpuCollect collect spuId:{} freightTempId is {}", collectSpuVO.getGoodsId(), collectSpuVO.getFreightTempId());
+            if (goodsNacosConfigResp != null && collectSpuVO.getFreightTempId() != null && Objects.equals(collectSpuVO.getFreightTempId().toString(), goodsNacosConfigResp.getFreeDelivery49())) {
+                SearchSpuNewLabelCategoryEnum freeDelivery49 = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
+                List<SubLabelNew> labels = esSpuNew.getLabels();
+                if (CollectionUtils.isEmpty(labels)) {
+                    labels = new ArrayList<>();
+                }
+                SubLabelNew subLabelNew = new SubLabelNew();
+                subLabelNew.setLabelName(freeDelivery49.getMessage());
+                subLabelNew.setCategory(freeDelivery49.getCode());
+                labels.add(subLabelNew);
+                esSpuNew.setLabels(labels);
+            }
+
 
             esSpuNew.setSalesNum(collectSpuVO.getGoodsSalesNum());
             esSpuNew.setSalesPrice(collectSpuVO.getMiniSalesPrice());

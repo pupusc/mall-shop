@@ -131,6 +131,11 @@ public class GoodsCustomResponse implements Serializable{
     private List<NormalActivity> activities;
 
     /**
+     * 标签信息
+     */
+    private List<Label> labels;
+
+    /**
      * 活动信息
      */
     @Data
@@ -145,6 +150,23 @@ public class GoodsCustomResponse implements Serializable{
          */
         private String activityShow;
 
+    }
+
+
+    /**
+     * 标签信息
+     */
+    @Data
+    public static class Label {
+        /**
+         * 标签名
+         */
+        private String labelName;
+
+        /**
+         * 标签类别 {@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+         */
+        private Integer labelCategory;
     }
 
 }

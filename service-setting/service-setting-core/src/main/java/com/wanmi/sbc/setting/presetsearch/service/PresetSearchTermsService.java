@@ -56,6 +56,8 @@ public class PresetSearchTermsService {
             presetSearchTermsVO.setId(search.getId());
             presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
             presetSearchTermsVO.setPresetSearchKeyword(search.getPresetSearchKeyword());
+            presetSearchTermsVO.setPresetSearchType(search.getPresetSearchType());
+            presetSearchTermsVO.setPresetSearchKeywordPageUrl(search.getPresetSearchKeywordPageUrl());
             return presetSearchTermsVO;
         }).collect(Collectors.toList());
         return new PresetSearchTermsQueryResponse(ListSearch);

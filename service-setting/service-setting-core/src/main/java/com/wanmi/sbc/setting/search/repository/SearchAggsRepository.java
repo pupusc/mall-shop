@@ -1,6 +1,6 @@
-package com.wanmi.sbc.setting.weight.repository;
+package com.wanmi.sbc.setting.search.repository;
 
-import com.wanmi.sbc.setting.weight.model.SearchWeightModel;
+import com.wanmi.sbc.setting.search.model.SearchAggsModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -13,6 +13,6 @@ import org.springframework.stereotype.Repository;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Repository
-public interface SearchWeightRepository extends JpaRepository<SearchWeightModel, Integer>,
-        JpaSpecificationExecutor<SearchWeightModel> {
+public interface SearchAggsRepository extends JpaRepository<SearchAggsModel, Integer>,
+        JpaSpecificationExecutor<SearchAggsModel> {
 }

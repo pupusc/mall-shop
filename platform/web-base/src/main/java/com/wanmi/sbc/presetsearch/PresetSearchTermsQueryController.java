@@ -26,7 +26,8 @@ public class PresetSearchTermsQueryController {
 
 
     /**
-     * 查询预置搜索词
+     * 前端 查询预置搜索词
+     * @menu 搜索功能
      * @return
      */
     @ApiOperation(value = "查询预置搜索词")

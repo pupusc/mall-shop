@@ -19,7 +19,6 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.constants.WebBaseErrorCode;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
-import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelWithDefaultByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.response.distribution.DistributorLevelByCustomerIdResponse;
@@ -116,6 +115,7 @@ import com.wanmi.sbc.marketing.bean.enums.GrouponDetailOptType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.order.api.provider.groupon.GrouponProvider;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.groupon.GrouponDetailQueryRequest;
 import com.wanmi.sbc.order.api.request.groupon.GrouponDetailWithGoodsRequest;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFillBuyCountRequest;
@@ -157,7 +157,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -255,7 +254,7 @@ public class GoodsBaseController {
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
 
     @Autowired
-    private EnterpriseInfoQueryProvider enterpriseInfoQueryProvider;
+    private TradeQueryProvider tradeQueryProvider;
 
     //商品不存在
     private static final String GOODSNOTEXIST = "商品不存在";
@@ -848,6 +847,7 @@ public class GoodsBaseController {
             activity.setActivityShow(String.format("返%d积分", skuNormalActivityResp.getNum()));
             goodsInfo.setActivity(activity);
         }
+
         return response;
     }
 

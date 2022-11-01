@@ -783,6 +783,7 @@ public class GoodsInfoVO implements Serializable {
      */
     private NormalActivity activity;
 
+
     /**
      * 活动信息
      */
@@ -797,6 +798,6 @@ public class GoodsInfoVO implements Serializable {
          * 活动展示
          */
         private String activityShow;
-
     }
+
 }

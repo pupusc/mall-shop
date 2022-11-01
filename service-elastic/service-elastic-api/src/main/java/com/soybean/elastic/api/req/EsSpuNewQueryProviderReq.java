@@ -28,4 +28,9 @@ public class EsSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderReq {
      * 知识顾问专项商品 0 非知识顾问 其他为非知识顾问
      */
     private Integer cpsSpecial = 0;
+
+    /**
+     * 展示对应的skuId
+     */
+    private List<String> showSkuIds;
 }

@@ -131,6 +131,7 @@ public class CollectSpuService {
             } else {
                 collectSpuVo.setAnchorPushs(new ArrayList<>());
             }
+            collectSpuVo.setFreightTempId(goods.getFreightTempId());
             result.add(collectSpuVo);
         }
         return result;

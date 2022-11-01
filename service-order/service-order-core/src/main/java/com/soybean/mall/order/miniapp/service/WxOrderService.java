@@ -1,13 +1,11 @@
 package com.soybean.mall.order.miniapp.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
-import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
@@ -108,8 +106,6 @@ public class WxOrderService {
     @Value("${wx.order.list.url}")
     private String orderListUrl;
 
-    @Autowired
-    private OrderConfigProperties orderConfigProperties;
 
     @Autowired
     private WxGoodsApiController wxGoodsApiController;

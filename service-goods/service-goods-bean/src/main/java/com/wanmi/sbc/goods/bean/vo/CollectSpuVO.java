@@ -113,4 +113,8 @@ public class CollectSpuVO {
      */
     private CheckStatus auditStatus;
 
+    /**
+     * 运费模版
+     */
+    private Long freightTempId;
 }

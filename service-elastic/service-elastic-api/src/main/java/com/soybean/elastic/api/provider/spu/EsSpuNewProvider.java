@@ -4,6 +4,7 @@ import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.collect.CollectJobReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -29,7 +30,7 @@ public interface EsSpuNewProvider {
      * @return
      */
     @PostMapping("/elastic/${application.elastic.version}/spunew/listKeyWorldEsSpu")
-    BaseResponse<CommonPageResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(@Validated @RequestBody EsKeyWordSpuNewQueryProviderReq req);
+    BaseResponse<EsSpuNewAggResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(@Validated @RequestBody EsKeyWordSpuNewQueryProviderReq req);
 
     /**
      * 采集商品信息
