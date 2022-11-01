@@ -233,7 +233,7 @@ public class TransferService {
 
                 CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
                 buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-                buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
+                buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
                 buyGoodsReq.setNum(tradeItem.getNum().intValue());
                 buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
                 buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
@@ -251,7 +251,7 @@ public class TransferService {
             //获取打包对应的折扣信息
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(packageTradeItem.getOid());
-            buyGoodsReq.setGoodsCode(packageTradeItem.getErpSkuNo());
+            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(packageTradeItem.getErpSkuNo()) ? packageTradeItem.getErpSpuNo() : packageTradeItem.getErpSkuNo());
             buyGoodsReq.setNum(packageTradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(packageTradeItem.getSpuId());
             buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
@@ -273,7 +273,7 @@ public class TransferService {
             }
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-            buyGoodsReq.setGoodsCode(tradeItem.getErpSkuNo());
+            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
             buyGoodsReq.setNum(tradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
             buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
