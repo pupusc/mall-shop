@@ -109,17 +109,13 @@ public abstract class AbstractEsSpuNewService {
             if (spuNewLabelCategoryEnum == null) {
                 continue;
             }
-
-            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY) != null
-                && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY).contains(spuNewLabelCategoryEnum.getMessage())) {
-//                EsSpuNewAggResp.AggsResp labelAggs = new EsSpuNewAggResp.AggsResp();
-//                labelAggs.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
-//                labelAggs.setAggsName(spuNewLabelCategoryEnum.getMessage());
-//                labelAggs.setHasShow(hasShowLabel);
-//                labelsAggsList.add(labelAggs);
-                labelsAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
-                        spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString(), SearchSpuNewAggsCategoryEnum.AGGS_LABEL));
-            }
+            labelsAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+                    spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString(), SearchSpuNewAggsCategoryEnum.AGGS_LABEL));
+//            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY) != null
+//                && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_LABEL_CATEGORY_KEY).contains(spuNewLabelCategoryEnum.getMessage())) {
+//                labelsAggsList.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
+//                        spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString(), SearchSpuNewAggsCategoryEnum.AGGS_LABEL));
+//            }
 
             if (labelsAggsList.size() >= aggsMaxCount) {
                 break;
@@ -137,11 +133,6 @@ public abstract class AbstractEsSpuNewService {
                 if (spuNewLabelCategoryEnum == null) {
                     continue;
                 }
-//                EsSpuNewAggResp.AggsResp param = new EsSpuNewAggResp.AggsResp();
-//                param.setAggsId(spuNewLabelCategoryEnum.getCode().toString());
-//                param.setAggsName(spuNewLabelCategoryEnum.getMessage());
-//                param.setHasShow(hasShowLabel);
-//                reqs.add(param);
                 reqs.add(this.packageAggsResp(spuNewLabelCategoryEnum.getCode().toString(),
                         spuNewLabelCategoryEnum.getMessage(), hasShowLabel, spuNewLabelCategoryEnum.getCode().toString(), SearchSpuNewAggsCategoryEnum.AGGS_LABEL));
             }
@@ -155,10 +146,12 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> fclassifyAggsList = new ArrayList<>();
         Terms fclassifyNames = resultQueryPage.getAggregations().get("fclassifyName");
         for (Terms.Bucket bucket : fclassifyNames.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
-                fclassifyAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY));
-            }
+            fclassifyAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY));
+
+//            if (key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.SPU_SEARCH_AGGS_FCLASSIFY_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                fclassifyAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_FCLASSIFY));
+//            }
             if (fclassifyAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -174,10 +167,12 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> authorAggsList = new ArrayList<>();
         Terms authorName = book.getAggregations().get("authorName");
         for (Terms.Bucket bucket : authorName.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
-                authorAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR));
-            }
+            authorAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR));
+
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AUTHOR_NAMES_KEY).contains(bucket.getKeyAsString())) {
+//                authorAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AUTHOR));
+//            }
             if (authorAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -191,10 +186,12 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> publisherAggsList = new ArrayList<>();
         Terms publisher = book.getAggregations().get("publisherName");
         for (Terms.Bucket bucket : publisher.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                publisherAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER));
-            }
+            publisherAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER));
+
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PUBLISHER_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                publisherAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PUBLISHER));
+//            }
             if (publisherAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -208,10 +205,11 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> awardAggsList = new ArrayList<>();
         Terms awardName = book.getAggregations().get("awardName");
         for (Terms.Bucket bucket : awardName.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
-                awardAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AWARD));
-            }
+            awardAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AWARD));
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_AWARD_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                awardAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_AWARD));
+//            }
             if (awardAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -224,10 +222,11 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> clumpAggsList = new ArrayList<>();
         Terms clumpName = book.getAggregations().get("clumpName");
         for (Terms.Bucket bucket : clumpName.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
-                clumpAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_CLUMP));
-            }
+            clumpAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_CLUMP));
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_CLUMP_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                clumpAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_CLUMP));
+//            }
             if (clumpAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -241,10 +240,11 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> producerAggsList = new ArrayList<>();
         Terms producerName = book.getAggregations().get("producerName");
         for (Terms.Bucket bucket : producerName.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY).contains(bucket.getKeyAsString())) {
-                producerAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER));
-            }
+            producerAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER));
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_PRODUCER_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                producerAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_PRODUCER));
+//            }
             if (producerAggsList.size() >= aggsMaxCount) {
                 break;
             }
@@ -257,10 +257,12 @@ public abstract class AbstractEsSpuNewService {
         List<EsSpuNewAggResp.AggsResp> tagAggsList = new ArrayList<>();
         Terms tagName = book.getAggregations().get("tagName");
         for (Terms.Bucket bucket : tagName.getBuckets()) {
-            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY) != null
-                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY).contains(bucket.getKeyAsString())) {
-                tagAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_TAG));
-            }
+            tagAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_TAG));
+
+//            if (key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY) != null
+//                    && key2SearchAggsMap.get(SearchAggsConstant.BOOK_SEARCH_AGGS_TAG_NAME_KEY).contains(bucket.getKeyAsString())) {
+//                tagAggsList.add(this.packageAggsResp("", bucket.getKeyAsString(), false, bucket.getKeyAsString(), SearchSpuNewAggsCategoryEnum.AGGS_TAG));
+//            }
             if (tagAggsList.size() >= aggsMaxCount) {
                 break;
             }
