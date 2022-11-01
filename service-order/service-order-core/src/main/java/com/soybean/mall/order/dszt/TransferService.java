@@ -1,13 +1,4 @@
 package com.soybean.mall.order.dszt;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-
-import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
-import com.google.common.collect.Lists;
-
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.enums.OrderSourceEnum;
@@ -15,36 +6,25 @@ import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
-import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
-import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.common.enums.GenderType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.detail.CustomerDetailQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailByCustomerIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.erp.api.constant.DeviceTypeEnum;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
-
-import java.math.BigDecimal;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -69,6 +49,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Description: 转换服务
@@ -233,7 +222,7 @@ public class TransferService {
 
                 CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
                 buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-                buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
+                buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
                 buyGoodsReq.setNum(tradeItem.getNum().intValue());
                 buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
                 buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
@@ -251,7 +240,7 @@ public class TransferService {
             //获取打包对应的折扣信息
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(packageTradeItem.getOid());
-            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(packageTradeItem.getErpSkuNo()) ? packageTradeItem.getErpSpuNo() : packageTradeItem.getErpSkuNo());
+            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(packageTradeItem.getErpSkuNo()) || packageTradeItem.getErpSkuNo().startsWith("zh") ? packageTradeItem.getErpSpuNo() : packageTradeItem.getErpSkuNo());
             buyGoodsReq.setNum(packageTradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(packageTradeItem.getSpuId());
             buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
@@ -273,7 +262,7 @@ public class TransferService {
             }
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
+            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
             buyGoodsReq.setNum(tradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
             buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
