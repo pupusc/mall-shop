@@ -415,6 +415,9 @@ import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * 订单service
@@ -8558,7 +8561,18 @@ public class TradeService {
 //        }
 
         if (!trade.getGrouponFlag() ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
-            providerTradeService.singlePushOrder(Collections.singletonList(trade));
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (TransactionSynchronization.STATUS_COMMITTED == status) {
+                            providerTradeService.singlePushOrder(Collections.singletonList(trade));
+                        }
+                    }
+                });
+            } else {
+                providerTradeService.singlePushOrder(Collections.singletonList(trade));
+            }
         }
     }
 
