@@ -400,6 +400,7 @@ public class TradeOrderService {
 
 				updateVersion(trade.getId(), doneVersion);
 				log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+				log.debug("创建中台订单数据：{}", JSON.toJSONString(createOrderReq));
 				finishCount++;
 			} catch (Exception e) {
 				log.error("e:{}", e);
