@@ -593,7 +593,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     @Modifying
     @Transactional
-    @Query(value = "update GoodsInfo gi set gi.stock=? where gi.goodsInfoId in ?1")
+    @Query(value = "update GoodsInfo gi set gi.stock=?2 where gi.goodsInfoId in ?1")
     void updateStockByIds(Collection<String> ids, Long quantity);
 
     @Modifying
