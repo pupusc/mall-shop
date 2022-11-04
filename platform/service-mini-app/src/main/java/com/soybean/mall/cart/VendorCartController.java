@@ -2,6 +2,7 @@ package com.soybean.mall.cart;
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.common.resp.CommonPageResp;
+import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.cart.vo.CalcPriceItem;
@@ -244,6 +245,9 @@ public class VendorCartController {
                 skuVO.setMarketPrice(item.getMarketPrice());
                 skuVO.setSalePrice(item.getSalePrice());
                 skuVO.setSpecText(item.getSpecText());
+                if (item.getStock() == null || (item.getStock() - StockUtil.THRESHOLD_STOCK) <= 0) {
+                    item.setStock(0L);
+                }
                 skuVO.setMaxCount(item.getStock());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
                 skuVO.setChecked(item.getChecked());

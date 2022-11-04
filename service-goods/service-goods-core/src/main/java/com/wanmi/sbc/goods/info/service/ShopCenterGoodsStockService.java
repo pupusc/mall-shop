@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class ShopCenterGoodsStockService {
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改库存.quantity={},ids={}", quantity, goodsInfoStockMap.keySet());
-		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue(), LocalDateTime.now());
+		goodsInfoRepository.updateStockByIds(goodsInfoStockMap.keySet(), quantity.longValue());
 
 		// 修改goods 库存
 		List<String> goodsIds = infoList.stream().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
@@ -113,13 +114,23 @@ public class ShopCenterGoodsStockService {
 
 		BigDecimal price = costPrice == 0 ? new BigDecimal("0")
 				: new BigDecimal(costPrice).divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN);
-		List<String> goodsInfoIds = infoList.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
-		List<String> goodsIds = infoList.stream().distinct().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
-		// 更新成本价
-		goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price, LocalDateTime.now());
-		logger.info("ShopCenterGoodsStockService.goodsInfo修改价格.price={},ids={}", price, goodsInfoIds);
-		resp.setGoodsInfoIds(goodsInfoIds);
-		resp.setGoodsIds(goodsIds);
+		List<String> goodsInfoIds = new ArrayList<>();
+		for (GoodsInfo goodsInfo : infoList) {
+			if (goodsInfo.getCostPrice() == null || goodsInfo.getCostPrice().compareTo(price) != 0) {
+				goodsInfoIds.add(goodsInfo.getGoodsInfoId());
+			}
+		}
+
+		if (CollectionUtils.isNotEmpty(goodsInfoIds)) {
+			List<String> goodsIds = infoList.stream().distinct().map(GoodsInfo::getGoodsId).collect(Collectors.toList());
+			// 更新成本价
+			goodsInfoRepository.updateCostPriceByIds(goodsInfoIds, price, LocalDateTime.now());
+			logger.info("ShopCenterGoodsStockService.goodsInfo修改价格.price={},ids={}", price, goodsInfoIds);
+			resp.setGoodsInfoIds(goodsInfoIds);
+			resp.setGoodsIds(goodsIds);
+		}
+
+
 //		freeDelivery49Service.changeFreeDelivery49(goodsIds);
 		return BaseResponse.success(resp);
 	}

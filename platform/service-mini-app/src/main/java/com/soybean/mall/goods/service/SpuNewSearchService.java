@@ -1,5 +1,6 @@
 package com.soybean.mall.goods.service;
 
+import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
@@ -165,7 +166,7 @@ public class SpuNewSearchService {
                 if (goodsInfoParam.getSalePrice() == null) {
                     goodsInfoParam.setSalePrice(goodsInfoParam.getMarketPrice());
                 }
-                 if (goodsInfoParam.getStock() <= RedisKeyConstant.GOODS_INFO_MIN_STOCK_SIZE) {
+                 if (goodsInfoParam.getStock() <= StockUtil.THRESHOLD_STOCK) {
                      goodsInfoParam.setStock(0L); //设置库存为0
                  }
 

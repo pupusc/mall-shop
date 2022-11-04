@@ -1,5 +1,6 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
@@ -107,8 +108,8 @@ public class BookListModelAndGoodsService {
     @Autowired
     private RedisService redisService;
 
-    @Value("${stock.size:5}")
-    private Long stockSize;
+//    @Value("${stock.size:5}")
+//    private Long stockSize;
 
     @Autowired
     private GoodsNacosConfigProvider goodsNacosConfigProvider;
@@ -449,7 +450,7 @@ public class BookListModelAndGoodsService {
                     String stockRedis = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoParam.getGoodsInfoId());
                     tempStock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
                     //商品<5个不销售
-                    if(tempStock.compareTo(stockSize) <=0){
+                    if(tempStock.compareTo(StockUtil.THRESHOLD_STOCK) <=0){
                         tempStock = 0L;
                     }
 

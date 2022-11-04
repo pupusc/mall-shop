@@ -228,6 +228,7 @@ public class RestrictedRecordService {
 		for (RestrictedRecordSimpVO recordSimpVO : recordSimpVOS) {
 			Long num = skuNumMap.get(recordSimpVO.getSkuId());
 			if (num == null) {
+				num = recordSimpVO.getNum();
 				skuNumMap.put(recordSimpVO.getSkuId(), num);
 			} else {
 				num += recordSimpVO.getNum();

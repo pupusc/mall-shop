@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.trade.service;
 
 import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.util.StockUtil;
 import com.wanmi.sbc.account.api.provider.invoice.InvoiceProjectSwitchQueryProvider;
 import com.wanmi.sbc.account.api.request.invoice.InvoiceProjectSwitchByCompanyInfoIdRequest;
 import com.wanmi.sbc.account.api.response.invoice.InvoiceProjectSwitchByCompanyInfoIdResponse;
@@ -244,7 +245,7 @@ public class VerifyService {
                     if (StringUtils.isNotBlank(goodsInfo.getProviderGoodsInfoId()) && Objects.isNull(goodsInfo.getThirdPlatformType())) {
                         GoodsInfoByIdResponse providerGoodsInfo = goodsInfoQueryProvider.getById(new GoodsInfoByIdRequest(goodsInfo.getProviderGoodsInfoId(), null)).getContext();
                         //购买数量大于供应商库存
-                        if (tradeItem.getNum() > (providerGoodsInfo.getStock() + oldNum)) {
+                        if (tradeItem.getNum() > (providerGoodsInfo.getStock() + oldNum - StockUtil.THRESHOLD_STOCK)) {
                             throw new SbcRuntimeException("K-050116");
                         }
                     }
@@ -544,7 +545,7 @@ public class VerifyService {
     public void verifyGoodsInternal(TradeItem tradeItem, GoodsInfoVO goodsInfo, Long oldNum) {
         if (!(StringUtils.isNotBlank(goodsInfo.getProviderGoodsInfoId()) && Objects.isNull(goodsInfo.getThirdPlatformType()))) {
             //非供应商商品，校验购买数量大于库存
-            if (tradeItem.getNum() > (goodsInfo.getStock() + oldNum)) {
+            if (tradeItem.getNum() > (goodsInfo.getStock() + oldNum - StockUtil.THRESHOLD_STOCK)) {
                 throw new SbcRuntimeException("K-050116");
             }
         }

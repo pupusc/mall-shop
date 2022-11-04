@@ -2422,7 +2422,12 @@ public class TradePushERPService {
 
             if (sumProvider >= providerTrade.getTradeItems().size() * 2) {
                 providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+                //如果周期购，直接完成
+                if (Objects.nonNull(providerTrade.getCycleBuyFlag()) && providerTrade.getCycleBuyFlag()) {
+                    providerTrade.getTradeState().setFlowState(FlowState.COMPLETED);
+                } else {
+                    providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+                }
                 sumTrade += 2;
             } else if (sumProvider <= 0) {
 //                providerTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
@@ -2464,11 +2469,17 @@ public class TradePushERPService {
 //            trade.getTradeState().setFlowState(F);
         } else if (sumTrade >= providerTrades.size() * 2) {
             trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-            trade.getTradeState().setFlowState(FlowState.DELIVERED);
+            if (Objects.nonNull(trade.getCycleBuyFlag()) && trade.getCycleBuyFlag()) {
+                trade.getTradeState().setFlowState(FlowState.COMPLETED);
+            } else {
+                trade.getTradeState().setFlowState(FlowState.DELIVERED);
+            }
         } else {
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
         }
+
+
 
         //设置发货时间
         if (trade.getTradeState().getDeliverTime() == null) {

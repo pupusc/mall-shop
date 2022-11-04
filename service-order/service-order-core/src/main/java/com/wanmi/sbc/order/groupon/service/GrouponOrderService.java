@@ -66,6 +66,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -365,9 +368,24 @@ public class GrouponOrderService {
 //        providerTradeList.forEach(providerTrade -> {
 //            providerTradeService.singlePushOrder(providerTrade);
 //        });
-        for (Trade trade : tradeList) {
-            providerTradeService.singlePushOrder(Collections.singletonList(trade));
+        //事物提交后推送消息
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (TransactionSynchronization.STATUS_COMMITTED == status) {
+                        for (Trade trade : tradeList) {
+                            providerTradeService.singlePushOrder(Collections.singletonList(trade));
+                        }
+                    }
+                }
+            });
+        } else {
+            for (Trade trade : tradeList) {
+                providerTradeService.singlePushOrder(Collections.singletonList(trade));
+            }
         }
+        log.info("providerTradeService.singlePushOrder run complete");
     }
 
     /**
