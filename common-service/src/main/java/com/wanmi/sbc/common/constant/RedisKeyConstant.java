@@ -73,10 +73,10 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
-    /**
-     * 最小库存数量
-     */
-    public static final Long GOODS_INFO_MIN_STOCK_SIZE = 5L;
+//    /**
+//     * 最小库存数量
+//     */
+//    public static final Long GOODS_INFO_MIN_STOCK_SIZE = 5L;
 
     /**
      * 冻结库存信息

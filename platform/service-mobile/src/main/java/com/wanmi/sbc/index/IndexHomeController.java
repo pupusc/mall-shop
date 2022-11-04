@@ -3,6 +3,7 @@ package com.wanmi.sbc.index;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.common.util.StockUtil;
 import com.soybean.mall.order.api.provider.order.OrderConfigProvider;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
@@ -323,7 +324,7 @@ public class IndexHomeController {
                         goodsInfo.setShowPrice(showPrice);
                         Long stock = goodsInfoVOList.stream().filter(p->p.getGoodsId().equals(goodsInfo.getGoodsId()) && p.getStock()!=null).mapToLong(GoodsInfoVO::getStock).sum();
                         //商品<5个不销售
-                        if(stock.compareTo(stockSize) <=0){
+                        if(stock.compareTo(StockUtil.THRESHOLD_STOCK) <=0){
                             stock = 0L;
                         }
                         goodsInfo.setStock(stock);
