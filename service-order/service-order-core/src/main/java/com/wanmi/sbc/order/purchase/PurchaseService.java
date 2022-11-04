@@ -2,6 +2,7 @@ package com.wanmi.sbc.order.purchase;
 import com.google.common.collect.Lists;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.soybean.common.util.StockUtil;
 import com.soybean.mall.order.api.provider.order.PayOrderGiftRecordProvider;
 import com.soybean.mall.order.api.request.record.OrderGiftRecordSearchReq;
 import com.soybean.mall.order.api.response.record.OrderGiftRecordResp;
@@ -2766,6 +2767,9 @@ public class PurchaseService {
                 goodsInfo.setActivity(activity);
             }
 
+            if (goodsInfo.getStock() <= StockUtil.THRESHOLD_STOCK) {
+                goodsInfo.setStock(0L);
+            }
         }
 
         // 3.合并信息至response
