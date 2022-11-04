@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.soybean.mall.order.api.provider.order.PayOrderGiftRecordProvider;
@@ -3809,11 +3810,13 @@ public class TradeBaseController {
     private void validateRestrictedGoodsForReserveLisr(List<TradeItemRequest> tradeItemRequests,
                                                        CustomerVO customerVO) {
         //组装请求的数据
-        goodsRestrictedSaleQueryProvider.validateOrderRestricted(GoodsRestrictedBatchValidateRequest.builder()
+        GoodsRestrictedBatchValidateRequest build = GoodsRestrictedBatchValidateRequest.builder()
                 .goodsRestrictedValidateVOS(tradeItemMapper.tradeItemRequestsToGoodsRestrictedValidateVOs(tradeItemRequests))
                 .customerVO(customerVO)
                 .openGroupon(false)
-                .build());
+                .build();
+        log.info("TradeBaseController validateRestrictedGoodsForReserveLisr {}", JSON.toJSONString(build));
+        goodsRestrictedSaleQueryProvider.validateOrderRestricted(build);
     }
 
     /**
