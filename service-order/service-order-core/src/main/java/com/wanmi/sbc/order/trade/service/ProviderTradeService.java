@@ -986,6 +986,7 @@ public class ProviderTradeService {
             } else {
                 this.singlePushOrder(Collections.singletonList(trade));
             }
+            log.info("providerTradeService.singlePushOrder run complete");
         }
     }
 

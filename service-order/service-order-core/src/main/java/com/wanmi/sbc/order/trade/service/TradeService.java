@@ -8573,6 +8573,7 @@ public class TradeService {
             } else {
                 providerTradeService.singlePushOrder(Collections.singletonList(trade));
             }
+            log.info("providerTradeService.singlePushOrder run complete");
         }
     }
 

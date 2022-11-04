@@ -385,7 +385,7 @@ public class GrouponOrderService {
                 providerTradeService.singlePushOrder(Collections.singletonList(trade));
             }
         }
-
+        log.info("providerTradeService.singlePushOrder run complete");
     }
 
     /**
