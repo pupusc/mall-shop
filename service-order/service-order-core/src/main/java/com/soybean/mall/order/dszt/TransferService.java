@@ -51,7 +51,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -733,6 +732,10 @@ public class TransferService {
                         returnItem.getApplyKnowledge() != null && returnItem.getApplyKnowledge() > 0 ? new BigDecimal(returnItem.getApplyKnowledge().toString())
                                 : BigDecimal.ZERO;
 
+                BigDecimal overPrice = BigDecimal.ZERO;
+                BigDecimal overPoint = BigDecimal.ZERO;
+                BigDecimal overKnowledge = BigDecimal.ZERO;
+
                 for (int i = 0; i < orderItemRespList.size(); i++) {
                     SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
                     saleAfterItemReq.setRefundType(refundType); // todo
@@ -774,7 +777,7 @@ public class TransferService {
                         }
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     } else {
-                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum, 2, RoundingMode.HALF_DOWN);
+                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum);
 
                         List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
                         //金额
@@ -812,6 +815,27 @@ public class TransferService {
                         }
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     }
+
+                    //检查是否超出订单分摊金额
+                    int itemOughtFee = orderItemResp.getOughtFee();
+                    int itemRefundFee = orderItemResp.getRefundFee();
+
+                    int allAmount = saleAfterItemReq.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                    int overAmount = allAmount - itemOughtFee - itemRefundFee;
+                    if (overAmount > 0) {
+                        for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq item : saleAfterItemReq.getSaleAfterRefundDetailBOList()) {
+                            if (item.getAmount() > overAmount) {
+                                item.setAmount(item.getAmount() - overAmount);
+
+                            }
+                        }
+                    }
+
+                    //检查是否超出已退部分
+
+                    //注意数量的问题，如果退出多个？
+
+
                     saleAfterItemReqList.add(saleAfterItemReq);
                 }
             }
