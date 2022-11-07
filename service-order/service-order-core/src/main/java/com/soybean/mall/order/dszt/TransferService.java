@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -269,7 +270,7 @@ public class TransferService {
                     payPrice = payPrice.add(new BigDecimal(tradeItem.getKnowledge().toString()).divide(exchangeRate));
                 }
                 //支付比例
-                BigDecimal ratio = payPrice.divide(allPayPrice);
+                BigDecimal ratio = payPrice.divide(allPayPrice, 100, RoundingMode.HALF_DOWN);
                 //反推原始价格
                 BigDecimal originPrice = payPrice;
 
@@ -781,8 +782,7 @@ public class TransferService {
                         }
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     } else {
-                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum);
-
+                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum, 100, RoundingMode.HALF_DOWN);
                         List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
                         //金额
                         if (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0) {
@@ -1059,10 +1059,12 @@ public class TransferService {
         for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : pairs) {
             SaleAfterCreateNewReq.SaleAfterItemReq salAfterItem = pair.getKey();
             OrderDetailResp.OrderItemResp orderItem = pair.getValue();
-            log.info("拆分价格信息，商品：{}，可退金额：{}", orderItem.getPlatformSkuName(), orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0));
+
+            StringBuilder msg = new StringBuilder();
             for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq item : salAfterItem.getSaleAfterRefundDetailBOList()) {
-                log.info("{}={}", PaymentPayTypeEnum.byCode(item.getPayType()).getPayTypeName(), item.getAmount());
+                msg.append(PaymentPayTypeEnum.byCode(item.getPayType()).getPayTypeName() + "=" + item.getAmount() + " ");
             }
+            log.info("金额信息，商品:{}，可退金额:{}，拆分金额:{}", orderItem.getPlatformSkuName(), orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0), msg);
         }
     }
 
