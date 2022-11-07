@@ -534,6 +534,41 @@ public class TradeItemService {
     }
 
     /**
+     * 计算商品可使用积分的总价格
+     * @param tradeItems
+     * @return
+     */
+    private BigDecimal calcTradeItemsPrice(List<TradeItem> tradeItems) {
+        BigDecimal totalPrice = tradeItems.stream()
+                .filter(tradeItem -> tradeItem.getSplitPrice() != null && tradeItem.getSplitPrice().compareTo(BigDecimal.ZERO) > 0)
+                .map(TradeItem::getSplitPrice)
+                .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        //视频号渠道不能使用积分也不能参加分摊
+        List<String> skuIdList = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
+
+        // 积分和名单商品不能使用积分，也不参与分摊
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+            for (TradeItem tradeItem : tradeItems) {
+                if(blackListGoodsId.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))) {
+                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+                }
+            }
+        }
+        return totalPrice;
+    }
+
+    /**
      * 计算积分抵扣均摊价、均摊数量
      *
      * @param tradeItems       待计算的商品列表
