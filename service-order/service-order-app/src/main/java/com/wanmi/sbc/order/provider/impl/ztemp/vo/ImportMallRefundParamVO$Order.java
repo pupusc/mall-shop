@@ -33,4 +33,8 @@ public class ImportMallRefundParamVO$Order {
      * 售后类型
      */
     private Integer refundType;
+    /**
+     * 是否导入 1-导入 0-非导入
+     */
+    private Integer importFlag = 1;
 }

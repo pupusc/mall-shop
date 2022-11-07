@@ -1,13 +1,4 @@
 package com.soybean.mall.order.dszt;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-
-import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
-import com.google.common.collect.Lists;
-
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.enums.OrderSourceEnum;
@@ -15,36 +6,26 @@ import com.soybean.mall.order.enums.PaymentPayTypeEnum;
 import com.soybean.mall.order.enums.UnifiedOrderChangeTypeEnum;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
-import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
-import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.common.enums.GenderType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.detail.CustomerDetailQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailByCustomerIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.erp.api.constant.DeviceTypeEnum;
+import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
-
-import java.math.BigDecimal;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterOrderReq;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq.SaleAfterPostFeeReq;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.resp.OrderDetailResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -66,9 +47,22 @@ import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListRes
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Description: 转换服务
@@ -204,8 +198,6 @@ public class TransferService {
 //        }
 
 
-
-
         for (Map.Entry<String, List<TradeItem>> entry : spuId2ModelMap.entrySet()) {
             TradeItem packageTradeItem = null;
             for (TradeItem tradeItem : entry.getValue()) {
@@ -216,14 +208,33 @@ public class TransferService {
             }
 
             if (packageTradeItem == null) {
-                continue;
+                throw new SbcRuntimeException("999999", "组合商品的主商品没有找到");
+            }
+            if (packageTradeItem.getOriginalPrice() == null) {
+                throw new SbcRuntimeException("999999", "组合商品的主商品售价为空");
             }
 
-            BigDecimal sumOther = BigDecimal.ZERO;
-            for (TradeItem tradeItem : entry.getValue()) {
-                if (Objects.equals(entry.getKey(), tradeItem.getSpuId())) {
-                    continue;
+            //是否有会员价
+            boolean hasVipPrice = packageTradeItem.getLevelPrice() != null && packageTradeItem.getLevelPrice().compareTo(BigDecimal.ZERO) > 0;
+            //商品支付价
+            BigDecimal allPayPrice = entry.getValue().stream().map(item -> {
+                BigDecimal price = BigDecimal.ZERO;
+                if (item.getSplitPrice() != null) {
+                    price = price.add(item.getSplitPrice());
                 }
+                if (item.getPoints() != null) {
+                    price = price.add(new BigDecimal(item.getPoints().toString()).divide(exchangeRate));
+                }
+                if (item.getKnowledge() != null) {
+                    price = price.add(new BigDecimal(item.getKnowledge().toString()).divide(exchangeRate));
+                }
+                return price;
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            for (TradeItem tradeItem : entry.getValue()) {
+//                if (Objects.equals(entry.getKey(), tradeItem.getSpuId())) {
+//                    continue;
+//                }
 
                 //获取打包对应的折扣信息
 //                List<GoodsPackDetailResponse> goodsPackDetailResponses = packageId2ModelMap.get(tradeItem.getPackId());
@@ -233,35 +244,119 @@ public class TransferService {
 
                 CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
                 buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-                buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
+                buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
                 buyGoodsReq.setNum(tradeItem.getNum().intValue());
                 buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
                 buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
                 buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
                 buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
-                BigDecimal  price = tradeItem.getSplitPrice() == null ? BigDecimal.ZERO : tradeItem.getSplitPrice();
-                BigDecimal newPrice = price.multiply(exchangeRate);
-                buyGoodsReq.setPrice(newPrice.intValue());
+//                BigDecimal  price = tradeItem.getSplitPrice() == null ? BigDecimal.ZERO : tradeItem.getSplitPrice();
+//                BigDecimal newPrice = price.multiply(exchangeRate);
+//                buyGoodsReq.setPrice(newPrice.intValue());
+//                buyGoodsReq.setGiftFlag(0); //非赠送
+//                result.add(buyGoodsReq);
+
                 buyGoodsReq.setGiftFlag(0); //非赠送
-                sumOther = sumOther.add(newPrice);
+                buyGoodsReq.setGoodsDiscounts(new ArrayList<>()); //优惠信息
+                //计算价格
+                BigDecimal payPrice = BigDecimal.ZERO;
+                if (tradeItem.getSplitPrice() != null) {
+                    payPrice = payPrice.add(tradeItem.getSplitPrice());
+                }
+                if (tradeItem.getPoints() != null) {
+                    payPrice = payPrice.add(new BigDecimal(tradeItem.getPoints().toString()).divide(exchangeRate));
+                }
+                if (tradeItem.getKnowledge() != null) {
+                    payPrice = payPrice.add(new BigDecimal(tradeItem.getKnowledge().toString()).divide(exchangeRate));
+                }
+                //支付比例
+                BigDecimal ratio = payPrice.divide(allPayPrice, 100, RoundingMode.HALF_DOWN);
+                //反推原始价格
+                BigDecimal originPrice = payPrice;
+
+                //如果分摊是0元，则跳过优惠计算，根据分摊计算优惠也是0
+                if (payPrice.compareTo(BigDecimal.ZERO) < 1) {
+                    buyGoodsReq.setPrice(originPrice.divide(new BigDecimal(tradeItem.getNum().toString())).multiply(exchangeRate).intValue());
+                    result.add(buyGoodsReq);
+                    continue;
+                }
+
+                //会员价减免金额
+                if (hasVipPrice) {
+                    //减免金额
+                    BigDecimal allDiscount = packageTradeItem.getOriginalPrice().subtract(packageTradeItem.getLevelPrice()).multiply(new BigDecimal(packageTradeItem.getNum().toString()));
+                    BigDecimal discount = ratio.multiply(allDiscount);
+                    originPrice = originPrice.add(discount); //反推原始价格
+
+                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                    buyDiscountReq.setAmount(discount.multiply(exchangeRate).intValue());
+                    buyDiscountReq.setCouponId("");
+                    buyDiscountReq.setDiscountNo("");
+                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                    buyDiscountReq.setMemo("会员价");
+                    buyDiscountReq.setCostAssume("CHANNEL");
+                    buyGoodsReq.getGoodsDiscounts().add(buyDiscountReq);
+                }
+                //优惠券减免金额
+                if (!CollectionUtils.isEmpty(packageTradeItem.getCouponSettlements())) {
+                    for (TradeItem.CouponSettlement couponSettlement : packageTradeItem.getCouponSettlements()) {
+                        //减免金额
+                        BigDecimal allDiscount = couponSettlement.getReducePrice();
+                        BigDecimal discount = ratio.multiply(allDiscount);
+                        originPrice = originPrice.add(discount); //反推原始价格
+
+                        CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                        buyDiscountReq.setAmount(discount.multiply(exchangeRate).intValue());
+                        buyDiscountReq.setCouponId(couponSettlement.getCouponCodeId());
+                        buyDiscountReq.setDiscountNo(couponSettlement.getCouponCode());
+                        buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.DISCOUNT.getMsg()); //优惠券别称
+                        buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.DISCOUNT.getType()); //优惠
+                        buyDiscountReq.setMemo("优惠券");
+                        buyDiscountReq.setCostAssume("CHANNEL");
+                        buyGoodsReq.getGoodsDiscounts().add(buyDiscountReq);
+                    }
+                }
+                //活动减免金额
+                if (CollectionUtils.isNotEmpty(packageTradeItem.getMarketingSettlements())) {
+                    for (TradeItem.MarketingSettlement marketingSettlement : packageTradeItem.getMarketingSettlements()) {
+                        //基础价
+                        BigDecimal allBasePrice = (hasVipPrice ? packageTradeItem.getLevelPrice() : packageTradeItem.getOriginalPrice()).multiply(new BigDecimal(packageTradeItem.getNum().toString()));
+                        BigDecimal allDiscountPrice = allBasePrice.subtract(marketingSettlement.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlement.getSplitPrice());
+                        BigDecimal discount = ratio.multiply(allDiscountPrice);
+                        originPrice = originPrice.add(discount); //反推原始价格
+
+                        CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                        buyDiscountReq.setAmount(discount.multiply(exchangeRate).intValue());
+                        buyDiscountReq.setCouponId("");
+                        buyDiscountReq.setDiscountNo("");
+                        buyDiscountReq.setDiscountName(marketingSettlement.getMarketingType().toString());
+                        buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.MARKETING.getType()); //优惠
+                        buyDiscountReq.setMemo("营销活动");
+                        buyDiscountReq.setCostAssume("CHANNEL");
+                        buyGoodsReq.getGoodsDiscounts().add(buyDiscountReq);
+                    }
+                }
+
+                buyGoodsReq.setPrice(originPrice.divide(new BigDecimal(tradeItem.getNum().toString())).multiply(exchangeRate).intValue());
                 result.add(buyGoodsReq);
             }
 
-            //打包的商品
-            //获取打包对应的折扣信息
-            CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
-            buyGoodsReq.setPlatformItemId(packageTradeItem.getOid());
-            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(packageTradeItem.getErpSkuNo()) ? packageTradeItem.getErpSpuNo() : packageTradeItem.getErpSkuNo());
-            buyGoodsReq.setNum(packageTradeItem.getNum().intValue());
-            buyGoodsReq.setPlatformGoodsId(packageTradeItem.getSpuId());
-            buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
-            buyGoodsReq.setPlatformSkuId(packageTradeItem.getSkuId());
-            buyGoodsReq.setPlatformSkuName(packageTradeItem.getSkuName());
-            BigDecimal  price = packageTradeItem.getSplitPrice() == null ? BigDecimal.ZERO : packageTradeItem.getSplitPrice();
-            BigDecimal newPrice = price.multiply(exchangeRate);
-            buyGoodsReq.setPrice(newPrice.intValue());
-            buyGoodsReq.setGiftFlag(0); //非赠送
-            result.add(buyGoodsReq);
+//            //打包的商品
+//            //获取打包对应的折扣信息
+//            CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+//            buyGoodsReq.setPlatformItemId(packageTradeItem.getOid());
+//            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(packageTradeItem.getErpSkuNo()) || packageTradeItem.getErpSkuNo().startsWith("zh") ? packageTradeItem.getErpSpuNo() : packageTradeItem.getErpSkuNo());
+//            buyGoodsReq.setNum(packageTradeItem.getNum().intValue());
+//            buyGoodsReq.setPlatformGoodsId(packageTradeItem.getSpuId());
+//            buyGoodsReq.setPlatformGoodsName(packageTradeItem.getSpuName());
+//            buyGoodsReq.setPlatformSkuId(packageTradeItem.getSkuId());
+//            buyGoodsReq.setPlatformSkuName(packageTradeItem.getSkuName());
+//            BigDecimal  price = packageTradeItem.getSplitPrice() == null ? BigDecimal.ZERO : packageTradeItem.getSplitPrice();
+//            BigDecimal newPrice = price.multiply(exchangeRate);
+//            buyGoodsReq.setPrice(newPrice.intValue());
+//            buyGoodsReq.setGiftFlag(0); //非赠送
+//            result.add(buyGoodsReq);
         }
 
         //非打包商品
@@ -273,7 +368,7 @@ public class TransferService {
             }
             CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
             buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
+            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
             buyGoodsReq.setNum(tradeItem.getNum().intValue());
             buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
             buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
@@ -619,7 +714,7 @@ public class TransferService {
 
         List<SaleAfterCreateNewReq.SaleAfterItemReq> saleAfterItemReqList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
-
+            Map<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> returnItems = new HashMap<>();
             for (ReturnItem returnItem : returnOrder.getReturnItems()) {
 
                 List<OrderDetailResp.OrderItemResp> orderItemRespList = skuId2OrderItemMap.get(returnItem.getSkuId());
@@ -652,6 +747,9 @@ public class TransferService {
                         saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
                     }
                     OrderDetailResp.OrderItemResp orderItemResp = orderItemRespList.get(i);
+                    if (orderItemResp.getOughtFee() <= defaultIfNull(orderItemResp.getRefundFee(), 0)) {
+                        continue;
+                    }
                     saleAfterItemReq.setRefundNum(orderItemResp.getNum());
                     saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
                     saleAfterItemReq.setObjectType("ORD_ITEM");
@@ -684,8 +782,7 @@ public class TransferService {
                         }
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     } else {
-                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum, 2, RoundingMode.HALF_DOWN);
-
+                        BigDecimal divide = new BigDecimal(orderItemResp.getOughtFee().toString()).divide(sum, 100, RoundingMode.HALF_DOWN);
                         List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
                         //金额
                         if (returnItem.getApplyRealPrice() != null && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) > 0) {
@@ -723,8 +820,11 @@ public class TransferService {
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     }
                     saleAfterItemReqList.add(saleAfterItemReq);
+                    returnItems.computeIfAbsent(returnItem, key -> new ArrayList<>()).add(Pair.of(saleAfterItemReq, orderItemResp));
                 }
             }
+            //验证组合商品的分摊金额
+            validatePrice(returnOrder, returnItems);
         }
         saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
 
@@ -782,4 +882,193 @@ public class TransferService {
         return saleAfterCreateNewReq;
     }
 
+    /**
+     * 补偿拆分导致的金额误差
+     */
+    private void validatePrice(ReturnOrder returnOrder, Map<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> returnItems) {
+        if (MapUtils.isEmpty(returnItems)) {
+            return;
+        }
+
+        for (Map.Entry<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> entry : returnItems.entrySet()) {
+            int totalSpillCash = 0;
+            int totalSpillPoint = 0;
+            int totalSpillKnow = 0;
+
+            ReturnItem returnItem = entry.getKey();
+            //打印拆分补偿前的价格信息
+            printPriceInfo(entry.getValue());
+
+            //检查是否超出金额
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee <= maxRefundFee) {
+                    continue;
+                }
+                //超出的金额
+                int spillFee = nowRefundFee - maxRefundFee;
+                Iterator<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> iterator = salAfterItem.getSaleAfterRefundDetailBOList().iterator();
+                while (iterator.hasNext() && spillFee > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund = iterator.next();
+                    int cutFee = refund.getAmount() > spillFee ? spillFee : refund.getAmount();
+                    spillFee -= cutFee;
+                    refund.setAmount(refund.getAmount() - cutFee);
+                    if (refund.getAmount() <= 0) {
+                        iterator.remove();
+                    }
+                    if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillCash +=  cutFee;
+                    } else if (PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillPoint += cutFee;
+                    } else if (PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillKnow += cutFee;
+                    } else {
+                        throw new SbcRuntimeException(CommonErrorCode.FAILED, "错误的支付类型，商城只支持现金/积分/知豆三种支付类型");
+                    }
+                }
+            }
+
+            if (totalSpillCash == 0 && totalSpillPoint == 0 && totalSpillKnow == 0) {
+                continue;
+            }
+
+            log.info("补偿拆分差价：溢出现金:{}，溢出积分：{}，溢出知豆：{}", totalSpillCash, totalSpillPoint, totalSpillKnow);
+
+            //分摊超出部分金额
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee >= maxRefundFee) {
+                    continue;
+                }
+                //可以分摊的金额
+                int consumeFee = maxRefundFee - nowRefundFee;
+                //现金
+                if (totalSpillCash > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillCash > consumeFee ? consumeFee : totalSpillCash;
+                    consumeFee -= tempFee;
+                    totalSpillCash -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+                //积分
+                if (totalSpillPoint > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillPoint > consumeFee ? consumeFee : totalSpillPoint;
+                    consumeFee -= tempFee;
+                    totalSpillPoint -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.JI_FEN.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+                //知豆
+                if (totalSpillKnow > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillKnow > consumeFee ? consumeFee : totalSpillKnow;
+                    consumeFee -= tempFee;
+                    totalSpillKnow -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+            }
+
+            //打印拆分补偿后的价格信息
+            printPriceInfo(entry.getValue());
+
+            //验证金额是否一致
+            int totalRefundCash = 0;
+            int totalRefundPoint = 0;
+            int totalRefundKnow = 0;
+
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee > maxRefundFee) {
+                    log.error("订单分摊金额计算有误，itemId{}，订单最多能退金额={}，本次计算金额={}", orderItem.getTid(), maxRefundFee, nowRefundFee);
+                    throw new SbcRuntimeException("999999", "分摊金额计算错误");
+                }
+                for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund : salAfterItem.getSaleAfterRefundDetailBOList()) {
+                    if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundCash += refund.getAmount().intValue();
+                    } else if (PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundPoint += refund.getAmount().intValue();
+                    } else if (PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundKnow += refund.getAmount().intValue();
+                    } else {
+                        throw new SbcRuntimeException("999999", "错误的支付类型, payType=" + refund.getPayType());
+                    }
+                }
+            }
+
+            int applyRefundCash = returnItem.getApplyRealPrice() == null ? 0 : returnItem.getApplyRealPrice().multiply(exchangeRate).intValue(); //申请退现金
+            int applyRefundPoint = returnItem.getApplyPoint() == null ? 0 : returnItem.getApplyPoint().intValue(); //申请退积分
+            int applyRefundKnow = returnItem.getApplyKnowledge() == null ? 0 : returnItem.getApplyKnowledge().intValue(); //申请退知豆
+
+            if (totalRefundCash != applyRefundCash || totalRefundPoint != applyRefundPoint || totalRefundKnow != applyRefundKnow) {
+                log.error("申请退款的金额与分摊计算的金额不一致，申请金额:{}/{}/{}，分摊金额:{}/{}/{}",
+                        applyRefundCash, applyRefundPoint, applyRefundKnow, totalRefundCash, totalRefundPoint, totalRefundKnow);
+                throw new SbcRuntimeException("999999", "分摊金额计算错误");
+            }
+        }
+    }
+
+    private void printPriceInfo(List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>> pairs) {
+        for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : pairs) {
+            SaleAfterCreateNewReq.SaleAfterItemReq salAfterItem = pair.getKey();
+            OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+            StringBuilder msg = new StringBuilder();
+            for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq item : salAfterItem.getSaleAfterRefundDetailBOList()) {
+                msg.append(PaymentPayTypeEnum.byCode(item.getPayType()).getPayTypeName() + "=" + item.getAmount() + " ");
+            }
+            log.info("金额信息，商品:{}，可退金额:{}，拆分金额:{}", orderItem.getPlatformSkuName(), orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0), msg);
+        }
+    }
+
+    private <T> T defaultIfNull(T target, T defaultVal) {
+        return Objects.isNull(target) ? defaultVal : target;
+    }
 }

@@ -133,6 +133,10 @@ public class CreateOrderReq {
      * 快照存储信息 [存储信息]
      */
     private Map<String, String> orderSnapshot = new HashMap<>();
+    /**
+     * 是否是导入订单
+     */
+    private boolean importOrder = false;
 
     /**
      * 购买商品

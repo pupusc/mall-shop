@@ -380,15 +380,15 @@ public class OrderDetailResp {
          * 会期类型 0 体验，1 正式
          */
         private Integer rightsCategory;
-//        /**
-//         * 退货数量
-//         */
-//        private Integer refundNum;
-//
-//        /**
-//         * 退款金额
-//         */
-//        private Integer refundFee;
+        /**
+         * 退货数量
+         */
+        private Integer refundNum;
+
+        /**
+         * 退款金额
+         */
+        private Integer refundFee;
 
 
         /**
