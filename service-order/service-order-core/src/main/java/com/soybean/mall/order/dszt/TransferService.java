@@ -45,10 +45,10 @@ import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryPr
 import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressListRequest;
 import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListResponse;
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -820,7 +820,7 @@ public class TransferService {
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                     }
                     saleAfterItemReqList.add(saleAfterItemReq);
-                    returnItems.computeIfAbsent(returnItem, key -> new ArrayList<>()).add(new Pair<>(saleAfterItemReq, orderItemResp));
+                    returnItems.computeIfAbsent(returnItem, key -> new ArrayList<>()).add(Pair.of(saleAfterItemReq, orderItemResp));
                 }
             }
             //验证组合商品的分摊金额
