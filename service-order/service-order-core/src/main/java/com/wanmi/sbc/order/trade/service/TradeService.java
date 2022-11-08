@@ -1696,7 +1696,7 @@ public class TradeService {
                 tradePrice.setPointWorth(pointsConfig.getPointsWorth());
                 // 重设订单总价
                 BigDecimal totalPrice = tradePrice.getTotalPrice().subtract(pointsPrice).subtract(deliveryAvailablePointPrice);
-                tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
+                tradePrice.setTotalPrice(totalPrice);
                 //运费
                 tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
                 tradePrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
