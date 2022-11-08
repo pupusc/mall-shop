@@ -616,7 +616,7 @@ public class TradeItemService {
         //分摊积分
         for (int i = 0; i < availablePointTradeItemList.size(); i++) {
             TradeItem tradeItem = availablePointTradeItemList.get(i);
-            BigDecimal surplusPointsPrice = pointsPriceTotal.subtract(splitPriceTotal);
+            BigDecimal surplusPointsPrice = itemAvailableTotalPrice.subtract(splitPriceTotal);
             if (i == availablePointTradeItemList.size() - 1) {
                 tradeItem.setPointsPrice(surplusPointsPrice);
                 tradeItem.setPoints(surplusPointsPrice.multiply(pointWorth).longValue());
