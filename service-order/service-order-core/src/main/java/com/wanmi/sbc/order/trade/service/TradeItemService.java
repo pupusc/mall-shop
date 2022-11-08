@@ -606,8 +606,9 @@ public class TradeItemService {
             itemAvailableTotalPrice = itemAvailableTotalPrice.add(tradeItem.getSplitPrice());
         }
 
+        BigDecimal itemAvailablePointTotalPrice = itemAvailableTotalPrice;
         if(pointsPriceTotal.compareTo(itemAvailableTotalPrice) < 0){
-            itemAvailableTotalPrice = pointsPriceTotal;
+            itemAvailablePointTotalPrice = pointsPriceTotal;
         }
 
         //累积积分平摊价，将剩余扣给最后一个元素
@@ -616,13 +617,13 @@ public class TradeItemService {
         //分摊积分
         for (int i = 0; i < availablePointTradeItemList.size(); i++) {
             TradeItem tradeItem = availablePointTradeItemList.get(i);
-            BigDecimal surplusPointsPrice = itemAvailableTotalPrice.subtract(splitPriceTotal);
+            BigDecimal surplusPointsPrice = itemAvailablePointTotalPrice.subtract(splitPriceTotal);
             if (i == availablePointTradeItemList.size() - 1) {
                 tradeItem.setPointsPrice(surplusPointsPrice);
                 tradeItem.setPoints(surplusPointsPrice.multiply(pointWorth).longValue());
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                BigDecimal pointsPrice = splitPrice.divide(itemAvailableTotalPrice, 10, BigDecimal.ROUND_DOWN).multiply(pointsPriceTotal).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal pointsPrice = splitPrice.divide(itemAvailableTotalPrice, 10, BigDecimal.ROUND_DOWN).multiply(itemAvailablePointTotalPrice).setScale(2, BigDecimal.ROUND_HALF_UP);
 //                BigDecimal points = pointsPrice.multiply(pointWorth);
                 if (surplusPointsPrice.compareTo(BigDecimal.ZERO) <= 0) {
                     pointsPrice = BigDecimal.ZERO;
