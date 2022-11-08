@@ -286,6 +286,7 @@ public class OrderController {
                 channel.setChannelType(ChannelType.MINIAPP);
                 tradeCommitRequest.setDistributeChannel(channel);
                 tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+                log.info("OrderController.commit paramRequest:{}", JSON.toJSONString(tradeCommitRequest));
                 BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
                 log.info("OrderController commit result: {}", JSON.toJSONString(orderCommitResponseBaseResponse));
                 if (!CommonErrorCode.SUCCESSFUL.equals(orderCommitResponseBaseResponse.getCode())) {

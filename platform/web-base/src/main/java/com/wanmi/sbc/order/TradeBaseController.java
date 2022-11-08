@@ -1544,6 +1544,7 @@ public class TradeBaseController {
             tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             //tradeCommitRequest.setCustomer(customer);
 
+            log.info("TradeBaseController.commit requestParam:{}", JSON.toJSONString(tradeCommitRequest));
             successResults = tradeProvider.commit(tradeCommitRequest).getContext().getTradeCommitResults();
 
             //标记预售定金标识，前端可判断跳转至订单列表页
