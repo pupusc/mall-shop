@@ -1653,24 +1653,40 @@ public class TradeService {
             // 如果使用积分 校验可使用积分
             verifyService.verifyPoints(trades, tradeCommitRequest, pointsConfig);
 
-            List<TradeItem> items =
-                    trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
+            List<TradeItem> items = trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
 
-            // 设置关联商品的积分均摊
-            BigDecimal pointsTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(pointWorth, 2,
-                    BigDecimal.ROUND_HALF_UP);
-            tradeItemService.calcPoints(items, pointsTotalPrice, tradeCommitRequest.getPoints(), pointWorth);
+            //总传递积分
+            BigDecimal pointsTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(pointWorth, 2, BigDecimal.ROUND_HALF_UP);
+            //积分分摊到商品列表
+            List<TradeItem> itemAvailablePointList = tradeItemService.calcItemAvailablePointList(items, pointsTotalPrice, pointWorth);
 
             // 设置关联商品的均摊价
-            BigDecimal total = tradeItemService.calcSkusTotalPrice(items);
-            tradeItemService.calcSplitPrice(items, total.subtract(pointsTotalPrice), total);
+            BigDecimal itemAvailablePointTotalPrice = BigDecimal.ZERO;
+            for (TradeItem tradeItem : itemAvailablePointList) {
+                itemAvailablePointTotalPrice = itemAvailablePointTotalPrice.add(tradeItem.getPointsPrice());
+            }
+
+            //可用运费的积分
+            BigDecimal deliveryAvailablePointPrice = BigDecimal.ZERO;
+            if (pointsTotalPrice.compareTo(itemAvailablePointTotalPrice) > 0) {
+                deliveryAvailablePointPrice = deliveryAvailablePointPrice.subtract(itemAvailablePointTotalPrice);
+            }
+
+            BigDecimal itemAvailableTotalPrice = tradeItemService.calcSkusTotalPrice(itemAvailablePointList);
+            tradeItemService.calcSplitPrice(itemAvailablePointList, itemAvailableTotalPrice.subtract(itemAvailablePointTotalPrice), itemAvailableTotalPrice);
 
             Map<Long, List<TradeItem>> itemsMap = items.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
-            itemsMap.keySet().forEach(storeId -> {
+            for (Long storeId : itemsMap.keySet()) {
+
                 // 找到店铺对应订单的价格信息
-                Trade trade = trades.stream()
-                        .filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
+                Trade trade = trades.stream().filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
                 TradePrice tradePrice = trade.getTradePrice();
+
+                //如果传递积分超过运费，则抛出异常
+                BigDecimal deliveryPayPrice = tradePrice.getDeliveryPrice().subtract(deliveryAvailablePointPrice);
+                if (deliveryPayPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new SbcRuntimeException("999999", "请求积分超过可用积分限制");
+                }
 
                 // 计算积分抵扣额(pointsPrice、points)，并追加至订单优惠金额、积分抵扣金额
                 BigDecimal pointsPrice = tradeItemService.calcSkusTotalPointsPrice(itemsMap.get(storeId));
@@ -1680,7 +1696,28 @@ public class TradeService {
                 tradePrice.setPointWorth(pointsConfig.getPointsWorth());
                 // 重设订单总价
                 tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
-            });
+                //运费
+                tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
+                tradePrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
+                tradePrice.setDeliveryPayPrice(deliveryPayPrice);
+            }
+//            itemsMap.keySet().forEach(storeId -> {
+//                // 找到店铺对应订单的价格信息
+//                Trade trade = trades.stream()
+//                        .filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
+//                TradePrice tradePrice = trade.getTradePrice();
+//
+//                // 计算积分抵扣额(pointsPrice、points)，并追加至订单优惠金额、积分抵扣金额
+//                BigDecimal pointsPrice = tradeItemService.calcSkusTotalPointsPrice(itemsMap.get(storeId));
+//                Long points = tradeItemService.calcSkusTotalPoints(itemsMap.get(storeId));
+//                tradePrice.setPointsPrice(pointsPrice);
+//                tradePrice.setPoints(points);
+//                tradePrice.setPointWorth(pointsConfig.getPointsWorth());
+//                // 重设订单总价
+//                tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
+//                //运费
+//                tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
+//            });
         }
     }
 
