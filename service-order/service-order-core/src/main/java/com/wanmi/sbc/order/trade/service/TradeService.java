@@ -1669,7 +1669,7 @@ public class TradeService {
             //可用运费的积分
             BigDecimal deliveryAvailablePointPrice = BigDecimal.ZERO;
             if (pointsTotalPrice.compareTo(itemAvailablePointTotalPrice) > 0) {
-                deliveryAvailablePointPrice = deliveryAvailablePointPrice.subtract(itemAvailablePointTotalPrice);
+                deliveryAvailablePointPrice = pointsTotalPrice.subtract(itemAvailablePointTotalPrice);
             }
 
             BigDecimal itemAvailableTotalPrice = tradeItemService.calcSkusTotalPrice(itemAvailablePointList);
@@ -1695,6 +1695,7 @@ public class TradeService {
                 tradePrice.setPoints(points);
                 tradePrice.setPointWorth(pointsConfig.getPointsWorth());
                 // 重设订单总价
+                BigDecimal totalPrice = tradePrice.getTotalPrice().subtract(pointsPrice).subtract(deliveryAvailablePointPrice);
                 tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
                 //运费
                 tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
