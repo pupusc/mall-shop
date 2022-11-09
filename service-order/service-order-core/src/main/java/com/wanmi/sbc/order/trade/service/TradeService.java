@@ -1698,6 +1698,7 @@ public class TradeService {
                 deliveryDetailPrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
                 deliveryDetailPrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
                 deliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
+                tradePrice.setDeliveryDetailPrice(deliveryDetailPrice);
             }
 //            itemsMap.keySet().forEach(storeId -> {
 //                // 找到店铺对应订单的价格信息
