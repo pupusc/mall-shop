@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.bean.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +53,30 @@ public class ProviderTradeSimpleVO implements Serializable {
     private String deliveryPrice;
 
     /**
+     * 运费详细
+     */
+    private DeliveryDetailPriceVO deliveryDetailPrice;
+
+    /**
      * 订单商品列表
      */
     private List<TradeItemSimpleVO> tradeItems;
+
+    @Data
+    public static class DeliveryDetailPriceVO {
+        /**
+         * 实际运费积分
+         */
+        private BigDecimal deliveryPointPrice;
+
+        /**
+         * 实际运费积分
+         */
+        private Long deliveryPoint;
+
+        /**
+         * 实际运费现金金额
+         */
+        private BigDecimal deliveryPayPrice;
+    }
 }

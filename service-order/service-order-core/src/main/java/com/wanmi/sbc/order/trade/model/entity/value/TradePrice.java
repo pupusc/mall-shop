@@ -30,20 +30,15 @@ public class TradePrice implements Serializable {
      */
     private BigDecimal deliveryPrice;
 
-    /**
-     * 实际运费积分
-     */
-    private BigDecimal deliveryPointPrice;
+//    /**
+//     * 实际运费积分
+//     */
+//    private BigDecimal deliveryPointPrice;
 
     /**
-     * 实际运费积分
+     * 运费详细信息
      */
-    private Long deliveryPoint;
-
-    /**
-     * 实际运费现金金额
-     */
-    private BigDecimal deliveryPayPrice;
+    private DeliveryDetailPrice deliveryDetailPrice;
 
     /**
      * 特价金额，可以从TradePriceInfo获取

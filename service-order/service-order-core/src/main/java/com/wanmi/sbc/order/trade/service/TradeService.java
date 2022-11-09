@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.wanmi.sbc.order.trade.model.entity.value.DeliveryDetailPrice;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -155,10 +156,6 @@ import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyAddressReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyDiscountReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyGoodsReq;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.appointmentsalegoods.AppointmentSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -336,7 +333,6 @@ import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
-import com.wanmi.sbc.order.trade.model.entity.TradeItem.CouponSettlement;
 import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -1698,9 +1694,10 @@ public class TradeService {
                 BigDecimal totalPrice = tradePrice.getTotalPrice().subtract(pointsPrice).subtract(deliveryAvailablePointPrice);
                 tradePrice.setTotalPrice(totalPrice);
                 //运费
-                tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
-                tradePrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
-                tradePrice.setDeliveryPayPrice(deliveryPayPrice);
+                DeliveryDetailPrice deliveryDetailPrice = new DeliveryDetailPrice();
+                deliveryDetailPrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
+                deliveryDetailPrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
+                deliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
             }
 //            itemsMap.keySet().forEach(storeId -> {
 //                // 找到店铺对应订单的价格信息

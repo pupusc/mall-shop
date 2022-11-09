@@ -346,11 +346,23 @@ public class GoodsQueryController implements GoodsQueryProvider {
             GoodsResponse response = JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdCache(response.getGoods(),request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
+
         }
 
         if (StringUtils.isNotBlank(goodsByIdResponse.getGoods().getGoodsChannelType())) {
             String[] goodsChannelTypeAtt = goodsByIdResponse.getGoods().getGoodsChannelType().split(",");
             goodsByIdResponse.getGoods().setGoodsChannelTypeSet(Arrays.asList(goodsChannelTypeAtt));
+        }
+
+        //是否是积分黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BlackListCategoryProviderResponse pointNotSplitBlackListModel =
+                goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
+        if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
+            if (pointNotSplitBlackListModel.getGoodsIdList().contains(goodsByIdResponse.getGoods().getGoodsId())) {
+                goodsByIdResponse.getGoods().setInPointBlackList(true); //是积分黑名单
+            }
         }
 
         //供应商商品同步库存
@@ -416,6 +428,20 @@ public class GoodsQueryController implements GoodsQueryProvider {
                         JSONObject.toJSONString(response), 6 * 60 * 60);
             }
             goodsDetailSimpleResponse = KsBeanUtil.convert(response, GoodsDetailSimpleResponse.class);
+
+            GoodsVO goodsVo = goodsDetailSimpleResponse.getGoods();
+            if (goodsVo != null) {
+                //是否是积分黑名单
+                GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+                goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+                BlackListCategoryProviderResponse pointNotSplitBlackListModel =
+                        goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
+                if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
+                    if (pointNotSplitBlackListModel.getGoodsIdList().contains(goodsVo.getGoodsId())) {
+                        goodsVo.setInPointBlackList(true); //是积分黑名单
+                    }
+                }
+            }
         }
         return BaseResponse.success(goodsDetailSimpleResponse);
     }
@@ -470,17 +496,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
         //商品的打包信息
         fillGoodsPackInfo(request, goodsByIdResponse);
-
-        //是否是积分黑名单
-        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-        BlackListCategoryProviderResponse pointNotSplitBlackListModel =
-                goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
-        if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
-            if (pointNotSplitBlackListModel.getGoodsIdList().contains(goods.getGoodsId())) {
-                goods.setInPointBlackList(true); //是积分黑名单
-            }
-        }
 
         return BaseResponse.success(goodsByIdResponse);
     }

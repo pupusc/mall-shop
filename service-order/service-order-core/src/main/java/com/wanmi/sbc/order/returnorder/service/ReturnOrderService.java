@@ -101,7 +101,6 @@ import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
-import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.RefundChannel;
@@ -144,11 +143,10 @@ import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.thirdplatformtrade.model.root.ThirdPlatformTrade;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
-import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
-import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.DeliveryDetailPrice;
 import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.GrouponInstance;
@@ -167,10 +165,6 @@ import com.wanmi.sbc.pay.api.response.PayChannelItemResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import com.wanmi.sbc.pay.bean.enums.TradeStatus;
 import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
-import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressListRequest;
-import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListResponse;
-import com.wanmi.sbc.setting.bean.enums.AddrLevel;
-import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -4895,6 +4889,14 @@ public class ReturnOrderService {
             providerTradeSimpleVO.setDeliveryCompletePrice(deliverCompletePrice == null ? BigDecimal.ZERO.toString() : deliverCompletePrice.toString());
             providerTradeSimpleVO.setDeliveryIngPrice(deliverIngPrice == null ? BigDecimal.ZERO.toString() : deliverIngPrice.toString());
             providerTradeSimpleVO.setDeliveryPrice(providerTradeParam.getTradePrice().getDeliveryPrice().toString());
+            ProviderTradeSimpleVO.DeliveryDetailPriceVO deliveryDetailPriceVO = new ProviderTradeSimpleVO.DeliveryDetailPriceVO();
+            DeliveryDetailPrice deliveryDetailPrice = providerTradeParam.getTradePrice().getDeliveryDetailPrice();
+            if (deliveryDetailPrice != null) {
+               deliveryDetailPriceVO.setDeliveryPointPrice(deliveryDetailPrice.getDeliveryPointPrice() == null ? BigDecimal.ZERO : deliveryDetailPrice.getDeliveryPointPrice());
+               deliveryDetailPriceVO.setDeliveryPayPrice(deliveryDetailPrice.getDeliveryPayPrice() == null ? BigDecimal.ZERO : deliveryDetailPrice.getDeliveryPayPrice());
+               deliveryDetailPriceVO.setDeliveryPoint(deliveryDetailPrice.getDeliveryPoint() == null ? 0L : deliveryDetailPrice.getDeliveryPoint());
+               providerTradeSimpleVO.setDeliveryDetailPrice(deliveryDetailPriceVO);
+            }
 
             List<TradeItemSimpleVO> tradeItemSimpleVOList = new ArrayList<>();
             for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
