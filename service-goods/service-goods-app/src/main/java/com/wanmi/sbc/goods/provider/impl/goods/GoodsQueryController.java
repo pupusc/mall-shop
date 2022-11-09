@@ -13,7 +13,9 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsCountByStoreIdRequest;
@@ -32,6 +34,8 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.BlackListCategoryProviderResponse;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsCountByStoreIdResponse;
@@ -62,6 +66,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import com.wanmi.sbc.goods.bookingsale.model.root.BookingSale;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
@@ -175,6 +180,9 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
     private GoodsPackService goodsPackService;
+
+    @Autowired
+    private GoodsBlackListService goodsBlackListService;
 
     /**
      * 分页查询商品信息
@@ -462,6 +470,17 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
         //商品的打包信息
         fillGoodsPackInfo(request, goodsByIdResponse);
+
+        //是否是积分黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BlackListCategoryProviderResponse pointNotSplitBlackListModel =
+                goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
+        if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
+            if (pointNotSplitBlackListModel.getGoodsIdList().contains(goods.getGoodsId())) {
+                goods.setInPointBlackList(true); //是积分黑名单
+            }
+        }
 
         return BaseResponse.success(goodsByIdResponse);
     }
