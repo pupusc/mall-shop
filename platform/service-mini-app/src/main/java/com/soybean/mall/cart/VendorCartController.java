@@ -35,9 +35,14 @@ import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerSimplifyByIdResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengPointResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
@@ -85,6 +90,8 @@ import com.wanmi.sbc.order.api.request.trade.TradePriceParamBO;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResponse;
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
 import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
+import com.wanmi.sbc.setting.api.provider.SystemPointsConfigQueryProvider;
+import com.wanmi.sbc.setting.api.response.SystemPointsConfigQueryResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -97,6 +104,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -141,21 +149,29 @@ public class VendorCartController {
     @Autowired
     private GoodsInfoSpecDetailRelQueryProvider goodsInfoSpecDetailRelQueryProvider;
     @Autowired
-    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
-    @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
+    @Autowired
+    private ExternalProvider externalProvider;
+    @Autowired
+    private SystemPointsConfigQueryProvider systemPointsConfigQueryProvider;
 
     /**
      * 购物车-购物车信息
      */
     @PostMapping(value = "/purchaseInfo")
     public BaseResponse<PurchaseInfoResultVO> purchaseInfo(@RequestBody PurchaseInfoParamVO paramVO) {
-        CustomerVO customer = commonUtil.getCustomer();
         PurchaseInfoResultVO resultVO = new PurchaseInfoResultVO();
+
+        String userId = commonUtil.getOperatorId();
+        if (StringUtils.isEmpty(userId)) {
+            throw new SbcRuntimeException("999999", "请登陆");
+        }
+        CustomerGetByIdRequest customerGetByIdRequest = new CustomerGetByIdRequest();
+        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(customerGetByIdRequest).getContext();
 
         //查询购物车内容
         BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
@@ -337,7 +353,7 @@ public class VendorCartController {
 
     private PurchasePriceResultVO calcPrice(CustomerVO customer, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
         PurchasePriceResultVO calcPrice = new PurchasePriceResultVO();
-
+        calcPrice.setMaxAvailablePoint("0");
         if (CollectionUtils.isEmpty(goodsInfos)) {
             return calcPrice;
         }
@@ -349,6 +365,16 @@ public class VendorCartController {
         if (priceResult == null || priceResult.getContext() == null) {
             return calcPrice;
         }
+        //用户可用积分
+        FanDengPointRequest fanDengPointRequest = new FanDengPointRequest();
+        fanDengPointRequest.setUserNo(customer.getFanDengUserNo());
+        FanDengPointResponse fanDengPointResponse = externalProvider.getByUserNoPoint(fanDengPointRequest).getContext();
+        long pointsAvailable = fanDengPointResponse.getCurrentPoint() == null ? 0L : fanDengPointResponse.getCurrentPoint();
+        //计算积分兑换比例
+        SystemPointsConfigQueryResponse systemPointsConfigQueryResponse = systemPointsConfigQueryProvider.querySystemPointsConfig().getContext();
+        BigDecimal pointWorth = new BigDecimal(systemPointsConfigQueryResponse.getPointsWorth() == null ? "100" : systemPointsConfigQueryResponse.getPointsWorth().toString());
+        BigDecimal pointAvailablePrice = new BigDecimal(pointsAvailable + "").divide(pointWorth, 2, RoundingMode.HALF_UP);//四舍五入
+
         //满足优惠的营销活动
         calcPrice.setTradeMkts(priceResult.getContext().getTradeMkts().stream().map(i -> {
             PurchasePriceResultVO.TradeMkt tradeMkt = new PurchasePriceResultVO.TradeMkt();
@@ -376,7 +402,9 @@ public class VendorCartController {
         calcPrice.setCutPrice(calcPrice.getCutPrice().subtract(propPrice));
         //4.优惠总价明细减去定价部分
         calcPrice.setCutPriceItems(calcPrice.getCutPriceItems().stream().filter(i -> !TradePriceResultBO.PriceItemTypeEnum.SUB_GOODS.getCode().equals(i.getType())).collect(Collectors.toList()));
-
+        //5。可用积分
+        BigDecimal maxAvailablePointPrice = pointAvailablePrice.compareTo(calcPrice.getPayPrice()) > 0 ? calcPrice.getPayPrice() : pointAvailablePrice;
+        calcPrice.setMaxAvailablePoint(maxAvailablePointPrice.toString());
         return calcPrice;
     }
 
