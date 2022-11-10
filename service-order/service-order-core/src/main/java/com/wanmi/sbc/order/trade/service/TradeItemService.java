@@ -431,6 +431,9 @@ public class TradeItemService {
      * 计算商品集合的均摊总价
      */
     BigDecimal calcSkusTotalPrice(List<TradeItem> tradeItems) {
+        if (CollectionUtils.isEmpty(tradeItems)) {
+            return BigDecimal.ZERO;
+        }
         if (Objects.nonNull(tradeItems.get(0).getIsBookingSaleGoods()) && tradeItems.get(0).getIsBookingSaleGoods()) {
             TradeItem tradeItem = tradeItems.get(0);
             if (tradeItem.getBookingType() == BookingType.EARNEST_MONEY && Objects.nonNull(tradeItem.getTailPrice())) {
