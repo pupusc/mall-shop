@@ -171,6 +171,7 @@ public class VendorCartController {
             throw new SbcRuntimeException("999999", "请登陆");
         }
         CustomerGetByIdRequest customerGetByIdRequest = new CustomerGetByIdRequest();
+        customerGetByIdRequest.setCustomerId(userId);
         CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(customerGetByIdRequest).getContext();
 
         //查询购物车内容
