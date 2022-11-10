@@ -679,6 +679,8 @@ public class ReturnOrderService {
                 List<ReturnItem> returnItemDTOList = new ArrayList<>();
                 BigDecimal price = BigDecimal.ZERO;
                 BigDecimal deliverPrice = BigDecimal.ZERO;
+                Long deliveryPoint = 0L;
+                BigDecimal deliveryPayPrice = BigDecimal.ZERO;
                 Long points = 0L;
                 Long knowledge = 0L;
                 //组装退单详情
@@ -733,16 +735,31 @@ public class ReturnOrderService {
 //                }
                 //针对退运费的强制
                 if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
-                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+//                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    deliverPrice = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    price = BigDecimal.ZERO;
                     points = 0L;
                     knowledge = 0L;
                     returnItemDTOList = new ArrayList<>();
                 }
+
+                DeliveryDetailPrice deliveryDetailPrice = trade.getTradePrice().getDeliveryDetailPrice();
+                //兼容运费信息
+                if (deliverPrice.compareTo(BigDecimal.ZERO) > 0 && deliveryDetailPrice != null) {
+                    ReturnDeliveryDetailPrice returnDeliveryDetailPrice = new ReturnDeliveryDetailPrice();
+                    returnDeliveryDetailPrice.setDeliveryPointPrice(deliveryDetailPrice.getDeliveryPointPrice());
+                    returnDeliveryDetailPrice.setDeliveryPoint(deliveryDetailPrice.getDeliveryPoint());
+                    returnDeliveryDetailPrice.setDeliveryPayPrice(deliveryDetailPrice.getDeliveryPayPrice());
+                    deliveryPoint = deliveryDetailPrice.getDeliveryPoint();
+                    deliveryPayPrice = deliveryDetailPrice.getDeliveryPayPrice();
+                    returnOrder.getReturnPrice().setReturnDeliveryDetailPrice(returnDeliveryDetailPrice);
+                }
+
                 returnOrder.setReturnItems(returnItemDTOList);
-                returnOrder.getReturnPrice().setApplyPrice(price);
-                returnOrder.getReturnPrice().setTotalPrice(price);
+                returnOrder.getReturnPrice().setApplyPrice(price.add(deliveryPayPrice));
+                returnOrder.getReturnPrice().setTotalPrice(price.add(deliveryPayPrice));
                 returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
-                returnOrder.getReturnPoints().setApplyPoints(points);
+                returnOrder.getReturnPoints().setApplyPoints(points + deliveryPoint);
                 returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
 
