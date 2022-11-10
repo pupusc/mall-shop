@@ -234,10 +234,12 @@ public class StoreReturnOrderController {
                 List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
                 returnItemDTONewList.add(returnItemParam);
                 returnOrder.setReturnItems(returnItemDTONewList);
+                log.info("StoreReturnOrderController add child param {}", JSON.toJSONString(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build()));
                 response = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
                 operateLogMQUtil.convertAndSend("订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
             }
         } else {
+            log.info("StoreReturnOrderController add param {}", JSON.toJSONString(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build()));
             response = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
             operateLogMQUtil.convertAndSend("订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
         }
