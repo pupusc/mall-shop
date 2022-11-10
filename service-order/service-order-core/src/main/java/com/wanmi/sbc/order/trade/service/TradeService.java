@@ -1684,11 +1684,13 @@ public class TradeService {
                     throw new SbcRuntimeException("999999", "请求积分超过可用积分限制");
                 }
 
+                long deliveryAvailablePoint = deliveryAvailablePointPrice.multiply(pointWorth).longValue();
+
                 // 计算积分抵扣额(pointsPrice、points)，并追加至订单优惠金额、积分抵扣金额
                 BigDecimal pointsPrice = tradeItemService.calcSkusTotalPointsPrice(itemsMap.get(storeId));
                 Long points = tradeItemService.calcSkusTotalPoints(itemsMap.get(storeId));
-                tradePrice.setPointsPrice(pointsPrice);
-                tradePrice.setPoints(points);
+                tradePrice.setPointsPrice(pointsPrice.add(deliveryAvailablePointPrice));
+                tradePrice.setPoints(points + deliveryAvailablePoint);
                 tradePrice.setPointWorth(pointsConfig.getPointsWorth());
                 // 重设订单总价
                 BigDecimal totalPrice = tradePrice.getTotalPrice().subtract(pointsPrice).subtract(deliveryAvailablePointPrice);
@@ -1696,7 +1698,7 @@ public class TradeService {
                 //运费
                 DeliveryDetailPrice deliveryDetailPrice = new DeliveryDetailPrice();
                 deliveryDetailPrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
-                deliveryDetailPrice.setDeliveryPoint(deliveryAvailablePointPrice.multiply(pointWorth).longValue());
+                deliveryDetailPrice.setDeliveryPoint(deliveryAvailablePoint);
                 deliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
                 tradePrice.setDeliveryDetailPrice(deliveryDetailPrice);
             }
