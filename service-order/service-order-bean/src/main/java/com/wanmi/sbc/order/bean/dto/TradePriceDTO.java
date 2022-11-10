@@ -35,19 +35,24 @@ public class TradePriceDTO implements Serializable {
     private BigDecimal deliveryPrice;
 
     /**
-     * 实际运费积分
+     * 运费详细信息
      */
-    private BigDecimal deliveryPointPrice;
+    private DeliveryDetailPriceDTO deliveryDetailPrice;
 
-    /**
-     * 实际运费积分
-     */
-    private Long deliveryPoint;
-
-    /**
-     * 实际运费现金金额
-     */
-    private BigDecimal deliveryPayPrice;
+//    /**
+//     * 实际运费积分
+//     */
+//    private BigDecimal deliveryPointPrice;
+//
+//    /**
+//     * 实际运费积分
+//     */
+//    private Long deliveryPoint;
+//
+//    /**
+//     * 实际运费现金金额
+//     */
+//    private BigDecimal deliveryPayPrice;
 
     /**
      * 特价金额，可以从TradePriceInfo获取
