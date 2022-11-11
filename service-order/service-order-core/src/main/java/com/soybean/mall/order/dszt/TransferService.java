@@ -606,7 +606,7 @@ public class TransferService {
                         new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                 saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                 saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
-                saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+                saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
                 saleAfterFreeList.add(saleAfterRefundDetailReq);
             } else {
                 if (returnDeliveryDetailPrice.getDeliveryPayPrice() != null && returnDeliveryDetailPrice.getDeliveryPayPrice().compareTo(BigDecimal.ZERO) > 0) {
@@ -615,7 +615,7 @@ public class TransferService {
                             new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                     saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                     saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
-                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
                     saleAfterFreeList.add(saleAfterRefundDetailReq);
                 }
                 if (returnDeliveryDetailPrice.getDeliveryPoint() != null && returnDeliveryDetailPrice.getDeliveryPoint() > 0) {
@@ -623,7 +623,7 @@ public class TransferService {
                             new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                     saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
                     saleAfterRefundDetailReq.setAmount(returnDeliveryDetailPrice.getDeliveryPoint().intValue());
-                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
                     saleAfterFreeList.add(saleAfterRefundDetailReq);
                 }
             }
@@ -637,22 +637,31 @@ public class TransferService {
 //            saleAfterFreeList.add(saleAfterRefundDetailReq);
 
             ReturnDeliveryDetailPrice returnDeliveryDetailPrice = returnOrder.getReturnPrice().getReturnDeliveryDetailPrice();
-            if (returnDeliveryDetailPrice.getDeliveryPayPrice() != null && returnDeliveryDetailPrice.getDeliveryPayPrice().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal freightAmount = returnDeliveryDetailPrice.getDeliveryPayPrice().multiply(exchangeRate);
+            if (returnDeliveryDetailPrice == null) {
                 SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
-                        new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                 saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
-                saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
+                saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getDeliverPrice().multiply(exchangeRate).intValue());
                 saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
                 saleAfterFreeList.add(saleAfterRefundDetailReq);
-            }
-            if (returnDeliveryDetailPrice.getDeliveryPoint() != null && returnDeliveryDetailPrice.getDeliveryPoint() > 0) {
-                SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
-                        new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
-                saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
-                saleAfterRefundDetailReq.setAmount(returnDeliveryDetailPrice.getDeliveryPoint().intValue());
-                saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
-                saleAfterFreeList.add(saleAfterRefundDetailReq);
+            } else {
+                if (returnDeliveryDetailPrice.getDeliveryPayPrice() != null && returnDeliveryDetailPrice.getDeliveryPayPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal freightAmount = returnDeliveryDetailPrice.getDeliveryPayPrice().multiply(exchangeRate);
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
+                            new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(freightAmount.intValue());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterFreeList.add(saleAfterRefundDetailReq);
+                }
+                if (returnDeliveryDetailPrice.getDeliveryPoint() != null && returnDeliveryDetailPrice.getDeliveryPoint() > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq =
+                            new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(returnDeliveryDetailPrice.getDeliveryPoint().intValue());
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterFreeList.add(saleAfterRefundDetailReq);
+                }
             }
         }
         saleAfterPostFeeReq.setSaleAfterRefundDetailBOList(saleAfterFreeList);
