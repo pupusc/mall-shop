@@ -4857,6 +4857,13 @@ public class ReturnOrderService {
                     returnDeliveryIngMap.put(returnOrderParam.getProviderId(), returnOrderParam.getReturnPrice().getApplyPrice());
                 }
                 continue;
+            } else {
+                BigDecimal returnDeliverPrice = returnOrderParam.getReturnPrice().getDeliverPrice();
+                if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
+                    returnDeliveryCompleteMap.put(returnOrderParam.getProviderId(), returnDeliverPrice == null ? BigDecimal.ZERO : returnDeliverPrice);
+                } else {
+                    returnDeliveryIngMap.put(returnOrderParam.getProviderId(), returnDeliverPrice == null ? BigDecimal.ZERO : returnDeliverPrice);
+                }
             }
 
             for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
