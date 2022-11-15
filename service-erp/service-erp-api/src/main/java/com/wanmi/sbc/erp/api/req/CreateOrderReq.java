@@ -376,11 +376,11 @@ public class CreateOrderReq {
 //         */
 //        private String nickName;
 
-//        /**
-//         * 注册来源
-//         */
-//        private String registerSource;
-//
+        /**
+         * 注册来源
+         */
+        private String registerSource = "INTEGRAL_MALL";
+
 //        /**
 //         * 用户归属
 //         */
