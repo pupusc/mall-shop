@@ -1006,6 +1006,7 @@ public class OrderController {
                 viewSku.setPic(tradeItem.getPic());
                 viewSku.setFreightTempId(tradeItem.getFreightTempId());
                 viewSku.setGoodsType(tradeItem.getGoodsType().toValue());
+                viewSku.setSplitPrice(tradeItem.getSplitPrice());
                 viewSkus.add(viewSku);
             }
         }

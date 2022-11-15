@@ -66,4 +66,9 @@ public class SettlementResultVO$GoodsInfo {
      * 商品类型
      */
     private Integer goodsType;
+
+    /**
+     * 平摊小计
+     */
+    private BigDecimal splitPrice;
 }
