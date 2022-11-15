@@ -37,8 +37,10 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			// 先查询虚拟商品
 			JSONObject param = (JSONObject) JSON.toJSON(request);
 			param.put("includeVirtualGoods", 1);
+			log.info("ShopCenterProductController searchGoodsInfo searchGoodsInfo 虚拟 reqt {}", JSON.toJSONString(param));
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, param.toJSONString());
 			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterProductController searchGoodsInfo searchGoodsInfo 虚拟 resp {}", str);
 			JSONObject json = JSON.parseObject(str);
 			List<NewGoodsInfoResp> infoVOList = JSON.parseArray(json.getString("data"), NewGoodsInfoResp.class);
 			if (CollectionUtils.isNotEmpty(infoVOList)) {
@@ -49,8 +51,10 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			// 查询商城渠道商品
 			JSONObject param1 = (JSONObject) JSON.toJSON(request);
 			param1.put("saleChannelId", 21);
+			log.info("ShopCenterProductController searchGoodsInfo searchGoodsInfo 渠道 reqt {}", JSON.toJSONString(param1));
 			HttpResponse response1 = HttpUtil.doPost(host, url, new HashMap<>(), null, param1.toJSONString());
 			String str1 = EntityUtils.toString(response1.getEntity());
+			log.info("ShopCenterProductController searchGoodsInfo searchGoodsInfo 渠道 resp {}", str1);
 			JSONObject json1 = JSON.parseObject(str1);
 			List<NewGoodsInfoResp> infoVOList1 = JSON.parseArray(json1.getString("data"), NewGoodsInfoResp.class);
 			return BaseResponse.success(infoVOList1);
