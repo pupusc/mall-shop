@@ -379,7 +379,7 @@ public class CreateOrderReq {
         /**
          * 注册来源
          */
-        private String registerSource = "INTEGRAL_MALL";
+        private String registerSource = "IntegralMall";
 
 //        /**
 //         * 用户归属
