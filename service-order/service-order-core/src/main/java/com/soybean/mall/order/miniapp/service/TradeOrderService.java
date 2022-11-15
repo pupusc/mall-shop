@@ -350,6 +350,11 @@ public class TradeOrderService {
 
 		String queryId = "0";
 		Query query = new Query(Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
+
+		if (syncOrderDataRequest.getBgnTime() != null && syncOrderDataRequest.getEndTime() != null) {
+			query.addCriteria(Criteria.where("tradeState.createTime").gte(syncOrderDataRequest.getBgnTime()).lt(syncOrderDataRequest.getEndTime()));
+		}
+
 		Long count = mongoTemplate.count(query, Trade.class);
 		if (count == 0) {
 			log.info("====>>电商中台订单同步结束：没有查到符合条件的订单<<====");
