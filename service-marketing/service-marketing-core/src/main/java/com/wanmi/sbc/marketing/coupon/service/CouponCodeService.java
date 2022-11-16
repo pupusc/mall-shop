@@ -458,7 +458,7 @@ public class CouponCodeService {
         if (Objects.nonNull(tradeCouponSnapshot)) {
             tradeCouponSnapshotService.deleteTradeCouponSnapshot(tradeCouponSnapshot.getId());
         }*/
-        if (request.getHasSaveRedis()) {
+        if (request.getHasSaveRedis() == null || request.getHasSaveRedis()) {
             checkInfo.setId(UUIDUtil.getUUID());
             tradeCouponSnapshotService.addTradeCouponSnapshot(checkInfo);
 
