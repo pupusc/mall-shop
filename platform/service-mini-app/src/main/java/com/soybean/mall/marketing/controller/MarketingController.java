@@ -273,6 +273,7 @@ public class MarketingController {
         couponCodeListForUseByCustomerIdRequest.setCustomerId(customer.getCustomerId());
         couponCodeListForUseByCustomerIdRequest.setTradeItems(tradeItemInfoDTOList);
         couponCodeListForUseByCustomerIdRequest.setPrice(commonService.calPrice(tradeItemVOList).getTotalPrice());
+        couponCodeListForUseByCustomerIdRequest.setHasSaveRedis(false); //这里只是获取不更新 缓存数据
         List<CouponCodeVO> couponCodeList = couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext().getCouponCodeList();
 
         List<PromoteInfoResultVO$Coupon> result = new ArrayList<>();

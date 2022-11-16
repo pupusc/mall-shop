@@ -38,6 +38,8 @@ public class CouponCodeListForUseRequest {
 
     private BigDecimal price;
 
+    private Boolean hasSaveRedis;
+
 
     public String getQuerySql() {
         StringBuilder sb = new StringBuilder();

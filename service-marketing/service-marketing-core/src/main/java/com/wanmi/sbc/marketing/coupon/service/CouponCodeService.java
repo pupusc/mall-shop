@@ -458,8 +458,11 @@ public class CouponCodeService {
         if (Objects.nonNull(tradeCouponSnapshot)) {
             tradeCouponSnapshotService.deleteTradeCouponSnapshot(tradeCouponSnapshot.getId());
         }*/
-        checkInfo.setId(UUIDUtil.getUUID());
-        tradeCouponSnapshotService.addTradeCouponSnapshot(checkInfo);
+        if (request.getHasSaveRedis()) {
+            checkInfo.setId(UUIDUtil.getUUID());
+            tradeCouponSnapshotService.addTradeCouponSnapshot(checkInfo);
+
+        }
 
         // 5.返回处理后的优惠券列表
         return couponCodeVos;
