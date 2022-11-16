@@ -723,6 +723,9 @@ public class OrderController {
         items.add(tradeConfirmItemVO);
         confirmResponse.setTradeConfirmItems(items);
 
+        //保存优惠券信息 TODO 临时方案，后续需要进行优化
+        this.saveUserCoupon2Redis(customer, confirmResponse);
+
 //        //设置优惠券
 //        List<TradeItemInfoDTO> tradeDtos = items.stream().flatMap(confirmItem ->
 //                confirmItem.getTradeItems().stream().map(tradeItem -> {
@@ -747,6 +750,35 @@ public class OrderController {
         return BaseResponse.success(confirmResponse);
     }
 
+
+    /**
+     * 保存优惠券到 redis
+     * @param customer
+     * @param confirmResponse
+     * @return
+     */
+    private List<CouponCodeVO> saveUserCoupon2Redis(CustomerGetByIdResponse customer, OrderConfirmResponse confirmResponse) {
+
+        List<TradeItemInfoDTO> tradeItemInfoDTOList = confirmResponse.getTradeConfirmItems().stream().flatMap(confirmItem ->
+                confirmItem.getTradeItems().stream().map(tradeItem -> {
+                    TradeItemInfoDTO dto = new TradeItemInfoDTO();
+                    dto.setBrandId(tradeItem.getBrand());
+                    dto.setCateId(tradeItem.getCateId());
+                    dto.setSpuId(tradeItem.getSpuId());
+                    dto.setSkuId(tradeItem.getSkuId());
+                    dto.setStoreId(confirmItem.getSupplier().getStoreId());
+                    dto.setPrice(tradeItem.getSplitPrice());
+                    dto.setDistributionGoodsAudit(tradeItem.getDistributionGoodsAudit());
+                    return dto;
+                })
+        ).collect(Collectors.toList());
+
+        CouponCodeListForUseByCustomerIdRequest request = new CouponCodeListForUseByCustomerIdRequest();
+        request.setCustomerId(customer.getCustomerId());
+        request.setTradeItems(tradeItemInfoDTOList);
+        request.setPrice(confirmResponse.getTotalPrice());
+        return couponCodeQueryProvider.listForUseByCustomerId(request).getContext().getCouponCodeList();
+    }
 
     /**
      * 选择商品默认的营销，以及它的level
