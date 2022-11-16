@@ -122,6 +122,7 @@ import com.wanmi.sbc.order.api.response.trade.TradeQueryPurchaseInfoResponse;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemGroupDTO;
+import com.wanmi.sbc.order.bean.vo.DiscountsVO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemGroupVO;
@@ -677,7 +678,10 @@ public class OrderController {
                 tradeQueryProvider.queryPurchaseInfo(tradeQueryPurchaseInfoRequest).getContext();
         TradeConfirmItemVO tempTradeConfirmItemVO = tradeQueryPurchaseInfoResponse.getTradeConfirmItemVO();
 
-
+        BigDecimal discountsTotalPrice = BigDecimal.ZERO;
+        for (DiscountsVO discountsVO : tempTradeConfirmItemVO.getDiscountsPrice()) {
+            discountsTotalPrice = discountsTotalPrice.add(discountsVO.getAmount());
+        }
 
         //视频号黑名单
         List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
@@ -723,6 +727,7 @@ public class OrderController {
         items.add(tradeConfirmItemVO);
         confirmResponse.setTradeConfirmItems(items);
 
+        confirmResponse.setDiscountsTotalPrice(discountsTotalPrice);
         //保存优惠券信息 TODO 临时方案，后续需要进行优化
         this.saveUserCoupon2Redis(customer, confirmResponse);
 
