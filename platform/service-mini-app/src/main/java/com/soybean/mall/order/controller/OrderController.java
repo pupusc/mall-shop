@@ -101,11 +101,14 @@ import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemByCustomerIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemConfirmSettlementRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePriceParamBO;
+import com.wanmi.sbc.order.api.request.trade.TradeQueryPurchaseInfoRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
+import com.wanmi.sbc.order.api.response.trade.TradeQueryPurchaseInfoResponse;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemGroupDTO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemGroupVO;
@@ -927,6 +930,7 @@ public class OrderController {
 
         //默认只有一个店铺
         TradeItemGroupVO tradeItemGroup = tradeItemGroups.get(0);
+
         List<TradeItemDTO> tradeItems = tradeItemGroup.getTradeItems().stream()
                 .map(item -> TradeItemDTO.builder().skuId(item.getSkuId()).num(item.getNum()).build()).collect(Collectors.toList());
 
@@ -944,9 +948,19 @@ public class OrderController {
 
 //        TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
         //商品验证并填充商品价格
-        List<TradeItemVO> tradeItemVOList = verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
+        List<TradeItemVO> tradeItemVOS = verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
                 KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class), store.getStoreId(), true)).getContext().getTradeItems();
+        tradeItemGroup.setTradeItems(tradeItemVOS);
 
+        TradeQueryPurchaseInfoRequest tradeQueryPurchaseInfoRequest = new TradeQueryPurchaseInfoRequest();
+        tradeQueryPurchaseInfoRequest.setTradeItemGroupDTO(KsBeanUtil.convert(tradeItemGroup, TradeItemGroupDTO.class));
+        tradeQueryPurchaseInfoRequest.setMarkupItemList(new ArrayList<>());
+        tradeQueryPurchaseInfoRequest.setTradeItemList(new ArrayList<>());
+        TradeQueryPurchaseInfoResponse tradeQueryPurchaseInfoResponse =
+                tradeQueryProvider.queryPurchaseInfo(tradeQueryPurchaseInfoRequest).getContext();
+        TradeConfirmItemVO tradeConfirmItemVO = tradeQueryPurchaseInfoResponse.getTradeConfirmItemVO();
+
+        List<TradeItemVO> tradeItemVOList = tradeConfirmItemVO.getTradeItems();
         //视频号黑名单
         List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
         Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
