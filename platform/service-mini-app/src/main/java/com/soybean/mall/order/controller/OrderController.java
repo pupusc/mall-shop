@@ -777,6 +777,7 @@ public class OrderController {
         request.setCustomerId(customer.getCustomerId());
         request.setTradeItems(tradeItemInfoDTOList);
         request.setPrice(confirmResponse.getTotalPrice());
+        log.info("OrderController saveUserCoupon2Redis request: {}", JSON.toJSONString(request));
         return couponCodeQueryProvider.listForUseByCustomerId(request).getContext().getCouponCodeList();
     }
 
