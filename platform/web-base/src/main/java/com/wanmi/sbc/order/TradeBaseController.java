@@ -1544,6 +1544,7 @@ public class TradeBaseController {
             tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             //tradeCommitRequest.setCustomer(customer);
 
+            log.info("TradeBaseController.commit requestParam:{}", JSON.toJSONString(tradeCommitRequest));
             successResults = tradeProvider.commit(tradeCommitRequest).getContext().getTradeCommitResults();
 
             //标记预售定金标识，前端可判断跳转至订单列表页
@@ -2145,7 +2146,7 @@ public class TradeBaseController {
         CouponCodeListForUseByCustomerIdRequest requ = CouponCodeListForUseByCustomerIdRequest.builder()
                 .customerId(customerId)
                 .tradeItems(tradeDtos).price(confirmResponse.getTotalPrice()).build();
-
+        log.info("TradeBaseController purchase request: {}", JSON.toJSONString(requ));
         confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(requ).getContext()
                 .getCouponCodeList());
 

@@ -51,6 +51,27 @@ public class ReturnPrice {
      */
     private BigDecimal deliverPrice;
 
+
+    /**
+     * 运费金额详细信息
+     */
+    private ReturnDeliveryDetailPrice returnDeliveryDetailPrice;
+
+    /**
+     * 实际运费积分
+     */
+    private BigDecimal deliveryPointPrice;
+
+    /**
+     * 实际运费积分
+     */
+    private Long deliveryPoint;
+
+    /**
+     * 实际运费现金金额
+     */
+    private BigDecimal deliveryPayPrice;
+
     /**
      * 实退金额，从退款流水中取的
      */

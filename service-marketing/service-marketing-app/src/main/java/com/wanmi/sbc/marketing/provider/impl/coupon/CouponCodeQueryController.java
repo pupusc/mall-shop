@@ -60,6 +60,7 @@ public class CouponCodeQueryController implements CouponCodeQueryProvider {
         useRequest.setTradeItems(tradeItemInfoMapper.tradeItemInfoDTOsToTradeItemInfos(request.getTradeItems()));
         useRequest.setStoreId(request.getStoreId());
         useRequest.setPrice(request.getPrice());
+        useRequest.setHasSaveRedis(request.getHasSaveRedis());
         List<CouponCodeVO> voList = couponCodeService.listCouponCodeForUse(useRequest);
         return BaseResponse.success(CouponCodeListForUseByCustomerIdResponse.builder().couponCodeList(voList).build());
     }

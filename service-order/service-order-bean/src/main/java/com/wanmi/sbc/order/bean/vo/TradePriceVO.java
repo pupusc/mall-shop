@@ -37,6 +37,26 @@ public class TradePriceVO implements Serializable {
     private BigDecimal deliveryPrice;
 
     /**
+     * 配送费用详细
+     */
+    private DeliveryDetailPriceVO deliveryDetailPrice;
+
+//    /**
+//     * 实际运费积分
+//     */
+//    private BigDecimal deliveryPointPrice;
+//
+//    /**
+//     * 实际运费积分
+//     */
+//    private Long deliveryPoint;
+//
+//    /**
+//     * 实际运费现金金额
+//     */
+//    private BigDecimal deliveryPayPrice;
+
+    /**
      * 特价金额，可以从TradePriceInfo获取
      */
     @ApiModelProperty(value = "特价金额")

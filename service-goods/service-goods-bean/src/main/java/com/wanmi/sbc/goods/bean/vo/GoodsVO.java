@@ -517,6 +517,11 @@ public class GoodsVO  implements Serializable {
      */
     private String deliverNotice;
 
+    /**
+     * 是否在黑名单列表
+     */
+    private Boolean inPointBlackList = false;
+
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {
             //供应商商品可售（商品上架、未删除、已审核，店铺开店）

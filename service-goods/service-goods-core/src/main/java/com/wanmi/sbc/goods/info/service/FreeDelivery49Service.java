@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.info.model.root.Goods;
@@ -68,10 +69,24 @@ public class FreeDelivery49Service {
      */
     public void changeFreeDelivery49(List<String> spuIds) {
         log.info("FreeDelivery49Service changeFreeDelivery49 spuIds {}", JSON.toJSONString(spuIds));
-        List<Goods> goodsList = goodsService.listByGoodsIds(spuIds);
-        if (CollectionUtils.isEmpty(goodsList)) {
+        List<Goods> tmpGoodsList = goodsService.listByGoodsIds(spuIds);
+        if (CollectionUtils.isEmpty(tmpGoodsList)) {
+            log.info("FreeDelivery49Service changeFreeDelivery49 商品不存在 spuIds {}", JSON.toJSONString(spuIds));
             return;
         }
+
+        List<Goods> goodsList = new ArrayList<>();
+        for (Goods goods : tmpGoodsList) {
+            if (Objects.equals(goods.getGoodsType(), GoodsType.REAL_GOODS.toValue())) {
+                goodsList.add(goods);
+            }
+        }
+
+        if (CollectionUtils.isEmpty(goodsList)) {
+            log.info("FreeDelivery49Service changeFreeDelivery49 过滤完毕后没有要处理49包邮商品信息 spuIds {}", JSON.toJSONString(spuIds));
+            return;
+        }
+
 //        Map<String, Goods> spuId2GoodsMap = new HashMap<>();
 //        for (Goods goods : goodsList) {
 //            spuId2GoodsMap.put(goods.getGoodsId(), goods);

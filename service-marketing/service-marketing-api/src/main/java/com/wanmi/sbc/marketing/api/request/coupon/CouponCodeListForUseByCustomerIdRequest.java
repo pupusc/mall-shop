@@ -49,4 +49,6 @@ public class CouponCodeListForUseByCustomerIdRequest implements Serializable {
 
     @ApiModelProperty(value = "订单金额/")
     private BigDecimal price;
+
+    private Boolean hasSaveRedis;
 }

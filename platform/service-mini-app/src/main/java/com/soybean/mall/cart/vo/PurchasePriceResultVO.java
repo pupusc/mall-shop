@@ -42,6 +42,11 @@ public class PurchasePriceResultVO {
      */
     private List<TradeMkt> tradeMkts = new ArrayList<>();
 
+    /**
+     * 最大可用积分
+     */
+    private String maxAvailablePoint;
+
     @Data
     public static class TradeMkt {
         private Long mktId;

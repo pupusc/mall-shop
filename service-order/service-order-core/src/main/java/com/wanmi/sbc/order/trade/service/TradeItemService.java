@@ -431,6 +431,9 @@ public class TradeItemService {
      * 计算商品集合的均摊总价
      */
     BigDecimal calcSkusTotalPrice(List<TradeItem> tradeItems) {
+        if (CollectionUtils.isEmpty(tradeItems)) {
+            return BigDecimal.ZERO;
+        }
         if (Objects.nonNull(tradeItems.get(0).getIsBookingSaleGoods()) && tradeItems.get(0).getIsBookingSaleGoods()) {
             TradeItem tradeItem = tradeItems.get(0);
             if (tradeItem.getBookingType() == BookingType.EARNEST_MONEY && Objects.nonNull(tradeItem.getTailPrice())) {
@@ -488,45 +491,41 @@ public class TradeItemService {
      * 计算商品均摊价
      *
      * @param tradeItems 待计算的商品列表
-     * @param newTotal   新的总价
-     * @param total      旧的商品总价
+     * @param newItemTotalPrice   新的总价
+     * @param itemTotalPrice      旧的商品总价
      */
-    void calcSplitPrice(List<TradeItem> tradeItems, BigDecimal newTotal, BigDecimal total) {
+    void calcSplitPrice(List<TradeItem> tradeItems, BigDecimal newItemTotalPrice, BigDecimal itemTotalPrice) {
         //内部总价为零或相等不用修改
-        if (total.equals(newTotal)) {
+        if (itemTotalPrice.equals(newItemTotalPrice)) {
             return;
         }
         // 尾款情况重新计算实际总价
         if (CollectionUtils.isNotEmpty(tradeItems)) {
             TradeItem tradeItem = tradeItems.get(0);
             if (Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods() && tradeItem.getBookingType() == BookingType.EARNEST_MONEY
-                    && total.equals(tradeItem.getTailPrice())) {
-                newTotal = tradeItem.getEarnestPrice().add(newTotal);
-                total = tradeItem.getEarnestPrice().add(total);
+                    && itemTotalPrice.equals(tradeItem.getTailPrice())) {
+                newItemTotalPrice = tradeItem.getEarnestPrice().add(newItemTotalPrice);
+                itemTotalPrice = tradeItem.getEarnestPrice().add(itemTotalPrice);
             }
         }
 
-        int size = tradeItems.size();
         BigDecimal splitPriceTotal = BigDecimal.ZERO;//累积平摊价，将剩余扣给最后一个元素
-        Long totalNum = tradeItems.stream().map(tradeItem -> tradeItem.getNum()).reduce(0L, Long::sum);
+        Long totalNum = tradeItems.stream().map(TradeItem::getNum).reduce(0L, Long::sum);
 
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < tradeItems.size(); i++) {
             TradeItem tradeItem = tradeItems.get(i);
-            if (i == size - 1) {
-                tradeItem.setSplitPrice(newTotal.subtract(splitPriceTotal));
+            if (i == tradeItems.size() - 1) {
+                tradeItem.setSplitPrice(newItemTotalPrice.subtract(splitPriceTotal));
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
                 //全是零元商品按数量均摊
-                if (BigDecimal.ZERO.equals(total)) {
+                if (BigDecimal.ZERO.equals(itemTotalPrice)) {
                     tradeItem.setSplitPrice(
-                            newTotal.multiply(BigDecimal.valueOf(tradeItem.getNum()))
-                                    .divide(BigDecimal.valueOf(totalNum), 2, BigDecimal.ROUND_HALF_UP));
+                            newItemTotalPrice.multiply(BigDecimal.valueOf(tradeItem.getNum())).divide(BigDecimal.valueOf(totalNum), 2, BigDecimal.ROUND_HALF_UP));
                 } else {
                     tradeItem.setSplitPrice(
-                            splitPrice
-                                    .divide(total, 10, BigDecimal.ROUND_DOWN)
-                                    .multiply(newTotal)
-                                    .setScale(2, BigDecimal.ROUND_HALF_UP));
+                            splitPrice.divide(itemTotalPrice, 10, BigDecimal.ROUND_DOWN)
+                                    .multiply(newItemTotalPrice).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
                 splitPriceTotal = splitPriceTotal.add(tradeItem.getSplitPrice());
             }
@@ -534,27 +533,18 @@ public class TradeItemService {
     }
 
     /**
-     * 计算积分抵扣均摊价、均摊数量
-     *
-     * @param tradeItems       待计算的商品列表
-     * @param pointsPriceTotal 积分抵扣总额
-     * @param pointsTotal      积分抵扣总数
+     * 计算商品可使用积分的总价格
+     * @param tradeItems
+     * @return
      */
-    void calcPoints(List<TradeItem> tradeItems, BigDecimal pointsPriceTotal, Long pointsTotal, BigDecimal pointWorth) {
-        BigDecimal totalPrice = tradeItems.stream()
-                .filter(tradeItem -> tradeItem.getSplitPrice() != null && tradeItem.getSplitPrice().compareTo(BigDecimal.ZERO) > 0)
-                .map(TradeItem::getSplitPrice)
-                .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+    private List<TradeItem> listTradeItemsAvailablePoint(List<TradeItem> tradeItems) {
+        List<TradeItem> availableTradeItemList = new ArrayList<>();
 
-        int size = tradeItems.size();
-        //累积积分平摊价，将剩余扣给最后一个元素
-        BigDecimal splitPriceTotal = BigDecimal.ZERO;
-        //累积积分数量，将剩余扣给最后一个元素
-        Long splitPointsTotal = 0L;
-
+        Map<String, Boolean> spuId2BlackListMap = new HashMap<>();
         //视频号渠道不能使用积分也不能参加分摊
         List<String> skuIdList = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
         Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
 
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -565,35 +555,93 @@ public class TradeItemService {
             List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
             for (TradeItem tradeItem : tradeItems) {
                 if(blackListGoodsId.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))) {
-                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+                    spuId2BlackListMap.put(tradeItem.getSpuId(), true);
                 }
             }
         }
-        if(pointsPriceTotal.compareTo(totalPrice) > 0){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
+        for (TradeItem tradeItem : tradeItems) {
+            if (spuId2BlackListMap.get(tradeItem.getSpuId()) != null) {
+                continue;
+            }
+            availableTradeItemList.add(tradeItem);
+        }
+        return availableTradeItemList;
+    }
+
+    /**
+     * 计算积分抵扣均摊价、均摊数量
+     *
+     * @param tradeItems       待计算的商品列表
+     * @param pointsPriceTotal 积分总额
+     */
+    public List<TradeItem> calcItemAvailablePointList(List<TradeItem> tradeItems, BigDecimal pointsPriceTotal, BigDecimal pointWorth) {
+//        BigDecimal totalPrice = tradeItems.stream()
+//                .filter(tradeItem -> tradeItem.getSplitPrice() != null && tradeItem.getSplitPrice().compareTo(BigDecimal.ZERO) > 0)
+//                .map(TradeItem::getSplitPrice)
+//                .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+//        int size = tradeItems.size();
+        //累积积分平摊价，将剩余扣给最后一个元素
+//        BigDecimal splitPriceTotal = BigDecimal.ZERO;
+        //累积积分数量，将剩余扣给最后一个元素
+//        Long splitPointsTotal = 0L;
+
+//        //视频号渠道不能使用积分也不能参加分摊
+//        List<String> skuIdList = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+//        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+//
+//        // 积分和名单商品不能使用积分，也不参与分摊
+//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+//        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+//        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+//            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+//            for (TradeItem tradeItem : tradeItems) {
+//                if(blackListGoodsId.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))) {
+//                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+//                }
+//            }
+//        }
+        List<TradeItem> availablePointTradeItemList = this.listTradeItemsAvailablePoint(tradeItems);
+        BigDecimal itemAvailableTotalPrice = BigDecimal.ZERO;
+        for (TradeItem tradeItem : availablePointTradeItemList) {
+            itemAvailableTotalPrice = itemAvailableTotalPrice.add(tradeItem.getSplitPrice());
         }
 
-        for (int i = 0; i < size; i++) {
-            TradeItem tradeItem = tradeItems.get(i);
-            BigDecimal surplusPointsPrice = pointsPriceTotal.subtract(splitPriceTotal);
-            if (i == size - 1) {
+        BigDecimal itemAvailablePointTotalPrice = itemAvailableTotalPrice;
+        if(pointsPriceTotal.compareTo(itemAvailableTotalPrice) < 0){
+            itemAvailablePointTotalPrice = pointsPriceTotal;
+        }
+
+        //累积积分平摊价，将剩余扣给最后一个元素
+        BigDecimal splitPriceTotal = BigDecimal.ZERO;
+//        Long splitPointsTotal = 0L;
+        //分摊积分
+        for (int i = 0; i < availablePointTradeItemList.size(); i++) {
+            TradeItem tradeItem = availablePointTradeItemList.get(i);
+            BigDecimal surplusPointsPrice = itemAvailablePointTotalPrice.subtract(splitPriceTotal);
+            if (i == availablePointTradeItemList.size() - 1) {
                 tradeItem.setPointsPrice(surplusPointsPrice);
-                tradeItem.setPoints(pointsTotal - splitPointsTotal);
+                tradeItem.setPoints(surplusPointsPrice.multiply(pointWorth).longValue());
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                BigDecimal pointsPrice = splitPrice.divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
-                        .multiply(pointsPriceTotal).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal points = pointsPrice.multiply(pointWorth);
+                BigDecimal pointsPrice = BigDecimal.ZERO;
+                if (splitPrice.compareTo(BigDecimal.ZERO) > 0) {
+                    pointsPrice = splitPrice.divide(itemAvailableTotalPrice, 10, BigDecimal.ROUND_DOWN).multiply(itemAvailablePointTotalPrice).setScale(2, BigDecimal.ROUND_HALF_UP);
+                }
+//                BigDecimal points = pointsPrice.multiply(pointWorth);
                 if (surplusPointsPrice.compareTo(BigDecimal.ZERO) <= 0) {
                     pointsPrice = BigDecimal.ZERO;
-                    points = BigDecimal.ZERO;
+//                    points = BigDecimal.ZERO;
                 }
                 tradeItem.setPointsPrice(pointsPrice);
                 splitPriceTotal = splitPriceTotal.add(pointsPrice);
-                tradeItem.setPoints(points.longValue());
-                splitPointsTotal = splitPointsTotal + tradeItem.getPoints();
+                tradeItem.setPoints(pointsPrice.multiply(pointWorth).longValue());
+//                splitPointsTotal = splitPointsTotal + tradeItem.getPoints();
             }
         }
+        return availablePointTradeItemList;
     }
 
     /**

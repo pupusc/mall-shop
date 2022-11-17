@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.marketing.bean.enums.GiftType;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
+import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetGoodsMarketingRequest;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.trade.model.entity.value.DeliveryDetailPrice;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -155,10 +165,6 @@ import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyAddressReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyDiscountReq;
-import com.wanmi.sbc.erp.api.req.CreateOrderReq.BuyGoodsReq;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.appointmentsalegoods.AppointmentSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -336,7 +342,6 @@ import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
-import com.wanmi.sbc.order.trade.model.entity.TradeItem.CouponSettlement;
 import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -660,6 +665,9 @@ public class TradeService {
     
     @Autowired
     private ShopCenterOrderProvider shopCenterOrderProvider;
+
+    @Autowired
+    private PurchaseQueryProvider purchaseQueryProvider;
 
     /**
      * 新增文档
@@ -1653,34 +1661,76 @@ public class TradeService {
             // 如果使用积分 校验可使用积分
             verifyService.verifyPoints(trades, tradeCommitRequest, pointsConfig);
 
-            List<TradeItem> items =
-                    trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
+            List<TradeItem> items = trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
 
-            // 设置关联商品的积分均摊
-            BigDecimal pointsTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(pointWorth, 2,
-                    BigDecimal.ROUND_HALF_UP);
-            tradeItemService.calcPoints(items, pointsTotalPrice, tradeCommitRequest.getPoints(), pointWorth);
+            //总传递积分
+            BigDecimal pointsTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(pointWorth, 2, BigDecimal.ROUND_HALF_UP);
+            //积分分摊到商品列表
+            List<TradeItem> itemAvailablePointList = tradeItemService.calcItemAvailablePointList(items, pointsTotalPrice, pointWorth);
 
             // 设置关联商品的均摊价
-            BigDecimal total = tradeItemService.calcSkusTotalPrice(items);
-            tradeItemService.calcSplitPrice(items, total.subtract(pointsTotalPrice), total);
+            BigDecimal itemAvailablePointTotalPrice = BigDecimal.ZERO;
+            for (TradeItem tradeItem : itemAvailablePointList) {
+                itemAvailablePointTotalPrice = itemAvailablePointTotalPrice.add(tradeItem.getPointsPrice());
+            }
+
+            //可用运费的积分
+            BigDecimal deliveryAvailablePointPrice = BigDecimal.ZERO;
+            if (pointsTotalPrice.compareTo(itemAvailablePointTotalPrice) > 0) {
+                deliveryAvailablePointPrice = pointsTotalPrice.subtract(itemAvailablePointTotalPrice);
+            }
+
+            BigDecimal itemAvailableTotalPrice = tradeItemService.calcSkusTotalPrice(itemAvailablePointList);
+            tradeItemService.calcSplitPrice(itemAvailablePointList, itemAvailableTotalPrice.subtract(itemAvailablePointTotalPrice), itemAvailableTotalPrice);
 
             Map<Long, List<TradeItem>> itemsMap = items.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
-            itemsMap.keySet().forEach(storeId -> {
+            for (Long storeId : itemsMap.keySet()) {
+
                 // 找到店铺对应订单的价格信息
-                Trade trade = trades.stream()
-                        .filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
+                Trade trade = trades.stream().filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
                 TradePrice tradePrice = trade.getTradePrice();
+
+                //如果传递积分超过运费，则抛出异常
+                BigDecimal deliveryPayPrice = tradePrice.getDeliveryPrice().subtract(deliveryAvailablePointPrice);
+                if (deliveryPayPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new SbcRuntimeException("999999", "请求积分超过可用积分限制");
+                }
+
+                long deliveryAvailablePoint = deliveryAvailablePointPrice.multiply(pointWorth).longValue();
 
                 // 计算积分抵扣额(pointsPrice、points)，并追加至订单优惠金额、积分抵扣金额
                 BigDecimal pointsPrice = tradeItemService.calcSkusTotalPointsPrice(itemsMap.get(storeId));
                 Long points = tradeItemService.calcSkusTotalPoints(itemsMap.get(storeId));
-                tradePrice.setPointsPrice(pointsPrice);
-                tradePrice.setPoints(points);
+                tradePrice.setPointsPrice(pointsPrice.add(deliveryAvailablePointPrice));
+                tradePrice.setPoints(points + deliveryAvailablePoint);
                 tradePrice.setPointWorth(pointsConfig.getPointsWorth());
                 // 重设订单总价
-                tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
-            });
+                BigDecimal totalPrice = tradePrice.getTotalPrice().subtract(pointsPrice).subtract(deliveryAvailablePointPrice);
+                tradePrice.setTotalPrice(totalPrice);
+                //运费
+                DeliveryDetailPrice deliveryDetailPrice = new DeliveryDetailPrice();
+                deliveryDetailPrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
+                deliveryDetailPrice.setDeliveryPoint(deliveryAvailablePoint);
+                deliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
+                tradePrice.setDeliveryDetailPrice(deliveryDetailPrice);
+            }
+//            itemsMap.keySet().forEach(storeId -> {
+//                // 找到店铺对应订单的价格信息
+//                Trade trade = trades.stream()
+//                        .filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
+//                TradePrice tradePrice = trade.getTradePrice();
+//
+//                // 计算积分抵扣额(pointsPrice、points)，并追加至订单优惠金额、积分抵扣金额
+//                BigDecimal pointsPrice = tradeItemService.calcSkusTotalPointsPrice(itemsMap.get(storeId));
+//                Long points = tradeItemService.calcSkusTotalPoints(itemsMap.get(storeId));
+//                tradePrice.setPointsPrice(pointsPrice);
+//                tradePrice.setPoints(points);
+//                tradePrice.setPointWorth(pointsConfig.getPointsWorth());
+//                // 重设订单总价
+//                tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(pointsPrice));
+//                //运费
+//                tradePrice.setDeliveryPointPrice(deliveryAvailablePointPrice);
+//            });
         }
     }
 
@@ -1905,6 +1955,15 @@ public class TradeService {
 //                    , goods.getGoodsChannelType()
 //                    , JSON.toJSONString(goods.getGoodsChannelTypeSet()));
 //        }
+
+        //获取商品满减信息
+        // 折扣信息
+        PurchaseGetGoodsMarketingRequest marketingRequest = new PurchaseGetGoodsMarketingRequest();
+        marketingRequest.setGoodsInfos(response.getGoodsInfos());
+        marketingRequest.setCustomer(KsBeanUtil.convert(request.getCustomer(), CustomerVO.class));
+        Map<String, List<MarketingViewVO>> marketingResponse = purchaseQueryProvider.getGoodsMarketing(marketingRequest).getContext().getMap();
+
+
         for (GoodsVO goodsVo : response.getGoodses()) {
             log.info("TradeService getTradeItemList goodsInfo:{} goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
                     , goodsVo.getGoodsChannelType()
@@ -1960,7 +2019,44 @@ public class TradeService {
         tradeItemGroupVOS.setTradeItems(tradeItems);
         tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
 
-        //订单商品渠道校验信息
+
+        List<TradeMarketingDTO> tradeMarketingList = new ArrayList<>();
+        for (TradeItem tmpTradeItem : tradeItems) {
+            if ((Objects.isNull(tmpTradeItem.getIsAppointmentSaleGoods()) || Boolean.FALSE.equals(tmpTradeItem.getIsAppointmentSaleGoods()))
+                    && (Objects.isNull(tmpTradeItem.getIsBookingSaleGoods()) || Boolean.FALSE.equals(tmpTradeItem.getIsBookingSaleGoods()))
+                    && goodsInfoVOMap.containsKey(tmpTradeItem.getSkuId())) {
+                GoodsInfoVO sku = goodsInfoVOMap.get(tmpTradeItem.getSkuId());
+                if (sku.getDistributionGoodsAudit() != DistributionGoodsAudit.CHECKED) {
+                    TradeMarketingDTO tradeMarketing = this.chooseDefaultMarketing(KsBeanUtil.convert(tmpTradeItem, TradeItemDTO.class), marketingResponse.get(tmpTradeItem.getSkuId()));
+                    if (tradeMarketing != null) {
+                        tradeMarketingList.add(tradeMarketing);
+                        tmpTradeItem.setMarketingIds(Collections.singletonList(tradeMarketing.getMarketingId()));
+                        tmpTradeItem.setMarketingLevelIds(Collections.singletonList(tradeMarketing.getMarketingLevelId()));
+                    }
+                } else {
+                    // 4.2.非礼包、分销商品，重置商品价格
+                    tmpTradeItem.setPrice(sku.getMarketPrice());
+                }
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(tradeMarketingList)) {
+            Iterator<TradeMarketingDTO> it = tradeMarketingList.iterator();
+            Long currentPoint = -1L;
+            while (it.hasNext()){
+                TradeMarketingDTO tradeMarketingDTO = it.next();
+                if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType() == 10){
+                    //检查用户积分是否足够
+                    if(currentPoint == -1){
+                        String fanDengUserNo = request.getCustomer().getFanDengUserNo();
+                        currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
+                    }
+                    if(currentPoint == null || currentPoint < tradeMarketingDTO.getPointNeed()){
+                        it.remove();
+                    }
+                }
+            }
+        }
 
         //商品按店铺分组
         Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
@@ -1985,10 +2081,178 @@ public class TradeService {
             TradeItemGroup tradeItemGroup = new TradeItemGroup();
             tradeItemGroup.setTradeItems(value);
             tradeItemGroup.setSupplier(supplier);
-            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+            tradeItemGroup.setTradeMarketingList(tradeMarketingList);
             itemGroups.add(tradeItemGroup);
         });
         return itemGroups;
+    }
+
+
+
+    /**
+     * 选择商品默认的营销，以及它的level TODO 后续抽离这部分
+     */
+    private TradeMarketingDTO chooseDefaultMarketing(TradeItemDTO tradeItem, List<MarketingViewVO> marketings) {
+
+        BigDecimal total = tradeItem.getPrice().multiply(new BigDecimal(tradeItem.getNum()));
+        Long num = tradeItem.getNum();
+
+        TradeMarketingDTO tradeMarketing = new TradeMarketingDTO();
+        tradeMarketing.setSkuIds(Collections.singletonList(tradeItem.getSkuId()));
+        tradeMarketing.setGiftSkuIds(new ArrayList<>());
+        if (CollectionUtils.isNotEmpty(marketings)) {
+//            // 积分换购优先级最高
+//            for (MarketingViewVO marketing : marketings) {
+//                // 积分换购
+//                if(marketing.getSubType() == MarketingSubType.POINT_BUY){
+//                    String skuId = tradeItem.getSkuId();
+//                    List<MarketingPointBuyLevelVO> pointBuyLevelList = marketing.getPointBuyLevelList();
+//                    if(CollectionUtils.isNotEmpty(pointBuyLevelList)){
+//                        for (MarketingPointBuyLevelVO marketingPointBuyLevelVO : pointBuyLevelList) {
+//                            if(marketingPointBuyLevelVO.getSkuId().equals(skuId)){
+//                                tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getId());
+//                                tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
+//                                tradeMarketing.setMarketingSubType(marketing.getSubType().toValue());
+//                                tradeMarketing.setPointNeed(pointBuyLevelList.get(0).getPointNeed());
+//                                return tradeMarketing;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+            for (MarketingViewVO marketing : marketings) {
+                // 满金额减
+                if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT) {
+                    List<MarketingFullReductionLevelVO> levels = marketing.getFullReductionLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullReductionLevelVO::getFullAmount).reversed());
+                        for (MarketingFullReductionLevelVO level : levels) {
+                            if (level.getFullAmount().compareTo(total) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getReductionLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+
+                // 满数量减
+                if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_COUNT) {
+                    List<MarketingFullReductionLevelVO> levels = marketing.getFullReductionLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullReductionLevelVO::getFullCount).reversed());
+                        for (MarketingFullReductionLevelVO level : levels) {
+                            if (level.getFullCount().compareTo(num) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getReductionLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+
+                // 满金额折
+                if (marketing.getSubType() == MarketingSubType.DISCOUNT_FULL_AMOUNT) {
+                    List<MarketingFullDiscountLevelVO> levels = marketing.getFullDiscountLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullDiscountLevelVO::getFullAmount).reversed());
+                        for (MarketingFullDiscountLevelVO level : levels) {
+                            if (level.getFullAmount().compareTo(total) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getDiscountLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+                // 满数量折
+                if (marketing.getSubType() == MarketingSubType.DISCOUNT_FULL_COUNT) {
+                    List<MarketingFullDiscountLevelVO> levels = marketing.getFullDiscountLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullDiscountLevelVO::getFullCount).reversed());
+                        for (MarketingFullDiscountLevelVO level : levels) {
+                            if (level.getFullCount().compareTo(num) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getDiscountLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+
+                // 满金额赠
+                if (marketing.getSubType() == MarketingSubType.GIFT_FULL_AMOUNT) {
+                    List<MarketingFullGiftLevelVO> levels = marketing.getFullGiftLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullGiftLevelVO::getFullAmount).reversed());
+                        for (MarketingFullGiftLevelVO level : levels) {
+                            if (level.getFullAmount().compareTo(total) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getGiftLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                List<String> giftIds =
+                                        level.getFullGiftDetailList().stream().map(MarketingFullGiftDetailVO::getProductId).collect(Collectors.toList());
+                                if (GiftType.ONE.equals(level.getGiftType())) {
+                                    giftIds = Collections.singletonList(giftIds.get(0));
+                                }
+                                tradeMarketing.setGiftSkuIds(giftIds);
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+                // 满数量赠
+                if (marketing.getSubType() == MarketingSubType.GIFT_FULL_COUNT) {
+                    List<MarketingFullGiftLevelVO> levels = marketing.getFullGiftLevelList();
+                    if (CollectionUtils.isNotEmpty(levels)) {
+                        levels.sort(Comparator.comparing(MarketingFullGiftLevelVO::getFullCount).reversed());
+                        for (MarketingFullGiftLevelVO level : levels) {
+                            if (level.getFullCount().compareTo(num) != 1) {
+                                tradeMarketing.setMarketingLevelId(level.getGiftLevelId());
+                                tradeMarketing.setMarketingId(level.getMarketingId());
+                                List<String> giftIds =
+                                        level.getFullGiftDetailList().stream().map(MarketingFullGiftDetailVO::getProductId).collect(Collectors.toList());
+                                if (GiftType.ONE.equals(level.getGiftType())) {
+                                    giftIds = Collections.singletonList(giftIds.get(0));
+                                }
+                                tradeMarketing.setGiftSkuIds(giftIds);
+                                return tradeMarketing;
+                            }
+                        }
+                    }
+                }
+
+                // 打包一口价
+//                if (marketing.getSubType() == MarketingSubType.BUYOUT_PRICE) {
+//                    List<MarketingBuyoutPriceLevelVO> levels = marketing.getBuyoutPriceLevelList();
+//                    if (CollectionUtils.isNotEmpty(levels)) {
+//                        levels.sort(Comparator.comparing(MarketingBuyoutPriceLevelVO::getChoiceCount).reversed());
+//                        for (MarketingBuyoutPriceLevelVO level : levels) {
+//                            if (level.getChoiceCount().compareTo(num) != 1) {
+//                                tradeMarketing.setMarketingLevelId(level.getReductionLevelId());
+//                                tradeMarketing.setMarketingId(level.getMarketingId());
+//                                return tradeMarketing;
+//                            }
+//                        }
+//                    }
+//                }
+
+                // 第二件半价
+//                if (marketing.getSubType() == MarketingSubType.HALF_PRICE_SECOND_PIECE) {
+//                    List<MarketingHalfPriceSecondPieceLevelVO> levels = marketing.getHalfPriceSecondPieceLevel();
+//                    if (CollectionUtils.isNotEmpty(levels)) {
+//                        levels.sort(Comparator.comparing(MarketingHalfPriceSecondPieceLevelVO::getNumber).reversed());
+//                        for (MarketingHalfPriceSecondPieceLevelVO level : levels) {
+//                            if (level.getNumber().compareTo(num) != 1) {
+//                                tradeMarketing.setMarketingLevelId(level.getId());
+//                                tradeMarketing.setMarketingId(level.getMarketingId());
+//                                return tradeMarketing;
+//                            }
+//                        }
+//                    }
+//                }
+            }
+        }
+        return null;
     }
 
 
@@ -2323,8 +2587,20 @@ public class TradeService {
         tradeParams.getMarketingList().forEach(i -> {
             List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
                     .collect(Collectors.toList());
-            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+            for (TradeItem item : items) {
+                List<Long> marketingIds = new ArrayList<>(item.getMarketingIds());
+                marketingIds.add(i.getMarketingId());
+                item.setMarketingIds(marketingIds);
+            }
         });
+
+//        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
+//        tradeParams.getMarketingList().forEach(i -> {
+//            List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
+//                    .collect(Collectors.toList());
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//        });
 
         // 拼团订单--处理
         if (Objects.nonNull(tradeParams.getGrouponForm())) {
@@ -8022,6 +8298,8 @@ public class TradeService {
                 if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
                     tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
                 }
+                log.info("TradeService createProviderTrade ProviderTrade {}", JSON.toJSONString(tradePrice));
+                log.info("TradeService createProviderTrade Trade {}", JSON.toJSONString(trade.getTradePrice()));
                 //复制运费过来
                 tradePrice.setSplitDeliveryPrice(trade.getTradePrice().getSplitDeliveryPrice());
                 //运费

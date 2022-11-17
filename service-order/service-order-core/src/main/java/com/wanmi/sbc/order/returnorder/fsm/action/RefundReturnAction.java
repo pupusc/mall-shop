@@ -3,6 +3,7 @@ import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
@@ -179,6 +180,9 @@ public class RefundReturnAction extends ReturnAction {
 
            //调用推送接口
            SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+           if (saleAfterCreateNewReq == null) {
+               throw new SbcRuntimeException("999999", String.format("商城售后单%s转化电商中台对象为null", returnOrder.getId()));
+           }
            long beginTime = System.currentTimeMillis();
            log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
            BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);

@@ -13,7 +13,9 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsCountByStoreIdRequest;
@@ -32,6 +34,8 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.BlackListCategoryProviderResponse;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsCountByStoreIdResponse;
@@ -62,6 +66,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import com.wanmi.sbc.goods.bookingsale.model.root.BookingSale;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
@@ -175,6 +180,9 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
     private GoodsPackService goodsPackService;
+
+    @Autowired
+    private GoodsBlackListService goodsBlackListService;
 
     /**
      * 分页查询商品信息
@@ -338,11 +346,23 @@ public class GoodsQueryController implements GoodsQueryProvider {
             GoodsResponse response = JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdCache(response.getGoods(),request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
+
         }
 
         if (StringUtils.isNotBlank(goodsByIdResponse.getGoods().getGoodsChannelType())) {
             String[] goodsChannelTypeAtt = goodsByIdResponse.getGoods().getGoodsChannelType().split(",");
             goodsByIdResponse.getGoods().setGoodsChannelTypeSet(Arrays.asList(goodsChannelTypeAtt));
+        }
+
+        //是否是积分黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BlackListCategoryProviderResponse pointNotSplitBlackListModel =
+                goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
+        if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
+            if (pointNotSplitBlackListModel.getGoodsIdList().contains(goodsByIdResponse.getGoods().getGoodsId())) {
+                goodsByIdResponse.getGoods().setInPointBlackList(true); //是积分黑名单
+            }
         }
 
         //供应商商品同步库存
@@ -408,6 +428,20 @@ public class GoodsQueryController implements GoodsQueryProvider {
                         JSONObject.toJSONString(response), 6 * 60 * 60);
             }
             goodsDetailSimpleResponse = KsBeanUtil.convert(response, GoodsDetailSimpleResponse.class);
+
+            GoodsVO goodsVo = goodsDetailSimpleResponse.getGoods();
+            if (goodsVo != null) {
+                //是否是积分黑名单
+                GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+                goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+                BlackListCategoryProviderResponse pointNotSplitBlackListModel =
+                        goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest).getPointNotSplitBlackListModel();
+                if (pointNotSplitBlackListModel != null && !CollectionUtils.isEmpty(pointNotSplitBlackListModel.getGoodsIdList())) {
+                    if (pointNotSplitBlackListModel.getGoodsIdList().contains(goodsVo.getGoodsId())) {
+                        goodsVo.setInPointBlackList(true); //是积分黑名单
+                    }
+                }
+            }
         }
         return BaseResponse.success(goodsDetailSimpleResponse);
     }

@@ -101,7 +101,6 @@ import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
-import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.RefundChannel;
@@ -132,6 +131,7 @@ import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrderTransfer;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnDeliveryDetailPrice;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnKnowledge;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
@@ -144,11 +144,10 @@ import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.thirdplatformtrade.model.root.ThirdPlatformTrade;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
-import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
-import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.DeliveryDetailPrice;
 import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.GrouponInstance;
@@ -167,10 +166,6 @@ import com.wanmi.sbc.pay.api.response.PayChannelItemResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
 import com.wanmi.sbc.pay.bean.enums.TradeStatus;
 import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
-import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressListRequest;
-import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListResponse;
-import com.wanmi.sbc.setting.bean.enums.AddrLevel;
-import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -575,6 +570,8 @@ public class ReturnOrderService {
                 BigDecimal providerTotalPrice = BigDecimal.ZERO;
                 BigDecimal price = BigDecimal.ZERO;
                 BigDecimal deliverPrice = BigDecimal.ZERO;
+                Long deliveryPoint = 0L;
+                BigDecimal deliveryPayPrice = BigDecimal.ZERO;
                 Long points = 0L;
                 Long knowledge = 0L;
                 for (TradeItem tradeItemVO : providerTradeItems) {
@@ -634,7 +631,7 @@ public class ReturnOrderService {
                 if (trade.getTradeState().getFlowState().equals(FlowState.AUDIT) && ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap.get(providerId.toString()) != null && providerDeliveryMap.get(providerId.toString()))) {
                     //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
-                        price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
+//                        price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
                         deliverPrice = deliverPrice.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
                     }/*else {
                         if(trade.getTradePrice() != null && trade.getTradePrice().getDeliveryPrice() != null){
@@ -648,22 +645,33 @@ public class ReturnOrderService {
                     if (trade.getTradePrice().getSplitDeliveryPrice() == null) {
                         throw new SbcRuntimeException("K-050460");
                     }
-                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
-                    if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+                    deliverPrice = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    if (deliverPrice == null || deliverPrice.compareTo(BigDecimal.ZERO) <= 0) {
                         throw new SbcRuntimeException("K-050461");
                     }
-                    deliverPrice = price;
+                    price = BigDecimal.ZERO;
                     providerTotalPrice = BigDecimal.ZERO;
                     points = 0L;
                     knowledge = 0L;
                     returnItemDTOList = new ArrayList<>();
                 }
+                DeliveryDetailPrice deliveryDetailPrice = trade.getTradePrice().getDeliveryDetailPrice();
+                //兼容运费信息
+                if (deliverPrice.compareTo(BigDecimal.ZERO) > 0 && deliveryDetailPrice != null) {
+                    ReturnDeliveryDetailPrice returnDeliveryDetailPrice = new ReturnDeliveryDetailPrice();
+                    returnDeliveryDetailPrice.setDeliveryPointPrice(deliveryDetailPrice.getDeliveryPointPrice());
+                    returnDeliveryDetailPrice.setDeliveryPoint(deliveryDetailPrice.getDeliveryPoint());
+                    returnDeliveryDetailPrice.setDeliveryPayPrice(deliveryDetailPrice.getDeliveryPayPrice());
+                    deliveryPoint = deliveryDetailPrice.getDeliveryPoint();
+                    deliveryPayPrice = deliveryDetailPrice.getDeliveryPayPrice();
+                    returnOrder.getReturnPrice().setReturnDeliveryDetailPrice(returnDeliveryDetailPrice);
+                }
                 returnOrder.setReturnItems(returnItemDTOList);
-                returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);
-                returnOrder.getReturnPrice().setApplyPrice(price);
-                returnOrder.getReturnPrice().setTotalPrice(price);
                 returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
-                returnOrder.getReturnPoints().setApplyPoints(points);
+                returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);
+                returnOrder.getReturnPrice().setApplyPrice(price.add(deliveryPayPrice));
+                returnOrder.getReturnPrice().setTotalPrice(price.add(deliveryPayPrice));
+                returnOrder.getReturnPoints().setApplyPoints(points + deliveryPoint);
                 returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
         } else {
@@ -671,6 +679,8 @@ public class ReturnOrderService {
                 List<ReturnItem> returnItemDTOList = new ArrayList<>();
                 BigDecimal price = BigDecimal.ZERO;
                 BigDecimal deliverPrice = BigDecimal.ZERO;
+                Long deliveryPoint = 0L;
+                BigDecimal deliveryPayPrice = BigDecimal.ZERO;
                 Long points = 0L;
                 Long knowledge = 0L;
                 //组装退单详情
@@ -725,16 +735,31 @@ public class ReturnOrderService {
 //                }
                 //针对退运费的强制
                 if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
-                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+//                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    deliverPrice = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    price = BigDecimal.ZERO;
                     points = 0L;
                     knowledge = 0L;
                     returnItemDTOList = new ArrayList<>();
                 }
+
+                DeliveryDetailPrice deliveryDetailPrice = trade.getTradePrice().getDeliveryDetailPrice();
+                //兼容运费信息
+                if (deliverPrice.compareTo(BigDecimal.ZERO) > 0 && deliveryDetailPrice != null) {
+                    ReturnDeliveryDetailPrice returnDeliveryDetailPrice = new ReturnDeliveryDetailPrice();
+                    returnDeliveryDetailPrice.setDeliveryPointPrice(deliveryDetailPrice.getDeliveryPointPrice());
+                    returnDeliveryDetailPrice.setDeliveryPoint(deliveryDetailPrice.getDeliveryPoint());
+                    returnDeliveryDetailPrice.setDeliveryPayPrice(deliveryDetailPrice.getDeliveryPayPrice());
+                    deliveryPoint = deliveryDetailPrice.getDeliveryPoint();
+                    deliveryPayPrice = deliveryDetailPrice.getDeliveryPayPrice();
+                    returnOrder.getReturnPrice().setReturnDeliveryDetailPrice(returnDeliveryDetailPrice);
+                }
+
                 returnOrder.setReturnItems(returnItemDTOList);
-                returnOrder.getReturnPrice().setApplyPrice(price);
-                returnOrder.getReturnPrice().setTotalPrice(price);
+                returnOrder.getReturnPrice().setApplyPrice(price.add(deliveryPayPrice));
+                returnOrder.getReturnPrice().setTotalPrice(price.add(deliveryPayPrice));
                 returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
-                returnOrder.getReturnPoints().setApplyPoints(points);
+                returnOrder.getReturnPoints().setApplyPoints(points + deliveryPoint);
                 returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
 
@@ -4832,6 +4857,13 @@ public class ReturnOrderService {
                     returnDeliveryIngMap.put(returnOrderParam.getProviderId(), returnOrderParam.getReturnPrice().getApplyPrice());
                 }
                 continue;
+            } else {
+                BigDecimal returnDeliverPrice = returnOrderParam.getReturnPrice().getDeliverPrice();
+                if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
+                    returnDeliveryCompleteMap.put(returnOrderParam.getProviderId(), returnDeliverPrice == null ? BigDecimal.ZERO : returnDeliverPrice);
+                } else {
+                    returnDeliveryIngMap.put(returnOrderParam.getProviderId(), returnDeliverPrice == null ? BigDecimal.ZERO : returnDeliverPrice);
+                }
             }
 
             for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
@@ -4895,6 +4927,14 @@ public class ReturnOrderService {
             providerTradeSimpleVO.setDeliveryCompletePrice(deliverCompletePrice == null ? BigDecimal.ZERO.toString() : deliverCompletePrice.toString());
             providerTradeSimpleVO.setDeliveryIngPrice(deliverIngPrice == null ? BigDecimal.ZERO.toString() : deliverIngPrice.toString());
             providerTradeSimpleVO.setDeliveryPrice(providerTradeParam.getTradePrice().getDeliveryPrice().toString());
+            ProviderTradeSimpleVO.DeliveryDetailPriceVO deliveryDetailPriceVO = new ProviderTradeSimpleVO.DeliveryDetailPriceVO();
+            DeliveryDetailPrice deliveryDetailPrice = providerTradeParam.getTradePrice().getDeliveryDetailPrice();
+            if (deliveryDetailPrice != null) {
+               deliveryDetailPriceVO.setDeliveryPointPrice(deliveryDetailPrice.getDeliveryPointPrice() == null ? BigDecimal.ZERO : deliveryDetailPrice.getDeliveryPointPrice());
+               deliveryDetailPriceVO.setDeliveryPayPrice(deliveryDetailPrice.getDeliveryPayPrice() == null ? BigDecimal.ZERO : deliveryDetailPrice.getDeliveryPayPrice());
+               deliveryDetailPriceVO.setDeliveryPoint(deliveryDetailPrice.getDeliveryPoint() == null ? 0L : deliveryDetailPrice.getDeliveryPoint());
+               providerTradeSimpleVO.setDeliveryDetailPrice(deliveryDetailPriceVO);
+            }
 
             List<TradeItemSimpleVO> tradeItemSimpleVOList = new ArrayList<>();
             for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
