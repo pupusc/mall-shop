@@ -32,6 +32,8 @@ public class ShopCenterGoodsStockService {
 	private GoodsRepository goodsRepository;
 	@Autowired
 	private GoodsInfoRepository goodsInfoRepository;
+	@Autowired
+	private RedisService redisService;
 //	@Autowired
 //	private FreeDelivery49Service freeDelivery49Service;
 
@@ -64,6 +66,7 @@ public class ShopCenterGoodsStockService {
 
 		// 修改goodsInfo 库存
 		for (GoodsInfo info : infoList) {
+			redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + info.getGoodsInfoId(), quantity.toString());
 			goodsInfoStockMap.put(info.getGoodsInfoId(), quantity);
 		}
 		logger.info("ShopCenterGoodsStockService.goodsInfo修改库存.quantity={},ids={}", quantity, goodsInfoStockMap.keySet());

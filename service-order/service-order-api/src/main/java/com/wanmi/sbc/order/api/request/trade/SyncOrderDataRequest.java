@@ -1,11 +1,12 @@
 package com.wanmi.sbc.order.api.request.trade;
 
-import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,4 +18,9 @@ public class SyncOrderDataRequest implements Serializable {
 	
 	private String id;
 
+	private String command;
+
+	private Date bgnTime;
+
+	private Date endTime;
 }

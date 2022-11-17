@@ -1,31 +1,7 @@
 package com.soybean.mall.order.miniapp.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-
 import com.alibaba.fastjson.JSON;
+import com.mongodb.client.result.UpdateResult;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.order.dszt.TransferService;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
@@ -39,9 +15,11 @@ import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
+import com.wanmi.sbc.erp.api.resp.CreateOrderResp;
 import com.wanmi.sbc.order.api.request.trade.SyncOrderDataRequest;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
@@ -50,9 +28,33 @@ import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
-
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -324,90 +326,109 @@ public class TradeOrderService {
 
 	}
 
+	private AtomicBoolean start = new AtomicBoolean(false);
 	/**
 	 * @return
 	 */
 	public BaseResponse syncOrderDataAll(SyncOrderDataRequest syncOrderDataRequest) {
+		if ("stop".equals(syncOrderDataRequest.getCommand())) {
+			start.set(false);
+			return BaseResponse.success(true);
+		}
+		if (!start.compareAndSet(false, true)) {
+			return BaseResponse.error("正在进行中，请重置处理状态!");
+		}
+
+		log.info("====>>电商中台订单同步开始<<====");
+		//指定id
 		if (StringUtil.isNotBlank(syncOrderDataRequest.getId())) {
 			Query query = new Query(Criteria.where("_id").is(syncOrderDataRequest.getId()));
-
-			List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
-			for (Trade trade : tradeList) {
-				try {
-					CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-					createOrderReq.setPlatformCode("WAN_MI");
-					createOrderReq.setPlatformOrderId(trade.getId());
-					shopCenterOrderProvider.createOrder(createOrderReq);
-				} catch (Exception e) {
-					log.error("e:{}", e);
-				}
-
-			}
+			export(mongoTemplate.find((query), Trade.class));
+			log.info("====>>电商中台订单同步结束：指定id执行<<====");
 			return BaseResponse.success(true);
 		}
 
-		String queryId = (String) redisTemplate.opsForValue().get(SYNC_ORDER_DATA_REDIS_KEY);
-		if (StringUtil.isNotBlank(queryId)) {
-			Query query = new Query(
-					Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
-			Long count = mongoTemplate.count(query, Trade.class);
-			if (count == 0) {
-				return BaseResponse.success(true);
-			}
+		String queryId = "0";
+		Query query = new Query(Criteria.where("_id").gt(queryId).and("tradeState.payState").is("PAID").and("yzTid").exists(false));
 
-			Integer foreachTimes = (int) (count / 1000) + 1;
-			for (int i = 0; i < foreachTimes; i++) {
-				Integer offset = (i - 1) * 1000;
-				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
-				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
-				for (Trade trade : tradeList) {
-					queryId = trade.getId();
+		if (syncOrderDataRequest.getBgnTime() != null && syncOrderDataRequest.getEndTime() != null) {
+			query.addCriteria(Criteria.where("tradeState.createTime").gte(syncOrderDataRequest.getBgnTime()).lt(syncOrderDataRequest.getEndTime()));
+		}
 
-					try {
-						CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-						createOrderReq.setPlatformCode("WAN_MI");
-						createOrderReq.setPlatformOrderId(trade.getId());
-						shopCenterOrderProvider.createOrder(createOrderReq);
-					} catch (Exception e) {
-						log.error("e:{}", e);
-					}
-
-					redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
-				}
-			}
-
-			return BaseResponse.success(true);
-		} else {
-			Query query = new Query(Criteria.where("_id").gt("O202103241606337472040").and("tradeState.payState")
-					.is("PAID").and("yzTid").exists(false));
-			Long count = mongoTemplate.count(query, Trade.class);
-			if (count == 0) {
-				return BaseResponse.success(true);
-			}
-
-			Integer foreachTimes = (int) (count / 1000) + 1;
-			for (int i = 0; i < foreachTimes; i++) {
-				Integer offset = (i - 1) * 1000;
-				query = query.skip(offset).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
-				List<Trade> tradeList = mongoTemplate.find((query), Trade.class);
-				for (Trade trade : tradeList) {
-					queryId = trade.getId();
-
-					try {
-						CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-						createOrderReq.setPlatformCode("WAN_MI");
-						createOrderReq.setPlatformOrderId(trade.getId());
-						shopCenterOrderProvider.createOrder(createOrderReq);
-					} catch (Exception e) {
-						log.error("e:{}", e);
-					}
-
-					redisTemplate.opsForValue().set(SYNC_ORDER_DATA_REDIS_KEY, queryId);
-				}
-			}
-
+		Long count = mongoTemplate.count(query, Trade.class);
+		if (count == 0) {
+			log.info("====>>电商中台订单同步结束：没有查到符合条件的订单<<====");
 			return BaseResponse.success(true);
 		}
+
+		int queryCount = 0;
+		int finishCount = 0;
+
+		int foreachTimes = (int) (count / 1000) + 1;
+		for (int i = 0; i < foreachTimes; i++) {
+			query = query.skip(i * 1000).limit(1000).with(Sort.by(Sort.Direction.ASC, "_id"));
+			List<Trade> trades = mongoTemplate.find((query), Trade.class);
+			queryCount += trades.size();
+			finishCount += export(trades);
+		}
+		log.info("====>>电商中台订单同步结束3, count={}, listSize={}, finishSize={}<<====", count, queryCount, finishCount);
+		return BaseResponse.success(true);
 	}
 
+	private Integer doingVersion = Integer.valueOf(0);
+	private Integer doneVersion = Integer.valueOf(1);
+
+	private int export(List<Trade> tradeList) {
+		int finishCount = 0;
+
+		for (Trade trade : tradeList) {
+			if (!start.get()) {
+				return finishCount;
+			}
+			if (doneVersion.equals(trade.getSVersion())) {
+				finishCount++;
+				continue;
+			}
+			try {
+				log.warn("==>>电商中台订单同步开始：tradeId={}", trade.getId());
+				CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+				createOrderReq.setPlatformCode("WAN_MI");
+				createOrderReq.setPlatformOrderId(trade.getId());
+				createOrderReq.setImportOrder(true);
+				updateVersion(trade.getId(), doingVersion);
+				BaseResponse<CreateOrderResp> crtResult = shopCenterOrderProvider.createOrder(createOrderReq);
+
+				if (!CommonErrorCode.SUCCESSFUL.equals(crtResult.getCode())
+						|| (!"0000".equals(crtResult.getContext().getCode()) && !"40000".equals(crtResult.getContext().getCode()))) {
+					throw new RuntimeException("调用电商中台创建订单结果异常，result=" + JSON.toJSONString(crtResult));
+				}
+
+				updateVersion(trade.getId(), doneVersion);
+				log.warn("==>>电商中台订单同步成功：tradeId={}", trade.getId());
+				log.debug("创建中台订单数据：{}", JSON.toJSONString(createOrderReq));
+				finishCount++;
+			} catch (Exception e) {
+				log.error("e:{}", e);
+				log.warn("==>>电商中台订单同步错误：tradeId={}", trade.getId());
+			}
+		}
+
+		return finishCount;
+	}
+
+	private void updateVersion(String id, int version) {
+		//更新本地版本
+		UpdateResult updateResult = mongoTemplate.updateFirst(
+				new Query(Criteria.where("_id").is(id)),
+				new Update().set("sVersion", version),
+				Trade.class);
+
+		if (doingVersion.equals(version)) {
+			return;
+		}
+		if (updateResult.getModifiedCount() != 1) {
+			log.warn("更新订单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", id, version, updateResult.getModifiedCount());
+			throw new RuntimeException("更新订单的版本信息错误");
+		}
+	}
 }

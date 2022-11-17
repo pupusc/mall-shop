@@ -49,14 +49,14 @@ public class StoreTobeEvaluateWhereCriteriaBuilder {
 
             // 模糊查询 - 订单号
             if (StringUtils.isNotEmpty(queryRequest.getOrderNo())) {
-                predicates.add(cbuild.like(root.get("orderNo"), StringUtil.SQL_LIKE_CHAR
+                predicates.add(cbuild.equal(root.get("orderNo"), StringUtil.SQL_LIKE_CHAR
                         .concat(XssUtils.replaceLikeWildcard(queryRequest.getOrderNo()))
                         .concat(StringUtil.SQL_LIKE_CHAR)));
             }
 
             // 模糊查询 - 会员Id
             if (StringUtils.isNotEmpty(queryRequest.getCustomerId())) {
-                predicates.add(cbuild.like(root.get("customerId"), StringUtil.SQL_LIKE_CHAR
+                predicates.add(cbuild.equal(root.get("customerId"), StringUtil.SQL_LIKE_CHAR
                         .concat(XssUtils.replaceLikeWildcard(queryRequest.getCustomerId()))
                         .concat(StringUtil.SQL_LIKE_CHAR)));
             }
