@@ -810,6 +810,19 @@ public class WxOrderService {
             return;
         }
         try {
+            String spuName = "";
+            if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
+                if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+                    spuName = "退运费";
+                }
+            } else {
+                spuName = returnOrder.getReturnItems().get(0).getSpuName();
+            }
+            if (StringUtils.isEmpty(spuName)) {
+                log.info("WxOrderService sendWxAfterSaleMessage spuName 为空小程序 不推送消息");
+                return;
+            }
+            String finalSpuName = spuName;
             WxSendMessageRequest request = new WxSendMessageRequest();
             request.setOpenId(returnOrder.getBuyer().getOpenId());
             request.setTemplateId(afterSaleSendMsgTemplateId);
@@ -819,7 +832,7 @@ public class WxOrderService {
                 put("value", returnOrder.getTid());
             }});
             map.put("thing6", new HashMap<String, String>() {{
-                put("value", filterChineseAndAlp(returnOrder.getReturnItems().get(0).getSpuName()));
+                put("value", filterChineseAndAlp(finalSpuName));
             }});
             map.put("amount2", new HashMap<String, String>() {{
                 put("value", String.valueOf(returnOrder.getReturnPrice().getTotalPrice()));
