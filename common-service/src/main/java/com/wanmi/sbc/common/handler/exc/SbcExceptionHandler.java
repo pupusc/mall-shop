@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
-import java.io.*;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -99,7 +99,7 @@ public class SbcExceptionHandler {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BaseResponse defaultExceptionHandler(Throwable ex) throws Exception {
-        log.error(LOGGER_FORMAT, "", ex.getMessage(), ex);
+        log.error(LOGGER_FORMAT, "", ex.getMessage(), "", ex);
         if (ex.getCause() instanceof GenericJDBCException) {
             if (1366 == ((GenericJDBCException) ex.getCause()).getSQLException().getErrorCode()) {
                 return new BaseResponse(CommonErrorCode.ILLEGAL_CHARACTER);
