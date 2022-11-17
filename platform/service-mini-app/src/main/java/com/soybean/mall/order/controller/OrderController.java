@@ -697,7 +697,7 @@ public class OrderController {
         }
 
         //定价
-        for (TradeItemVO tradeItem : tradeItemVOList) {
+        for (TradeItemVO tradeItem : tempTradeConfirmItemVO.getTradeItems()) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if(priceByGoodsId.getContext() != null){
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
