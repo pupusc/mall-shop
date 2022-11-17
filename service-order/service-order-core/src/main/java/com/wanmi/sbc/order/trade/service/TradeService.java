@@ -2587,8 +2587,20 @@ public class TradeService {
         tradeParams.getMarketingList().forEach(i -> {
             List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
                     .collect(Collectors.toList());
-            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+            for (TradeItem item : items) {
+                List<Long> marketingIds = new ArrayList<>(item.getMarketingIds());
+                marketingIds.add(i.getMarketingId());
+                item.setMarketingIds(marketingIds);
+            }
         });
+
+//        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
+//        tradeParams.getMarketingList().forEach(i -> {
+//            List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
+//                    .collect(Collectors.toList());
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//        });
 
         // 拼团订单--处理
         if (Objects.nonNull(tradeParams.getGrouponForm())) {
