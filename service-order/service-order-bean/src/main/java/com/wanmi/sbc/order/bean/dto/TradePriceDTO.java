@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单金额归总
@@ -208,6 +209,11 @@ public class TradePriceDTO implements Serializable {
      */
     @ApiModelProperty(value = "活动优惠总额")
     private BigDecimal marketingDiscountPrice;
+
+    /**
+     * 根据供应商拆分后的运费
+     */
+    private Map<Long, BigDecimal> splitDeliveryPrice;
 
     @ApiModelProperty("实际支付金额")
     private BigDecimal actualPrice;
