@@ -2027,7 +2027,7 @@ public class TradeService {
                     && goodsInfoVOMap.containsKey(tmpTradeItem.getSkuId())) {
                 GoodsInfoVO sku = goodsInfoVOMap.get(tmpTradeItem.getSkuId());
                 if (sku.getDistributionGoodsAudit() != DistributionGoodsAudit.CHECKED) {
-                    TradeMarketingDTO tradeMarketing = this.chooseDefaultMarketing(KsBeanUtil.convert(tmpTradeItem, TradeItemDTO.class), marketingResponse.get(tmpTradeItemVO.getSkuId()));
+                    TradeMarketingDTO tradeMarketing = this.chooseDefaultMarketing(KsBeanUtil.convert(tmpTradeItem, TradeItemDTO.class), marketingResponse.get(tmpTradeItem.getSkuId()));
                     if (tradeMarketing != null) {
                         tradeMarketingList.add(tradeMarketing);
                         tmpTradeItem.setMarketingIds(Collections.singletonList(tradeMarketing.getMarketingId()));
