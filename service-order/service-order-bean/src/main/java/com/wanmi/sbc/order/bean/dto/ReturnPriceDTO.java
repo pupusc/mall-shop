@@ -47,6 +47,11 @@ public class ReturnPriceDTO implements Serializable {
     private BigDecimal deliverPrice;
 
     /**
+     * 运费详细信息
+     */
+    private ReturnDeliveryDetailPriceDTO returnDeliveryDetailPrice;
+
+    /**
      * 实退金额，从退款流水中取的
      */
     @ApiModelProperty(value = "实退金额，从退款流水中取的")
