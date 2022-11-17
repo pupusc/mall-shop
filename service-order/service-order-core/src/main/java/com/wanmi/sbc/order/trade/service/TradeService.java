@@ -8299,7 +8299,7 @@ public class TradeService {
                     tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
                 }
                 log.info("TradeService createProviderTrade ProviderTrade {}", JSON.toJSONString(tradePrice));
-                log.info("TradeService createProviderTrade Trade {}", JSON.toJSONString(tradePrice));
+                log.info("TradeService createProviderTrade Trade {}", JSON.toJSONString(trade.getTradePrice()));
                 //复制运费过来
                 tradePrice.setSplitDeliveryPrice(trade.getTradePrice().getSplitDeliveryPrice());
                 //运费
