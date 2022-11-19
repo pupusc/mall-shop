@@ -285,7 +285,7 @@ public class CompleteAction extends TradeAction {
                     .orderNo(orderNo)
                     .customerId(buyer.getId())
                     .customerName(buyer.getName())
-                    .customerAccount(buyer.getAccount())
+                    .customerAccount(StringUtils.isBlank(buyer.getAccount()) ? "1234567890" : buyer.getAccount())
                     .evaluateStatus(EvaluateStatus.NO_EVALUATE)
                     .evaluateImgStatus(EvaluateStatus.NO_EVALUATE)
                     .autoGoodsEvaluateDate(storeTobeEvaluateAddRequest.getAutoStoreEvaluateDate())

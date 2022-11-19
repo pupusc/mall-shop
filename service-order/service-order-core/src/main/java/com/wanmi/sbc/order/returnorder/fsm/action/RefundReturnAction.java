@@ -178,20 +178,25 @@ public class RefundReturnAction extends ReturnAction {
                return;
            }
 
-           //调用推送接口
-           SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
-           if (saleAfterCreateNewReq == null) {
-               throw new SbcRuntimeException("999999", String.format("商城售后单%s转化电商中台对象为null", returnOrder.getId()));
-           }
-           long beginTime = System.currentTimeMillis();
-           log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
-           BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
-           log.info("RefundReturnAction createSaleAfter result {} cost: {}s", JSON.toJSONString(saleAfter), (System.currentTimeMillis() - beginTime)/100);
+           try {
+               //调用推送接口
+               SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+               if (saleAfterCreateNewReq == null) {
+                   throw new SbcRuntimeException("999999", String.format("商城售后单%s转化电商中台对象为null", returnOrder.getId()));
+               }
+               long beginTime = System.currentTimeMillis();
+               log.info("RefundReturnAction createSaleAfter param {}", JSON.toJSONString(saleAfterCreateNewReq));
+               BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+               log.info("RefundReturnAction createSaleAfter result {} cost: {}s", JSON.toJSONString(saleAfter), (System.currentTimeMillis() - beginTime)/100);
 
-           if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
-               thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
-           } else {
-               thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+               if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
+                   thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+               } else {
+                   thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+               }
+           } catch (Exception ex) {
+               log.error("ProviderTradeService singlePushOrder " + thirdInvokeDTO.getBusinessId() + " 推送失败 error:{} ", ex);
+               thirdInvokeService.update(thirdInvokeDTO.getId(), "999999", ThirdInvokePublishStatusEnum.FAIL, "调用失败");
            }
        } catch (Exception ex) {
            log.error("RefundReturnAction evaluateInternal error", ex);

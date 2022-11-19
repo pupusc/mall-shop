@@ -1017,15 +1017,15 @@ public class ProviderTradeService {
            try {
                for (Trade trade : tradeList) {
 
-                   CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
-                   if (createOrderReq == null) {
-                       continue;
-                   }
-
                    ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(trade.getId(), ThirdInvokeCategoryEnum.INVOKE_ORDER);
                    if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())
                         || Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.CANCEL.getCode())) {
                        log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功或取消，重复提送", thirdInvokeDTO.getBusinessId());
+                       continue;
+                   }
+
+                   CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
+                   if (createOrderReq == null) {
                        continue;
                    }
 
