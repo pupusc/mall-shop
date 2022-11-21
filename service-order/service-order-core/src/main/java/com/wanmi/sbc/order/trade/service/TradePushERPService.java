@@ -2375,7 +2375,6 @@ public class TradePushERPService {
         if (sum <= 0) {
             log.info("TradePushERrPService fillShopCenterDelivery skuId {} return", request.getPlatformSkuId());
             return;
-//            deliverStatus = DeliverStatus.NOT_YET_SHIPPED;
         } else if (sum >= request.getOrderItemIds().size() * 2) {
             deliverStatus = DeliverStatus.SHIPPED;
         } else {
@@ -2385,8 +2384,10 @@ public class TradePushERPService {
         int sumTrade = 0;
         ProviderTrade currentProviderTrade = null;
         TradeItem currentTradeItem = null;
+        TradeItem currentGiftTradeItem = null;
         for (ProviderTrade providerTrade : providerTrades) {
             int sumProvider = 0;
+            //非赠品发货
             for (TradeItem tradeItem : providerTrade.getTradeItems()) {
                 if (Objects.equals(tradeItem.getDeliverStatus(), DeliverStatus.SHIPPED)) {
                     sumProvider += 2;
@@ -2420,7 +2421,44 @@ public class TradePushERPService {
                 }
             }
 
-            if (sumProvider >= providerTrade.getTradeItems().size() * 2) {
+            //赠品发货
+            if (CollectionUtils.isNotEmpty(providerTrade.getGifts())) {
+                for (TradeItem giftTradeItem : providerTrade.getGifts()) {
+                    if (Objects.equals(giftTradeItem.getDeliverStatus(), DeliverStatus.SHIPPED)) {
+                        sumProvider += 2;
+                        continue;
+                    }
+                    if (Objects.equals(giftTradeItem.getSkuId(), request.getPlatformSkuId())) {
+                        currentProviderTrade = providerTrade;
+                        currentGiftTradeItem = giftTradeItem;
+                        giftTradeItem.setDeliverStatus(deliverStatus);
+                        if (Objects.equals(deliverStatus, DeliverStatus.PART_SHIPPED)) {
+                            giftTradeItem.setDeliveredNum(1L);
+                            sumProvider += 1;
+                        }
+                        if (Objects.equals(deliverStatus, DeliverStatus.NOT_YET_SHIPPED)) {
+                            giftTradeItem.setDeliveredNum(0L);
+                            sumProvider += 0;
+                        }
+                        if (Objects.equals(deliverStatus, DeliverStatus.SHIPPED)) {
+                            giftTradeItem.setDeliveredNum(giftTradeItem.getNum());
+                            sumProvider += 2;
+                        }
+
+                        //设置发货时间
+                        if (providerTrade.getTradeState().getDeliverTime() == null) {
+                            providerTrade.getTradeState().setDeliverTime(request.getDeliveryTime());
+                        } else {
+                            if (providerTrade.getTradeState().getDeliverTime().isAfter(request.getDeliveryTime())) {
+                                providerTrade.getTradeState().setDeliverTime(request.getDeliveryTime());
+                            }
+                        }
+                    }
+                }
+            }
+
+            int currentSumProviderTrade = providerTrade.getTradeItems().size() + (CollectionUtils.isEmpty(providerTrade.getGifts()) ? 0 : providerTrade.getGifts().size());
+            if (sumProvider >= currentSumProviderTrade * 2) {
                 providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                 //如果周期购，直接完成
                 if (Objects.nonNull(providerTrade.getCycleBuyFlag()) && providerTrade.getCycleBuyFlag()) {
@@ -2440,12 +2478,15 @@ public class TradePushERPService {
             }
         }
 
-        if (currentProviderTrade == null || currentTradeItem == null) {
+        if (currentProviderTrade == null || (currentTradeItem == null && currentGiftTradeItem == null)) {
             log.info("TradePushERPService fillShopCenterDelivery currentProviderTrade {} " +
-                    "|| currentTradeItem {} is null return", currentProviderTrade == null, currentTradeItem == null);
+                    "|| currentTradeItem {} is null currentGiftTradeItem {} is null return", currentProviderTrade == null, currentTradeItem == null, currentGiftTradeItem == null);
             return;
         }
 
+        /**
+         * 主订单 商品发货状态
+         */
         for (TradeItem tradeItem : trade.getTradeItems()) {
             if (Objects.equals(tradeItem.getSkuId(), request.getPlatformSkuId())) {
                 tradeItem.setDeliveredNum(tradeItem.getNum());
@@ -2461,6 +2502,26 @@ public class TradePushERPService {
                 }
             }
         }
+
+        //主订单 赠品发货状态
+        if (!CollectionUtils.isEmpty(trade.getGifts())) {
+            for (TradeItem giftTradeItem : trade.getGifts()) {
+                if (Objects.equals(giftTradeItem.getSkuId(), request.getPlatformSkuId())) {
+                    giftTradeItem.setDeliveredNum(giftTradeItem.getNum());
+                    giftTradeItem.setDeliverStatus(deliverStatus);
+                    if (Objects.equals(deliverStatus, DeliverStatus.PART_SHIPPED)) {
+                        giftTradeItem.setDeliveredNum(1L);
+                    }
+                    if (Objects.equals(deliverStatus, DeliverStatus.NOT_YET_SHIPPED)) {
+                        giftTradeItem.setDeliveredNum(0L);
+                    }
+                    if (Objects.equals(deliverStatus, DeliverStatus.SHIPPED)) {
+                        giftTradeItem.setDeliveredNum(giftTradeItem.getNum());
+                    }
+                }
+            }
+        }
+
 
 
 
@@ -2519,14 +2580,28 @@ public class TradePushERPService {
             logistics.setLogisticNo(request.getExpressNo());
 
             List<ShippingItem> shippingItemList = new ArrayList<>();
-            ShippingItem shippingItem = new ShippingItem();
-            shippingItem.setItemName(currentTradeItem.getSpuName());
-            shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-            shippingItem.setSpuId(currentTradeItem.getSpuId());
-            shippingItem.setSkuId(currentTradeItem.getSkuId());
-            shippingItem.setSkuNo(currentTradeItem.getSkuNo());
-            shippingItem.setPic(currentTradeItem.getPic());
-            shippingItemList.add(shippingItem);
+            if (currentTradeItem != null) {
+                ShippingItem shippingItem = new ShippingItem();
+                shippingItem.setItemName(currentTradeItem.getSpuName());
+                shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                shippingItem.setSpuId(currentTradeItem.getSpuId());
+                shippingItem.setSkuId(currentTradeItem.getSkuId());
+                shippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                shippingItem.setPic(currentTradeItem.getPic());
+                shippingItemList.add(shippingItem);
+            }
+
+            List<ShippingItem> giftShippingItemList = new ArrayList<>();
+            if (currentTradeItem != null) {
+                ShippingItem giftShippingItem = new ShippingItem();
+                giftShippingItem.setItemName(currentTradeItem.getSpuName());
+                giftShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                giftShippingItem.setSpuId(currentTradeItem.getSpuId());
+                giftShippingItem.setSkuId(currentTradeItem.getSkuId());
+                giftShippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                giftShippingItem.setPic(currentTradeItem.getPic());
+                giftShippingItemList.add(giftShippingItem);
+            }
 
             //设置发货内容
             TradeDeliver tradeDeliver = new TradeDeliver();
@@ -2544,34 +2619,60 @@ public class TradePushERPService {
 //            tradeDeliver.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
 //            tradeDeliver.setCycleNum(0);
 //            tradeDeliver.setExpressProgressInfo("");
-
+            tradeDeliver.setGiftItemList(giftShippingItemList);
             tradeDelivers.add(tradeDeliver);
         } else {
-
-            List<ShippingItem> shippingItemResults = new ArrayList<>(currentTradeDeliver.getShippingItems());
-            Map<String, ShippingItem> skuId2Model = shippingItemResults.stream().collect(Collectors.toMap(ShippingItem::getSkuId, Function.identity(), (k1, k2) -> k1));
-            ShippingItem shippingItem = skuId2Model.get(currentTradeItem.getSkuId());
-            if (shippingItem == null) {
-                ShippingItem tmpShippingItem = new ShippingItem();
-                tmpShippingItem.setItemName(currentTradeItem.getSpuName());
-                tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-                tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
-                tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
-                tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
-                tmpShippingItem.setPic(currentTradeItem.getPic());
-                shippingItemResults.add(tmpShippingItem);
-                if (!CollectionUtils.isEmpty(shippingItemResults)) {
-                    currentTradeDeliver.setShippingItems(shippingItemResults);
+            if (currentTradeItem != null) {
+                List<ShippingItem> shippingItemResults = new ArrayList<>(currentTradeDeliver.getShippingItems());
+                Map<String, ShippingItem> skuId2Model = shippingItemResults.stream().collect(Collectors.toMap(ShippingItem::getSkuId, Function.identity(), (k1, k2) -> k1));
+                ShippingItem shippingItem = skuId2Model.get(currentTradeItem.getSkuId());
+                if (shippingItem == null) {
+                    ShippingItem tmpShippingItem = new ShippingItem();
+                    tmpShippingItem.setItemName(currentTradeItem.getSpuName());
+                    tmpShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                    tmpShippingItem.setSpuId(currentTradeItem.getSpuId());
+                    tmpShippingItem.setSkuId(currentTradeItem.getSkuId());
+                    tmpShippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                    tmpShippingItem.setPic(currentTradeItem.getPic());
+                    shippingItemResults.add(tmpShippingItem);
+                    if (!CollectionUtils.isEmpty(shippingItemResults)) {
+                        currentTradeDeliver.setShippingItems(shippingItemResults);
+                    }
+                } else {
+                    shippingItem.setItemName(currentTradeItem.getSpuName());
+                    shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
+                    shippingItem.setSpuId(currentTradeItem.getSpuId());
+                    shippingItem.setSkuId(currentTradeItem.getSkuId());
+                    shippingItem.setSkuNo(currentTradeItem.getSkuNo());
+                    shippingItem.setPic(currentTradeItem.getPic());
                 }
-            } else {
-                shippingItem.setItemName(currentTradeItem.getSpuName());
-                shippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-                shippingItem.setSpuId(currentTradeItem.getSpuId());
-                shippingItem.setSkuId(currentTradeItem.getSkuId());
-                shippingItem.setSkuNo(currentTradeItem.getSkuNo());
-                shippingItem.setPic(currentTradeItem.getPic());
             }
 
+            if (currentGiftTradeItem != null) {
+                List<ShippingItem> giftShippingItemResults = new ArrayList<>(currentTradeDeliver.getGiftItemList());
+                Map<String, ShippingItem> skuId2ModelGift = giftShippingItemResults.stream().collect(Collectors.toMap(ShippingItem::getSkuId, Function.identity(), (k1, k2) -> k1));
+                ShippingItem giftShippingItem = skuId2ModelGift.get(currentGiftTradeItem.getSkuId());
+                if (giftShippingItem == null) {
+                    ShippingItem tmpGiftShippingItem = new ShippingItem();
+                    tmpGiftShippingItem.setItemName(currentGiftTradeItem.getSpuName());
+                    tmpGiftShippingItem.setItemNum(currentGiftTradeItem.getDeliveredNum());
+                    tmpGiftShippingItem.setSpuId(currentGiftTradeItem.getSpuId());
+                    tmpGiftShippingItem.setSkuId(currentGiftTradeItem.getSkuId());
+                    tmpGiftShippingItem.setSkuNo(currentGiftTradeItem.getSkuNo());
+                    tmpGiftShippingItem.setPic(currentGiftTradeItem.getPic());
+                    giftShippingItemResults.add(tmpGiftShippingItem);
+                    if (!CollectionUtils.isEmpty(giftShippingItemResults)) {
+                        currentTradeDeliver.setGiftItemList(giftShippingItemResults);
+                    }
+                } else {
+                    giftShippingItem.setItemName(currentGiftTradeItem.getSpuName());
+                    giftShippingItem.setItemNum(currentGiftTradeItem.getDeliveredNum());
+                    giftShippingItem.setSpuId(currentGiftTradeItem.getSpuId());
+                    giftShippingItem.setSkuId(currentGiftTradeItem.getSkuId());
+                    giftShippingItem.setSkuNo(currentGiftTradeItem.getSkuNo());
+                    giftShippingItem.setPic(currentGiftTradeItem.getPic());
+                }
+            }
 
         }
 
