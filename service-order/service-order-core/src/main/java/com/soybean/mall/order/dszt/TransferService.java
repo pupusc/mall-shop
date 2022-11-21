@@ -603,19 +603,8 @@ public class TransferService {
             throw new SbcRuntimeException("999999", "当前获取客户信息为null");
         }
 
-        CustomerGetByIdRequest customerGetByIdRequest = new CustomerGetByIdRequest();
-        customerGetByIdRequest.setCustomerId(buyer.getId());
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(customerGetByIdRequest).getContext();
-        if (customer == null) {
-            throw new SbcRuntimeException("999999", "当前获取客户信息为null");
-        }
-
-
-
         //订单状态
         TradeState tradeState = trade.getTradeState();
-
-
 
         //商品列表
         List<TradeItem> tradeItems = trade.getTradeItems();
@@ -653,7 +642,7 @@ public class TransferService {
             orderUserInfoReq.setArea("+86");
             orderUserInfoReq.setMobile(consignee.getPhone());
         } else {
-            orderUserInfoReq.setUserId(Integer.valueOf(customer.getFanDengUserNo()));
+            orderUserInfoReq.setUserId(getFddsUserNo(buyer.getId(), trade.isImportFlag()));
         }
         createOrderReq.setOrderUserInfoBO(orderUserInfoReq);
         createOrderReq.setBuyerMemo(trade.getBuyerRemark());
@@ -685,6 +674,26 @@ public class TransferService {
         SandR.put("deductDoce", trade.getDeductCode());
         createOrderReq.setOrderSnapshot(SandR);
         return createOrderReq;
+    }
+
+    private Integer getFddsUserNo(String customerId, boolean importFlag) {
+        CustomerGetByIdRequest customerGetByIdRequest = new CustomerGetByIdRequest();
+        customerGetByIdRequest.setCustomerId(customerId);
+
+        CustomerGetByIdResponse customer = null;
+        try {
+            customer = customerQueryProvider.getCustomerById(customerGetByIdRequest).getContext();
+        } catch (Exception e) {
+            if (importFlag) {
+                log.warn("查询用户信息发生异常", e);
+                return null;
+            }
+            throw e;
+        }
+        if (customer == null) {
+            throw new SbcRuntimeException("999999", "当前获取客户信息为null");
+        }
+        return Integer.valueOf(customer.getFanDengUserNo());
     }
 
 

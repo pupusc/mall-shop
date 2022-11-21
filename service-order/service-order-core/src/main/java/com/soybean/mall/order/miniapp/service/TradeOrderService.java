@@ -391,6 +391,7 @@ public class TradeOrderService {
 			}
 			try {
 				log.warn("==>>电商中台订单同步开始：tradeId={}", trade.getId());
+				trade.setImportFlag(true);
 				CreateOrderReq createOrderReq = transferService.trade2CreateOrderReq(trade);
 				createOrderReq.setPlatformCode("WAN_MI");
 				createOrderReq.setPlatformOrderId(trade.getId());

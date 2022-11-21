@@ -525,4 +525,8 @@ public class Trade implements Serializable {
      * 同步版本，内部使用
      */
     private Integer sVersion;
+    /**
+     * 导入标记
+     */
+    private boolean importFlag;
 }
