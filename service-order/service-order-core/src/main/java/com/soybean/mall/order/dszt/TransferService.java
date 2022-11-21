@@ -166,7 +166,7 @@ public class TransferService {
      * @param tradeItems
      * @return
      */
-    private List<CreateOrderReq.BuyGoodsReq> packageSku(List<TradeItem> tradeItems, OrderSourceEnum orderSourceEnum) {
+    private List<CreateOrderReq.BuyGoodsReq> packageSku(List<TradeItem> tradeItems, List<TradeItem> giftsTradeItems, OrderSourceEnum orderSourceEnum, TradePrice tradePrice) {
         List<CreateOrderReq.BuyGoodsReq> result = new ArrayList<>();
 
         //打包商品
@@ -367,92 +367,131 @@ public class TransferService {
             if (!StringUtils.isEmpty(tradeItem.getPackId())) {
                 continue;
             }
-            CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
-            buyGoodsReq.setPlatformItemId(tradeItem.getOid());
-            buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
-            buyGoodsReq.setNum(tradeItem.getNum().intValue());
-            buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
-            buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
-            buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
-            buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
-            BigDecimal  originalPrice = tradeItem.getOriginalPrice() == null ? BigDecimal.ZERO : tradeItem.getOriginalPrice();
-            BigDecimal newOriginalPrice = originalPrice.multiply(exchangeRate);
-            buyGoodsReq.setPrice(newOriginalPrice.intValue());
-            buyGoodsReq.setGiftFlag(0); //非赠送
+            result.add(this.packageBuyGoodsReq(tradeItem, orderSourceEnum, 0, tradePrice));
+        }
 
-            //优惠
-            List<CreateOrderReq.BuyDiscountReq> buyDiscountReqList = new ArrayList<>();
-            if (Objects.equals(orderSourceEnum, OrderSourceEnum.PLATFORM_MALL)) {
-                //履约订单价格优惠没有设置，这里强制给设置成会员优惠
-                if (newOriginalPrice.compareTo(BigDecimal.ZERO) > 0) {
-                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-                    buyDiscountReq.setAmount(newOriginalPrice.intValue());
-                    buyDiscountReq.setCouponId("");
-                    buyDiscountReq.setDiscountNo("");
-                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
-                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
-                    buyDiscountReq.setMemo("会员价");
-                    buyDiscountReq.setCostAssume("CHANNEL");
-                    buyDiscountReqList.add(buyDiscountReq);
-                }
-            } else {
-                //会员价格
-                if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
-                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-                    BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
-                    tmpPrice = tmpPrice.multiply(exchangeRate).multiply(new BigDecimal(tradeItem.getNum().toString()));
-                    buyDiscountReq.setAmount(tmpPrice.intValue());
-                    buyDiscountReq.setCouponId("");
-                    buyDiscountReq.setDiscountNo("");
-                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
-                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
-                    buyDiscountReq.setMemo("会员价");
-                    buyDiscountReq.setCostAssume("CHANNEL");
-                    buyDiscountReqList.add(buyDiscountReq);
-                }
-            }
-
-
-            //优惠券
-            if (!CollectionUtils.isEmpty(tradeItem.getCouponSettlements())) {
-                for (TradeItem.CouponSettlement couponSettlement : tradeItem.getCouponSettlements()) {
-                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-                    BigDecimal discount = couponSettlement.getReducePrice().multiply(exchangeRate);
-                    buyDiscountReq.setAmount(discount.intValue());
-                    buyDiscountReq.setCouponId(couponSettlement.getCouponCodeId());
-                    buyDiscountReq.setDiscountNo(couponSettlement.getCouponCode());
-                    buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.DISCOUNT.getMsg()); //优惠券别称
-                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.DISCOUNT.getType()); //优惠
-                    buyDiscountReq.setMemo("优惠券");
-                    buyDiscountReq.setCostAssume("CHANNEL");
-                    buyDiscountReqList.add(buyDiscountReq);
-                }
-            }
-
-            //营销价格
-            if (CollectionUtils.isNotEmpty(tradeItem.getMarketingSettlements())) {
-                for (TradeItem.MarketingSettlement marketingSettlement : tradeItem.getMarketingSettlements()) {
-                    CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
-                    BigDecimal tmpPrice = tradeItem.getPrice().multiply(new BigDecimal(tradeItem.getNum()+""));
-                    BigDecimal tmpMarketingPrice = tmpPrice.subtract(marketingSettlement.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlement.getSplitPrice());
-                    tmpMarketingPrice = tmpMarketingPrice.multiply(exchangeRate);
-                    buyDiscountReq.setAmount(tmpMarketingPrice.intValue());
-                    buyDiscountReq.setCouponId("");
-                    buyDiscountReq.setDiscountNo("");
-                    buyDiscountReq.setDiscountName(marketingSettlement.getMarketingType().toString());
-                    buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.MARKETING.getType()); //优惠
-                    buyDiscountReq.setMemo("营销活动");
-                    buyDiscountReq.setCostAssume("CHANNEL");
-                    buyDiscountReqList.add(buyDiscountReq);
-                }
-            }
-
-
-
-            buyGoodsReq.setGoodsDiscounts(buyDiscountReqList);
-            result.add(buyGoodsReq);
+        //赠品
+        for (TradeItem giftsTradeItem : giftsTradeItems) {
+            result.add(this.packageBuyGoodsReq(giftsTradeItem, orderSourceEnum, 1, tradePrice));
         }
         return result;
+    }
+
+
+    /**
+     * 获取BuyGoodsReq对象信息
+     * @param tradeItem
+     * @param
+     * @param giftFlag  是否赠送, 1 赠送，0 非赠送，2 补偿 【0元非赠送】
+     * @return
+     */
+    private CreateOrderReq.BuyGoodsReq packageBuyGoodsReq(TradeItem tradeItem, OrderSourceEnum orderSourceEnum, Integer giftFlag, TradePrice tradePrice) {
+        CreateOrderReq.BuyGoodsReq buyGoodsReq = new CreateOrderReq.BuyGoodsReq();
+        buyGoodsReq.setPlatformItemId(tradeItem.getOid());
+        buyGoodsReq.setGoodsCode(StringUtils.isEmpty(tradeItem.getErpSkuNo()) || tradeItem.getErpSkuNo().startsWith("zh") ? tradeItem.getErpSpuNo() : tradeItem.getErpSkuNo());
+        buyGoodsReq.setNum(tradeItem.getNum().intValue());
+        buyGoodsReq.setPlatformGoodsId(tradeItem.getSpuId());
+        buyGoodsReq.setPlatformGoodsName(tradeItem.getSpuName());
+        buyGoodsReq.setPlatformSkuId(tradeItem.getSkuId());
+        buyGoodsReq.setPlatformSkuName(tradeItem.getSkuName());
+        BigDecimal  originalPrice = tradeItem.getOriginalPrice() == null ? BigDecimal.ZERO : tradeItem.getOriginalPrice();
+        BigDecimal newOriginalPrice = originalPrice.multiply(exchangeRate);
+        buyGoodsReq.setPrice(newOriginalPrice.intValue());
+        buyGoodsReq.setGiftFlag(giftFlag); //非赠送
+
+        //优惠
+        List<CreateOrderReq.BuyDiscountReq> buyDiscountReqList = new ArrayList<>();
+        if (Objects.equals(orderSourceEnum, OrderSourceEnum.PLATFORM_MALL)) {
+            //履约订单价格优惠没有设置，这里强制给设置成会员优惠
+            if (newOriginalPrice.compareTo(BigDecimal.ZERO) > 0) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                buyDiscountReq.setAmount(newOriginalPrice.intValue());
+                buyDiscountReq.setCouponId("");
+                buyDiscountReq.setDiscountNo("");
+                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                buyDiscountReq.setMemo("会员价");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
+        } else {
+            //会员价格
+            if (tradeItem.getOriginalPrice().compareTo(tradeItem.getPrice()) > 0) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                BigDecimal tmpPrice = tradeItem.getOriginalPrice().subtract(tradeItem.getPrice());
+                tmpPrice = tmpPrice.multiply(exchangeRate).multiply(new BigDecimal(tradeItem.getNum().toString()));
+                buyDiscountReq.setAmount(tmpPrice.intValue());
+                buyDiscountReq.setCouponId("");
+                buyDiscountReq.setDiscountNo("");
+                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getMsg());
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.VIP_PRICE_DIFF.getType()); //优惠
+                buyDiscountReq.setMemo("会员价");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
+        }
+
+
+        //优惠券
+        if (!CollectionUtils.isEmpty(tradeItem.getCouponSettlements())) {
+            for (TradeItem.CouponSettlement couponSettlement : tradeItem.getCouponSettlements()) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                BigDecimal discount = couponSettlement.getReducePrice().multiply(exchangeRate);
+                buyDiscountReq.setAmount(discount.intValue());
+                buyDiscountReq.setCouponId(couponSettlement.getCouponCodeId());
+                buyDiscountReq.setDiscountNo(couponSettlement.getCouponCode());
+                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.DISCOUNT.getMsg()); //优惠券别称
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.DISCOUNT.getType()); //优惠
+                buyDiscountReq.setMemo("优惠券");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
+        }
+
+        //营销价格
+        if (CollectionUtils.isNotEmpty(tradeItem.getMarketingSettlements())) {
+            for (TradeItem.MarketingSettlement marketingSettlement : tradeItem.getMarketingSettlements()) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                BigDecimal tmpPrice = tradeItem.getPrice().multiply(new BigDecimal(tradeItem.getNum()+""));
+                BigDecimal tmpMarketingPrice = tmpPrice.subtract(marketingSettlement.getSplitPrice() == null ? BigDecimal.ZERO : marketingSettlement.getSplitPrice());
+                tmpMarketingPrice = tmpMarketingPrice.multiply(exchangeRate);
+                buyDiscountReq.setAmount(tmpMarketingPrice.intValue());
+                buyDiscountReq.setCouponId("");
+                buyDiscountReq.setDiscountNo("");
+                buyDiscountReq.setDiscountName(marketingSettlement.getMarketingType().toString());
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.MARKETING.getType()); //优惠
+                buyDiscountReq.setMemo("营销活动");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
+        }
+
+        /**
+         * 非赠品
+         */
+        if (Objects.equals(giftFlag, 0) && tradePrice.getPrivilegePrice() != null && tradePrice.getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
+
+            BigDecimal discountAmount = BigDecimal.ZERO;
+            for (CreateOrderReq.BuyDiscountReq buyDiscountReq : buyDiscountReqList) {
+                discountAmount = discountAmount.add(new BigDecimal(buyDiscountReq.getAmount() + ""));
+            }
+            //差价
+            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount);
+            if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
+                CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
+                buyDiscountReq.setAmount(diffPrice.intValue());
+                buyDiscountReq.setCouponId("");
+                buyDiscountReq.setDiscountNo("");
+                buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getMsg());
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getType()); //差价
+                buyDiscountReq.setMemo("差价");
+                buyDiscountReq.setCostAssume("CHANNEL");
+                buyDiscountReqList.add(buyDiscountReq);
+            }
+        }
+
+        buyGoodsReq.setGoodsDiscounts(buyDiscountReqList);
+        return buyGoodsReq;
     }
 
 
@@ -629,7 +668,7 @@ public class TransferService {
         createOrderReq.setBuyPaymentBO(this.packageBuyPayment(trade, orderSourceEnum));
         createOrderReq.setPayTimeOut(trade.getOrderTimeOut());
         //商品信息
-        createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, orderSourceEnum));
+        createOrderReq.setBuyGoodsBOS(this.packageSku(tradeItems, trade.getGifts(), orderSourceEnum, tradePrice));
 
         createOrderReq.setBuyAddressBO(this.packageAddress(trade, consignee, customerDetail));
         if (salePlatformResp.getTid() != null) {
