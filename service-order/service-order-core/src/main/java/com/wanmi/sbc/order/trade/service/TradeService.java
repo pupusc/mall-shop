@@ -4405,8 +4405,10 @@ public class TradeService {
             throw new SbcRuntimeException("999999", "修改价格不能大于原始金额");
         }
 
-        if (trade.getTradePrice().getDeliveryPrice().compareTo(request.getTradePrice().getDeliveryPrice()) != 0) {
-            throw new SbcRuntimeException("999999", "运费不可以变更");
+        if (request.getTradePrice().getDeliveryPrice() != null) {
+            if (trade.getTradePrice().getDeliveryPrice().compareTo(request.getTradePrice().getDeliveryPrice()) != 0) {
+                throw new SbcRuntimeException("999999", "运费不可以变更");
+            }
         }
 
         BaseResponse<PayTradeRecordCountResponse> response = payQueryProvider.getTradeRecordCountByOrderOrParentCode(new
