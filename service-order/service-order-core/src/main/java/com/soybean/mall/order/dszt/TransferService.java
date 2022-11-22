@@ -924,6 +924,32 @@ public class TransferService {
             }
             //验证组合商品的分摊金额
             validatePrice(returnOrder, returnItems);
+
+            //赠品，不参与分摊
+            if (!CollectionUtils.isEmpty(returnOrder.getReturnGifts())) {
+                for (ReturnItem returnGiftItem : returnOrder.getReturnGifts()) {
+                    List<OrderDetailResp.OrderItemResp> orderItemRespList = skuId2OrderItemMap.get(returnGiftItem.getSkuId());
+                    if (CollectionUtils.isEmpty(orderItemRespList)) {
+                        log.error("TransferService detailByPlatformOrderId skuId:{} 在电商中台中不存在", returnGiftItem.getSkuId());
+                        throw new SbcRuntimeException("999999", "skuId" + returnGiftItem.getSkuId() + " 电商中台中不存在");
+                    }
+
+                    for (OrderDetailResp.OrderItemResp orderItemResp : orderItemRespList) {
+                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                        saleAfterItemReq.setRefundType(6); // todo赠品
+                        if (returnOrder.getReturnLogistics() != null) {
+                            saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
+                            saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
+                        }
+                        saleAfterItemReq.setRefundNum(orderItemResp.getNum());
+                        saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                        saleAfterItemReq.setObjectType("ORD_ITEM");
+                        saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                        saleAfterItemReqList.add(saleAfterItemReq);
+                    }
+                }
+            }
+
         }
         saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
 
