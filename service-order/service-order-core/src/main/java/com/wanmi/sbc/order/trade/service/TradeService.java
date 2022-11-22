@@ -4408,7 +4408,7 @@ public class TradeService {
             privilegePrice = request.getTradePrice().getPrivilegePrice();
         }
 
-        BigDecimal toPayGoodsPrice = trade.getTradePrice().getGoodsPrice().subtract(trade.getTradePrice().getCouponPrice());
+        BigDecimal toPayGoodsPrice = trade.getTradePrice().getGoodsPrice().subtract(trade.getTradePrice().getDiscountsPrice());
         log.info("TradeService remedyPart privilegePrice:{} toPayGoodsPrice:{} orderId:{}", privilegePrice, toPayGoodsPrice, request.getTradeId());
         if (privilegePrice.compareTo(toPayGoodsPrice) > 0) {
             throw new SbcRuntimeException("999999", "修改价格不能大于原始金额 " + toPayGoodsPrice);
