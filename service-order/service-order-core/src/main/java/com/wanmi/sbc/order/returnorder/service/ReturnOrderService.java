@@ -572,12 +572,15 @@ public class ReturnOrderService {
                 return;
             }
 
+            log.info("ReturnOrderService buildGiftReturnOrder giftTradeMarketingList:{}", JSON.toJSONString(giftTradeMarketingList));
+
+
             //退货商品中存在订单中的商品[获取商品对象信息]
             List<TradeItem> tradeItemsExistsMarketing = new ArrayList<>();
 
             Map<String, TradeItem> skuId2TradeItemMap =
                     trade.getTradeItems().stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
-
+            log.info("ReturnOrderService buildGiftReturnOrder skuId2TradeItemMap:{}", JSON.toJSONString(skuId2TradeItemMap));
             for (ReturnItem returnItem : returnOrder.getReturnItems()) {
                 if (skuId2TradeItemMap.get(returnItem.getSkuId()) == null) {
                     throw new SbcRuntimeException("999999", "售后订单里面包含订单不存在的商品");
@@ -592,6 +595,8 @@ public class ReturnOrderService {
                 log.info("ReturnOrderService buildGiftReturnOrder tradeItemsExistsMarketing isEmpty return returnOrderId {}", returnOrder.getTid());
                 return;
             }
+            log.info("ReturnOrderService buildGiftReturnOrder tradeItemsExistsMarketing:{}", JSON.toJSONString(tradeItemsExistsMarketing));
+
 
             //退货商品对应的赠品
             Map<String, Set<String>> skuId2GiftSkuIdMap = new HashMap<>();
@@ -614,6 +619,8 @@ public class ReturnOrderService {
                     }
                 }
             }
+
+            log.info("ReturnOrderService buildGiftReturnOrder skuId2GiftSkuIdMap:{}", JSON.toJSONString(skuId2GiftSkuIdMap));
 
             if (skuId2GiftSkuIdMap.isEmpty()) {
                 log.info("ReturnOrderService buildGiftReturnOrder skuId2GiftSkuIdMap isEmpty return returnOrderId {}", returnOrder.getTid());
@@ -639,6 +646,8 @@ public class ReturnOrderService {
                     returnItemList.add(returnItem);
                 }
             }
+            log.info("ReturnOrderService buildGiftReturnOrder returnItemList:{}", JSON.toJSONString(returnItemList));
+
             returnOrder.setReturnGifts(returnItemList);
 
         }
