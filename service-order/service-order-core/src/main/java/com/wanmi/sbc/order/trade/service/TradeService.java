@@ -4391,6 +4391,7 @@ public class TradeService {
     @Transactional
     @GlobalTransactional
     public void remedyPart(TradeRemedyRequest request, Operator operator, StoreInfoResponse storeInfoResponse) {
+        log.info("TradeService remedyPart TradeRemedyRequest :{}", JSON.toJSONString(request));
         //1.获取旧订单信息,并校验当前状态是否可修改
         Trade trade = this.detail(request.getTradeId());
         if (trade.getTradeState().getPayState() == PayState.PAID) {
@@ -4408,6 +4409,7 @@ public class TradeService {
         }
 
         BigDecimal toPayGoodsPrice = trade.getTradePrice().getGoodsPrice().subtract(trade.getTradePrice().getCouponPrice());
+        log.info("TradeService remedyPart privilegePrice:{} toPayGoodsPrice:{} orderId:{}", privilegePrice, toPayGoodsPrice, request.getTradeId());
         if (privilegePrice.compareTo(toPayGoodsPrice) > 0) {
             throw new SbcRuntimeException("999999", "修改价格不能大于原始金额 " + toPayGoodsPrice);
         }
