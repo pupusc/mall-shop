@@ -537,7 +537,7 @@ public class TradeController {
                 .operator(operator)
                 .storeInfoDTO(KsBeanUtil.convert(storeInfoResponse, StoreInfoDTO.class))
                 .build();
-
+        log.info("TradeController remedyPart tradeRemedyPartRequest: {}", JSON.toJSONString(tradeRemedyPartRequest));
         tradeProvider.remedyPart(tradeRemedyPartRequest);
         return ResponseEntity.ok(BaseResponse.SUCCESSFUL());
     }

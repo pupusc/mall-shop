@@ -4396,6 +4396,18 @@ public class TradeService {
         if (trade.getTradeState().getPayState() == PayState.PAID) {
             throw new SbcRuntimeException("K-050212");
         }
+        BigDecimal privilegePrice = BigDecimal.ZERO;
+        if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
+            privilegePrice = request.getTradePrice().getPrivilegePrice();
+        }
+
+        if (privilegePrice.compareTo(trade.getTradePrice().getTotalPrice()) > 0) {
+            throw new SbcRuntimeException("999999", "修改价格不能大于原始金额");
+        }
+
+        if (trade.getTradePrice().getDeliveryPrice().compareTo(request.getTradePrice().getDeliveryPrice()) != 0) {
+            throw new SbcRuntimeException("999999", "运费不可以变更");
+        }
 
         BaseResponse<PayTradeRecordCountResponse> response = payQueryProvider.getTradeRecordCountByOrderOrParentCode(new
                 TradeRecordCountByOrderOrParentCodeRequest(trade.getId(), trade.getParentId()));
