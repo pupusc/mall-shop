@@ -4396,13 +4396,20 @@ public class TradeService {
         if (trade.getTradeState().getPayState() == PayState.PAID) {
             throw new SbcRuntimeException("K-050212");
         }
+        if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new SbcRuntimeException("999999", "修改的金额需要为正数");
+        }
+        if (trade.getTradePrice().getDeliveryDetailPrice() == null) {
+            throw new SbcRuntimeException("999999", "该订单为历史订单不可以修改金额");
+        }
         BigDecimal privilegePrice = BigDecimal.ZERO;
         if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
             privilegePrice = request.getTradePrice().getPrivilegePrice();
         }
 
-        if (privilegePrice.compareTo(trade.getTradePrice().getTotalPrice()) > 0) {
-            throw new SbcRuntimeException("999999", "修改价格不能大于原始金额");
+        BigDecimal toPayGoodsPrice = trade.getTradePrice().getGoodsPrice().subtract(trade.getTradePrice().getCouponPrice());
+        if (privilegePrice.compareTo(toPayGoodsPrice) > 0) {
+            throw new SbcRuntimeException("999999", "修改价格不能大于原始金额 " + toPayGoodsPrice);
         }
 
         if (request.getTradePrice().getDeliveryPrice() != null) {
@@ -4446,7 +4453,11 @@ public class TradeService {
         TradePrice newTradePrice = request.getTradePrice();
         tradePrice.setPrivilegePrice(newTradePrice.getPrivilegePrice());
         tradePrice.setEnableDeliveryPrice(newTradePrice.isEnableDeliveryPrice());
-        tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(tradePrice.getDeliveryPrice()));
+
+        DeliveryDetailPrice deliveryDetailPrice = tradePrice.getDeliveryDetailPrice();
+        BigDecimal deliveryPayPrice =
+                deliveryDetailPrice.getDeliveryPayPrice() == null ? BigDecimal.ZERO : deliveryDetailPrice.getDeliveryPayPrice();
+        tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(deliveryPayPrice));
         tradePrice.setDeliveryPrice(newTradePrice.getDeliveryPrice());
 
         // 4.如果取消特价的情况，则要重新计算totalPrice和tradeItem的splitPrice
@@ -4496,9 +4507,9 @@ public class TradeService {
                 // 如果有分销商品
                 this.reCalcDistributionItem(trade);
             }
-            tradePrice.setTotalPrice(tradePrice.getPrivilegePrice().add(deliveryPrice));//应付金额 = 特价+运费
+            tradePrice.setTotalPrice(tradePrice.getPrivilegePrice().add(deliveryPayPrice));//应付金额 = 特价+运费
         } else {
-            tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
+            tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPayPrice));//应付金额 = 应付+运费
         }
 
         // 7.在s2b模式下 如果存在支付单，删除，创建一笔新的支付单
@@ -4548,7 +4559,7 @@ public class TradeService {
                     orderPrice = orderPrice.add(tradeItem.getSplitPrice());
                 }
             }
-            providerTradePrice.setTotalPrice(orderPrice.add(providerTradePrice.getDeliveryPrice()));
+            providerTradePrice.setTotalPrice(orderPrice.add(providerTradePrice.getDeliveryDetailPrice().getDeliveryPayPrice()));
             providerTradePrice.setTotalPayCash(orderPrice);
             providerTrade.setTradePrice(providerTradePrice);
 
