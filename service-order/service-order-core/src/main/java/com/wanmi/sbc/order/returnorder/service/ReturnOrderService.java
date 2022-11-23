@@ -770,6 +770,8 @@ public class ReturnOrderService {
                     deliveryPoint = deliveryDetailPrice.getDeliveryPoint();
                     deliveryPayPrice = deliveryDetailPrice.getDeliveryPayPrice();
                     returnOrder.getReturnPrice().setReturnDeliveryDetailPrice(returnDeliveryDetailPrice);
+                } else {
+                    deliveryPayPrice = deliverPrice;
                 }
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
@@ -858,6 +860,8 @@ public class ReturnOrderService {
                     deliveryPoint = deliveryDetailPrice.getDeliveryPoint();
                     deliveryPayPrice = deliveryDetailPrice.getDeliveryPayPrice();
                     returnOrder.getReturnPrice().setReturnDeliveryDetailPrice(returnDeliveryDetailPrice);
+                } else {
+                    deliveryPayPrice = deliverPrice;
                 }
 
                 returnOrder.setReturnItems(returnItemDTOList);
