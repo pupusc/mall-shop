@@ -591,7 +591,7 @@ public class ReturnOrderService {
                 }
             }
 
-            if (CollectionUtils.isNotEmpty(tradeItemsExistsMarketing)) {
+            if (CollectionUtils.isEmpty(tradeItemsExistsMarketing)) {
                 log.info("ReturnOrderService buildGiftReturnOrder tradeItemsExistsMarketing isEmpty return returnOrderId {}", returnOrder.getTid());
                 return;
             }

@@ -936,7 +936,7 @@ public class TransferService {
 
                     for (OrderDetailResp.OrderItemResp orderItemResp : orderItemRespList) {
                         SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                        saleAfterItemReq.setRefundType(6); // todo赠品
+                        saleAfterItemReq.setRefundType(refundType); // todo赠品
                         if (returnOrder.getReturnLogistics() != null) {
                             saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
                             saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
@@ -945,6 +945,14 @@ public class TransferService {
                         saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
                         saleAfterItemReq.setObjectType("ORD_ITEM");
                         saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+
+                        List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
+                        SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                        saleAfterRefundDetailReq.setAmount(0); //赠品金额为0
+                        saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
+                        saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
+                        saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
                         saleAfterItemReqList.add(saleAfterItemReq);
                     }
                 }
