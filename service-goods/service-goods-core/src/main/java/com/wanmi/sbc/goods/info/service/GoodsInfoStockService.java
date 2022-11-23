@@ -223,6 +223,7 @@ public class GoodsInfoStockService {
             goodsInfoStockSyncResponse.setSkuNo(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoNo());
             goodsInfoStockSyncResponse.setSkuName(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoName());
             goodsInfoStockSyncResponse.setActualStockQty(tmpActualStockQty.intValue());
+            goodsInfoStockSyncResponse.setActualStockQty(tmpActualStockQty.intValue());
             goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoStockAndCostPriceSyncParam.getMarketPrice());
             goodsInfoStockSyncResponse.setActualCostPrice(tmpCostPrice);
 

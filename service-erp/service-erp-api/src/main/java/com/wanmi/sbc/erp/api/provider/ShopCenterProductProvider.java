@@ -1,12 +1,14 @@
 package com.wanmi.sbc.erp.api.provider;
 
 
-import com.wanmi.sbc.erp.api.resp.GoodsPackRsp;
+import com.wanmi.sbc.erp.api.req.ShopCenterGoodsStockOrCostPriceReq;
 import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
+import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsCostPriceResp;
+import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsStockResp;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,11 +31,11 @@ public interface ShopCenterProductProvider {
     @PostMapping("/erp/${application.erp.version}/shopcenter/search-goods-info")
     BaseResponse<List<NewGoodsInfoResp>> searchGoodsInfo(@RequestBody NewGoodsInfoRequest request);
 
-    /**
-     * goods
-     */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/searchPackByGoodsCodes")
-    BaseResponse<List<GoodsPackRsp>> searchPackByGoodsCodes(@RequestBody List<String> request);
+//    /**
+//     * goods
+//     */
+//    @PostMapping("/erp/${application.erp.version}/shopcenter/searchPackByGoodsCodes")
+//    BaseResponse<List<GoodsPackRsp>> searchPackByGoodsCodes(@RequestBody List<String> request);
 
     /**
      * 获取渠道信息
@@ -43,4 +45,21 @@ public interface ShopCenterProductProvider {
      */
     @PostMapping("/erp/${application.erp.version}/shopcenter/product/getSalePlatform")
     BaseResponse<SalePlatformResp> getSalePlatform(@RequestBody SalePlatformQueryReq salePlatformQueryReq);
+
+
+    /**
+     * 获取库存
+     * @param shopCenterGoodsStockReq
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/shopcenter/product/searchGoodsStock")
+    BaseResponse<List<ShopCenterGoodsStockResp>> searchGoodsStock(@RequestBody ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockReq);
+
+    /**
+     * 获取成本价
+     * @param shopCenterGoodsStockReq
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/shopcenter/product/searchGoodsStock")
+    BaseResponse<List<ShopCenterGoodsCostPriceResp>> searchGoodsCostPrice(@RequestBody ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockReq);
 }

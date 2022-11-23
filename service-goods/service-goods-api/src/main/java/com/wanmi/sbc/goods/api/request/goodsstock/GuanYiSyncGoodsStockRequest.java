@@ -19,9 +19,10 @@ public class GuanYiSyncGoodsStockRequest implements Serializable {
 
 //    private String startTime;
 
-    private long maxTmpId;
-
-    private int pageSize;
+//    private long maxTmpId;
+//
+//    private int pageSize;
+    private List<String> erpGoodsNoList;
 
     /**
      * 此次是否记录到redis中

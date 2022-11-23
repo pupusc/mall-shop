@@ -354,8 +354,8 @@ public class GoodsController {
             GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
             guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
             guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
-            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
-            guanYiSyncGoodsStockRequest.setPageSize(0);
+//            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+//            guanYiSyncGoodsStockRequest.setPageSize(0);
             goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
         }
 
@@ -1454,8 +1454,8 @@ public class GoodsController {
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(V);
                 guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
-                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
-                guanYiSyncGoodsStockRequest.setPageSize(0);
+//                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+//                guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
             }
         });
@@ -1665,8 +1665,8 @@ public class GoodsController {
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
                 guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
-                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
-                guanYiSyncGoodsStockRequest.setPageSize(0);
+//                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+//                guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
             }
             esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
@@ -1714,8 +1714,8 @@ public class GoodsController {
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
                 guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
-                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
-                guanYiSyncGoodsStockRequest.setPageSize(0);
+//                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+//                guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
             }
             esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
