@@ -4400,9 +4400,7 @@ public class TradeService {
         if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new SbcRuntimeException("999999", "修改的金额需要为正数");
         }
-        if (trade.getTradePrice().getDeliveryDetailPrice() == null) {
-            throw new SbcRuntimeException("999999", "该订单为历史订单不可以修改金额");
-        }
+       
         BigDecimal privilegePrice = BigDecimal.ZERO;
         if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
             privilegePrice = request.getTradePrice().getPrivilegePrice();
