@@ -476,7 +476,12 @@ public class TransferService {
                 discountAmount = discountAmount.add(new BigDecimal(buyDiscountReq.getAmount() + ""));
             }
             //改价
-            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount).subtract(tradeItem.getSplitPrice());
+            long points = tradeItem.getPoints() == null ? 0 : tradeItem.getPoints();
+            long knowledge = tradeItem.getKnowledge() == null ? 0 : tradeItem.getKnowledge();
+
+            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount)
+                    .subtract(new BigDecimal(points + ""))
+                    .subtract(new BigDecimal(knowledge + "")).subtract(tradeItem.getSplitPrice());
             if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
                 CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                 buyDiscountReq.setAmount(diffPrice.intValue());
