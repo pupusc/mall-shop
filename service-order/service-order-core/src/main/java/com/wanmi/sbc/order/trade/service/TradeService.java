@@ -4471,7 +4471,6 @@ public class TradeService {
         tradePrice.setEnableDeliveryPrice(newTradePrice.isEnableDeliveryPrice());
 
         DeliveryDetailPrice deliveryDetailPrice = tradePrice.getDeliveryDetailPrice();
-        tradePrice.setDeliveryPrice(newTradePrice.getDeliveryPrice());
         if (deliveryDetailPrice != null) {
             BigDecimal tempDeliveryPayPrice = tradePrice.getDeliveryPrice().subtract(deliveryDetailPrice.getDeliveryPointPrice());
             deliveryDetailPrice.setDeliveryPayPrice(tempDeliveryPayPrice);
@@ -4479,7 +4478,8 @@ public class TradeService {
 
         BigDecimal deliveryPayPrice = deliveryDetailPrice == null ? tradePrice.getDeliveryPrice() : deliveryDetailPrice.getDeliveryPayPrice();
         tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(deliveryPayPrice));
-
+        //默认为null
+        tradePrice.setDeliveryPrice(newTradePrice.getDeliveryPrice());
 
 
         // 4.如果取消特价的情况，则要重新计算totalPrice和tradeItem的splitPrice
@@ -4504,18 +4504,26 @@ public class TradeService {
 
         // 5.计算运费
         trade.getSupplier().setFreightTemplateType(storeInfoResponse.getFreightTemplateType());
-        BigDecimal deliveryPrice = tradePrice.getDeliveryPrice();
+//        BigDecimal deliveryPrice = tradePrice.getDeliveryPrice();
         if (tradePrice.getDeliveryPrice() == null) {
             boolean virtualCouponGoods = Objects.isNull(trade.getIsVirtualCouponGoods())
                     || Boolean.FALSE.equals(trade.getIsVirtualCouponGoods());
-            deliveryPrice = virtualCouponGoods ? tradeService.calcTradeFreight(trade.getConsignee(), trade.getSupplier(),
+            BigDecimal deliveryPrice = virtualCouponGoods ? tradeService.calcTradeFreight(trade.getConsignee(), trade.getSupplier(),
                     trade.getDeliverWay(),
                     tradePrice.getTotalPrice(), trade.getTradeItems(), trade.getGifts()) : BigDecimal.ZERO;
             tradePrice.setDeliveryPrice(deliveryPrice);
+            DeliveryDetailPrice tempDeliveryDetailPrice = tradePrice.getDeliveryDetailPrice();
+            if (tempDeliveryDetailPrice != null) {
+                deliveryPayPrice = deliveryPrice.subtract(tempDeliveryDetailPrice.getDeliveryPointPrice());
+                tempDeliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
+            } else {
+                deliveryPayPrice = deliveryPrice;
+            }
+
         }
 
         // 6.计算订单总价
-        tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(deliveryPrice));
+        tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(deliveryPayPrice));
         if (tradePrice.isSpecial()) {
             trade.getTradeItems().forEach(tradeItem ->
                     tradeItem.setSplitPrice(tradeItem.getLevelPrice().multiply(
