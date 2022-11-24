@@ -1610,6 +1610,18 @@ public class TradeService {
      * @param tradeCommitRequest
      */
     public void dealPoints(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
+
+        //设置默认运费信息 兼容历史订单
+        for (Trade trade : trades) {
+            TradePrice tradePrice = trade.getTradePrice();
+            DeliveryDetailPrice deliveryDetailPrice = new DeliveryDetailPrice();
+            deliveryDetailPrice.setDeliveryPointPrice(BigDecimal.ZERO);
+            deliveryDetailPrice.setDeliveryPoint(0L);
+            deliveryDetailPrice.setDeliveryPayPrice(tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice());
+            tradePrice.setDeliveryDetailPrice(deliveryDetailPrice);
+        }
+
+
         SystemPointsConfigQueryResponse pointsConfig = systemPointsConfigService.querySettingCache();
         final BigDecimal pointWorth = BigDecimal.valueOf(pointsConfig.getPointsWorth());
         /*
@@ -4400,9 +4412,11 @@ public class TradeService {
         if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new SbcRuntimeException("999999", "修改的金额需要为正数");
         }
+
         if (trade.getTradePrice().getDeliveryDetailPrice() == null) {
             throw new SbcRuntimeException("999999", "该订单为历史订单不可以修改金额");
         }
+
         BigDecimal privilegePrice = BigDecimal.ZERO;
         if (request.getTradePrice().getPrivilegePrice() != null && request.getTradePrice().getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
             privilegePrice = request.getTradePrice().getPrivilegePrice();
