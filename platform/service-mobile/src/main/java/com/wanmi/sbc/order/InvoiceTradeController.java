@@ -138,6 +138,21 @@ public class InvoiceTradeController {
             item.setCompleteTime(Date.from(tradeVO.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
+        if (tradeVO.getTradePrice().getDeliveryPrice()!=null && tradeVO.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
+            FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
+            item.setFee(tradeVO.getTradePrice().getDeliveryPrice());
+            item.setTotalFee(tradeVO.getTradePrice().getDeliveryPrice());
+            item.setOrderCode(tradeVO.getId()+"_delivery");
+            item.setCount(1);
+            item.setProduct("运费");
+            item.setProductNo(2);
+            item.setProductType(1012);
+            item.setProductIcoon("");
+            //暂时都定1
+            item.setOrderType(1);
+            item.setCompleteTime(fanDengInvoiceRequest.getOrderExtendBOS().get(0).getCompleteTime());
+            fanDengInvoiceRequest.getOrderExtendBOS().add(item);
+        }
         BaseResponse<String> result = externalProvider.submitInvoiceOrder(fanDengInvoiceRequest);
         return result;
     }

@@ -232,6 +232,23 @@ public class CompleteAction extends TradeAction {
                 item.setCompleteTime(Date.from(trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
                 fanDengInvoiceRequest.getOrderExtendBOS().add(item);
             }
+
+            if (trade.getTradePrice().getDeliveryPrice()!=null && trade.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
+                FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
+                item.setFee(trade.getTradePrice().getDeliveryPrice());
+                item.setTotalFee(trade.getTradePrice().getDeliveryPrice());
+                item.setOrderCode("-1");
+                item.setCount(1);
+                item.setProduct("运费");
+                item.setProductNo(2);
+                item.setProductType(1012);
+                item.setProductIcoon("");
+                //暂时都定1
+                item.setOrderType(1);
+                item.setCompleteTime(fanDengInvoiceRequest.getOrderExtendBOS().get(0).getCompleteTime());
+                fanDengInvoiceRequest.getOrderExtendBOS().add(item);
+            }
+
             BaseResponse<String> result = externalProvider.createInvoice(fanDengInvoiceRequest);
             if (!CommonErrorCode.SUCCESSFUL.equals(result.getCode())) {
                 logger.error("trade:{},create invoice error", trade.getId());
