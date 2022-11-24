@@ -982,7 +982,11 @@ public class TransferService {
                 saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
                 saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
                 saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
-                saleAfterRefundReq.setRefundMchid(payTradeRecordResponse.getAppId());
+                String appId = payTradeRecordResponse.getAppId();
+                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("$")) {
+                    appId = payTradeRecordResponse.getAppId().split("\\$")[1];
+                }
+                saleAfterRefundReq.setRefundMchid(appId);
                 saleAfterRefundReqList.add(saleAfterRefundReq);
             }
         }
