@@ -4522,6 +4522,17 @@ public class TradeService {
 
         }
 
+        if (deliveryPayPrice.compareTo(BigDecimal.ZERO) < 0) {
+            deliveryPayPrice = BigDecimal.ZERO;
+            DeliveryDetailPrice tempDeliveryDetailPrice = tradePrice.getDeliveryDetailPrice();
+            if (tempDeliveryDetailPrice != null) {
+                tradePrice.setDeliveryPrice(tempDeliveryDetailPrice.getDeliveryPointPrice());
+                tempDeliveryDetailPrice.setDeliveryPayPrice(deliveryPayPrice);
+            } else {
+                tradePrice.setDeliveryPrice(deliveryPayPrice);
+            }
+        }
+
         // 6.计算订单总价
         tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(deliveryPayPrice));
         if (tradePrice.isSpecial()) {
