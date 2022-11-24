@@ -233,10 +233,18 @@ public class CompleteAction extends TradeAction {
                 fanDengInvoiceRequest.getOrderExtendBOS().add(item);
             }
 
-            if (trade.getTradePrice().getDeliveryPrice()!=null && trade.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
+            BigDecimal deliveryPrice = BigDecimal.ONE;
+            if (trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice()!=null
+                    && trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice().compareTo(BigDecimal.ZERO)>0){
+                deliveryPrice = trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice();
+            }else if(trade.getTradePrice().getDeliveryPrice()!=null && trade.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
+                deliveryPrice = trade.getTradePrice().getDeliveryPrice();
+            }
+
+            if (deliveryPrice!=null){
                 FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
-                item.setFee(trade.getTradePrice().getDeliveryPrice());
-                item.setTotalFee(trade.getTradePrice().getDeliveryPrice());
+                item.setFee(deliveryPrice);
+                item.setTotalFee(deliveryPrice);
                 item.setOrderCode("-1");
                 item.setCount(1);
                 item.setProduct("运费");
