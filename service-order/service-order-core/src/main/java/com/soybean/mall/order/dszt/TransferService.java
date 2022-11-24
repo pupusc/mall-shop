@@ -475,15 +475,15 @@ public class TransferService {
             for (CreateOrderReq.BuyDiscountReq buyDiscountReq : buyDiscountReqList) {
                 discountAmount = discountAmount.add(new BigDecimal(buyDiscountReq.getAmount() + ""));
             }
-            //差价
-            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount);
+            //改价
+            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount).subtract(tradeItem.getSplitPrice());
             if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
                 CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                 buyDiscountReq.setAmount(diffPrice.intValue());
                 buyDiscountReq.setCouponId("");
                 buyDiscountReq.setDiscountNo("");
                 buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getMsg());
-                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getType()); //差价
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getType()); //改价
                 buyDiscountReq.setMemo("差价");
                 buyDiscountReq.setCostAssume("CHANNEL");
                 buyDiscountReqList.add(buyDiscountReq);
