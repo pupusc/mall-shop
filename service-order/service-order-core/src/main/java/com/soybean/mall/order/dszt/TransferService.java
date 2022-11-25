@@ -476,15 +476,20 @@ public class TransferService {
             for (CreateOrderReq.BuyDiscountReq buyDiscountReq : buyDiscountReqList) {
                 discountAmount = discountAmount.add(new BigDecimal(buyDiscountReq.getAmount() + ""));
             }
-            //差价
-            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount);
+            //改价
+            long points = tradeItem.getPoints() == null ? 0 : tradeItem.getPoints();
+            long knowledge = tradeItem.getKnowledge() == null ? 0 : tradeItem.getKnowledge();
+
+            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount)
+                    .subtract(new BigDecimal(points + ""))
+                    .subtract(new BigDecimal(knowledge + "")).subtract(tradeItem.getSplitPrice());
             if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
                 CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                 buyDiscountReq.setAmount(diffPrice.intValue());
                 buyDiscountReq.setCouponId("");
                 buyDiscountReq.setDiscountNo("");
                 buyDiscountReq.setDiscountName(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getMsg());
-                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getType()); //差价
+                buyDiscountReq.setChangeType(UnifiedOrderChangeTypeEnum.CHANGE_PRICE.getType()); //改价
                 buyDiscountReq.setMemo("差价");
                 buyDiscountReq.setCostAssume("CHANNEL");
                 buyDiscountReqList.add(buyDiscountReq);
@@ -925,40 +930,39 @@ public class TransferService {
             }
             //验证组合商品的分摊金额
             validatePrice(returnOrder, returnItems);
+        }
 
-            //赠品，不参与分摊
-            if (!CollectionUtils.isEmpty(returnOrder.getReturnGifts())) {
-                for (ReturnItem returnGiftItem : returnOrder.getReturnGifts()) {
-                    List<OrderDetailResp.OrderItemResp> orderItemRespList = skuId2OrderItemMap.get(returnGiftItem.getSkuId());
-                    if (CollectionUtils.isEmpty(orderItemRespList)) {
-                        log.error("TransferService detailByPlatformOrderId skuId:{} 在电商中台中不存在", returnGiftItem.getSkuId());
-                        throw new SbcRuntimeException("999999", "skuId" + returnGiftItem.getSkuId() + " 电商中台中不存在");
+        //赠品，不参与分摊
+        if (!CollectionUtils.isEmpty(returnOrder.getReturnGifts())) {
+            for (ReturnItem returnGiftItem : returnOrder.getReturnGifts()) {
+                List<OrderDetailResp.OrderItemResp> orderItemRespList = skuId2OrderItemMap.get(returnGiftItem.getSkuId());
+                if (CollectionUtils.isEmpty(orderItemRespList)) {
+                    log.error("TransferService detailByPlatformOrderId skuId:{} 在电商中台中不存在", returnGiftItem.getSkuId());
+                    throw new SbcRuntimeException("999999", "skuId" + returnGiftItem.getSkuId() + " 电商中台中不存在");
+                }
+
+                for (OrderDetailResp.OrderItemResp orderItemResp : orderItemRespList) {
+                    SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                    saleAfterItemReq.setRefundType(refundType); // todo赠品
+                    if (returnOrder.getReturnLogistics() != null) {
+                        saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
+                        saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
                     }
+                    saleAfterItemReq.setRefundNum(orderItemResp.getNum());
+                    saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                    saleAfterItemReq.setObjectType("ORD_ITEM");
+                    saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
 
-                    for (OrderDetailResp.OrderItemResp orderItemResp : orderItemRespList) {
-                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                        saleAfterItemReq.setRefundType(refundType); // todo赠品
-                        if (returnOrder.getReturnLogistics() != null) {
-                            saleAfterItemReq.setExpressCode(returnOrder.getReturnLogistics().getCode());
-                            saleAfterItemReq.setExpressNo(returnOrder.getReturnLogistics().getNo());
-                        }
-                        saleAfterItemReq.setRefundNum(orderItemResp.getNum());
-                        saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
-                        saleAfterItemReq.setObjectType("ORD_ITEM");
-                        saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
-
-                        List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
-                        SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
-                        saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
-                        saleAfterRefundDetailReq.setAmount(0); //赠品金额为0
-                        saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                        saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
-                        saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
-                        saleAfterItemReqList.add(saleAfterItemReq);
-                    }
+                    List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterRefundDetailReqList = new ArrayList<>();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(0); //赠品金额为0
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
+                    saleAfterRefundDetailReqList.add(saleAfterRefundDetailReq);
+                    saleAfterItemReq.setSaleAfterRefundDetailBOList(saleAfterRefundDetailReqList);
+                    saleAfterItemReqList.add(saleAfterItemReq);
                 }
             }
-
         }
         saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
 
