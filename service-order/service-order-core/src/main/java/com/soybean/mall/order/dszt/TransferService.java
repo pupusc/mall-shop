@@ -478,10 +478,11 @@ public class TransferService {
             //改价
             long points = tradeItem.getPoints() == null ? 0 : tradeItem.getPoints();
             long knowledge = tradeItem.getKnowledge() == null ? 0 : tradeItem.getKnowledge();
-
+            BigDecimal splitPrice = tradeItem.getSplitPrice() == null ? BigDecimal.ZERO : tradeItem.getSplitPrice();
+            splitPrice = splitPrice.multiply(exchangeRate);
             BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount)
                     .subtract(new BigDecimal(points + ""))
-                    .subtract(new BigDecimal(knowledge + "")).subtract(tradeItem.getSplitPrice());
+                    .subtract(new BigDecimal(knowledge + "")).subtract(splitPrice);
             if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
                 CreateOrderReq.BuyDiscountReq buyDiscountReq = new CreateOrderReq.BuyDiscountReq();
                 buyDiscountReq.setAmount(diffPrice.intValue());
