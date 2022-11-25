@@ -386,6 +386,7 @@ public class TradeOptimizeService {
         // 3.批量提交订单
         List<TradeCommitResult> successResults;
         try {
+            
             // 处理积分抵扣
             tradeService.dealPoints(trades, tradeCommitRequest);
             // 处理知豆抵扣
