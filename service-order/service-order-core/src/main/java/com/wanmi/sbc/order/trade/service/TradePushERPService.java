@@ -2592,14 +2592,14 @@ public class TradePushERPService {
             }
 
             List<ShippingItem> giftShippingItemList = new ArrayList<>();
-            if (currentTradeItem != null) {
+            if (currentGiftTradeItem != null) {
                 ShippingItem giftShippingItem = new ShippingItem();
-                giftShippingItem.setItemName(currentTradeItem.getSpuName());
-                giftShippingItem.setItemNum(currentTradeItem.getDeliveredNum());
-                giftShippingItem.setSpuId(currentTradeItem.getSpuId());
-                giftShippingItem.setSkuId(currentTradeItem.getSkuId());
-                giftShippingItem.setSkuNo(currentTradeItem.getSkuNo());
-                giftShippingItem.setPic(currentTradeItem.getPic());
+                giftShippingItem.setItemName(currentGiftTradeItem.getSpuName());
+                giftShippingItem.setItemNum(currentGiftTradeItem.getDeliveredNum());
+                giftShippingItem.setSpuId(currentGiftTradeItem.getSpuId());
+                giftShippingItem.setSkuId(currentGiftTradeItem.getSkuId());
+                giftShippingItem.setSkuNo(currentGiftTradeItem.getSkuNo());
+                giftShippingItem.setPic(currentGiftTradeItem.getPic());
                 giftShippingItemList.add(giftShippingItem);
             }
 
