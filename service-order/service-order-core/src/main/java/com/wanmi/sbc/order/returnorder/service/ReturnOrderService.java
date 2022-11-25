@@ -432,7 +432,7 @@ public class ReturnOrderService {
 //        return create(returnOrder, operator);
 //    }
 
-    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, Boolean> providerDeliveryMap) {
+    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, Boolean> providerDeliveryMap, List<ReturnOrder> returnOrderRawList) {
         //订单详情集合
         List<TradeItem> tradeItemList = trade.getTradeItems();
         //退单的商品列表
@@ -473,7 +473,7 @@ public class ReturnOrderService {
                 //退款时赠品拆分
 //                this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
                 buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade, providerDeliveryMap);
-                this.buildGiftReturnOrder(providerReturnOrder, trade, providerTrade);
+                this.buildGiftReturnOrder(providerReturnOrder, trade, providerTrade, returnOrderRawList);
                 StoreVO storeVO = storeVOMap.get(providerId);
                 //判断是否linkedmall,拆分LM店铺子订单
                 if (storeVO != null && CompanySourceType.LINKED_MALL.equals(storeVO.getCompanySourceType())) {
@@ -552,7 +552,7 @@ public class ReturnOrderService {
         }
     }
 
-    private void buildGiftReturnOrder(ReturnOrder returnOrder, Trade trade, ProviderTrade providerTrade) {
+    private void buildGiftReturnOrder(ReturnOrder returnOrder, Trade trade, ProviderTrade providerTrade, List<ReturnOrder> returnOrderRawList) {
         if (!Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)
             && !Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DIFF)) {
             if (CollectionUtils.isEmpty(trade.getTradeMarketings())) {
@@ -634,7 +634,8 @@ public class ReturnOrderService {
             Map<String, TradeItem> giftSkuId2ModelMap =
                     trade.getGifts().stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
 
-            List<ReturnItem> returnItemList = new ArrayList<>();
+//            List<ReturnItem> returnItemList = new ArrayList<>();
+            Map<String, ReturnItem> skuId2ReturnItemMap = new HashMap<>();
             for (Map.Entry<String, Set<String>> skuIdEntryMap : skuId2GiftSkuIdMap.entrySet()) {
                 Set<String> value = skuIdEntryMap.getValue();
                 for (String s : value) {
@@ -642,13 +643,37 @@ public class ReturnOrderService {
                     if (tradeItem == null) {
                         continue;
                     }
+                    ReturnItem tempReturnItem = skuId2ReturnItemMap.get(s);
+                    if (tempReturnItem != null) {
+                        continue;
+                    }
+
                     ReturnItem returnItem = KsBeanUtil.convert(tradeItem, ReturnItem.class);
-                    returnItemList.add(returnItem);
+                    skuId2ReturnItemMap.put(s, returnItem);
                 }
             }
-            log.info("ReturnOrderService buildGiftReturnOrder returnItemList:{}", JSON.toJSONString(returnItemList));
+            log.info("ReturnOrderService buildGiftReturnOrder skuId2ReturnItemMap:{}", JSON.toJSONString(skuId2ReturnItemMap));
 
-            returnOrder.setReturnGifts(returnItemList);
+            List<ReturnItem> giftResultList = new ArrayList<>();
+
+            List<ReturnOrder> returnFinishedOrders = this.filterFinishedReturnOrder(returnOrderRawList);
+            if (!CollectionUtils.isEmpty(returnFinishedOrders)) {
+                for (ReturnOrder returnFinishedOrder : returnFinishedOrders) {
+                    if (CollectionUtils.isEmpty(returnFinishedOrder.getReturnGifts())) {
+                        continue;
+                    }
+                    for (ReturnItem tempReturnGift : returnFinishedOrder.getReturnGifts()) {
+                        ReturnItem returnItem = skuId2ReturnItemMap.get(tempReturnGift.getSkuId());
+                        if (returnItem != null) {
+                            continue;
+                        }
+                        giftResultList.add(tempReturnGift);
+                    }
+                }
+            } else {
+                giftResultList.addAll(skuId2ReturnItemMap.values());
+            }
+            returnOrder.setReturnGifts(giftResultList);
 
         }
     }
@@ -1309,7 +1334,7 @@ public class ReturnOrderService {
 
         List<ReturnOrder> returnOrders = new ArrayList<>();
         //退单拆分
-        splitReturnTrade(returnOrder, trade, returnOrders, providerDeliveryMap);
+        splitReturnTrade(returnOrder, trade, returnOrders, providerDeliveryMap, returnOrderList);
         String returnOrderId = StringUtils.EMPTY;
 
         for (ReturnOrder newReturnOrder : returnOrders) {
