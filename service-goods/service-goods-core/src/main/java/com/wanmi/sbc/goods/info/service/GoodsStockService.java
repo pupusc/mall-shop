@@ -273,6 +273,8 @@ public class GoodsStockService {
 	 * @param hasSaveRedis 只有定时任务才设置为 true，保证每次采集到的都是上一次的数据
 	 */
 	public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, List<String> erpGoodsNoList) {
+		log.info("GoodsStockService batchUpdateStock goodsIdList: {} hasSaveRedis:{} erpGoodsNoList:{}",
+				JSON.toJSONString(goodsIdList), hasSaveRedis, JSON.toJSONString(erpGoodsNoList));
 		long beginTime = System.currentTimeMillis();
 //		String providerId = defaultProviderId; //管易云
 		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();

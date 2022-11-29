@@ -306,6 +306,7 @@ public interface GoodsProvider {
      * @param goodsIdList
      * @return
      */
+    @Deprecated
     @PostMapping("/goods/${application.goods.version}/sync-goods-stock-and-cost-price")
     BaseResponse syncGoodsStockAndCostPrice(@RequestBody List<String> goodsIdList);
 

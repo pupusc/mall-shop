@@ -743,6 +743,7 @@ public class GoodsController implements GoodsProvider {
      * @return
      */
     @Override
+    @Deprecated
     public BaseResponse syncGoodsStockAndCostPrice(List<String> goodsIdList){
         //更新库存
         goodsStockService.bookuuSyncGoodsStock(goodsIdList);
