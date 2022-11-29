@@ -478,7 +478,7 @@ public class GoodsStockService {
 
 		if (!CollectionUtils.isEmpty(erpGoodsCodeSyncStockSet)) {
 			ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockOrCostPriceReq = new ShopCenterGoodsStockOrCostPriceReq();
-			shopCenterGoodsStockOrCostPriceReq.setGoodsCodes(new ArrayList<>(erpGoodsCodeSyncCostPriceSet));
+			shopCenterGoodsStockOrCostPriceReq.setGoodsCodes(new ArrayList<>(erpGoodsCodeSyncStockSet));
 			shopCenterGoodsStockOrCostPriceReq.setShopId(ShopCenterEnum.SHOPCENTER.getCode());
 			List<ShopCenterGoodsStockResp> infoList = shopCenterProductProvider.searchGoodsStock(shopCenterGoodsStockOrCostPriceReq).getContext();
 			for (ShopCenterGoodsStockResp shopCenterGoodsStockResp : infoList) {

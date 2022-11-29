@@ -39,6 +39,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
@@ -153,25 +154,29 @@ public class FreightController {
             fixedAddress.setCityId(freightPriceReq.getCityId());
         }
 
-        //计算营销价格
         String customerId = commonUtil.getOperatorId();
-        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-        filterRequest.setGoodsInfos(KsBeanUtil.convert(Collections.singletonList(context.getGoodsInfo()), GoodsInfoDTO.class));
-        filterRequest.setIsIndependent(Boolean.FALSE);
+        CustomerGetByIdResponse customer = null;
         if (!StringUtils.isEmpty(customerId)) {
-            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
-            if (Objects.nonNull(customer)) {
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-            }
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
         }
-        GoodsInfoListByGoodsInfoResponse contextGoodsInfo = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
-        GoodsInfoVO goodsInfoVONew = null;
-        for (GoodsInfoVO goodsInfoVO : contextGoodsInfo.getGoodsInfoVOList()) {
-            goodsInfoVONew = goodsInfoVO;
+
+        List<DiscountPriceReq.DiscountPriceSkuReq> skus = new ArrayList<>();
+        DiscountPriceReq.DiscountPriceSkuReq discountPriceSkuReq = new DiscountPriceReq.DiscountPriceSkuReq();
+        discountPriceSkuReq.setSkuId(freightPriceReq.getSkuId());
+        discountPriceSkuReq.setNum(1);
+        skus.add(discountPriceSkuReq);
+
+        DiscountPriceReq discountPriceReq = new DiscountPriceReq();
+        discountPriceReq.setItems(skus);
+        discountPriceReq.setMarketings(new ArrayList<>());
+        TradeConfirmResp tradeConfirmResp = discountPriceService.computePayPrice(discountPriceReq, customer);
+        log.info("FreightController listFreightPrice tradeConfirmResp {}", JSON.toJSONString(tradeConfirmResp));
+        if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
+            throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
         }
-        if (goodsInfoVONew == null) {
-            throw new SbcRuntimeException("999999", "商品信息不存在");
-        }
+        BigDecimal sumPrice = tradeConfirmResp.getTotalPrice();
+        TradeConfirmItemVO tradeConfirmItemVO = tradeConfirmResp.getTradeConfirmItems().get(0);
+
 
         FreightPriceResp freightPriceResp = new FreightPriceResp();
         //获取地址信息
@@ -184,17 +189,22 @@ public class FreightController {
 
         tradeParamsRequest.setDeliverWay(DeliverWay.EXPRESS);
         TradePriceDTO tradePriceDTO = new TradePriceDTO();
-        tradePriceDTO.setTotalPrice(goodsInfoVONew.getSalePrice());
+        tradePriceDTO.setTotalPrice(sumPrice);
         tradeParamsRequest.setTradePrice(tradePriceDTO);
 
-        TradeItemDTO tradeItemDTO = new TradeItemDTO();
-        tradeItemDTO.setGoodsType(GoodsType.fromValue(goods.getGoodsType()));
-        tradeItemDTO.setFreightTempId(goods.getFreightTempId());
-        tradeItemDTO.setNum(1L);
-        tradeItemDTO.setGoodsWeight(goods.getGoodsWeight());
-        tradeItemDTO.setGoodsCubage(goods.getGoodsCubage());
-        tradeItemDTO.setSplitPrice(goods.getMarketPrice());
-        tradeParamsRequest.setOldTradeItems(Collections.singletonList(tradeItemDTO));
+        List<TradeItemDTO> tradeItemDTOList = new ArrayList<>();
+        for (TradeItemVO tradeItemVO : tradeConfirmItemVO.getTradeItems()) {
+            TradeItemDTO tradeItemDTO = new TradeItemDTO();
+            tradeItemDTO.setGoodsType(tradeItemVO.getGoodsType());
+            tradeItemDTO.setFreightTempId(tradeItemVO.getFreightTempId());
+            tradeItemDTO.setNum(1L);
+            tradeItemDTO.setGoodsWeight(tradeItemVO.getGoodsWeight());
+            tradeItemDTO.setGoodsCubage(tradeItemVO.getGoodsCubage());
+            tradeItemDTO.setSplitPrice(tradeItemVO.getSplitPrice());
+            tradeItemDTOList.add(tradeItemDTO);
+        }
+
+        tradeParamsRequest.setOldTradeItems(tradeItemDTOList);
 
         SupplierDTO supplierDTO = new SupplierDTO();
         supplierDTO.setStoreId(goods.getStoreId());
