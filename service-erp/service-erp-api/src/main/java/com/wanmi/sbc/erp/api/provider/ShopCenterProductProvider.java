@@ -60,6 +60,6 @@ public interface ShopCenterProductProvider {
      * @param shopCenterGoodsStockReq
      * @return
      */
-    @PostMapping("/erp/${application.erp.version}/shopcenter/product/searchGoodsStock")
+    @PostMapping("/erp/${application.erp.version}/shopcenter/product/searchGoodsCostPrice")
     BaseResponse<List<ShopCenterGoodsCostPriceResp>> searchGoodsCostPrice(@RequestBody ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockReq);
 }
