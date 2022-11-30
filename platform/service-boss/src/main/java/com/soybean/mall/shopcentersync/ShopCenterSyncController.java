@@ -91,6 +91,7 @@ public class ShopCenterSyncController {
 			if (Objects.equals(tag, 1001) || Objects.equals(tag, 1004)) {
 				ShopCenterSyncStockReq syncStock = JSON.parseObject(data, ShopCenterSyncStockReq.class);
 				BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> stockAndPriceResp = shopCenterGoodsProvider.updateStockAndPrice(syncStock);
+				log.info("ShopCenterSyncController syncData stockAndPriceResp {}", JSON.toJSONString(stockAndPriceResp));
 				refreshAndSendMsg(stockAndPriceResp.getContext());
 
 				//成本价 49包邮

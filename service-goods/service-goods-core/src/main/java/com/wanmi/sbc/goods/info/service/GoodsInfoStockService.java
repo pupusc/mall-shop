@@ -217,12 +217,12 @@ public class GoodsInfoStockService {
                 }
             }
 
+
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
             goodsInfoStockSyncResponse.setSpuId(goodsInfoStockAndCostPriceSyncParam.getGoodsId());
             goodsInfoStockSyncResponse.setSkuId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
             goodsInfoStockSyncResponse.setSkuNo(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoNo());
             goodsInfoStockSyncResponse.setSkuName(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoName());
-            goodsInfoStockSyncResponse.setActualStockQty(tmpActualStockQty.intValue());
             goodsInfoStockSyncResponse.setActualStockQty(tmpActualStockQty.intValue());
             goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoStockAndCostPriceSyncParam.getMarketPrice());
             goodsInfoStockSyncResponse.setActualCostPrice(tmpCostPrice);
