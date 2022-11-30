@@ -217,6 +217,7 @@ public class GoodsInfoStockService {
                 }
             }
 
+
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
             goodsInfoStockSyncResponse.setSpuId(goodsInfoStockAndCostPriceSyncParam.getGoodsId());
             goodsInfoStockSyncResponse.setSkuId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());

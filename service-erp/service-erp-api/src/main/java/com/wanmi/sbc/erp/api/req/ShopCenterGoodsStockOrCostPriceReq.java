@@ -1,24 +1,21 @@
-package com.wanmi.sbc.goods.api.response.goods;
+package com.wanmi.sbc.erp.api.req;
 
+import com.wanmi.sbc.erp.api.enums.ShopCenterEnum;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/3/25 1:22 上午
+ * Date       : 2022/11/23 6:25 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsInfoStockSyncMaxIdProviderResponse implements Serializable {
+public class ShopCenterGoodsStockOrCostPriceReq {
 
-    /**
-     * sku
-     */
-    private List<GoodsInfoStockSyncProviderResponse> goodsInfoStockSyncList;
+    private List<String> goodsCodes;
 
-//    private long maxTmpId;
+    private Long shopId = ShopCenterEnum.SHOPCENTER.getCode();
 }

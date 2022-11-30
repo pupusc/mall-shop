@@ -719,7 +719,7 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
-        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.isHasSaveRedis(), guanYiSyncGoodsStockRequest.getMaxTmpId(), guanYiSyncGoodsStockRequest.getPageSize()));
+        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.isHasSaveRedis(), guanYiSyncGoodsStockRequest.getErpGoodsNoList()));
     }
 
 
@@ -743,6 +743,7 @@ public class GoodsController implements GoodsProvider {
      * @return
      */
     @Override
+    @Deprecated
     public BaseResponse syncGoodsStockAndCostPrice(List<String> goodsIdList){
         //更新库存
         goodsStockService.bookuuSyncGoodsStock(goodsIdList);

@@ -16,6 +16,7 @@ import com.wanmi.sbc.customer.api.request.detail.CustomerDetailByCustomerIdReque
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.erp.api.constant.DeviceTypeEnum;
+import com.wanmi.sbc.erp.api.enums.ShopCenterEnum;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.req.CreateOrderReq;
@@ -592,7 +593,7 @@ public class TransferService {
         }
 
     	SalePlatformQueryReq salePlatformQueryReq = new SalePlatformQueryReq();
-    	salePlatformQueryReq.setTid(21L);
+    	salePlatformQueryReq.setTid(ShopCenterEnum.SHOPCENTER.getCode());
         SalePlatformResp salePlatformResp = shopCenterProductProvider.getSalePlatform(salePlatformQueryReq).getContext();
         if (salePlatformResp == null) {
             throw new SbcRuntimeException("999999", "获取平台渠道为空");
@@ -986,7 +987,11 @@ public class TransferService {
                 saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
                 saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
                 saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
-                saleAfterRefundReq.setRefundMchid(payTradeRecordResponse.getAppId());
+                String appId = payTradeRecordResponse.getAppId();
+                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("$")) {
+                    appId = payTradeRecordResponse.getAppId().split("\\$")[1];
+                }
+                saleAfterRefundReq.setRefundMchid(appId);
                 saleAfterRefundReqList.add(saleAfterRefundReq);
             }
         }

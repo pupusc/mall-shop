@@ -232,6 +232,31 @@ public class CompleteAction extends TradeAction {
                 item.setCompleteTime(Date.from(trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
                 fanDengInvoiceRequest.getOrderExtendBOS().add(item);
             }
+
+            BigDecimal deliveryPrice = BigDecimal.ONE;
+            if (trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice()!=null
+                    && trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice().compareTo(BigDecimal.ZERO)>0){
+                deliveryPrice = trade.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice();
+            }else if(trade.getTradePrice().getDeliveryPrice()!=null && trade.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
+                deliveryPrice = trade.getTradePrice().getDeliveryPrice();
+            }
+
+            if (deliveryPrice!=null){
+                FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
+                item.setFee(deliveryPrice);
+                item.setTotalFee(deliveryPrice);
+                item.setOrderCode("-1");
+                item.setCount(1);
+                item.setProduct("运费");
+                item.setProductNo(2);
+                item.setProductType(1012);
+                item.setProductIcoon("");
+                //暂时都定1
+                item.setOrderType(1);
+                item.setCompleteTime(fanDengInvoiceRequest.getOrderExtendBOS().get(0).getCompleteTime());
+                fanDengInvoiceRequest.getOrderExtendBOS().add(item);
+            }
+
             BaseResponse<String> result = externalProvider.createInvoice(fanDengInvoiceRequest);
             if (!CommonErrorCode.SUCCESSFUL.equals(result.getCode())) {
                 logger.error("trade:{},create invoice error", trade.getId());

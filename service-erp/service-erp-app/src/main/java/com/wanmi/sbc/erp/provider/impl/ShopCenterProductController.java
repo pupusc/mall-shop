@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.erp.api.enums.ShopCenterEnum;
 import com.wanmi.sbc.erp.api.provider.ShopCenterProductProvider;
 import com.wanmi.sbc.erp.api.req.SalePlatformQueryReq;
+import com.wanmi.sbc.erp.api.req.ShopCenterGoodsStockOrCostPriceReq;
 import com.wanmi.sbc.erp.api.request.NewGoodsInfoRequest;
-import com.wanmi.sbc.erp.api.resp.GoodsPackRsp;
 import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.erp.api.resp.SalePlatformResp;
+import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsCostPriceResp;
+import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsStockResp;
 import com.wanmi.sbc.erp.configuration.shopcenter.ShopCenterRouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -64,23 +68,23 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 		return BaseResponse.success(Collections.emptyList());
 	}
 
-	@Override
-	public BaseResponse<List<GoodsPackRsp>> searchPackByGoodsCodes(List<String> request) {
-		try {
-			String host = routerConfig.getHost();
-			String url = routerConfig.getUrl("product.searchPackByGoodsCodes");
-
-			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
-			String str = EntityUtils.toString(response.getEntity());
-			JSONObject json = JSON.parseObject(str);
-			List<GoodsPackRsp> data = JSON.parseArray(json.getString("data"), GoodsPackRsp.class);
-
-			return BaseResponse.success(data);
-		} catch (Exception e) {
-			log.warn("ShopCenterController.searchPackByGoodsCodes.异常", e);
-		}
-		return BaseResponse.success(Collections.emptyList());
-	}
+//	@Override
+//	public BaseResponse<List<GoodsPackRsp>> searchPackByGoodsCodes(List<String> request) {
+//		try {
+//			String host = routerConfig.getHost();
+//			String url = routerConfig.getUrl("product.searchPackByGoodsCodes");
+//
+//			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
+//			String str = EntityUtils.toString(response.getEntity());
+//			JSONObject json = JSON.parseObject(str);
+//			List<GoodsPackRsp> data = JSON.parseArray(json.getString("data"), GoodsPackRsp.class);
+//
+//			return BaseResponse.success(data);
+//		} catch (Exception e) {
+//			log.warn("ShopCenterController.searchPackByGoodsCodes.异常", e);
+//		}
+//		return BaseResponse.success(Collections.emptyList());
+//	}
 
 	@Override
 	public BaseResponse<SalePlatformResp> getSalePlatform(SalePlatformQueryReq request) {
@@ -98,5 +102,56 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			log.warn("ShopCenterProductController.getSalePlatform异常", e);
 		}
 		return BaseResponse.FAILED();
+	}
+
+	@Override
+	public BaseResponse<List<ShopCenterGoodsStockResp>> searchGoodsStock(ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockReq) {
+
+		String errorContent = "访问失败";
+		try {
+			String host = routerConfig.getHost();
+			String url = routerConfig.getUrl("product.searchGoodsStock");
+			String req = JSON.toJSONString(shopCenterGoodsStockReq);
+			log.info("ShopCenterProductController searchGoodsStock request {}", req);
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, req);
+			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterProductController searchGoodsStock resp {}", str);
+			JSONObject json = JSON.parseObject(str);
+			String status = json.getString("status");
+			errorContent = json.getString("msg");
+			if (Objects.equals("0000", status)) {
+				List<ShopCenterGoodsStockResp> data = JSON.parseArray(json.getString("data"), ShopCenterGoodsStockResp.class);
+				return BaseResponse.success(data);
+			}
+		} catch (Exception e) {
+			log.error("ShopCenterController.searchGoodsStock.异常", e);
+		}
+		return BaseResponse.info("99999", errorContent);
+	}
+
+	@Override
+	public BaseResponse<List<ShopCenterGoodsCostPriceResp>> searchGoodsCostPrice(ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockReq) {
+
+		String errorContent = "访问失败";
+		try {
+
+			String host = routerConfig.getHost();
+			String url = routerConfig.getUrl("product.searchGoodsCostprice");
+			String req = JSON.toJSONString(shopCenterGoodsStockReq);
+			log.info("ShopCenterProductController searchGoodsCostPrice request {}", req);
+			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, req);
+			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterProductController searchGoodsCostPrice resp {}", str);
+			JSONObject json = JSON.parseObject(str);
+			String status = json.getString("status");
+			errorContent = json.getString("msg");
+			if (Objects.equals("0000", status)) {
+				List<ShopCenterGoodsCostPriceResp> data = JSON.parseArray(json.getString("data"), ShopCenterGoodsCostPriceResp.class);
+				return BaseResponse.success(data);
+			}
+		} catch (Exception e) {
+			log.error("ShopCenterController.searchGoodsCostPrice.异常", e);
+		}
+		return BaseResponse.info("99999", errorContent);
 	}
 }

@@ -1,9 +1,12 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+import com.google.common.collect.Lists;
+import java.time.LocalDateTime;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
+import com.wanmi.sbc.order.api.req.ShopCenterSyncDeliveryReq;
 import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
 import com.wanmi.sbc.order.bean.enums.FlowState;
@@ -16,6 +19,7 @@ import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.request.ProviderTradeQueryRequest;
 import com.wanmi.sbc.order.trade.service.ProviderTradeService;
 import com.wanmi.sbc.order.trade.service.TradeCacheService;
+import com.wanmi.sbc.order.trade.service.TradePushERPService;
 import com.wanmi.sbc.setting.api.request.TradeConfigGetByTypeRequest;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,6 +50,9 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
 
     @Autowired
     private TradeCacheService tradeCacheService;
+
+    @Autowired
+    private TradePushERPService tradePushERPService;
 
     /**
      * 分页查询供应商订单
@@ -197,11 +204,18 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
      * @param request
      * @return
      */
-//    @Override
-//    public BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request) {
-//        providerTradeService.batchSyncDeliveryStatus(request.getPageSize(),request.getPtid());
-//        return BaseResponse.SUCCESSFUL();
-//    }
+    @Override
+    public BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request) {
+        ShopCenterSyncDeliveryReq shopCenterSyncDeliveryReq = new ShopCenterSyncDeliveryReq();
+        shopCenterSyncDeliveryReq.setPlatformOrderId(request.getOrderId());
+        shopCenterSyncDeliveryReq.setExpressNo("");
+        shopCenterSyncDeliveryReq.setExpressCode("");
+        shopCenterSyncDeliveryReq.setPlatformSkuId("");
+        shopCenterSyncDeliveryReq.setDeliveryTime(LocalDateTime.now());
+        shopCenterSyncDeliveryReq.setOrderItemIds(Lists.newArrayList());
+        tradePushERPService.fillShopCenterDelivery(shopCenterSyncDeliveryReq);
+        return BaseResponse.SUCCESSFUL();
+    }
 
 //    /**
 //     * 批量补偿推送erp普通订单

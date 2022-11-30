@@ -45,10 +45,10 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
      */
     private String skuName;
 
-//    /**
-//     * 是否同步库存
-//     */
-//    private boolean canSyncStock = false;
+    /**
+     * 是否同步库存
+     */
+    private boolean canSyncStock = false;
 
 //    /**
 //     * true 表示 直接使用库存传递的库存数量
@@ -86,10 +86,10 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
 //     */
 //    private Boolean isSendStockMsg;
 
-//    /**
-//     * 是否同步成本价
-//     */
-//    private boolean canSyncCostPrice = false;
+    /**
+     * 是否同步成本价
+     */
+    private boolean canSyncCostPrice = false;
 
 //    /**
 //     *  erp成本价

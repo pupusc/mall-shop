@@ -52,4 +52,6 @@ public class ProviderTradeErpRequest implements Serializable {
      */
     @ApiModelProperty(value = "页码")
     private int pageNum;
+
+    private String orderId;
 }

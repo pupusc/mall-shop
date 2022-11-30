@@ -79,12 +79,12 @@ public interface ProviderTradeQueryProvider {
 //    @PostMapping("/order/${application.order.version}/trade/batch-push-cycle-order")
 //    BaseResponse batchPushCycleOrder(@RequestBody @Valid ProviderTradeErpRequest providerTradePushErpRequest);
 
-//    /**
-//     * 定时任务推送周期购订单
-//     * @return
-//     */
-//    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status")
-//    BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request);
+    /**
+     * 定时任务推送周期购订单
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status")
+    BaseResponse batchSyncDeliveryStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
 //    /**
 //     * 定时任务推送周期购订单

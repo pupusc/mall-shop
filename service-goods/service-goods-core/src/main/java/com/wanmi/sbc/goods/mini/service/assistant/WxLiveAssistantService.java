@@ -722,7 +722,7 @@ public class WxLiveAssistantService {
 
         //同步库存 不判断是否自动同步，交给同步方法处理 此处只是处理管易云的商品
         goodsStockService.batchUpdateStock(
-                wxLiveAssistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).distinct().collect(Collectors.toList()), false, 0, 0);
+                wxLiveAssistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).distinct().collect(Collectors.toList()), false, null);
     }
 
 //    @Transactional
