@@ -4661,14 +4661,22 @@ public class TradeService {
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             bookingSaleGoodsOrderAddStock(trade);
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
         }
         //状态变更
         StateRequest stateRequest = StateRequest
@@ -7209,13 +7217,23 @@ public class TradeService {
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            //释放冻结
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            //释放冻结
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
             bookingSaleGoodsOrderAddStock(trade);
         }
 
@@ -7272,13 +7290,21 @@ public class TradeService {
             //秒杀商品参与活动不扣减库存改造，下单时要同时加库存
             verifyService.addSkuListStock(trade.getTradeItems());
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             //释放冻结
-            verifyService.releaseFrozenStock(trade.getTradeItems());
+            List<TradeItem> tradeItems = new ArrayList<>(trade.getTradeItems());
+            if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+                tradeItems.addAll(trade.getGifts());
+            }
+            verifyService.releaseFrozenStock(tradeItems);
         }
         // 取消订单退还用户的已抢购数量
         String havePanicBuyingKey =

@@ -163,6 +163,14 @@ public class TradePushERPService {
             goodsInfoMinusStockDTO.setGoodsInfoId(tradeItem.getSkuId());
             stockList.add(goodsInfoMinusStockDTO);
         }
+        if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+            for (TradeItem gift : trade.getGifts()) {
+                GoodsInfoMinusStockDTO goodsInfoMinusStockDTO = new GoodsInfoMinusStockDTO();
+                goodsInfoMinusStockDTO.setStock(gift.getNum());
+                goodsInfoMinusStockDTO.setGoodsInfoId(gift.getSkuId());
+                stockList.add(goodsInfoMinusStockDTO);
+            }
+        }
         goodsInfoProvider.decryFreezeStock(stockList);
     }
 
