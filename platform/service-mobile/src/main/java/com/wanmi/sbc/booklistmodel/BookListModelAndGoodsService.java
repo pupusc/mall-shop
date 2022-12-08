@@ -11,6 +11,7 @@ import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
@@ -506,7 +507,9 @@ public class BookListModelAndGoodsService {
 
             List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
             if (!CollectionUtils.isEmpty(goodsLabelList)) {
-                esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
+                esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().filter(gl ->
+                                Objects.equals(gl.getDelFlag(), DeleteFlag.NO) && Objects.equals(gl.getLabelVisible(), true))
+                        .map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
             } else {
                 esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
             }
