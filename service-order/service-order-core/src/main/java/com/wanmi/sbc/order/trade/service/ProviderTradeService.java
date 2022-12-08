@@ -1067,13 +1067,12 @@ public class ProviderTradeService {
                        thirdInvokeService.update(thirdInvokeDTO.getId(), "", ThirdInvokePublishStatusEnum.FAIL, "调用异常");
                    }
                }
-
-               if (StringUtils.isNotBlank(pushMsg)) {
-                   FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
-               }
            } catch (Exception ex) {
                log.error("ProviderTradeService singlePushOrder error", ex);
            }
+            if (StringUtils.isNotBlank(pushMsg)) {
+                FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
+            }
         }
     }
 

@@ -172,8 +172,8 @@ public class RefundReturnAction extends ReturnAction {
         }
         delEvaluate(returnOrder);
 
+        String pushMsg = "";
        try {
-           String pushMsg = "";
            //创建售后订单
            ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
            if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
@@ -204,13 +204,13 @@ public class RefundReturnAction extends ReturnAction {
                log.error("ProviderTradeService singlePushOrder " + thirdInvokeDTO.getBusinessId() + " 推送失败 error:{} ", ex);
                thirdInvokeService.update(thirdInvokeDTO.getId(), "999999", ThirdInvokePublishStatusEnum.FAIL, "调用失败");
            }
-
-           if (StringUtils.isNotBlank(pushMsg)) {
-               FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
-           }
        } catch (Exception ex) {
            log.error("RefundReturnAction evaluateInternal error", ex);
        }
+
+        if (StringUtils.isNotBlank(pushMsg)) {
+            FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
+        }
     }
 
     /**
