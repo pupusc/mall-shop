@@ -6,11 +6,14 @@ import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.constant.FeiShuConstant;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.FeiShuUtil;
 import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.provider.ShopCenterOrderProvider;
@@ -48,6 +51,9 @@ import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.util.EntityUtils;
 import org.bson.Document;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -1014,6 +1020,7 @@ public class ProviderTradeService {
 
     public void singlePushOrder(List<Trade> tradeList) {
         if (!CollectionUtils.isEmpty(tradeList)) {
+            String pushMsg = "";
            try {
                for (Trade trade : tradeList) {
 
@@ -1030,6 +1037,7 @@ public class ProviderTradeService {
                    }
 
                    if (!Objects.equals(trade.getTradeState().getPayState(), PayState.PAID) || Objects.equals(trade.getTradeState().getFlowState(), FlowState.VOID)) {
+                       pushMsg = "订单:" + trade.getId() + " 已经作废，取消推送";
                        thirdInvokeService.update(thirdInvokeDTO.getId(), thirdInvokeDTO.getPlatformId(), ThirdInvokePublishStatusEnum.CANCEL, "取消推送");
                        continue;
                    }
@@ -1050,12 +1058,18 @@ public class ProviderTradeService {
                                thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
                            }
                        } else {
+                           pushMsg = "订单:" + trade.getId() + " 推送失败";
                            thirdInvokeService.update(thirdInvokeDTO.getId(), createOrderResp.getThirdOrderId(), ThirdInvokePublishStatusEnum.FAIL, createOrderRespBaseResponse.getMessage());
                        }
                    } catch (Exception ex) {
+                       pushMsg = "订单:" + trade.getId() + " 推送异常";
                        log.error("ProviderTradeService createOrder error", ex);
                        thirdInvokeService.update(thirdInvokeDTO.getId(), "", ThirdInvokePublishStatusEnum.FAIL, "调用异常");
                    }
+               }
+
+               if (StringUtils.isNotBlank(pushMsg)) {
+                   FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
                }
            } catch (Exception ex) {
                log.error("ProviderTradeService singlePushOrder error", ex);
