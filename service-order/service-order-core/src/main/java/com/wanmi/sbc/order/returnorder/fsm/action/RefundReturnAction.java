@@ -205,6 +205,7 @@ public class RefundReturnAction extends ReturnAction {
                thirdInvokeService.update(thirdInvokeDTO.getId(), "999999", ThirdInvokePublishStatusEnum.FAIL, "调用失败");
            }
        } catch (Exception ex) {
+           pushMsg = "售后单:" + returnOrder.getId() + " 推送电商中台异常";
            log.error("RefundReturnAction evaluateInternal error", ex);
        }
 

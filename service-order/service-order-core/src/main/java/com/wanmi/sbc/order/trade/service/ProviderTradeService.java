@@ -1068,6 +1068,7 @@ public class ProviderTradeService {
                    }
                }
            } catch (Exception ex) {
+               pushMsg = "订单:" + tradeList.get(0).getId() + " 推送异常";
                log.error("ProviderTradeService singlePushOrder error", ex);
            }
             if (StringUtils.isNotBlank(pushMsg)) {
