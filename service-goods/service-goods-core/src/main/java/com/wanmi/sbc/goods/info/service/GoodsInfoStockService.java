@@ -217,7 +217,7 @@ public class GoodsInfoStockService {
                 }
             }
 
-
+            tmpCostPrice = tmpCostPrice == null ? BigDecimal.ZERO : tmpCostPrice;
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
             goodsInfoStockSyncResponse.setSpuId(goodsInfoStockAndCostPriceSyncParam.getGoodsId());
             goodsInfoStockSyncResponse.setSkuId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
