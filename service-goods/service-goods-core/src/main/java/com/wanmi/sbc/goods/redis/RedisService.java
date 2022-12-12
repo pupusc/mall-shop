@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -413,7 +414,10 @@ public class RedisService {
         redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
         if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
-            hashValue = (String) redisTemplate.opsForHash().get(key, hashKey);
+            Object hashValueObj = redisTemplate.opsForHash().get(key, hashKey);
+            if (hashValueObj != null && !Objects.equals(hashValueObj, "null")) {
+                hashValue = hashValueObj.toString();
+            }
         }
         return hashValue;
     }
