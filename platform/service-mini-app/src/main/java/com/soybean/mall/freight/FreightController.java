@@ -145,6 +145,7 @@ public class FreightController {
         if (context.getGoods() == null || context.getGoodsInfo() == null) {
             throw new SbcRuntimeException("skuId对应的商品信息不存在");
         }
+
         BaseFixedAddressResp fixedAddress = null;
         if (StringUtils.isBlank(freightPriceReq.getProvinceId()) || StringUtils.isBlank(freightPriceReq.getCityId())) {
             fixedAddress = commonUtil.getFixedAddress();
@@ -174,6 +175,7 @@ public class FreightController {
         if (CollectionUtils.isEmpty(tradeConfirmResp.getTradeConfirmItems())) {
             throw new SbcRuntimeException("999999", "根据skuId计算运费失败");
         }
+
         BigDecimal sumPrice = tradeConfirmResp.getTotalPrice();
         TradeConfirmItemVO tradeConfirmItemVO = tradeConfirmResp.getTradeConfirmItems().get(0);
 
@@ -217,7 +219,7 @@ public class FreightController {
 
         GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
         FreightPriceResp.Label preightPriceLabel = new FreightPriceResp.Label();
-        if (Objects.equals(goods.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
+        if (goods.getFreightTempId() != null && Objects.equals(goods.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
             SearchSpuNewLabelCategoryEnum freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
             preightPriceLabel.setLabelName(freeDelivery.getMessage());
             preightPriceLabel.setLabelCategory(freeDelivery.getCode());
@@ -308,7 +310,7 @@ public class FreightController {
 
         for (GoodsVO goodsVO : goodsListByIdsResponse.getGoodsVOList()) {
             List<GoodsInfoVO> goodsInfoVOS = goodsId2GoodsInfoListMap.get(goodsVO.getGoodsId());
-            if (CollectionUtils.isEmpty(goodsInfoVOS)) {
+            if (CollectionUtils.isEmpty(goodsInfoVOS) || goodsVO.getFreightTempId() == null) {
                 continue;
             }
             if (Objects.equals(goodsVO.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
