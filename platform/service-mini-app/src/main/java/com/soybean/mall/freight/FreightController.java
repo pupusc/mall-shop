@@ -217,7 +217,7 @@ public class FreightController {
 
         GoodsNacosConfigResp nacosConfigRespContext = goodsNacosConfigProvider.getNacosConfig().getContext();
         FreightPriceResp.Label preightPriceLabel = new FreightPriceResp.Label();
-        if (Objects.equals(goods.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
+        if (goods.getFreightTempId()!=null && Objects.equals(goods.getFreightTempId().toString(), nacosConfigRespContext.getFreeDelivery49())) {
             SearchSpuNewLabelCategoryEnum freeDelivery = SearchSpuNewLabelCategoryEnum.FREE_DELIVERY_49;
             preightPriceLabel.setLabelName(freeDelivery.getMessage());
             preightPriceLabel.setLabelCategory(freeDelivery.getCode());
