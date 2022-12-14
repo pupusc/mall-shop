@@ -1,10 +1,12 @@
 package com.wanmi.sbc.goods.redis;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
  * @author djk
  */
 @Service
+@Slf4j
 public class RedisService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisService.class);
@@ -382,7 +387,13 @@ public class RedisService {
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
-        return (List<String>) redisTemplate.opsForHash().get(key, hashKey);
+        if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
+            Object o = redisTemplate.opsForHash().get(key, hashKey);
+            log.info("RedisService getHashStrValueList o {}", JSON.toJSONString(o));
+            return (List<String>) o;
+        } else {
+            return new ArrayList<>();
+        }
     }
 
 
@@ -413,7 +424,10 @@ public class RedisService {
         redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
         if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
-            hashValue = (String) redisTemplate.opsForHash().get(key, hashKey);
+            Object hashValueObj = redisTemplate.opsForHash().get(key, hashKey);
+            if (hashValueObj != null && !Objects.equals(hashValueObj, "null")) {
+                hashValue = hashValueObj.toString();
+            }
         }
         return hashValue;
     }
