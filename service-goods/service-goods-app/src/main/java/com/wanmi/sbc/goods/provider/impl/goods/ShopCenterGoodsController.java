@@ -24,7 +24,7 @@ public class ShopCenterGoodsController implements ShopCenterGoodsProvider {
 
 	@Override
 	public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> updateStockAndPrice(ShopCenterSyncStockReq request) {
-		return BaseResponse.success(shopCenterGoodsStockService.updateStockAndPrice(Collections.singletonList(request));
+		return BaseResponse.success(shopCenterGoodsStockService.updateStockAndPrice(Collections.singletonList(request)));
 	}
 
 //	@Override
