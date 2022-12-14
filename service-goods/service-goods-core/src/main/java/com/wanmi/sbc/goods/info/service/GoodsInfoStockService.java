@@ -185,7 +185,7 @@ public class GoodsInfoStockService {
 
         List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
         for (GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncParam : goodsInfoStockAndCostPriceSyncRequests) {
-            ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncParam.getErpGoodsInfoNo());
+            ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncParam.getErpGoodsNo());
             if (erpGoodsInfoRequest == null) {
                 continue;
             }
