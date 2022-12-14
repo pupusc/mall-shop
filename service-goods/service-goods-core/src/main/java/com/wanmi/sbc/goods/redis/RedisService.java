@@ -387,12 +387,13 @@ public class RedisService {
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
-        Object o = redisTemplate.opsForHash().get(key, hashKey);
-        log.info("RedisService getHashStrValueList o {}", JSON.toJSONString(o));
-        if (o == null) {
+        if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
+            Object o = redisTemplate.opsForHash().get(key, hashKey);
+            log.info("RedisService getHashStrValueList o {}", JSON.toJSONString(o));
+            return (List<String>) o;
+        } else {
             return new ArrayList<>();
         }
-        return (List<String>) o;
     }
 
 
