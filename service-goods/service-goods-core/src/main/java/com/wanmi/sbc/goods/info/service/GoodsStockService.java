@@ -299,7 +299,6 @@ public class GoodsStockService {
 			shopCenterSyncStockReqs = shopCenterSyncStockReqs == null ? new ArrayList<>() : shopCenterSyncStockReqs;
 			Map<String, ShopCenterSyncStockReq> erpGoodsInfoNo2ModelMap =
 					shopCenterSyncStockReqs.stream().collect(Collectors.toMap(ShopCenterSyncStockReq::getGoodsCode, Function.identity(), (k1, k2) -> k1));
-			log.info("GoodsStockService batchUpdateStock erpGoodsInfoNo2ModelMap {}", JSON.toJSONString(erpGoodsInfoNo2ModelMap));
 
 			GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
 			goodsInfoQueryRequest.setGoodsIds(goodsIdList);
@@ -322,10 +321,12 @@ public class GoodsStockService {
 				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
 				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
 				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsNo());
+				log.info("GoodsStockService batchUpdateStock shopCenterSyncStockReq {}", JSON.toJSONString(shopCenterSyncStockReq));
 				if (shopCenterSyncStockReq != null) {
 					goodsInfoStockAndCostPriceSyncRequest.setQuantity(shopCenterSyncStockReq.getQuantity() == null ? 0 : shopCenterSyncStockReq.getQuantity());
 					goodsInfoStockAndCostPriceSyncRequest.setTag(shopCenterSyncStockReq.getTag());
 				}
+				log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequest {}", JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequest));
 				goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
 			}
 
