@@ -90,6 +90,7 @@ public class ShopCenterSyncController {
 			//库存 成本价
 			if (Objects.equals(tag, 1001) || Objects.equals(tag, 1004)) {
 				ShopCenterSyncStockReq syncStock = JSON.parseObject(data, ShopCenterSyncStockReq.class);
+				syncStock.setTag(tag);
 				BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> stockAndPriceResp = shopCenterGoodsProvider.updateStockAndPrice(syncStock);
 				log.info("ShopCenterSyncController syncData stockAndPriceResp {}", JSON.toJSONString(stockAndPriceResp));
 				refreshAndSendMsg(stockAndPriceResp.getContext());
