@@ -10,6 +10,8 @@ import com.wanmi.sbc.goods.info.service.ShopCenterGoodsStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+
 @RestController
 public class ShopCenterGoodsController implements ShopCenterGoodsProvider {
 	@Autowired
@@ -22,7 +24,7 @@ public class ShopCenterGoodsController implements ShopCenterGoodsProvider {
 
 	@Override
 	public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> updateStockAndPrice(ShopCenterSyncStockReq request) {
-		return BaseResponse.success(shopCenterGoodsStockService.updateStockAndPrice(request.getGoodsCode(), request.getQuantity()));
+		return BaseResponse.success(shopCenterGoodsStockService.updateStockAndPrice(Collections.singletonList(request));
 	}
 
 //	@Override

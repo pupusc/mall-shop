@@ -14,4 +14,9 @@ public class ShopCenterSyncStockReq implements Serializable {
 	 * 数量
 	 */
 	private Integer quantity;
+
+	/**
+	 * 1001=库存变动，1004=成本价变动
+	 */
+	private Integer tag;
 }
