@@ -28,7 +28,9 @@ public class FeiShuUtil {
 
 
     public static void sendFeiShuMessage(String message, String noticeUrl, String userId, String userName) {
-        if (StringUtils.isNotBlank(message)) {
+        log.info("FeiShuUtil sendFeiShuMessage message:{} noticeUrl:{} userId:{} userName:{}",
+                message, noticeUrl, userId, userName);
+        if (StringUtils.isNotBlank(message) && StringUtils.isNotBlank(noticeUrl) && StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(userName)) {
 
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-type", "application/json; charset=utf-8");

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.trade.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.soybean.mall.order.dszt.TransferService;
@@ -27,6 +28,8 @@ import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.common.OperationLogMq;
+import com.wanmi.sbc.order.nacos.FeiShuSendMegReq;
+import com.wanmi.sbc.order.nacos.NacosRefreshConfig;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
@@ -138,6 +141,9 @@ public class ProviderTradeService {
 
     @Autowired
     private ShopCenterOrderProvider shopCenterOrderProvider;
+
+    @Autowired
+    private NacosRefreshConfig nacosRefreshConfig;
 
     /**
      * 更新券码信息lock
@@ -1072,7 +1078,9 @@ public class ProviderTradeService {
                log.error("ProviderTradeService singlePushOrder error", ex);
            }
             if (StringUtils.isNotBlank(pushMsg)) {
-                FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
+//                String noticeUrl, String userId, String userName
+                FeiShuSendMegReq feiShuSendMegReq = JSON.parseObject(nacosRefreshConfig.getSendFeiShuMessage(), FeiShuSendMegReq.class);
+                FeiShuUtil.sendFeiShuMessage(pushMsg, feiShuSendMegReq.getNoticeUrl(), feiShuSendMegReq.getUserId(), feiShuSendMegReq.getUserName());
             }
         }
     }

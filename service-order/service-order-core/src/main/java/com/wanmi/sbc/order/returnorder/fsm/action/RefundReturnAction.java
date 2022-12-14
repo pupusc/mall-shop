@@ -32,6 +32,8 @@ import com.wanmi.sbc.goods.bean.vo.StoreTobeEvaluateVO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
 import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
+import com.wanmi.sbc.order.nacos.FeiShuSendMegReq;
+import com.wanmi.sbc.order.nacos.NacosRefreshConfig;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnStateContext;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
@@ -92,6 +94,9 @@ public class RefundReturnAction extends ReturnAction {
 
     @Autowired
     private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private NacosRefreshConfig nacosRefreshConfig;
 
     @Override
     protected void evaluateInternal(ReturnOrder returnOrder, ReturnStateRequest request, ReturnStateContext rsc) {
@@ -210,7 +215,9 @@ public class RefundReturnAction extends ReturnAction {
        }
 
         if (StringUtils.isNotBlank(pushMsg)) {
-            FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
+            FeiShuSendMegReq feiShuSendMegReq = JSON.parseObject(nacosRefreshConfig.getSendFeiShuMessage(), FeiShuSendMegReq.class);
+            FeiShuUtil.sendFeiShuMessage(pushMsg, feiShuSendMegReq.getNoticeUrl(), feiShuSendMegReq.getUserId(), feiShuSendMegReq.getUserName());
+//            FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
         }
     }
 
