@@ -299,7 +299,7 @@ public class GoodsStockService {
 			shopCenterSyncStockReqs = shopCenterSyncStockReqs == null ? new ArrayList<>() : shopCenterSyncStockReqs;
 			Map<String, ShopCenterSyncStockReq> erpGoodsInfoNo2ModelMap =
 					shopCenterSyncStockReqs.stream().collect(Collectors.toMap(ShopCenterSyncStockReq::getGoodsCode, Function.identity(), (k1, k2) -> k1));
-
+			log.info("GoodsStockService batchUpdateStock erpGoodsInfoNo2ModelMap {}", JSON.toJSONString(erpGoodsInfoNo2ModelMap));
 
 			GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
 			goodsInfoQueryRequest.setGoodsIds(goodsIdList);
