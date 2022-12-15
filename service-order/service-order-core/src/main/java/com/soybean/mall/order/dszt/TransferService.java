@@ -535,6 +535,10 @@ public class TransferService {
                 BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
                 log.info("TransferService packageBuyPayment result {}", JSON.toJSONString(tradeRecordByOrderCode));
                 PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
+                if (payTradeRecordResponse == null) {
+                    payTradeRecordResponse = new PayTradeRecordResponse();
+                }
+
 
                 CreateOrderReq.BuyPaymentReq buyPaymentReq = new CreateOrderReq.BuyPaymentReq();
                 buyPaymentReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
@@ -731,7 +735,7 @@ public class TransferService {
         //获取订单支付信息
 
         //商品
-        Integer refundType = returnOrder.getReturnType().ordinal() == 0 ? 1 : 2;
+        Integer refundType = 1;
         if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DIFF)
                 || Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
             refundType = 2; //退款
@@ -987,20 +991,22 @@ public class TransferService {
             BaseResponse<PayTradeRecordResponse> tradeRecordByOrderCode = payQueryProvider.getTradeRecordByOrderCode(request);
             log.info("TransferService changeSaleAfterCreateReq result {}", JSON.toJSONString(tradeRecordByOrderCode));
             PayTradeRecordResponse payTradeRecordResponse = tradeRecordByOrderCode.getContext();
-            if (payTradeRecordResponse != null) {
-                SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
-                saleAfterRefundReq.setRefundTradeNo(payTradeRecordResponse.getTradeNo());
-                saleAfterRefundReq.setRefundGateway("108");
-                saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
-                saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
-                saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
-                String appId = payTradeRecordResponse.getAppId();
-                if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("$")) {
-                    appId = payTradeRecordResponse.getAppId().split("\\$")[1];
-                }
-                saleAfterRefundReq.setRefundMchid(appId);
-                saleAfterRefundReqList.add(saleAfterRefundReq);
+            if (payTradeRecordResponse == null) {
+                payTradeRecordResponse = new PayTradeRecordResponse();
             }
+
+            SaleAfterCreateNewReq.SaleAfterRefundReq saleAfterRefundReq = new SaleAfterCreateNewReq.SaleAfterRefundReq();
+            saleAfterRefundReq.setRefundTradeNo(payTradeRecordResponse.getTradeNo());
+            saleAfterRefundReq.setRefundGateway("108");
+            saleAfterRefundReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
+            saleAfterRefundReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString());
+            saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
+            String appId = payTradeRecordResponse.getAppId();
+            if (!StringUtils.isEmpty(payTradeRecordResponse.getAppId()) && payTradeRecordResponse.getAppId().contains("$")) {
+                appId = payTradeRecordResponse.getAppId().split("\\$")[1];
+            }
+            saleAfterRefundReq.setRefundMchid(appId);
+            saleAfterRefundReqList.add(saleAfterRefundReq);
         }
 
         if (Objects.nonNull(returnOrder.getReturnPoints())
