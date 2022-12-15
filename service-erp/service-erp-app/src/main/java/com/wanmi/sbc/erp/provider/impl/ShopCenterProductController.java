@@ -92,9 +92,11 @@ public class ShopCenterProductController implements ShopCenterProductProvider {
 			String host = routerConfig.getHost();
 //			String host = routerConfig.getHostLocal();
 			String url = routerConfig.getUrl("product.getSalePlatform");
-
+			log.info("ShopCenterProductController getSalePlatform param {}", JSON.toJSONString(request));
 			HttpResponse response = HttpUtil.doPost(host, url, new HashMap<>(), null, JSON.toJSONString(request));
 			String str = EntityUtils.toString(response.getEntity());
+			log.info("ShopCenterProductController getSalePlatform result {}", JSON.toJSONString(str));
+
 			SalePlatformResp data = JSON.parseObject(str, SalePlatformResp.class);
 
 			return BaseResponse.success(data);
