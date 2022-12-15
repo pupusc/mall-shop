@@ -732,6 +732,13 @@ public class TransferService {
 
         //商品
         Integer refundType = returnOrder.getReturnType().ordinal() == 0 ? 1 : 2;
+        if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DIFF)
+                || Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+            refundType = 2; //退款
+        } else {
+            refundType = 1; //退货退款
+        }
+
 
         saleAfterCreateNewReq.setOrderNumber(context.getOrderNumber().toString());
         saleAfterCreateNewReq.setRefundTypeList(Arrays.asList(refundType)); //退货退款
