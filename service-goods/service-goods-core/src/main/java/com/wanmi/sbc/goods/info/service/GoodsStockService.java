@@ -474,6 +474,11 @@ public class GoodsStockService {
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1001)) {
+				//如果设置
+				if (!Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getStockSyncFlag(), 1)) {
+					continue;
+				}
+
 				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
@@ -486,6 +491,10 @@ public class GoodsStockService {
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1004)) {
+				if (!Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
+					continue;
+				}
+
 				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
