@@ -60,4 +60,14 @@ public class GoodsInfoStockAndCostPriceSyncRequest {
      * 此次是否记录到redis中
      */
     private boolean hasSaveRedis = false;
+
+    /**
+     * 1001=库存变动，1004=成本价变动
+     */
+    private Integer tag;
+
+    /**
+     * 数量
+     */
+    private Integer quantity = 0;
 }

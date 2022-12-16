@@ -719,7 +719,7 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
-        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.isHasSaveRedis(), guanYiSyncGoodsStockRequest.getErpGoodsNoList()));
+        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.isHasSaveRedis(), null));
     }
 
 

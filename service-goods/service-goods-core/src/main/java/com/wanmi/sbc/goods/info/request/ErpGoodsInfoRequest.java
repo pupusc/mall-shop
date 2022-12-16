@@ -21,7 +21,17 @@ public class ErpGoodsInfoRequest {
     private BigDecimal erpCostPrice;
 
     /**
+     * 是否需要同步成本价
+     */
+    private Boolean hasSyncCostPrice = false;
+
+    /**
      * erp库存
      */
     private Long erpStock;
+
+    /**
+     * 是否需要同步库存
+     */
+    private Boolean hasSyncStock = false;
 }

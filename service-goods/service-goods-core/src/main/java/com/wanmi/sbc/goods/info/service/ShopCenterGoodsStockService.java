@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.info.service;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncStockReq;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.ShopCenterCostPriceSyncResp;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -36,8 +37,8 @@ public class ShopCenterGoodsStockService {
 	@Autowired
 	private GoodsStockService goodsStockService;
 
-	public GoodsInfoStockSyncMaxIdProviderResponse updateStockAndPrice(String goodsCode, Integer quantity) {
-		return goodsStockService.batchUpdateStock(null, true, Collections.singletonList(goodsCode));
+	public GoodsInfoStockSyncMaxIdProviderResponse updateStockAndPrice(List<ShopCenterSyncStockReq> shopCenterSyncStockReqs) {
+		return goodsStockService.batchUpdateStock(null, true, shopCenterSyncStockReqs);
 	}
 
 	/**

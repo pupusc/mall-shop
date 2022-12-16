@@ -16,6 +16,7 @@ import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsCostPriceResp;
 import com.wanmi.sbc.erp.api.resp.ShopCenterGoodsStockResp;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
+import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncStockReq;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -272,14 +274,14 @@ public class GoodsStockService {
 	 *
 	 * @param hasSaveRedis 只有定时任务才设置为 true，保证每次采集到的都是上一次的数据
 	 */
-	public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, List<String> erpGoodsNoList) {
+	public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, List<ShopCenterSyncStockReq> shopCenterSyncStockReqs) {
 		log.info("GoodsStockService batchUpdateStock goodsIdList: {} hasSaveRedis:{} erpGoodsNoList:{}",
-				JSON.toJSONString(goodsIdList), hasSaveRedis, JSON.toJSONString(erpGoodsNoList));
+				JSON.toJSONString(goodsIdList), hasSaveRedis, JSON.toJSONString(shopCenterSyncStockReqs));
 		long beginTime = System.currentTimeMillis();
 //		String providerId = defaultProviderId; //管易云
 		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
-
-		if (!CollectionUtils.isEmpty(erpGoodsNoList)) {
+		if (!CollectionUtils.isEmpty(shopCenterSyncStockReqs)) {
+			List<String> erpGoodsNoList = shopCenterSyncStockReqs.stream().map(ShopCenterSyncStockReq::getGoodsCode).collect(Collectors.toList());
 			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsNo(erpGoodsNoList);
 			if (goodsIdList == null) {
 				goodsIdList = new ArrayList<>();
@@ -294,6 +296,10 @@ public class GoodsStockService {
 		}
 
 		if (!CollectionUtils.isEmpty(goodsIdList)) {
+			shopCenterSyncStockReqs = shopCenterSyncStockReqs == null ? new ArrayList<>() : shopCenterSyncStockReqs;
+			Map<String, ShopCenterSyncStockReq> erpGoodsInfoNo2ModelMap =
+					shopCenterSyncStockReqs.stream().collect(Collectors.toMap(ShopCenterSyncStockReq::getGoodsCode, Function.identity(), (k1, k2) -> k1));
+
 			GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
 			goodsInfoQueryRequest.setGoodsIds(goodsIdList);
 			goodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -314,6 +320,13 @@ public class GoodsStockService {
 				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
 				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
 				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
+				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsNo());
+				log.info("GoodsStockService batchUpdateStock shopCenterSyncStockReq {}", JSON.toJSONString(shopCenterSyncStockReq));
+				if (shopCenterSyncStockReq != null) {
+					goodsInfoStockAndCostPriceSyncRequest.setQuantity(shopCenterSyncStockReq.getQuantity() == null ? 0 : shopCenterSyncStockReq.getQuantity());
+					goodsInfoStockAndCostPriceSyncRequest.setTag(shopCenterSyncStockReq.getTag());
+				}
+				log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequest {}", JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequest));
 				goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
 			}
 
@@ -446,9 +459,45 @@ public class GoodsStockService {
 //			return new ArrayList<>();
 //		}
 
+		//获取sku 库存状态
+		Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
+
 		Set<String> erpGoodsCodeSyncCostPriceSet = new HashSet<>();
 		Set<String> erpGoodsCodeSyncStockSet = new HashSet<>();
+
 		for (GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncRequest : goodsInfoStockAndCostPriceSyncRequests) {
+
+			if (!Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getStockSyncFlag(), 1)
+					&& !Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
+				log.info("GoodsStockService goodsInfoId:{} 既不需要同步成本价 又不需要同步库存", goodsInfoStockAndCostPriceSyncRequest.getGoodsInfoId());
+				continue;
+			}
+
+			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1001)) {
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				if (erpGoodsInfoRequest == null) {
+					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+				}
+				erpGoodsInfoRequest.setHasSyncStock(true);
+//				erpGoodsInfoRequest.setHasSyncCostPrice(false);
+				erpGoodsInfoRequest.setErpStock(goodsInfoStockAndCostPriceSyncRequest.getQuantity().longValue());
+				continue;
+			}
+
+			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1004)) {
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				if (erpGoodsInfoRequest == null) {
+					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+				}
+//				erpGoodsInfoRequest.setHasSyncStock(false);
+				erpGoodsInfoRequest.setHasSyncCostPrice(true);
+				erpGoodsInfoRequest.setErpCostPrice(new BigDecimal(goodsInfoStockAndCostPriceSyncRequest.getQuantity()+"").divide(new BigDecimal("100"),2, RoundingMode.HALF_DOWN));
+				continue;
+			}
+
+
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
 				erpGoodsCodeSyncCostPriceSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
 			}
@@ -458,8 +507,7 @@ public class GoodsStockService {
 			}
 		}
 
-		//获取sku 库存状态
-		Map<String, ErpGoodsInfoRequest> erpSkuCode2ErpGoodsInfoMap = new HashMap<>();
+
 
 		if (!CollectionUtils.isEmpty(erpGoodsCodeSyncCostPriceSet)) {
 			ShopCenterGoodsStockOrCostPriceReq shopCenterGoodsStockOrCostPriceReq = new ShopCenterGoodsStockOrCostPriceReq();
@@ -472,6 +520,7 @@ public class GoodsStockService {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
 					erpSkuCode2ErpGoodsInfoMap.put(shopCenterGoodsCostPriceResp.getGoodsCode(), erpGoodsInfoRequest);
 				}
+				erpGoodsInfoRequest.setHasSyncCostPrice(true);
 				erpGoodsInfoRequest.setErpCostPrice(new BigDecimal(shopCenterGoodsCostPriceResp.getCostPrice()+"").divide(new BigDecimal("100"),2, RoundingMode.HALF_DOWN));
 			}
 		}
@@ -487,6 +536,7 @@ public class GoodsStockService {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
 					erpSkuCode2ErpGoodsInfoMap.put(shopCenterGoodsStockResp.getGoodsCode(), erpGoodsInfoRequest);
 				}
+				erpGoodsInfoRequest.setHasSyncStock(true);
 				erpGoodsInfoRequest.setErpStock(shopCenterGoodsStockResp.getQuantity().longValue());
 			}
 		}

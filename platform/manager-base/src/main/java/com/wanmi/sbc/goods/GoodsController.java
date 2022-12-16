@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.erp.api.resp.NewGoodsInfoResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -1666,6 +1667,7 @@ public class GoodsController {
             guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
 //                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
 //                guanYiSyncGoodsStockRequest.setPageSize(0);
+            log.info("GoodsController spuGoodsInfoStockSync guanYiSyncGoodsStockRequest {}", JSON.toJSONString(guanYiSyncGoodsStockRequest));
             goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
         }
         esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());

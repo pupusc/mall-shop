@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.FeiShuUtil;
 import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateReq;
@@ -31,6 +32,8 @@ import com.wanmi.sbc.goods.bean.vo.StoreTobeEvaluateVO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
 import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
+import com.wanmi.sbc.order.nacos.FeiShuSendMegReq;
+import com.wanmi.sbc.order.nacos.NacosRefreshConfig;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnStateContext;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
@@ -43,6 +46,7 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -90,6 +94,9 @@ public class RefundReturnAction extends ReturnAction {
 
     @Autowired
     private ThirdInvokeService thirdInvokeService;
+
+    @Autowired
+    private NacosRefreshConfig nacosRefreshConfig;
 
     @Override
     protected void evaluateInternal(ReturnOrder returnOrder, ReturnStateRequest request, ReturnStateContext rsc) {
@@ -170,6 +177,7 @@ public class RefundReturnAction extends ReturnAction {
         }
         delEvaluate(returnOrder);
 
+        String pushMsg = "";
        try {
            //创建售后订单
            ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
@@ -182,6 +190,7 @@ public class RefundReturnAction extends ReturnAction {
                //调用推送接口
                SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
                if (saleAfterCreateNewReq == null) {
+                   pushMsg = "售后单:" + returnOrder.getId() + " 推送电商中台异常";
                    throw new SbcRuntimeException("999999", String.format("商城售后单%s转化电商中台对象为null", returnOrder.getId()));
                }
                long beginTime = System.currentTimeMillis();
@@ -192,15 +201,24 @@ public class RefundReturnAction extends ReturnAction {
                if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
                    thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
                } else {
+                   pushMsg = "售后单:" + returnOrder.getId() + " 推送电商中台异常";
                    thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
                }
            } catch (Exception ex) {
+               pushMsg = "售后单:" + returnOrder.getId() + " 推送电商中台异常";
                log.error("ProviderTradeService singlePushOrder " + thirdInvokeDTO.getBusinessId() + " 推送失败 error:{} ", ex);
                thirdInvokeService.update(thirdInvokeDTO.getId(), "999999", ThirdInvokePublishStatusEnum.FAIL, "调用失败");
            }
        } catch (Exception ex) {
+           pushMsg = "售后单:" + returnOrder.getId() + " 推送电商中台异常";
            log.error("RefundReturnAction evaluateInternal error", ex);
        }
+
+        if (StringUtils.isNotBlank(pushMsg)) {
+            FeiShuSendMegReq feiShuSendMegReq = JSON.parseObject(nacosRefreshConfig.getSendFeiShuMessage(), FeiShuSendMegReq.class);
+            FeiShuUtil.sendFeiShuMessage(pushMsg, feiShuSendMegReq.getNoticeUrl(), feiShuSendMegReq.getUserId(), feiShuSendMegReq.getUserName());
+//            FeiShuUtil.sendFeiShuMessageDefault(pushMsg);
+        }
     }
 
     /**

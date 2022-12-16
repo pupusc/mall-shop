@@ -185,39 +185,39 @@ public class GoodsInfoStockService {
 
         List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
         for (GoodsInfoStockAndCostPriceSyncRequest goodsInfoStockAndCostPriceSyncParam : goodsInfoStockAndCostPriceSyncRequests) {
-            boolean canSyncStock = goodsInfoStockAndCostPriceSyncParam.getStockSyncFlag().equals(1);
-            boolean canSyncCostPrice = Objects.equals(goodsInfoStockAndCostPriceSyncParam.getCostPriceSyncFlag(),1);
+            ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncParam.getErpGoodsNo());
+            if (erpGoodsInfoRequest == null) {
+                continue;
+            }
             Long tmpActualStockQty = goodsInfoStockAndCostPriceSyncParam.getStockQTY();
             BigDecimal tmpCostPrice = goodsInfoStockAndCostPriceSyncParam.getCostPrice();
-            if (canSyncStock || canSyncCostPrice) {
-                ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncParam.getErpGoodsInfoNo());
-                Long erpStock = 0L;
-                BigDecimal erpCostPrice = BigDecimal.ZERO;
-                if (erpGoodsInfoRequest != null) {
-                    erpStock = erpGoodsInfoRequest.getErpStock() == null ? 0L : erpGoodsInfoRequest.getErpStock();
-                    erpCostPrice = erpGoodsInfoRequest.getErpCostPrice() == null ? BigDecimal.ZERO : erpGoodsInfoRequest.getErpCostPrice();
-                }
-                //两者都要同步
-                if (canSyncStock && canSyncCostPrice) {
-                    tmpActualStockQty = this.getActualStock(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
+
+            boolean canSyncStock = erpGoodsInfoRequest.getHasSyncStock();
+            boolean canSyncCostPrice = erpGoodsInfoRequest.getHasSyncCostPrice();
+
+            Long erpStock = erpGoodsInfoRequest.getErpStock() == null ? 0L : erpGoodsInfoRequest.getErpStock();
+            BigDecimal erpCostPrice =erpGoodsInfoRequest.getErpCostPrice() == null ? BigDecimal.ZERO : erpGoodsInfoRequest.getErpCostPrice();
+
+            //两者都要同步
+            if (canSyncStock && canSyncCostPrice) {
+                tmpActualStockQty = this.getActualStock(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
+                tmpCostPrice = erpCostPrice;
+                //更新库存和成本价
+                this.resetStockCostPriceByGoodsInfoId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), erpStock, tmpActualStockQty, erpCostPrice);
+            }
+            if (canSyncStock && !canSyncCostPrice) {
+                tmpActualStockQty = this.getActualStock(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
+                this.resetStockByGoodsInfoId(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), tmpActualStockQty);
+            }
+            if (!canSyncStock && canSyncCostPrice) {
+                if (erpCostPrice.compareTo(goodsInfoStockAndCostPriceSyncParam.getCostPrice()) != 0) {
+                    //成本不一致 更新成本价
                     tmpCostPrice = erpCostPrice;
-                    //更新库存和成本价
-                    this.resetStockCostPriceByGoodsInfoId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), erpStock, tmpActualStockQty, erpCostPrice);
-                }
-                if (canSyncStock && !canSyncCostPrice) {
-                    tmpActualStockQty = this.getActualStock(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
-                    this.resetStockByGoodsInfoId(erpStock, goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), tmpActualStockQty);
-                }
-                if (!canSyncStock && canSyncCostPrice) {
-                    if (erpCostPrice.compareTo(goodsInfoStockAndCostPriceSyncParam.getCostPrice()) != 0) {
-                        //成本不一致 更新成本价
-                        tmpCostPrice = erpCostPrice;
-                        goodsInfoRepository.updateCostPriceById(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), erpCostPrice);
-                    }
+                    goodsInfoRepository.updateCostPriceById(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId(), erpCostPrice);
                 }
             }
 
-
+            tmpCostPrice = tmpCostPrice == null ? BigDecimal.ZERO : tmpCostPrice;
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
             goodsInfoStockSyncResponse.setSpuId(goodsInfoStockAndCostPriceSyncParam.getGoodsId());
             goodsInfoStockSyncResponse.setSkuId(goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId());
