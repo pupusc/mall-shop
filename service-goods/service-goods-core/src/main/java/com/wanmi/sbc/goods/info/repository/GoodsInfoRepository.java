@@ -586,8 +586,8 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      * @param erpGoodsNoList
      * @return
      */
-    @Query(value = "select tmp_id, goods_id, goods_info_id, erp_goods_no,erp_goods_info_no,cost_price,cost_price_sync_flag,stock,stock_sync_flag,goods_info_no,goods_info_name,market_price from goods_info where del_flag = 0 and added_flag = 1 and erp_goods_no in ?1", nativeQuery = true)
-    List<Map<String, Object>> listByErpGoodsNo(List<String> erpGoodsNoList);
+    @Query(value = "select tmp_id, goods_id, goods_info_id, erp_goods_no,erp_goods_info_no,cost_price,cost_price_sync_flag,stock,stock_sync_flag,goods_info_no,goods_info_name,market_price from goods_info where del_flag = 0 and added_flag = 1 and erp_goods_info_no in ?1", nativeQuery = true)
+    List<Map<String, Object>> listByErpGoodsInfoNo(List<String> erpGoodsNoList);
 
     List<GoodsInfo> findByErpGoodsInfoNoAndDelFlag(String goodsCode, DeleteFlag delFlag);
 

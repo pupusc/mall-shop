@@ -282,7 +282,7 @@ public class GoodsStockService {
 		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(shopCenterSyncStockReqs)) {
 			List<String> erpGoodsNoList = shopCenterSyncStockReqs.stream().map(ShopCenterSyncStockReq::getGoodsCode).collect(Collectors.toList());
-			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsNo(erpGoodsNoList);
+			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsInfoNo(erpGoodsNoList);
 			if (goodsIdList == null) {
 				goodsIdList = new ArrayList<>();
 			}
@@ -320,7 +320,7 @@ public class GoodsStockService {
 				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
 				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
 				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
-				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsNo());
+				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsInfoNo());
 				log.info("GoodsStockService batchUpdateStock shopCenterSyncStockReq {}", JSON.toJSONString(shopCenterSyncStockReq));
 				if (shopCenterSyncStockReq != null) {
 					goodsInfoStockAndCostPriceSyncRequest.setQuantity(shopCenterSyncStockReq.getQuantity() == null ? 0 : shopCenterSyncStockReq.getQuantity());
@@ -474,10 +474,15 @@ public class GoodsStockService {
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1001)) {
-				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				//如果设置
+				if (!Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getStockSyncFlag(), 1)) {
+					continue;
+				}
+
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo(), erpGoodsInfoRequest);
 				}
 				erpGoodsInfoRequest.setHasSyncStock(true);
 //				erpGoodsInfoRequest.setHasSyncCostPrice(false);
@@ -486,10 +491,14 @@ public class GoodsStockService {
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getTag(), 1004)) {
-				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				if (!Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
+					continue;
+				}
+
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo(), erpGoodsInfoRequest);
 				}
 //				erpGoodsInfoRequest.setHasSyncStock(false);
 				erpGoodsInfoRequest.setHasSyncCostPrice(true);
@@ -499,11 +508,11 @@ public class GoodsStockService {
 
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
-				erpGoodsCodeSyncCostPriceSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				erpGoodsCodeSyncCostPriceSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getStockSyncFlag(), 1)) {
-				erpGoodsCodeSyncStockSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				erpGoodsCodeSyncStockSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 			}
 		}
 
