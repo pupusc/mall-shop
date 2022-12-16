@@ -282,7 +282,7 @@ public class GoodsStockService {
 		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(shopCenterSyncStockReqs)) {
 			List<String> erpGoodsNoList = shopCenterSyncStockReqs.stream().map(ShopCenterSyncStockReq::getGoodsCode).collect(Collectors.toList());
-			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsNo(erpGoodsNoList);
+			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsInfoNo(erpGoodsNoList);
 			if (goodsIdList == null) {
 				goodsIdList = new ArrayList<>();
 			}
