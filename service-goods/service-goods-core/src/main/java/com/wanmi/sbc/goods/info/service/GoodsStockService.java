@@ -320,7 +320,7 @@ public class GoodsStockService {
 				goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
 				goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
 				goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
-				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsNo());
+				ShopCenterSyncStockReq shopCenterSyncStockReq = erpGoodsInfoNo2ModelMap.get(goodsInfoParam.getErpGoodsInfoNo());
 				log.info("GoodsStockService batchUpdateStock shopCenterSyncStockReq {}", JSON.toJSONString(shopCenterSyncStockReq));
 				if (shopCenterSyncStockReq != null) {
 					goodsInfoStockAndCostPriceSyncRequest.setQuantity(shopCenterSyncStockReq.getQuantity() == null ? 0 : shopCenterSyncStockReq.getQuantity());
