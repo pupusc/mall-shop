@@ -479,10 +479,10 @@ public class GoodsStockService {
 					continue;
 				}
 
-				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo(), erpGoodsInfoRequest);
 				}
 				erpGoodsInfoRequest.setHasSyncStock(true);
 //				erpGoodsInfoRequest.setHasSyncCostPrice(false);
@@ -495,10 +495,10 @@ public class GoodsStockService {
 					continue;
 				}
 
-				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				ErpGoodsInfoRequest erpGoodsInfoRequest = erpSkuCode2ErpGoodsInfoMap.get(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 				if (erpGoodsInfoRequest == null) {
 					erpGoodsInfoRequest = new ErpGoodsInfoRequest();
-					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo(), erpGoodsInfoRequest);
+					erpSkuCode2ErpGoodsInfoMap.put(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo(), erpGoodsInfoRequest);
 				}
 //				erpGoodsInfoRequest.setHasSyncStock(false);
 				erpGoodsInfoRequest.setHasSyncCostPrice(true);
@@ -508,11 +508,11 @@ public class GoodsStockService {
 
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getCostPriceSyncFlag(), 1)) {
-				erpGoodsCodeSyncCostPriceSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				erpGoodsCodeSyncCostPriceSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 			}
 
 			if (Objects.equals(goodsInfoStockAndCostPriceSyncRequest.getStockSyncFlag(), 1)) {
-				erpGoodsCodeSyncStockSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsNo());
+				erpGoodsCodeSyncStockSet.add(goodsInfoStockAndCostPriceSyncRequest.getErpGoodsInfoNo());
 			}
 		}
 
