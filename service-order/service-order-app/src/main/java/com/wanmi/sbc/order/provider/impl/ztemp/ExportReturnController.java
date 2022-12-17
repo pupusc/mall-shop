@@ -2,6 +2,13 @@ package com.wanmi.sbc.order.provider.impl.ztemp;
 
 import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
+import com.soybean.mall.order.dszt.TransferService;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
@@ -13,6 +20,10 @@ import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$PostFe
 import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Refund;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -51,6 +62,15 @@ public class ExportReturnController {
     private DSZTService dsztService;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private TransferService transferService;
+    @Autowired
+    private ShopCenterSaleAfterProvider shopCenterSaleAfterProvider;
+    @Autowired
+    private ThirdInvokeService thirdInvokeService;
+    @Autowired
+    private TradeRepository tradeRepository;
+
     private AtomicBoolean inHand = new AtomicBoolean(false);
     private List<String> ids = new ArrayList<>();
     private int selectVersion;
@@ -166,9 +186,17 @@ public class ExportReturnController {
             return;
 
         }
+        //排除有赞订单
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null || trade.getYzTid() != null || Boolean.TRUE.equals(trade.getYzOrderFlag())) {
+            log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            this.countIgnore ++;
+            return;
+        }
+
         //同步电商中台
         try {
-            if (!sendData(returnOrder)) {
+            if (!syncData(returnOrder)) {
                 this.countFailed ++;
                 return;
             }
@@ -199,6 +227,27 @@ public class ExportReturnController {
             return sVersion < this.updateVersion;
         }
         return selectVersion == sVersion;
+    }
+
+    private boolean syncData(ReturnOrder returnOrder) {
+        //创建售后订单
+        ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
+        if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+            log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+            return true;
+        }
+        //调用推送接口
+        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+        saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
+        saleAfterCreateNewReq.getSaleAfterOrderBO().setImportFlag(1); //导入标记
+        BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+        //推送成功
+        if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
+            thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+            return true;
+        }
+        thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+        return false;
     }
 
     private boolean sendData(ReturnOrder returnOrder) throws Exception {

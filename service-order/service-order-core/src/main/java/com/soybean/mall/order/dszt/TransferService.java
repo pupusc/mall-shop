@@ -803,7 +803,7 @@ public class TransferService {
                     new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                 saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                 saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getDeliverPrice().multiply(exchangeRate).intValue());
-                saleAfterRefundDetailReq.setRefundReason(returnOrder.getRejectReason());
+                saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
                 saleAfterFreeList.add(saleAfterRefundDetailReq);
             } else {
                 if (returnDeliveryDetailPrice.getDeliveryPayPrice() != null && returnDeliveryDetailPrice.getDeliveryPayPrice().compareTo(BigDecimal.ZERO) > 0) {
