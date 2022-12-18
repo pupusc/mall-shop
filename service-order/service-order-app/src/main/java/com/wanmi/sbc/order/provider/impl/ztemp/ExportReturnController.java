@@ -26,19 +26,20 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,9 +106,14 @@ public class ExportReturnController {
      */
     @Valid
     @GetMapping("start")
-    public String start(String id, Integer selectVersion, Integer updateVersion, Integer pageSize, Boolean errorStop, @NotNull Date bgnTime, @NotNull Date endTime) {
+    public String start(String id, Integer selectVersion, Integer updateVersion, Integer pageSize, Boolean errorStop,
+                        @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date bgnTime, @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date endTime) {
         if (!inHand.compareAndSet(false, true)) {
             return "同步任务正在执行中，本次调用无效";
+        }
+        if (StringUtils.isBlank(id) && (bgnTime == null || endTime == null)) {
+            stop();
+            return "必须指定开始和结束时间";
         }
 
         if (selectVersion == null) {
@@ -232,10 +238,10 @@ public class ExportReturnController {
                 new Update().set(versionField, this.updateVersion),
                 ReturnOrder.class);
 
-        if (updateResult.getModifiedCount() != 1) {
-            log.warn("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.updateVersion, updateResult.getModifiedCount());
-            throw new RuntimeException("更新退单的版本信息错误");
-        }
+//        if (updateResult.getModifiedCount() != 1) {
+//            log.warn("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.updateVersion, updateResult.getModifiedCount());
+//            throw new RuntimeException("更新退单的版本信息错误");
+//        }
     }
 
     private boolean checkVersion(Integer sVersion) {
@@ -254,7 +260,10 @@ public class ExportReturnController {
         }
         //调用推送接口
         SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
-        saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
+        if (saleAfterCreateNewReq == null) {
+            return false;
+        }
+        //saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
         saleAfterCreateNewReq.getSaleAfterOrderBO().setImportFlag(1); //导入标记
         BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
         //推送成功
