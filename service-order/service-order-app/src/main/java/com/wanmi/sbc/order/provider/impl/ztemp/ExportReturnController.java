@@ -24,6 +24,7 @@ import com.wanmi.sbc.order.third.ThirdInvokeService;
 import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -41,6 +42,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +74,6 @@ public class ExportReturnController {
     private TradeRepository tradeRepository;
 
     private AtomicBoolean inHand = new AtomicBoolean(false);
-    private List<String> ids = new ArrayList<>();
     private int selectVersion;
     private int updateVersion;
 
@@ -91,7 +92,6 @@ public class ExportReturnController {
             this.countIgnore = 0;
             this.countError = 0;
             this.countFailed = 0;
-            this.ids.clear();
         }
         return result;
     }
@@ -105,29 +105,53 @@ public class ExportReturnController {
      */
     @Valid
     @GetMapping("start")
-    public String start(String[] ids, @NotNull Integer selectVersion, @NotNull Integer updateVersion, @NotNull Integer pageSize, @NotNull Boolean errorStop) {
+    public String start(String id, Integer selectVersion, Integer updateVersion, Integer pageSize, Boolean errorStop, @NotNull Date bgnTime, @NotNull Date endTime) {
         if (!inHand.compareAndSet(false, true)) {
             return "同步任务正在执行中，本次调用无效";
         }
 
-        log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}", selectVersion, updateVersion, pageSize);
+        if (selectVersion == null) {
+            selectVersion = -1;
+        }
+        if (updateVersion == null) {
+            updateVersion = 1;
+        }
+        if (pageSize == null) {
+            pageSize = 1000;
+        }
+        if (errorStop == null) {
+            errorStop = true;
+        }
+
+        log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}, bgnTime, endTime", selectVersion, updateVersion, pageSize, bgnTime, endTime);
         this.selectVersion = selectVersion;
         this.updateVersion = updateVersion;
-
-        if (Objects.nonNull(ids)) {
-            this.ids.addAll(Arrays.asList(ids));
-        }
 
         int pageNo = 0;
         long start = System.currentTimeMillis();
 
         List<ReturnOrder> returnOrders;
         do {
-            //查询
-            Query query = new Query().with(Sort.by(Sort.Direction.ASC, "createTime")).skip((pageNo++) * pageSize).limit(pageSize);
-            returnOrders = mongoTemplate.find(query, ReturnOrder.class);
+            //指定id
+            if (StringUtil.isNotBlank(id)) {
+                Query query = new Query(Criteria.where("_id").is(id));
+                returnOrders = mongoTemplate.find((query), ReturnOrder.class);
+            } else {
+                //查询
+                Query query = new Query().with(Sort.by(Sort.Direction.ASC, "createTime")).skip((pageNo++) * pageSize).limit(pageSize);
+                if (bgnTime != null && endTime != null) {
+                    query.addCriteria(Criteria.where("createTime").gte(bgnTime).lt(endTime));
+                }
+                returnOrders = mongoTemplate.find(query, ReturnOrder.class);
+            }
+
             //导出
             for (ReturnOrder item : returnOrders) {
+                if (!inHand.get()) {
+                    stop();
+                    log.info("执行指令结束同步任务");
+                    return "执行指令结束同步任务";
+                }
                 try {
                     export(item);
                 } catch (Exception e) {
@@ -169,11 +193,6 @@ public class ExportReturnController {
             return;
         }
         this.countTotal ++;
-        //指定ids
-        if (!this.ids.isEmpty() && !this.ids.contains(returnOrder.getId())) {
-            this.countIgnore ++;
-            return;
-        }
         //验证数据
         if (!checkVersion(returnOrder.getSVersion())) {
             this.countIgnore ++;
@@ -220,11 +239,8 @@ public class ExportReturnController {
     }
 
     private boolean checkVersion(Integer sVersion) {
-        if (sVersion == null) {
+        if (selectVersion < 0 || sVersion == null) {
             return true;
-        }
-        if (selectVersion < 0) {
-            return sVersion < this.updateVersion;
         }
         return selectVersion == sVersion;
     }
