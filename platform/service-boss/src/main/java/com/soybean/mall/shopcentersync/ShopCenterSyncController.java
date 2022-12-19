@@ -89,7 +89,7 @@ public class ShopCenterSyncController {
 			//库存 成本价
 			if (Objects.equals(tag, 1001) || Objects.equals(tag, 1004)) {
 				ShopCenterSyncStockReq syncStock = JSON.parseObject(data, ShopCenterSyncStockReq.class);
-				if (syncStock.getGoodsPrice() != null) {
+				if (Objects.equals(tag, 1004) && syncStock.getGoodsPrice() != null) {
 					syncStock.setQuantity(syncStock.getGoodsPrice());
 				}
 				syncStock.setTag(tag);
