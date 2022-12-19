@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.redis;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -389,7 +390,15 @@ public class RedisService {
         redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
         if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
             Object o = redisTemplate.opsForHash().get(key, hashKey);
-            log.info("RedisService getHashStrValueList o {}", JSON.toJSONString(o));
+            String str = JSON.toJSONString(o);
+            log.info("RedisService getHashStrValueList o {}", str);
+            try {
+                List<String> strings = JSONArray.parseArray(str, String.class);
+                log.info("RedisService getHashStrValueList key:{} hashKey:{} str:{}", key, hashKey, str);
+                return strings;
+            } catch (Exception ex) {
+                log.warn("RedisService getHashStrValueList key:{} hashKey:{} str:{}", key, hashKey, str);
+            }
             return (List<String>) o;
         } else {
             return new ArrayList<>();
