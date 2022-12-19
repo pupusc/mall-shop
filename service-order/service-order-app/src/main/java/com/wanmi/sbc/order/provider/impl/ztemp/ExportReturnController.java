@@ -222,15 +222,17 @@ public class ExportReturnController {
         //同步电商中台
         try {
             if (!syncData(returnOrder)) {
+                log.info("历史退单同步到电商中台,同步失败:id={}", returnOrder.getId());
                 this.countFailed ++;
                 return;
             }
         } catch (Exception e) {
+            log.info("历史退单同步到电商中台,同步错误:id={}", returnOrder.getId());
             this.countError ++;
             throw new RuntimeException(e);
         }
         this.countExport ++;
-        log.info("成功同步到电商中台, 主键:{}, tid:{}", returnOrder.getId(), returnOrder.getTid());
+        log.info("历史退单同步到电商中台,同步成功:id={}", returnOrder.getId());
 
         //更新本地版本
         UpdateResult updateResult = mongoTemplate.updateFirst(
@@ -251,7 +253,7 @@ public class ExportReturnController {
         return selectVersion == sVersion;
     }
 
-    private boolean syncData(ReturnOrder returnOrder) {
+    public boolean syncData(ReturnOrder returnOrder) {
         //创建售后订单
         ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
         if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
