@@ -279,29 +279,32 @@ public class GoodsStockService {
 				JSON.toJSONString(goodsIdList), hasSaveRedis, JSON.toJSONString(shopCenterSyncStockReqs));
 		long beginTime = System.currentTimeMillis();
 //		String providerId = defaultProviderId; //管易云
+		List<String> goodsInfoIdList = new ArrayList<>();
 		List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(shopCenterSyncStockReqs)) {
 			List<String> erpGoodsNoList = shopCenterSyncStockReqs.stream().map(ShopCenterSyncStockReq::getGoodsCode).collect(Collectors.toList());
 			List<Map<String, Object>> goodsInfoList = goodsInfoRepository.listByErpGoodsInfoNo(erpGoodsNoList);
-			if (goodsIdList == null) {
-				goodsIdList = new ArrayList<>();
-			}
 			for (Map<String, Object> goodsParam : goodsInfoList) {
 				for (Map.Entry<String, Object> entry : goodsParam.entrySet()) {
-					if ("goods_id".equals(entry.getKey())) {
-						goodsIdList.add(entry.getValue().toString());
+					if ("goods_info_id".equals(entry.getKey())) {
+						goodsInfoIdList.add(entry.getValue().toString());
 					}
 				}
 			}
 		}
 
-		if (!CollectionUtils.isEmpty(goodsIdList)) {
+		if (!CollectionUtils.isEmpty(goodsIdList) || !CollectionUtils.isEmpty(goodsInfoIdList)) {
 			shopCenterSyncStockReqs = shopCenterSyncStockReqs == null ? new ArrayList<>() : shopCenterSyncStockReqs;
 			Map<String, ShopCenterSyncStockReq> erpGoodsInfoNo2ModelMap =
 					shopCenterSyncStockReqs.stream().collect(Collectors.toMap(ShopCenterSyncStockReq::getGoodsCode, Function.identity(), (k1, k2) -> k1));
 
 			GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
-			goodsInfoQueryRequest.setGoodsIds(goodsIdList);
+			if (CollectionUtils.isNotEmpty(goodsInfoIdList)) {
+				goodsInfoQueryRequest.setGoodsInfoIds(goodsInfoIdList);
+			} else {
+				goodsInfoQueryRequest.setGoodsIds(goodsIdList);
+			}
+
 			goodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
 			goodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
 			List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(goodsInfoQueryRequest.getWhereCriteria());
