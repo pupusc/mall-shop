@@ -16,7 +16,6 @@ import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.ShopCenterGoodsProvider;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplate49ChangeReq;
-import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncCostPriceReq;
 import com.wanmi.sbc.goods.api.request.shopcentersync.ShopCenterSyncStockReq;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
@@ -90,6 +89,9 @@ public class ShopCenterSyncController {
 			//库存 成本价
 			if (Objects.equals(tag, 1001) || Objects.equals(tag, 1004)) {
 				ShopCenterSyncStockReq syncStock = JSON.parseObject(data, ShopCenterSyncStockReq.class);
+				if (Objects.equals(tag, 1004) && syncStock.getGoodsPrice() != null) {
+					syncStock.setQuantity(syncStock.getGoodsPrice());
+				}
 				syncStock.setTag(tag);
 				BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> stockAndPriceResp = shopCenterGoodsProvider.updateStockAndPrice(syncStock);
 				log.info("ShopCenterSyncController syncData stockAndPriceResp {}", JSON.toJSONString(stockAndPriceResp));
