@@ -394,7 +394,7 @@ public class RedisService {
             log.info("RedisService getHashStrValueList o {}", str);
             try {
                 List<String> strings = JSONArray.parseArray(str, String.class);
-                log.info("RedisService getHashStrValueList key:{} hashKey:{} str:{}", key, hashKey, str);
+                log.info("RedisService getHashStrValueList key:{} hashKey:{} str:{}", key, hashKey, JSON.toJSONString(strings));
                 return strings;
             } catch (Exception ex) {
                 log.warn("RedisService getHashStrValueList key:{} hashKey:{} str:{}", key, hashKey, str);
