@@ -84,6 +84,11 @@ public class SaleAfterCreateNewReq {
          * 备注 【退款说明】
          */
         private String memo;
+        /**
+         * 是否导入 1-导入 0-非导入
+         */
+        private Integer importFlag = 0;
+
     }
 
     /**

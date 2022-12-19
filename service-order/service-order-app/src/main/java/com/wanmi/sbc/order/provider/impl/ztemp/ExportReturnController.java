@@ -2,6 +2,13 @@ package com.wanmi.sbc.order.provider.impl.ztemp;
 
 import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
+import com.soybean.mall.order.dszt.TransferService;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
@@ -13,23 +20,30 @@ import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$PostFe
 import com.wanmi.sbc.order.provider.impl.ztemp.vo.ImportMallRefundParamVO$Refund;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.third.ThirdInvokeService;
+import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,8 +65,16 @@ public class ExportReturnController {
     private DSZTService dsztService;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private TransferService transferService;
+    @Autowired
+    private ShopCenterSaleAfterProvider shopCenterSaleAfterProvider;
+    @Autowired
+    private ThirdInvokeService thirdInvokeService;
+    @Autowired
+    private TradeRepository tradeRepository;
+
     private AtomicBoolean inHand = new AtomicBoolean(false);
-    private List<String> ids = new ArrayList<>();
     private int selectVersion;
     private int updateVersion;
 
@@ -71,7 +93,6 @@ public class ExportReturnController {
             this.countIgnore = 0;
             this.countError = 0;
             this.countFailed = 0;
-            this.ids.clear();
         }
         return result;
     }
@@ -85,29 +106,58 @@ public class ExportReturnController {
      */
     @Valid
     @GetMapping("start")
-    public String start(String[] ids, @NotNull Integer selectVersion, @NotNull Integer updateVersion, @NotNull Integer pageSize, @NotNull Boolean errorStop) {
+    public String start(String id, Integer selectVersion, Integer updateVersion, Integer pageSize, Boolean errorStop,
+                        @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date bgnTime, @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss") Date endTime) {
         if (!inHand.compareAndSet(false, true)) {
             return "同步任务正在执行中，本次调用无效";
         }
+        if (StringUtils.isBlank(id) && (bgnTime == null || endTime == null)) {
+            stop();
+            return "必须指定开始和结束时间";
+        }
 
-        log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}", selectVersion, updateVersion, pageSize);
+        if (selectVersion == null) {
+            selectVersion = -1;
+        }
+        if (updateVersion == null) {
+            updateVersion = 1;
+        }
+        if (pageSize == null) {
+            pageSize = 1000;
+        }
+        if (errorStop == null) {
+            errorStop = true;
+        }
+
+        log.info("开始同步商城退单数据到电商中台, selectVersion={}, updateVersion={}, pageSize={}, bgnTime, endTime", selectVersion, updateVersion, pageSize, bgnTime, endTime);
         this.selectVersion = selectVersion;
         this.updateVersion = updateVersion;
-
-        if (Objects.nonNull(ids)) {
-            this.ids.addAll(Arrays.asList(ids));
-        }
 
         int pageNo = 0;
         long start = System.currentTimeMillis();
 
         List<ReturnOrder> returnOrders;
         do {
-            //查询
-            Query query = new Query().with(Sort.by(Sort.Direction.ASC, "createTime")).skip((pageNo++) * pageSize).limit(pageSize);
-            returnOrders = mongoTemplate.find(query, ReturnOrder.class);
+            //指定id
+            if (StringUtil.isNotBlank(id)) {
+                Query query = new Query(Criteria.where("_id").is(id));
+                returnOrders = mongoTemplate.find((query), ReturnOrder.class);
+            } else {
+                //查询
+                Query query = new Query().with(Sort.by(Sort.Direction.ASC, "createTime")).skip((pageNo++) * pageSize).limit(pageSize);
+                if (bgnTime != null && endTime != null) {
+                    query.addCriteria(Criteria.where("createTime").gte(bgnTime).lt(endTime));
+                }
+                returnOrders = mongoTemplate.find(query, ReturnOrder.class);
+            }
+
             //导出
             for (ReturnOrder item : returnOrders) {
+                if (!inHand.get()) {
+                    stop();
+                    log.info("执行指令结束同步任务");
+                    return "执行指令结束同步任务";
+                }
                 try {
                     export(item);
                 } catch (Exception e) {
@@ -149,11 +199,6 @@ public class ExportReturnController {
             return;
         }
         this.countTotal ++;
-        //指定ids
-        if (!this.ids.isEmpty() && !this.ids.contains(returnOrder.getId())) {
-            this.countIgnore ++;
-            return;
-        }
         //验证数据
         if (!checkVersion(returnOrder.getSVersion())) {
             this.countIgnore ++;
@@ -166,18 +211,28 @@ public class ExportReturnController {
             return;
 
         }
+        //排除有赞订单
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null || trade.getYzTid() != null || Boolean.TRUE.equals(trade.getYzOrderFlag())) {
+            log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            this.countIgnore ++;
+            return;
+        }
+
         //同步电商中台
         try {
-            if (!sendData(returnOrder)) {
+            if (!syncData(returnOrder)) {
+                log.info("历史退单同步到电商中台,同步失败:id={}", returnOrder.getId());
                 this.countFailed ++;
                 return;
             }
         } catch (Exception e) {
+            log.info("历史退单同步到电商中台,同步错误:id={}", returnOrder.getId());
             this.countError ++;
             throw new RuntimeException(e);
         }
         this.countExport ++;
-        log.info("成功同步到电商中台, 主键:{}, tid:{}", returnOrder.getId(), returnOrder.getTid());
+        log.info("历史退单同步到电商中台,同步成功:id={}", returnOrder.getId());
 
         //更新本地版本
         UpdateResult updateResult = mongoTemplate.updateFirst(
@@ -185,20 +240,41 @@ public class ExportReturnController {
                 new Update().set(versionField, this.updateVersion),
                 ReturnOrder.class);
 
-        if (updateResult.getModifiedCount() != 1) {
-            log.warn("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.updateVersion, updateResult.getModifiedCount());
-            throw new RuntimeException("更新退单的版本信息错误");
-        }
+//        if (updateResult.getModifiedCount() != 1) {
+//            log.warn("更新退单的版本信息影响数量错误，主键:{}, 版本:{}, 更新数量:{}", returnOrder.getId(), this.updateVersion, updateResult.getModifiedCount());
+//            throw new RuntimeException("更新退单的版本信息错误");
+//        }
     }
 
     private boolean checkVersion(Integer sVersion) {
-        if (sVersion == null) {
+        if (selectVersion < 0 || sVersion == null) {
             return true;
         }
-        if (selectVersion < 0) {
-            return sVersion < this.updateVersion;
-        }
         return selectVersion == sVersion;
+    }
+
+    public boolean syncData(ReturnOrder returnOrder) {
+        //创建售后订单
+        ThirdInvokeDTO thirdInvokeDTO = thirdInvokeService.add(returnOrder.getId(), ThirdInvokeCategoryEnum.INVOKE_RETURN_ORDER);
+        if (Objects.equals(thirdInvokeDTO.getPushStatus(), ThirdInvokePublishStatusEnum.SUCCESS.getCode())) {
+            log.info("ProviderTradeService singlePushOrder businessId:{} 已经推送成功，重复提送", thirdInvokeDTO.getBusinessId());
+            return true;
+        }
+        //调用推送接口
+        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+        if (saleAfterCreateNewReq == null) {
+            return false;
+        }
+        //saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
+        saleAfterCreateNewReq.getSaleAfterOrderBO().setImportFlag(1); //导入标记
+        BaseResponse<Long> saleAfter = shopCenterSaleAfterProvider.createSaleAfter(saleAfterCreateNewReq);
+        //推送成功
+        if (Objects.equals(saleAfter.getCode(), CommonErrorCode.SUCCESSFUL)) {
+            thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.SUCCESS, "SUCCESS");
+            return true;
+        }
+        thirdInvokeService.update(thirdInvokeDTO.getId(), saleAfter.getContext().toString(), ThirdInvokePublishStatusEnum.FAIL, saleAfter.getMessage());
+        return false;
     }
 
     private boolean sendData(ReturnOrder returnOrder) throws Exception {
