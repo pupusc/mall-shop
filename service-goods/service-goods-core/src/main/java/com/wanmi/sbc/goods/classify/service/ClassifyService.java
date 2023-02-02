@@ -124,12 +124,14 @@ public class ClassifyService {
         List<ClassifyProviderResponse> result = new ArrayList<>();
         Sort sort = Sort.by(Sort.Direction.ASC, "indexOrderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
         List<ClassifyDTO> resultList = classifyRepository.findAll(this.packageWhere(null, null, 1), sort);
+
+        //List<ClassifyDTO> resultList = classifyRepository.findAllsort();
+
         for (ClassifyDTO classifyParam : resultList) {
             result.add(this.classifyDTO2ClassifyProviderResponse(classifyParam));
         }
         return result;
     }
-
 
     private Specification<ClassifyDTO> packageWhere(Collection<Integer> classifyIdList, Collection<Integer> parentClassifyIdList, Integer hasShowIndex) {
         return new Specification<ClassifyDTO>() {

@@ -14,6 +14,8 @@ import java.util.List;
 @Repository
 public interface ClassifyRepository extends JpaRepository<ClassifyDTO, Integer>, JpaSpecificationExecutor<ClassifyDTO> {
 
+    @Query(value = "select * from t_classify where del_flag=0 and has_show_index=1 order by index_order_num asc, update_time asc", nativeQuery = true)
+    List<ClassifyDTO> findAllsort();
 
     /**
      * 采集数据
