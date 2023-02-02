@@ -259,7 +259,7 @@ public class SearchController {
      * @param request
      * @return
      */
-    @PostMapping("/keyword/keywordSearch")
+    @PostMapping("/v2/keyword/keywordSearch")
     public BaseResponse<List<Map<String,Object>>> keywordSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
         List<Map<String,Object>> list = this.keySearch(request);
         return BaseResponse.success(list);
