@@ -212,6 +212,18 @@ public class SearchController {
         return BaseResponse.success(this.spuSearch(request));
     }
 
+    /**
+     * 搜索 获取前10
+     * @menu 搜索功能
+     * @param request
+     * @return
+     */
+    @PostMapping("/keyword/keywordSearch")
+    public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> keywordSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+        EsSpuNewAggResp<List<SpuNewBookListResp>> list = this.spuSearch(request);
+
+        return BaseResponse.success(list);
+    }
 
     /**
      * 凑单搜索 获取商品/图书
