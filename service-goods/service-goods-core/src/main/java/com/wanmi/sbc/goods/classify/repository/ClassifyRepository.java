@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public interface ClassifyRepository extends JpaRepository<ClassifyDTO, Integer>,
 
     @Query(value = "select * from t_classify where del_flag=0 and has_show_index=1 order by index_order_num asc, update_time asc", nativeQuery = true)
     List<ClassifyDTO> findAllsort();
+
 
     /**
      * 采集数据

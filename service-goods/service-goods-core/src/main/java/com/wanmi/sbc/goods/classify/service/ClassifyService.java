@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.classify.service;
 
+import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
@@ -8,13 +9,18 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -40,7 +46,11 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+
 public class ClassifyService {
+
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Resource
     private ClassifyRepository classifyRepository;
@@ -123,9 +133,21 @@ public class ClassifyService {
     public List<ClassifyProviderResponse> listIndexClassify() {
         List<ClassifyProviderResponse> result = new ArrayList<>();
         Sort sort = Sort.by(Sort.Direction.ASC, "indexOrderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
+
+        //1
         List<ClassifyDTO> resultList = classifyRepository.findAll(this.packageWhere(null, null, 1), sort);
 
+        //2
         //List<ClassifyDTO> resultList = classifyRepository.findAllsort();
+
+        //3
+        //begin
+        /*String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql,ClassifyDTO.class);
+        query.setParameter(1,0);
+        List<ClassifyDTO> resultList = query.getResultList();*/
+        //end
 
         for (ClassifyDTO classifyParam : resultList) {
             result.add(this.classifyDTO2ClassifyProviderResponse(classifyParam));
