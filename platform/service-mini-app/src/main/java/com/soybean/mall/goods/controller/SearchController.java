@@ -21,6 +21,7 @@ import com.soybean.mall.goods.service.BookListSearchService;
 import com.soybean.mall.goods.service.SpuComponentService;
 import com.soybean.mall.goods.service.SpuNewSearchService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -41,11 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Description: 搜索 h5 小程序 公共部分
@@ -202,6 +199,49 @@ public class SearchController {
     }
 
     /**
+     * 图书关键词联想
+     * @param request
+     * @return
+     */
+    private List<Map<String,Object>> keySearch(KeyWordSpuQueryReq request) {
+        request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        //获取客户信息
+        CustomerGetByIdResponse customer = null;
+        String userId = commonUtil.getOperatorId();
+        if (!StringUtils.isEmpty(userId)) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+            String isCounselor = customerProvider.isCounselorCache(Integer.valueOf(customer.getFanDengUserNo())).getContext();
+            //非知识顾问用户
+            if (!Objects.isNull(isCounselor) && "true".equals(isCounselor)) {
+                request.setCpsSpecial(1);// 表示知识顾问，显示所有商品
+            }
+        }
+        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
+        List<Map<String,Object>> tempList= KsBeanUtil.objectsToMaps(spuNewBookListResps);
+        List<Map<String,Object>> resList=new ArrayList<>();
+
+        for(Object obj:tempList){
+            Map<String,Object> map= (Map<String, Object>) obj;
+            if(resList.size()>10){
+                break;
+            }
+            Map<String,Object> map1=new HashMap<>();
+            map1.put("spuId",map.get("spuId"));
+            map1.put("skuId",map.get("skuId"));
+            map1.put("spuName",map.get("spuName"));
+            String type;
+            if(map.get("spuCategory").toString().equals(SearchSpuNewCategoryEnum.BOOK.getCode().toString())){
+                map1.put("spuCategory","图书");
+            }else {
+                map1.put("spuCategory","商品");
+            }
+            resList.add(map1);
+        }
+        return resList;
+    }
+
+    /**
      * 搜索 获取商品/图书
      * @menu 搜索功能
      * @param request
@@ -219,9 +259,8 @@ public class SearchController {
      * @return
      */
     @PostMapping("/keyword/keywordSearch")
-    public BaseResponse<EsSpuNewAggResp<List<SpuNewBookListResp>>> keywordSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
-        EsSpuNewAggResp<List<SpuNewBookListResp>> list = this.spuSearch(request);
-
+    public BaseResponse<List<Map<String,Object>>> keywordSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+        List<Map<String,Object>> list = this.keySearch(request);
         return BaseResponse.success(list);
     }
 
