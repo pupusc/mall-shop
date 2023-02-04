@@ -19,6 +19,6 @@ public interface DefaultSearchTermsQueryProvider {
      * 默认搜索词
      * @return
      */
-    @PostMapping("/setting/${application.setting.version}/default_search_terms/list")
+    @PostMapping("/setting/${application.setting.version}/default_search_terms/v2/list")
     BaseResponse<List<DefaultSearchTermsListResponse>> listDefaultSearchTerms(@RequestParam(value = "defaultChannel", required = false) Integer defaultChannel);
 }

@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @ApiModel
 @Api(value = "DefaultSearchTermsQueryController", description = "默认词查询服务API")
-@RequestMapping("/default_search_terms")
+@RequestMapping("/default_search_terms/v2")
 public class DefaultSearchTermsQueryController {
 
     @Autowired
