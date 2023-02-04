@@ -49,7 +49,7 @@ public class TopicController {
 
 
     /**
-     * @description 根据专题id返回页面数据
+     * @description 根据专题id返回页面数据_V2
      * @menu 专题
      * @param request
      * @status undone
@@ -57,17 +57,13 @@ public class TopicController {
     @ApiOperation(value = "根据专题id返回页面数据，")
     @PostMapping(value = "/v2/detail")
     public BaseResponse<TopicResponse> detailV2(@RequestBody TopicQueryRequest request) {
-        BaseResponse<TopicResponse> response = topicService.detail(request,true);
+        BaseResponse<TopicResponse> response = topicService.detailV2(request,true);
         return response;
     }
-
     @ApiOperation(value = "根据专题id返回数据，第一次加载只返回1，2楼层数据信息")
     @PostMapping(value = "/v2/headTopic")
     public BaseResponse<TopicResponse> storeyV2(@RequestBody TopicQueryRequest request) {
-        BaseResponse<TopicResponse> response = topicService.detail(request,false);
-
-        this.setTopic13(response,13);         //赋值滚动消息
-
+        BaseResponse<TopicResponse> response = topicService.detailV2(request,false);
         return response;
     }
 
