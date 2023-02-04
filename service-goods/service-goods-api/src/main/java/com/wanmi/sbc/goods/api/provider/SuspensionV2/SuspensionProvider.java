@@ -22,7 +22,7 @@ public interface SuspensionProvider {
      * @param   suspensionByIdRequest
      * @return 悬浮窗信息 {@link suspensionByIdRequest}
      */
-    @PostMapping("/goods/${application.goods.version}/suspension/get-by-id")
+    @PostMapping("/goods/suspension/get-by-id")
     BaseResponse<SuspensionByIdResponse> getById(@RequestBody @Valid SuspensionByIdRequest suspensionByIdRequest);
 
 }
