@@ -252,13 +252,14 @@ public class SearchController {
         return BaseResponse.success(this.spuSearch(request));
     }
 
+
     /**
      * 搜索 获取前10
      * @menu 搜索功能
      * @param request
      * @return
      */
-    @PostMapping("/keyword/keywordSearch")
+    @PostMapping("/keyword/v2/keywordSearch")
     public BaseResponse<List<Map<String,Object>>> keywordSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
         List<Map<String,Object>> list = this.keySearch(request);
         return BaseResponse.success(list);

@@ -20,6 +20,8 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.home.service.HomePageService;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
@@ -39,6 +41,7 @@ import com.wanmi.sbc.topic.response.TopicStoreyResponse;
 import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -71,6 +74,9 @@ public class TopicService {
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private HomePageService homePageService;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -121,6 +127,27 @@ public class TopicService {
         initCoupon(response.getStoreyList());
         return BaseResponse.success(response);
     }
+
+
+    public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
+        BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
+        if(null==detail||null==detail.getContext()){
+            return BaseResponse.success(null);
+        }
+        TopicResponse response=detail.getContext();
+        if(null==response.getStoreyList()||response.getStoreyList().size()==0){
+            return BaseResponse.success(null);
+        }
+        List<TopicStoreyResponse> storeyList = response.getStoreyList();
+        for(TopicStoreyResponse topicResponse:storeyList){
+            Integer storeyType = topicResponse.getStoreyType();
+            if(storeyType==12){//滚动消息
+                topicResponse.setNotes(homePageService.notice());
+            }
+        }
+        return BaseResponse.success(response);
+    }
+
 
     /**
      * 初始化优惠券信息

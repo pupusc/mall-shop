@@ -1,5 +1,6 @@
 package com.wanmi.sbc.topic.response;
 
+import com.wanmi.sbc.home.response.NoticeResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -36,6 +37,9 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("瀑布流类型：100=首页瀑布流、200=好书5折瀑布流、300=童书会场瀑布流")
     private Integer waterFallType;
+
+    @ApiModelProperty("滚动消息内容")
+    private NoticeResponse notes;
     
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentReponse> contents;
