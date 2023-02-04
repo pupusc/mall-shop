@@ -252,6 +252,7 @@ public class SearchController {
         return BaseResponse.success(this.spuSearch(request));
     }
 
+
     /**
      * 搜索 获取前10
      * @menu 搜索功能
