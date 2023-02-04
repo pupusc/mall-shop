@@ -25,7 +25,9 @@ public enum TopicStoreyType {
 
     NAVIGATION(8,"导航"),
 
-    COUPON(9,"优惠券");
+    COUPON(9,"优惠券"),
+
+    ADVERTISEMENT(10,"广告（测试）");
 
     private Integer id;
 
