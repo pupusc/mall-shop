@@ -74,6 +74,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
             }
 
             //不知道什么时候使用
+            //sbc-mobile.properties jwt.excluded-urls 排除 (dita)
             if (excludedRestUrlMap != null && !excludedRestUrlMap.isEmpty()) {
                 List<String> list = excludedRestUrlMap.keySet().stream().filter(excludedRestUrl -> antPathMatcher.match
                         (excludedRestUrl, requestURI)).collect(Collectors.toList());
