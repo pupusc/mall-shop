@@ -49,6 +49,7 @@ import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.ss.formula.functions.T;
@@ -151,15 +152,28 @@ public class TopicService {
         Gson gson=new Gson();
         Map map=new HashMap();
         map=gson.fromJson(pointsText,Map.class);
-        TopicCustomerPointsResponse pointsResponse=new TopicCustomerPointsResponse();
-        pointsResponse.setPoints_text(map.get("text").toString());
-        String customerId = commonUtil.getOperatorId();
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (customerId)).getContext();
-        pointsResponse.setPoints_available(customer.getPointsAvailable());
-        pointsResponse.setCustomer_id(customer.getCustomerId());
-        pointsResponse.setCustomer_name(customer.getCustomerDetail().getCustomerName());
-        return pointsResponse;
+        String customerId;
+        try{
+            customerId = commonUtil.getOperatorId();
+            if(StringUtil.isNotBlank(customerId)) {
+                TopicCustomerPointsResponse pointsResponse=new TopicCustomerPointsResponse();
+                if(null!=map.get("text")){
+                    pointsResponse.setPoints_text(map.get("text").toString());
+                }
+                CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
+                        (customerId)).getContext();
+                pointsResponse.setPoints_available(customer.getPointsAvailable());
+                pointsResponse.setCustomer_id(customer.getCustomerId());
+                pointsResponse.setCustomer_name(customer.getCustomerDetail().getCustomerName());
+                return pointsResponse;
+            }
+            return null;
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
+
     }
 
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
