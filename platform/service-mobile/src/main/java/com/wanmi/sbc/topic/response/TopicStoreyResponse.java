@@ -55,4 +55,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("颜色，导航类型对应导航文字颜色")
     private String color;
+
+    @ApiModelProperty("新书速递栏目信息")
+    private List<NewBookPointResponse> newBookPointResponseList;
 }

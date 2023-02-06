@@ -65,4 +65,9 @@ public class NormalActivityPointSkuController implements NormalActivityPointSkuP
     public BaseResponse<List<SkuNormalActivityResp>> listSpuRunningNormalActivity(SpuNormalActivityReq spuNormalActivityReq) {
         return BaseResponse.success(normalActivityPointSkuService.listSpuRunningNormalActivity(spuNormalActivityReq));
     }
+
+    @Override
+    public List<NormalActivitySkuResp> getPonitByActivity() {
+        return normalActivityPointSkuService.getPonitByActivity();
+    }
 }

@@ -18,7 +18,10 @@ public enum TopicStoreyTypeV2 {
 
     VOUCHER(17, "抵用券组件"),
 
-    POINTS(15, "积分");
+    POINTS(15, "积分"),
+
+    NEWBOOK( 16,"新书速递");
+
     private Integer id;
 
     private String desc;

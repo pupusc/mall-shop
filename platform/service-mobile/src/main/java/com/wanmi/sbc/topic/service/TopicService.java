@@ -1,15 +1,11 @@
 package com.wanmi.sbc.topic.service;
 
 
-import com.alibaba.druid.support.json.JSONUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alipay.api.internal.parser.json.JsonConverter;
 import com.google.gson.Gson;
-import com.rabbitmq.tools.json.JSONUtil;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -20,19 +16,15 @@ import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
-import com.wanmi.sbc.customer.response.CustomerCenterResponse;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
-import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
-import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
-import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
+import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.home.service.HomePageService;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
@@ -42,7 +34,6 @@ import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
@@ -52,13 +43,11 @@ import com.wanmi.sbc.util.CommonUtil;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.formula.functions.T;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -94,6 +83,12 @@ public class TopicService {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
+
+    @Autowired
+    private PointsGoodsQueryProvider pointsGoodsQueryProvider;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -196,9 +191,41 @@ public class TopicService {
             if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints());
             }
+
+            if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
+                topicResponse.setNewBookPointResponseList(newBookPoint());
+            }
         }
         return BaseResponse.success(response);
     }
+
+
+    /**
+     * 商品信息及赠送积分信息
+     */
+    public List<NewBookPointResponse> newBookPoint() {
+        List<NewBookPointResponse> newBookPointResponseList= new ArrayList<>();
+
+        List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods().getContext();
+
+        List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
+
+        Map<String, NormalActivitySkuResp> goodsPointMap = ponitByActivity.stream()
+                .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
+                .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
+
+        context.stream().forEach(normalModuleSkuResp -> {
+            if(goodsPointMap.containsKey(normalModuleSkuResp.getSkuId())){
+                NewBookPointResponse newBookPointResponse=new NewBookPointResponse();
+                BeanUtils.copyProperties(normalModuleSkuResp,newBookPointResponse);
+                newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
+                newBookPointResponseList.add(newBookPointResponse);
+            }
+        });
+
+        return newBookPointResponseList;
+    }
+
 
 
     /**

@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsByStoreIdRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsPageRequest;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.api.response.pointsgoods.PointsGoodsByIdResponse;
 import com.wanmi.sbc.goods.api.response.pointsgoods.PointsGoodsListResponse;
 import com.wanmi.sbc.goods.api.response.pointsgoods.PointsGoodsPageResponse;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * <p>积分商品表查询服务Provider</p>
@@ -80,5 +82,13 @@ public interface PointsGoodsQueryProvider {
     @PostMapping("/goods/${application.goods.version}/pointsgoods/page-new")
     BaseResponse<PointsGoodsPageResponse> pageNew(@RequestBody @Valid PointsGoodsPageRequest pointsGoodsPageReq);
 
+
+    /**
+     * 查询返积分栏目的商品
+     * @return 积分商品表分页列表信息 {@link PointsGoodsPageResponse}
+     * @author yang
+     */
+    @PostMapping("/goods/${application.goods.version}/pointsgoods/getReturnPointGoods")
+    BaseResponse<List<NormalModuleSkuResp>> getReturnPointGoods();
 }
 
