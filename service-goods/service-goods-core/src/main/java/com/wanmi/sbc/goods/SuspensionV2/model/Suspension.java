@@ -71,4 +71,14 @@ public class Suspension  {
      */
     @Column(name = "end_time")
     private LocalDateTime endTime;
+
+
+    /**
+     * 类型
+     */
+    @Column(name = "type")
+    private Long type;
+
+
+
 }

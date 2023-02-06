@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
@@ -64,4 +65,12 @@ public class SuspensionDTO {
      */
     @ApiModelProperty(value = "投放结束时间")
     private LocalDateTime endTime;
+
+
+
+    /**
+     * 类型
+     */
+    @ApiModelProperty(value = "类型")
+    private Long type;
 }
