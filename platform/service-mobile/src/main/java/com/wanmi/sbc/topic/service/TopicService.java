@@ -143,7 +143,7 @@ public class TopicService {
         for(TopicStoreyResponse topicResponse:storeyList){
             Integer storeyType = topicResponse.getStoreyType();
             if(storeyType == TopicStoreyTypeV2.ROLLINGMESSAGE.getId()){//滚动消息
-//                topicResponse.setNotes(homePageService.notice());
+                topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             }
