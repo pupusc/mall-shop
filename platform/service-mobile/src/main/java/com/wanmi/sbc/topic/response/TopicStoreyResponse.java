@@ -40,6 +40,9 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("滚动消息内容")
     private NoticeResponse notes;
+
+    @ApiModelProperty("用户积分信息")
+    private TopicCustomerPointsResponse points;
     
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentReponse> contents;

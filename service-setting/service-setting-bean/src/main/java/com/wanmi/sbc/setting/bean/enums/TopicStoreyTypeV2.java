@@ -16,8 +16,9 @@ public enum TopicStoreyTypeV2 {
 
     ROLLINGMESSAGE(12, "滚动消息"),
 
-    VOUCHER(17, "抵用券组件");
+    VOUCHER(17, "抵用券组件"),
 
+    POINTS(15, "积分");
     private Integer id;
 
     private String desc;
