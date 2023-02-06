@@ -33,6 +33,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
+import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
@@ -141,8 +142,10 @@ public class TopicService {
         List<TopicStoreyResponse> storeyList = response.getStoreyList();
         for(TopicStoreyResponse topicResponse:storeyList){
             Integer storeyType = topicResponse.getStoreyType();
-            if(storeyType==12){//滚动消息
-                topicResponse.setNotes(homePageService.notice());
+            if(storeyType == TopicStoreyTypeV2.ROLLINGMESSAGE.getId()){//滚动消息
+//                topicResponse.setNotes(homePageService.notice());
+            } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
+                initCouponV2(storeyList);
             }
         }
         return BaseResponse.success(response);
@@ -219,6 +222,76 @@ public class TopicService {
             }
         });
    }
+
+    /**
+     * @Description 初始化优惠券信息
+     * @Author zh
+     * @Date  2023/2/6 10:28
+     */
+    private void initCouponV2(List<TopicStoreyResponse> storeyList){
+        //优惠券
+        List<String> activityIds = new ArrayList<>();
+        List<String> couponIds = new ArrayList<>();
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyTypeV2.VOUCHER.getId())).forEach(p->{
+            if(CollectionUtils.isNotEmpty(p.getContents())) {
+                activityIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getActivityId).collect(Collectors.toList()));
+                couponIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getCouponId).collect(Collectors.toList()));
+            }
+        });
+        CouponCacheCenterPageRequest couponRequest = new CouponCacheCenterPageRequest();
+        couponRequest.setActivityIds(activityIds);
+        couponRequest.setCouponInfoIds(couponIds);
+        couponRequest.setCouponScene(Arrays.asList(CouponSceneType.TOPIC.getType().toString()));
+        couponRequest.setPageNum(0);
+        couponRequest.setPageSize(100);
+        if(commonUtil.getOperator()!=null && commonUtil.getOperatorId() !=null){
+            couponRequest.setCustomerId(commonUtil.getOperatorId());
+        }
+        BaseResponse<CouponCacheCenterPageResponse> couponResponse =  couponCacheProvider.pageCouponStarted(couponRequest);
+        if(couponResponse == null || couponResponse.getContext() == null || couponResponse.getContext().getCouponViews() == null || CollectionUtils.isEmpty(couponResponse.getContext().getCouponViews().getContent())){
+            return;
+        }
+        List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
+        List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
+            if(CollectionUtils.isEmpty(p.getContents())) {
+                return;
+            }
+            String typeAllGoodsId = null;
+            Map<String, String> typeStoreCateGoodsId = new HashMap<>();
+            for (TopicStoreyContentReponse c : p.getContents()) {
+                Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
+                if(optionalCouponVO.isPresent()){
+                    c.setCouponInfo(optionalCouponVO.get());
+                    for (CouponVO couponVO : couponVOS) {
+                        if(couponVO.getActivityId().equals(c.getActivityId()) && couponVO.getCouponId().equals(c.getCouponId())){
+                            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
+                                //适用店铺分类
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
+                                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
+                                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
+                                    }
+                                    c.setSpuId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
+                                }
+                            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
+                                if(typeAllGoodsId == null){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+                                    typeAllGoodsId = goodsId.getContext();
+                                }
+                                c.setSpuId(typeAllGoodsId);
+                            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
+                                    c.setSpuId(goodsId.getContext());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
