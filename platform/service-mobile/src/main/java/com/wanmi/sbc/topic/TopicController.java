@@ -68,11 +68,5 @@ public class TopicController {
         return response;
     }
 
-    private void setTopic13(BaseResponse<TopicResponse> response, int num) {
-        //如果有response有13
-        //List list = null;
-        //response.setList();
-    }
-
 
 }

@@ -1,6 +1,12 @@
 package com.wanmi.sbc.topic.service;
 
 
+import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.internal.parser.json.JsonConverter;
+import com.google.gson.Gson;
+import com.rabbitmq.tools.json.JSONUtil;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
@@ -8,7 +14,13 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.configure.SpringUtil;
+import com.wanmi.sbc.customer.CustomerBaseController;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.response.CustomerCenterResponse;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
@@ -35,10 +47,7 @@ import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
-import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
-import com.wanmi.sbc.topic.response.TopicResponse;
-import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
-import com.wanmi.sbc.topic.response.TopicStoreyResponse;
+import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,6 +87,12 @@ public class TopicService {
 
     @Autowired
     private HomePageService homePageService;
+
+    @Autowired
+    private CustomerBaseController customerBaseController;
+
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -130,6 +145,23 @@ public class TopicService {
     }
 
 
+    public TopicCustomerPointsResponse getPoints(){
+        String key="showUserIntegral.config";
+        String pointsText=SpringUtil.getBean(key);
+        Gson gson=new Gson();
+        Map map=new HashMap();
+        map=gson.fromJson(pointsText,Map.class);
+        TopicCustomerPointsResponse pointsResponse=new TopicCustomerPointsResponse();
+        pointsResponse.setPoints_text(map.get("text").toString());
+        String customerId = commonUtil.getOperatorId();
+        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
+                (customerId)).getContext();
+        pointsResponse.setPoints_available(customer.getPointsAvailable());
+        pointsResponse.setCustomer_id(customer.getCustomerId());
+        pointsResponse.setCustomer_name(customer.getCustomerDetail().getCustomerName());
+        return pointsResponse;
+    }
+
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
         if(null==detail||null==detail.getContext()){
@@ -146,6 +178,9 @@ public class TopicService {
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
+            }
+            if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
+                topicResponse.setPoints(this.getPoints());
             }
         }
         return BaseResponse.success(response);
