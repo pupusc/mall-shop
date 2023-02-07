@@ -154,13 +154,13 @@ public class ClassifyService {
 
         //4
         //begin
-        String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql);
-        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        //String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
+        //EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        //Query query = entityManager.createNativeQuery(sql);
+        //query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 
-        query.setParameter(1,0);
-        List<Map> resultList2 = query.getResultList();
+        //query.setParameter(1,0);
+        //List<Map> resultList2 = query.getResultList();
         //end
 
         for (ClassifyDTO classifyParam : resultList) {
