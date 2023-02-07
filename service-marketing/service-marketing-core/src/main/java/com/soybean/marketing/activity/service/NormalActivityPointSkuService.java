@@ -1,7 +1,7 @@
 package com.soybean.marketing.activity.service;
-import java.util.Collection;
 import com.soybean.marketing.api.req.NormalActivityPointSkuSearchReq;
 import com.soybean.marketing.api.req.SpuNormalActivityReq;
+import com.soybean.marketing.api.resp.NormalActivityResp;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.soybean.marketing.api.resp.SkuNormalActivityResp;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -15,9 +15,7 @@ import com.soybean.marketing.api.req.NormalActivitySearchReq;
 import com.soybean.marketing.api.req.NormalActivitySkuReq;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
-import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
@@ -181,6 +179,34 @@ public class NormalActivityPointSkuService extends NormalActivityService {
         return resultSkus;
     }
 
+
+    public List<NormalActivitySkuResp> getPonitByActivity() {
+        //查找启用且生效的返积分活动
+        NormalActivitySearchReq normalActivitySearchReq = new NormalActivitySearchReq();
+        normalActivitySearchReq.setPublishState(1);
+        List<NormalActivityResp> collect = super.list(normalActivitySearchReq).getContent()
+                .stream()
+                .filter(normalActivitySearch -> normalActivitySearch.getStatus() == 1)
+                .collect(Collectors.toList());
+
+        //获取商品列表(同时进行的可能不止一个活动)
+
+        List<NormalActivityPointSku> rawNormalActivityPointSkus =new ArrayList<>();
+        collect.stream().forEach(normalActivityResp -> {
+            NormalActivityPointSkuSearchReq normalActivityPointSkuSearchReq = new NormalActivityPointSkuSearchReq();
+            normalActivityPointSkuSearchReq.setNormalActivityId(normalActivityResp.getId());
+            rawNormalActivityPointSkus.addAll(normalActivityPointSkuRepository.findAll(normalActivityPointSkuRepository.buildSearchCondition(normalActivityPointSkuSearchReq)));
+        });
+
+
+        List<NormalActivitySkuResp> resultSkus = new ArrayList<>();
+        for (NormalActivityPointSku activityPointSkuParam : rawNormalActivityPointSkus) {
+            NormalActivitySkuResp normalActivitySkuResp = new NormalActivitySkuResp();
+            BeanUtils.copyProperties(activityPointSkuParam, normalActivitySkuResp);
+            resultSkus.add(normalActivitySkuResp);
+        }
+        return resultSkus;
+    }
 
     /**
      * 开启/关闭

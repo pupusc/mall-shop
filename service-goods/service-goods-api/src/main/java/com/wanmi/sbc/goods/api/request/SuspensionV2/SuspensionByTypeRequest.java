@@ -19,16 +19,16 @@ import javax.validation.constraints.NotNull;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuspensionByIdRequest extends BaseRequest {
+public class SuspensionByTypeRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
 
     /**
-     * id
+     * type
      */
-    @ApiModelProperty(value = "id")
+    @ApiModelProperty(value = "type")
     @NotNull
-    private Long id;
+    private Long type;
 
 
 }

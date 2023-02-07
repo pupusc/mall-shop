@@ -40,6 +40,9 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("滚动消息内容")
     private NoticeResponse notes;
+
+    @ApiModelProperty("用户积分信息")
+    private TopicCustomerPointsResponse points;
     
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentReponse> contents;
@@ -52,4 +55,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("颜色，导航类型对应导航文字颜色")
     private String color;
+
+    @ApiModelProperty("新书速递栏目信息")
+    private List<NewBookPointResponse> newBookPointResponseList;
 }

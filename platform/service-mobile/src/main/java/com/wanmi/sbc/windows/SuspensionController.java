@@ -1,11 +1,11 @@
 package com.wanmi.sbc.windows;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
-import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByIdRequest;
-import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByIdResponse;
-import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
+import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
+import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
+import com.wanmi.sbc.topic.response.NewBookPointResponse;
+import com.wanmi.sbc.topic.service.TopicService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,17 +14,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
-@RequestMapping("/windows/V2")
+@RequestMapping("/windows/v2")
 @Slf4j
 public class SuspensionController {
 
     @Autowired
     private SuspensionProvider suspensionProvider;
 
-    @PostMapping("/getSuspensionById")
-    public BaseResponse<SuspensionByIdResponse> getById(@RequestBody @Valid SuspensionByIdRequest suspensionByIdRequest) {
-        return suspensionProvider.getById(suspensionByIdRequest);
+    @Autowired
+    private TopicService topicService;
+
+    @PostMapping("/getSuspensionByType")
+    public BaseResponse<SuspensionByTypeResponse> getByType(@RequestBody @Valid SuspensionByTypeRequest suspensionByTypeRequest) {
+        return suspensionProvider.getByType(suspensionByTypeRequest);
+    }
+
+    @PostMapping("/test")
+    public List<NewBookPointResponse> newBookPoint()  {
+        return topicService.newBookPoint();
     }
 }

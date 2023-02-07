@@ -80,4 +80,14 @@ public interface NormalActivityPointSkuProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/listSpuRunningNormalActivity")
     BaseResponse<List<SkuNormalActivityResp>> listSpuRunningNormalActivity(@RequestBody SpuNormalActivityReq spuNormalActivityReq);
+
+
+    /**
+     *
+     * 根据返积分活动
+     *
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/normal-activity/point-sku/getPonitByGoods")
+    List<NormalActivitySkuResp> getPonitByActivity();
 }

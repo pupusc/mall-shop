@@ -9,16 +9,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @ApiModel
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuspensionByIdResponse {
+public class SuspensionByTypeResponse {
     /**
      * 悬浮穿信息
      */
     @ApiModelProperty(value = "悬浮窗信息")
-    private SuspensionDTO suspensionDTO;
+    private List<SuspensionDTO> suspensionDTOList;
 }

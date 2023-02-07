@@ -1,26 +1,30 @@
 package com.wanmi.sbc.topic.service;
 
 
+import com.google.gson.Gson;
+import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
+import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.configure.SpringUtil;
+import com.wanmi.sbc.customer.CustomerBaseController;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
-import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
-import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
-import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
+import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.home.service.HomePageService;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
@@ -30,24 +34,20 @@ import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
+import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
-import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
-import com.wanmi.sbc.topic.response.TopicResponse;
-import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
-import com.wanmi.sbc.topic.response.TopicStoreyResponse;
+import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.formula.functions.T;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -77,6 +77,18 @@ public class TopicService {
 
     @Autowired
     private HomePageService homePageService;
+
+    @Autowired
+    private CustomerBaseController customerBaseController;
+
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
+
+    @Autowired
+    private PointsGoodsQueryProvider pointsGoodsQueryProvider;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -129,6 +141,36 @@ public class TopicService {
     }
 
 
+    public TopicCustomerPointsResponse getPoints(){
+        String key="showUserIntegral.config";
+        String pointsText=SpringUtil.getBean(key);
+        Gson gson=new Gson();
+        Map map=new HashMap();
+        map=gson.fromJson(pointsText,Map.class);
+        String customerId;
+        try{
+            customerId = commonUtil.getOperatorId();
+            if(StringUtil.isNotBlank(customerId)) {
+                TopicCustomerPointsResponse pointsResponse=new TopicCustomerPointsResponse();
+                if(null!=map.get("text")){
+                    pointsResponse.setPoints_text(map.get("text").toString());
+                }
+                CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
+                        (customerId)).getContext();
+                pointsResponse.setPoints_available(customer.getPointsAvailable());
+                pointsResponse.setCustomer_id(customer.getCustomerId());
+                pointsResponse.setCustomer_name(customer.getCustomerDetail().getCustomerName());
+                return pointsResponse;
+            }
+            return null;
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
+
+    }
+
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
         if(null==detail||null==detail.getContext()){
@@ -141,12 +183,49 @@ public class TopicService {
         List<TopicStoreyResponse> storeyList = response.getStoreyList();
         for(TopicStoreyResponse topicResponse:storeyList){
             Integer storeyType = topicResponse.getStoreyType();
-            if(storeyType==12){//滚动消息
+            if(storeyType == TopicStoreyTypeV2.ROLLINGMESSAGE.getId()){//滚动消息
                 topicResponse.setNotes(homePageService.notice());
+            } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
+                initCouponV2(storeyList);
+            }
+            if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
+                topicResponse.setPoints(this.getPoints());
+            }
+
+            if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
+                topicResponse.setNewBookPointResponseList(newBookPoint());
             }
         }
         return BaseResponse.success(response);
     }
+
+
+    /**
+     * 商品信息及赠送积分信息
+     */
+    public List<NewBookPointResponse> newBookPoint() {
+        List<NewBookPointResponse> newBookPointResponseList= new ArrayList<>();
+
+        List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods().getContext();
+
+        List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
+
+        Map<String, NormalActivitySkuResp> goodsPointMap = ponitByActivity.stream()
+                .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
+                .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
+
+        context.stream().forEach(normalModuleSkuResp -> {
+            if(goodsPointMap.containsKey(normalModuleSkuResp.getSkuId())){
+                NewBookPointResponse newBookPointResponse=new NewBookPointResponse();
+                BeanUtils.copyProperties(normalModuleSkuResp,newBookPointResponse);
+                newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
+                newBookPointResponseList.add(newBookPointResponse);
+            }
+        });
+
+        return newBookPointResponseList;
+    }
+
 
 
     /**
@@ -219,6 +298,76 @@ public class TopicService {
             }
         });
    }
+
+    /**
+     * @Description 初始化优惠券信息
+     * @Author zh
+     * @Date  2023/2/6 10:28
+     */
+    private void initCouponV2(List<TopicStoreyResponse> storeyList){
+        //优惠券
+        List<String> activityIds = new ArrayList<>();
+        List<String> couponIds = new ArrayList<>();
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyTypeV2.VOUCHER.getId())).forEach(p->{
+            if(CollectionUtils.isNotEmpty(p.getContents())) {
+                activityIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getActivityId).collect(Collectors.toList()));
+                couponIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getCouponId).collect(Collectors.toList()));
+            }
+        });
+        CouponCacheCenterPageRequest couponRequest = new CouponCacheCenterPageRequest();
+        couponRequest.setActivityIds(activityIds);
+        couponRequest.setCouponInfoIds(couponIds);
+        couponRequest.setCouponScene(Arrays.asList(CouponSceneType.TOPIC.getType().toString()));
+        couponRequest.setPageNum(0);
+        couponRequest.setPageSize(100);
+        if(commonUtil.getOperator()!=null && commonUtil.getOperatorId() !=null){
+            couponRequest.setCustomerId(commonUtil.getOperatorId());
+        }
+        BaseResponse<CouponCacheCenterPageResponse> couponResponse =  couponCacheProvider.pageCouponStarted(couponRequest);
+        if(couponResponse == null || couponResponse.getContext() == null || couponResponse.getContext().getCouponViews() == null || CollectionUtils.isEmpty(couponResponse.getContext().getCouponViews().getContent())){
+            return;
+        }
+        List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
+        List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
+            if(CollectionUtils.isEmpty(p.getContents())) {
+                return;
+            }
+            String typeAllGoodsId = null;
+            Map<String, String> typeStoreCateGoodsId = new HashMap<>();
+            for (TopicStoreyContentReponse c : p.getContents()) {
+                Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
+                if(optionalCouponVO.isPresent()){
+                    c.setCouponInfo(optionalCouponVO.get());
+                    for (CouponVO couponVO : couponVOS) {
+                        if(couponVO.getActivityId().equals(c.getActivityId()) && couponVO.getCouponId().equals(c.getCouponId())){
+                            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
+                                //适用店铺分类
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
+                                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
+                                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
+                                    }
+                                    c.setSpuId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
+                                }
+                            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
+                                if(typeAllGoodsId == null){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+                                    typeAllGoodsId = goodsId.getContext();
+                                }
+                                c.setSpuId(typeAllGoodsId);
+                            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
+                                    c.setSpuId(goodsId.getContext());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();

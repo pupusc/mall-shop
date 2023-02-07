@@ -16,6 +16,7 @@ import com.wanmi.sbc.setting.bean.dto.TopicStoreyCouponDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
+import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicHeadImage;
@@ -208,7 +209,7 @@ public class TopicConfigService {
     }
 
     private void initAttr(List<TopicStoreyContentDTO> contents,Integer storeyType){
-        if(Objects.equals(TopicStoreyType.COUPON.getId(),storeyType)){
+        if(Objects.equals(TopicStoreyType.COUPON.getId(),storeyType) || Objects.equals(TopicStoreyTypeV2.VOUCHER.getId(),storeyType)){
             contents.forEach(item->{
                 TopicStoreyCouponDTO couponDTO = JSONObject.parseObject(item.getAttributeInfo(),TopicStoreyCouponDTO.class);
                 item.setActivityId(couponDTO.getActivityId());
@@ -246,7 +247,7 @@ public class TopicConfigService {
         //删除原数据
         contentRepository.deleteBySid(request.getStoreyId());
         //设置属性
-        if(Objects.equals(request.getStoreyType(),TopicStoreyType.COUPON.getId())){
+        if(Objects.equals(request.getStoreyType(),TopicStoreyType.COUPON.getId()) || Objects.equals(TopicStoreyTypeV2.VOUCHER.getId(), request.getStoreyType())){
             request.getContents().forEach(c->{
                 TopicStoreyCouponDTO couponDTO = (TopicStoreyCouponDTO)c;
                 c.setAttributeInfo(JSON.toJSONString(couponDTO));

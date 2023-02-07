@@ -60,17 +60,12 @@ public class TopicController {
         BaseResponse<TopicResponse> response = topicService.detailV2(request,true);
         return response;
     }
+
     @ApiOperation(value = "根据专题id返回数据，第一次加载只返回1，2楼层数据信息")
     @PostMapping(value = "/v2/headTopic")
     public BaseResponse<TopicResponse> storeyV2(@RequestBody TopicQueryRequest request) {
         BaseResponse<TopicResponse> response = topicService.detailV2(request,false);
         return response;
-    }
-
-    private void setTopic13(BaseResponse<TopicResponse> response, int num) {
-        //如果有response有13
-        //List list = null;
-        //response.setList();
     }
 
 
