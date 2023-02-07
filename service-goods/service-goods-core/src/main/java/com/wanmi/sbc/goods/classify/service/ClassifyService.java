@@ -150,6 +150,15 @@ public class ClassifyService {
         List<ClassifyDTO> resultList = query.getResultList();*/
         //end
 
+        //4
+        //begin
+        String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1,0);
+        List resultList2 = query.getResultList();
+        //end
+
         for (ClassifyDTO classifyParam : resultList) {
             result.add(this.classifyDTO2ClassifyProviderResponse(classifyParam));
         }
