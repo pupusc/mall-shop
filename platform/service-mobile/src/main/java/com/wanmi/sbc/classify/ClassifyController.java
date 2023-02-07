@@ -119,6 +119,31 @@ public class ClassifyController {
      */
     @GetMapping("/listClassify/home")
     public BaseResponse<List<ClassifyNoChildResponse>> listHomeClassify() {
+
+        List<ClassifyNoChildResponse> result = new ArrayList<>();
+        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listIndexClassify();
+        int maxSize = 6;
+        for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
+            if (result.size() >= maxSize) {
+                break;
+            }
+            ClassifyNoChildResponse classifyNoChildResponse = new ClassifyNoChildResponse();
+            classifyNoChildResponse.setId(classifyProviderResponseParam.getId());
+            classifyNoChildResponse.setClassifyName(classifyProviderResponseParam.getClassifyName());
+            result.add(classifyNoChildResponse);
+        }
+        return BaseResponse.success(result);
+    }
+
+    /**
+     * 分类获取首页分类信息
+     *
+     * @menu 新版首页
+     *
+     * @return
+     */
+    @GetMapping("/listClassify/test")
+    public BaseResponse<List<ClassifyNoChildResponse>> listHomePage() {
         List<ClassifyNoChildResponse> result = new ArrayList<>();
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listIndexClassify();
         int maxSize = 6;
