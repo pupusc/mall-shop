@@ -9,6 +9,8 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
+import org.hibernate.query.internal.NativeQueryImpl;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -155,8 +157,10 @@ public class ClassifyService {
         String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql);
+        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
         query.setParameter(1,0);
-        List resultList2 = query.getResultList();
+        List<Map> resultList2 = query.getResultList();
         //end
 
         for (ClassifyDTO classifyParam : resultList) {
