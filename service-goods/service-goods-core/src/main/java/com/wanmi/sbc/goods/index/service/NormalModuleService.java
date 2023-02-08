@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.index.service;
 import com.soybean.common.resp.CommonPageResp;
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -271,6 +272,33 @@ public class NormalModuleService {
         return result;
     }
 
+
+    /**
+     * 分页查询栏目商品
+     * @param normalModuleSkuSearchReq
+     * @return
+     */
+    public List<NormalModuleSkuResp> listNormalModuleSkuByPage(NormalModuleSkuSearchReq normalModuleSkuSearchReq) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "sortNum");
+
+        Pageable pageable = PageRequest.of(normalModuleSkuSearchReq.getPageNum(), normalModuleSkuSearchReq.getPageSize(), sort);
+        Page<NormalModuleSku> normalModuleSkus = normalModuleSkuRepository.findAll(normalModuleSkuRepository.packageWhere(normalModuleSkuSearchReq), pageable);
+
+        List<NormalModuleSkuResp> result = new ArrayList<>();
+        for (NormalModuleSku moduleSku : normalModuleSkus) {
+            NormalModuleSkuResp normalModuleSkuResp = new NormalModuleSkuResp();
+            normalModuleSkuResp.setId(moduleSku.getId());
+            normalModuleSkuResp.setNormalModelId(moduleSku.getNormalModelId());
+            normalModuleSkuResp.setSkuId(moduleSku.getSkuId());
+            normalModuleSkuResp.setSkuNo(moduleSku.getSkuNo());
+            normalModuleSkuResp.setSpuId(moduleSku.getSpuId());
+            normalModuleSkuResp.setSpuNo(moduleSku.getSpuNo());
+            normalModuleSkuResp.setSortNum(moduleSku.getSortNum());
+            normalModuleSkuResp.setSkuTag(moduleSku.getSkuTag());
+            result.add(normalModuleSkuResp);
+        }
+        return result;
+    }
 
     /**
      * 校验是否有重叠的栏目

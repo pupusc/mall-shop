@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class NewBookPointResponse implements Serializable {
@@ -47,4 +48,17 @@ public class NewBookPointResponse implements Serializable {
      *  数量
      */
     private Integer num;
+
+
+    /**
+     *  市场价
+     */
+    private BigDecimal marketPrice;
+
+
+    /**
+     * 最新计算的会员价
+     * 为空，以市场价为准
+     */
+    private BigDecimal salePrice;
 }

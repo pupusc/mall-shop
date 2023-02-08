@@ -1,5 +1,6 @@
 package com.wanmi.sbc.windows;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
@@ -33,7 +34,7 @@ public class SuspensionController {
     }
 
     @PostMapping("/test")
-    public List<NewBookPointResponse> newBookPoint()  {
-        return topicService.newBookPoint();
+    public List<NewBookPointResponse> newBookPoint(@RequestBody @Valid BaseQueryRequest baseQueryRequest)  {
+        return topicService.newBookPoint(baseQueryRequest);
     }
 }

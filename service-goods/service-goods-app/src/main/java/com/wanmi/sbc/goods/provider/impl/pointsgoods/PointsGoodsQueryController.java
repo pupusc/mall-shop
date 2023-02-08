@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.pointsgoods;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -104,12 +105,13 @@ public class PointsGoodsQueryController implements PointsGoodsQueryProvider {
     }
 
     @Override
-    public BaseResponse<List<NormalModuleSkuResp>> getReturnPointGoods() {
+    public BaseResponse<List<NormalModuleSkuResp>> getReturnPointGoods(BaseQueryRequest baseQueryRequest) {
         List<NormalModuleResp> collect=new ArrayList<>();
         NormalModuleSearchReq normalModuleSearchReq = new NormalModuleSearchReq();
         normalModuleSearchReq.setPageNum(0);
         normalModuleSearchReq.setPageSize(10);
 
+        //获取进行中的返积分栏目
         while (collect.size()==0) {
             collect = normalModuleService.list(normalModuleSearchReq).getContent()
                     .stream()
@@ -118,9 +120,12 @@ public class PointsGoodsQueryController implements PointsGoodsQueryProvider {
             normalModuleSearchReq.setPageNum(normalModuleSearchReq.getPageNum()+1);
         }
 
+        //获取返积分栏目中的商品
         NormalModuleSkuSearchReq normalModuleSkuSearchReq = new NormalModuleSkuSearchReq();
         normalModuleSkuSearchReq.setNormalModuleId(collect.get(0).getId());
-        List<NormalModuleSkuResp> normalModuleSkuRespList = normalModuleService.listNormalModuleSku(normalModuleSkuSearchReq);
+        normalModuleSkuSearchReq.setPageNum(baseQueryRequest.getPageNum());
+        normalModuleSkuSearchReq.setPageSize(baseQueryRequest.getPageSize());
+        List<NormalModuleSkuResp> normalModuleSkuRespList = normalModuleService.listNormalModuleSkuByPage(normalModuleSkuSearchReq);
 
         return BaseResponse.success(normalModuleSkuRespList);
     }
