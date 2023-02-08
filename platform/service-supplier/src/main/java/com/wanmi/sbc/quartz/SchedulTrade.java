@@ -42,13 +42,14 @@ public class SchedulTrade {     //订单同步
 
         for (int i=0;i<mongdbList.size();i++){
             Map map = (Map)mongdbList.get(i);
-            String id = String.valueOf(map.get("id"));
+            String trade_order_id = String.valueOf(map.get("trade_order_id"));
+            String oid = String.valueOf(map.get("oid"));
 
             next_orderTime = String.valueOf(map.get("time"));
 
-            boolean boo = mySqlOrderService.isExist(id);
+            boolean boo = mySqlOrderService.isExist(trade_order_id,oid);
             if(boo){
-                mySqlOrderService.insert(id);
+                mySqlOrderService.insert(trade_order_id,oid);
             }
         }
 

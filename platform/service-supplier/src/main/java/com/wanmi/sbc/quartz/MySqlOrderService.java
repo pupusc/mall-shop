@@ -28,12 +28,12 @@ public class MySqlOrderService {
     }
 
     //判断是否存在
-    public boolean isExist(String id) {
+    public boolean isExist(String trade_order_id,String oid) {
         boolean boo = false;
         return boo;
     }
 
     //同步插入
-    public void insert(String id) {
+    public void insert(String trade_order_id,String oid) {
     }
 }
