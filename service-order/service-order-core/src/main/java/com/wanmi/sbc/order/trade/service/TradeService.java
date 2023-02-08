@@ -4451,7 +4451,8 @@ public class TradeService {
         trade.setConsignee(wrapperConsignee(request.getConsigneeId(), request.getConsigneeAddress(),
                 request.getConsigneeUpdateTime(), request.getConsignee()));
         //发票信息(必须在收货地址下面-因为使用临时发票收货地,却未填写的时候,将使用订单商品收货地址作为发票收货地)
-        if (Objects.nonNull(trade.getInvoice()) && Objects.equals(trade.getInvoice().getType(), 2)) {
+        if ((Objects.nonNull(trade.getInvoice()) && Objects.equals(trade.getInvoice().getType(), 2))
+            || Objects.equals(request.getInvoice().getType(), 2)) {
             //电子发票 不做处理
         } else {
             trade.setInvoice(wrapperTradeInvoice(request.getInvoice(), request.getInvoiceConsignee(),
