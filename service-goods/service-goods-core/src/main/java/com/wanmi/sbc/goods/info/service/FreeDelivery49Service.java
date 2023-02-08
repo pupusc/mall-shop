@@ -130,7 +130,7 @@ public class FreeDelivery49Service {
             if (updateSpuId2GoodsMap.get(goodsInfo.getGoodsId()) != null) {
                 continue;
             }
-            BigDecimal marketPrice = goodsInfo.getMarketPrice().multiply(new BigDecimal("0.96"));
+            BigDecimal marketPrice = goodsInfo.getMarketPrice().multiply(new BigDecimal("1"));
             BigDecimal diffPrice = marketPrice.subtract(goodsInfo.getCostPrice());
             log.info("FreeDelivery49Service changeFreeDelivery49 skuId: {} marketPrice:{} 96MarketPrice:{} costPrice:{} diffPrice:{} ",
                     goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice(), marketPrice, goodsInfo.getCostPrice(), diffPrice);

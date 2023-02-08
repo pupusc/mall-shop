@@ -340,7 +340,7 @@ public class CompleteAction extends TradeAction {
                 .goodsNum(trade.getTradeItems().size())
                 .customerId(buyer.getId())
                 .customerName(buyer.getName())
-                .customerAccount(buyer.getAccount())
+                .customerAccount(StringUtils.isBlank(buyer.getAccount()) ? "1234567890" : buyer.getAccount())
                 .autoStoreEvaluateDate(storeTobeEvaluateAddRequest.getAutoStoreEvaluateDate())
                 .createPerson(buyer.getName())
                 .createTime(LocalDateTime.now())

@@ -470,7 +470,7 @@ public class TransferService {
         /**
          * 非赠品
          */
-        if (Objects.equals(giftFlag, 0) && tradePrice.getPrivilegePrice() != null && tradePrice.getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
+        if (Objects.equals(giftFlag, 0) && tradePrice.getPrivilegePrice() != null) {
 
             BigDecimal discountAmount = BigDecimal.ZERO;
             for (CreateOrderReq.BuyDiscountReq buyDiscountReq : buyDiscountReqList) {
@@ -481,7 +481,7 @@ public class TransferService {
             long knowledge = tradeItem.getKnowledge() == null ? 0 : tradeItem.getKnowledge();
             BigDecimal splitPrice = tradeItem.getSplitPrice() == null ? BigDecimal.ZERO : tradeItem.getSplitPrice();
             splitPrice = splitPrice.multiply(exchangeRate);
-            BigDecimal diffPrice = newOriginalPrice.subtract(discountAmount)
+            BigDecimal diffPrice = newOriginalPrice.multiply(new BigDecimal(tradeItem.getNum() + "")).subtract(discountAmount)
                     .subtract(new BigDecimal(points + ""))
                     .subtract(new BigDecimal(knowledge + "")).subtract(splitPrice);
             if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
