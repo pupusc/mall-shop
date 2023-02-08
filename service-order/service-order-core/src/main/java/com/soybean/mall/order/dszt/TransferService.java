@@ -470,7 +470,7 @@ public class TransferService {
         /**
          * 非赠品
          */
-        if (Objects.equals(giftFlag, 0) && tradePrice.getPrivilegePrice() != null && tradePrice.getPrivilegePrice().compareTo(BigDecimal.ZERO) > 0) {
+        if (Objects.equals(giftFlag, 0) && tradePrice.getPrivilegePrice() != null) {
 
             BigDecimal discountAmount = BigDecimal.ZERO;
             for (CreateOrderReq.BuyDiscountReq buyDiscountReq : buyDiscountReqList) {
