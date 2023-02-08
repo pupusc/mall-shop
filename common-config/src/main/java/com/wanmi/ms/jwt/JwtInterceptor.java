@@ -129,7 +129,6 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/freight/getFreightPrice")
                     || requestURI.startsWith("/freight/getFreightPriceList")
                     || requestURI.startsWith("/default_search_terms/v2")
-                    || requestURI.startsWith("/v2/sync")
                     || requestURI.startsWith("/windows/v2")
             ) {
                 if (StringUtils.isBlank(token)) {
