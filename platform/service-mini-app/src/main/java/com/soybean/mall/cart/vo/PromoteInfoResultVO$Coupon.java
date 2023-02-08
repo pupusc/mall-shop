@@ -79,7 +79,7 @@ public class PromoteInfoResultVO$Coupon {
     /**
      * 平台内容（platformContent）
      */
-    private String storeNameText = "仅樊登读书自营旗舰店可用";
+    private String storeNameText = "仅帆书自营旗舰店可用";
     /**
      * 优惠券营销范围（scopeContent）
      */

@@ -220,11 +220,11 @@ public class PayController {
 //        title = title.replaceAll("([&,', ,<,>,-,+])", "");
 //        body = body.replaceAll("([&,', ,<,>,-,+])", "");
 //        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
-//            title = "樊登读书官方旗舰店";
+//            title = "帆书官方旗舰店";
 //            body = "商品";
 //        }
-        payExtraRequest.setSubject("樊登读书订单-" + payMobileRequest.getTid());
-        payExtraRequest.setBody("樊登读书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setSubject("帆书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setBody("帆书订单-" + payMobileRequest.getTid());
 
         payExtraRequest.setClientIp(HttpUtil.getIpAddr());
         Object object;
@@ -635,16 +635,16 @@ public class PayController {
 //        }
 //        title = title.replaceAll("([&,', ,<,>,-,+])", "");
 //        body = body.replaceAll("([&,', ,<,>,-,+])", "");
-////        title = "樊登读书官方旗舰店";
+////        title = "帆书官方旗舰店";
 ////        body = "";
 //        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
-//            title = "樊登读书官方旗舰店";
+//            title = "帆书官方旗舰店";
 //            body = "商品";
 //        }
 //        log.info("=============body", body);
 //        log.info("=============title", title);
-        payExtraRequest.setSubject("樊登读书订单-" + payMobileRequest.getTid());
-        payExtraRequest.setBody("樊登读书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setSubject("帆书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setBody("帆书订单-" + payMobileRequest.getTid());
         payExtraRequest.setClientIp(HttpUtil.getIpAddr());
 
         String form = "";
