@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.provider.pointsgoods;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsByStoreIdRequest;
@@ -89,6 +90,6 @@ public interface PointsGoodsQueryProvider {
      * @author yang
      */
     @PostMapping("/goods/${application.goods.version}/pointsgoods/getReturnPointGoods")
-    BaseResponse<List<NormalModuleSkuResp>> getReturnPointGoods();
+    BaseResponse<List<NormalModuleSkuResp>> getReturnPointGoods(@RequestBody @Valid BaseQueryRequest baseQueryRequest);
 }
 

@@ -6,6 +6,7 @@ import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvide
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -15,13 +16,21 @@ import com.wanmi.sbc.customer.CustomerBaseController;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -40,6 +49,7 @@ import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
+import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,7 +57,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -89,6 +102,12 @@ public class TopicService {
 
     @Autowired
     private PointsGoodsQueryProvider pointsGoodsQueryProvider;
+
+    @Autowired
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -193,7 +212,7 @@ public class TopicService {
             }
 
             if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
-                topicResponse.setNewBookPointResponseList(newBookPoint());
+                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
             }
         }
         return BaseResponse.success(response);
@@ -203,10 +222,13 @@ public class TopicService {
     /**
      * 商品信息及赠送积分信息
      */
-    public List<NewBookPointResponse> newBookPoint() {
+    public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest) {
+
+
         List<NewBookPointResponse> newBookPointResponseList= new ArrayList<>();
 
-        List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods().getContext();
+
+        List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods(baseQueryRequest).getContext();
 
         List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
 
@@ -214,15 +236,46 @@ public class TopicService {
                 .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
                 .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
 
+        //获取商品积分
+        List<String> skuIdList=new ArrayList<>();
         context.stream().forEach(normalModuleSkuResp -> {
-            if(goodsPointMap.containsKey(normalModuleSkuResp.getSkuId())){
-                NewBookPointResponse newBookPointResponse=new NewBookPointResponse();
-                BeanUtils.copyProperties(normalModuleSkuResp,newBookPointResponse);
+            NewBookPointResponse newBookPointResponse=new NewBookPointResponse();
+            BeanUtils.copyProperties(normalModuleSkuResp,newBookPointResponse);
+            if(null != goodsPointMap.get(normalModuleSkuResp.getSkuId()) && null!= goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum()){
                 newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
-                newBookPointResponseList.add(newBookPointResponse);
             }
+            skuIdList.add(newBookPointResponse.getSkuId());
+            newBookPointResponseList.add(newBookPointResponse);
         });
 
+        //获取商品售价
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).isHavSpecText(DeleteFlag.YES.toValue()).deleteFlag(DeleteFlag.NO).build();
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        for(int i=0; i<newBookPointResponseList.size();i++ ){
+            newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
+        }
+
+
+        //获取会员价
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Map customerMap = ( Map ) request.getAttribute("claims");
+        if(null!=customerMap.get("customerId").toString()) {
+            //获取会员
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+            filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+            for(int i=0; i<newBookPointResponseList.size();i++ ){
+                newBookPointResponseList.get(i).setSalePrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getSalePrice());
+            }
+        }
         return newBookPointResponseList;
     }
 
