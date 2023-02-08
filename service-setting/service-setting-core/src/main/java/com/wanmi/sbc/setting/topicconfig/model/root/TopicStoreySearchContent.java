@@ -34,7 +34,7 @@ public class TopicStoreySearchContent {
     private String skuNo;
 
     @Column(name = "type")
-    private Boolean type;
+    private Integer type;
 
     @Column(name = "image_url")
     private String imageUrl;

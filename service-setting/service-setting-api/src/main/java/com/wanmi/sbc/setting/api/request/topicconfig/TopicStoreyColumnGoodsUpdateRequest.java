@@ -23,7 +23,7 @@ public class TopicStoreyColumnGoodsUpdateRequest implements Serializable {
     @NotNull
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime createTime;
+    private LocalDateTime startTime;
 
     /**
      * 结束时间
