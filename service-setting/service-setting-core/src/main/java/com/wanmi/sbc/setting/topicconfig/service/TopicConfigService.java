@@ -21,7 +21,9 @@ import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.*;
 import com.wanmi.sbc.setting.topicconfig.repository.*;
+import com.wanmi.sbc.setting.util.PartialUpdateUtil;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +62,9 @@ public class TopicConfigService {
 
     @Autowired
     private TopicStoreyColumnGoodsRepository columnGoodsRepository;
+
+    @Autowired
+    private PartialUpdateUtil updateUtil;
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
@@ -355,11 +360,13 @@ public class TopicConfigService {
      */
     public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
-        topicStoreySearch.setTopicStoreId(request.getTopicStoreId());
-        topicStoreySearch.setCreateTime(request.getCreateTime());
+        topicStoreySearch.setTopicStoreId(request.getTopicStoreyId());
+        topicStoreySearch.setCreateTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
-        topicStoreySearch.setOrderNum(request.getOrderNum());
+        topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
+        topicStoreySearch.setUpdateTime(LocalDateTime.now());
+        topicStoreySearch.setDeleted(0);
         columnRepository.save(topicStoreySearch);
     }
 
@@ -367,14 +374,15 @@ public class TopicConfigService {
      * 修改栏目
      * @param request
      */
+    @SneakyThrows
     public void updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
         topicStoreySearch.setId(request.getId());
-        topicStoreySearch.setCreateTime(request.getCreateTime());
+        topicStoreySearch.setCreateTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
-        topicStoreySearch.setOrderNum(request.getOrderNum());
+        topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        columnRepository.save(topicStoreySearch);
+        updateUtil.partialUpdate(topicStoreySearch.getId(), topicStoreySearch, columnRepository);
     }
 
     /**
@@ -383,6 +391,7 @@ public class TopicConfigService {
      * @Date  2023/2/8 09:54
      * @param: request
      */
+    @Transactional
     public void enableStoreyColumn(EnableTopicStoreyColumnRequest request) {
         columnRepository.enable(request.getId(),request.getDeleted());
     }
@@ -406,11 +415,16 @@ public class TopicConfigService {
         TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
         topicStoreySearchContent.setTopicStoreySearchId(request.getTopicStoreySearchId());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
-        topicStoreySearchContent.setCreateTime(request.getCreateTime());
+        topicStoreySearchContent.setStartTime(request.getStartTime());
         topicStoreySearchContent.setEndTime(request.getEndTime());
         topicStoreySearchContent.setSkuNo(request.getSkuNo());
         topicStoreySearchContent.setSorting(request.getSorting());
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
+        topicStoreySearchContent.setCreateTime(LocalDateTime.now());
+        topicStoreySearchContent.setUpdateTime(LocalDateTime.now());
+        topicStoreySearchContent.setDeleted(0);
+        topicStoreySearchContent.setType(1);
+        topicStoreySearchContent.setTopicStoreySearchTable("topic_storey_search");
         columnGoodsRepository.save(topicStoreySearchContent);
     }
 
@@ -418,16 +432,17 @@ public class TopicConfigService {
      * 修改栏目商品
      * @param request
      */
+    @SneakyThrows
     public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
         TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
         topicStoreySearchContent.setId(request.getId());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
-        topicStoreySearchContent.setCreateTime(request.getCreateTime());
+        topicStoreySearchContent.setStartTime(request.getStartTime());
         topicStoreySearchContent.setEndTime(request.getEndTime());
         topicStoreySearchContent.setSkuNo(request.getSkuNo());
         topicStoreySearchContent.setSorting(request.getSorting());
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
-        columnGoodsRepository.save(topicStoreySearchContent);
+        updateUtil.partialUpdate(topicStoreySearchContent.getId(), topicStoreySearchContent, columnGoodsRepository);
     }
 
     /**
@@ -436,6 +451,7 @@ public class TopicConfigService {
      * @Date  2023/2/8 09:54
      * @param: request
      */
+    @Transactional
     public void enableStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
         columnGoodsRepository.enable(request.getId(),request.getDeleted());
     }
