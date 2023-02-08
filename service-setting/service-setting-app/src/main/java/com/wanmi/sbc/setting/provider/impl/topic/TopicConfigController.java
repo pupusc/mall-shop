@@ -4,11 +4,11 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
-import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
+import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
@@ -112,6 +112,58 @@ public class TopicConfigController implements TopicConfigProvider {
     @Override
     public BaseResponse deleteStorey(Integer storeyId) {
         topicConfigService.deleteStorey(storeyId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<MicroServicePage<TopicStoreyColumnDTO>> listStoryColumn(TopicStoreyColumnQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listTopicStoreyColumn(request));
+    }
+
+    @Override
+    public BaseResponse addStoreyColumn(TopicStoreyColumnAddRequest request) {
+        topicConfigService.addStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
+        topicConfigService.updateStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse enableStoreyColumn(EnableTopicStoreyColumnRequest request) {
+        topicConfigService.enableStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(TopicStoreyColumnGoodsQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listTopicStoreyColumnGoods(request));
+    }
+
+    @Override
+    public BaseResponse addStoreyColumnGoods(TopicStoreyColumnGoodsAddRequest request) {
+        topicConfigService.addStoreyColumnGoods(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
+        topicConfigService.updateStoreyColumnGoods(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse enableStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
+        topicConfigService.enableStoreyColumnGoods(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse deleteStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
+        topicConfigService.deleteStoreyColumnGoods(request);
         return BaseResponse.SUCCESSFUL();
     }
 }

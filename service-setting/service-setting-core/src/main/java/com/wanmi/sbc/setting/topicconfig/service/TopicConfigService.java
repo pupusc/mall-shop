@@ -4,35 +4,31 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
-import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyCouponDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
+import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicHeadImage;
-import com.wanmi.sbc.setting.topicconfig.model.root.Topic;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicHeadImageRepository;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicRepository;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyContentRepository;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyRepository;
+import com.wanmi.sbc.setting.topicconfig.model.root.*;
+import com.wanmi.sbc.setting.topicconfig.repository.*;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -58,6 +54,12 @@ public class TopicConfigService {
 
     @Autowired
     private TopicStoreyContentRepository contentRepository;
+
+    @Autowired
+    private TopicStoreyColumnRepository columnRepository;
+
+    @Autowired
+    private TopicStoreyColumnGoodsRepository columnGoodsRepository;
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
@@ -327,5 +329,164 @@ public class TopicConfigService {
     public void deleteStorey(Integer storeyId){
         storeyRepository.delete(storeyId);
         contentRepository.deleteBySid(storeyId);
+    }
+
+    /**
+     * @Description 楼层栏目
+     * @Author zh
+     * @Date  2023/2/7 17:32
+     * @param: request
+     * @return: com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse
+     */
+    public MicroServicePage<TopicStoreyColumnDTO> listTopicStoreyColumn(TopicStoreyColumnQueryRequest request){
+        Page<TopicStoreySearch> topicStoreySearchPage = columnRepository
+                .findAll(columnRepository.topicStoreySearch(request), PageRequest.of(request.getPageNum(),
+                request.getPageSize(), Sort.by(Sort.Direction.ASC, "orderNum")));
+        List<TopicStoreySearch> content = topicStoreySearchPage.getContent();
+        MicroServicePage<TopicStoreyColumnDTO> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
+        microServicePage.setContent(changeTopicStoreyColumn(content));
+        return microServicePage;
+    }
+
+    /**
+     * 新增栏目
+     * @param request
+     */
+    public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
+        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        topicStoreySearch.setTopicStoreId(request.getTopicStoreId());
+        topicStoreySearch.setCreateTime(request.getCreateTime());
+        topicStoreySearch.setEndTime(request.getEndTime());
+        topicStoreySearch.setOrderNum(request.getOrderNum());
+        topicStoreySearch.setName(request.getName());
+        columnRepository.save(topicStoreySearch);
+    }
+
+    /**
+     * 修改栏目
+     * @param request
+     */
+    public void updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
+        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        topicStoreySearch.setId(request.getId());
+        topicStoreySearch.setCreateTime(request.getCreateTime());
+        topicStoreySearch.setEndTime(request.getEndTime());
+        topicStoreySearch.setOrderNum(request.getOrderNum());
+        topicStoreySearch.setName(request.getName());
+        columnRepository.save(topicStoreySearch);
+    }
+
+    /**
+     * @Description 专栏调用
+     * @Author zh
+     * @Date  2023/2/8 09:54
+     * @param: request
+     */
+    public void enableStoreyColumn(EnableTopicStoreyColumnRequest request) {
+        columnRepository.enable(request.getId(),request.getDeleted());
+    }
+
+    public MicroServicePage<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoods(TopicStoreyColumnGoodsQueryRequest request) {
+        Page<TopicStoreySearchContent> topicStoreySearchGoodsPage = columnGoodsRepository
+                .findAll(columnGoodsRepository.topicStoreySearchContent(request), PageRequest.of(request.getPageNum(),
+                        request.getPageSize(), Sort.by(Sort.Direction.ASC, "sorting")));
+        List<TopicStoreySearchContent> content = topicStoreySearchGoodsPage.getContent();
+        MicroServicePage<TopicStoreyColumnGoodsDTO> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
+        microServicePage.setContent(changeTopicStoreyColumnGoods(content));
+        return microServicePage;
+    }
+
+    /**
+     * 新增栏目商品
+     * @param request
+     */
+    public void addStoreyColumnGoods(TopicStoreyColumnGoodsAddRequest request) {
+        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        topicStoreySearchContent.setTopicStoreySearchId(request.getTopicStoreySearchId());
+        topicStoreySearchContent.setImageUrl(request.getImageUrl());
+        topicStoreySearchContent.setCreateTime(request.getCreateTime());
+        topicStoreySearchContent.setEndTime(request.getEndTime());
+        topicStoreySearchContent.setSkuNo(request.getSkuNo());
+        topicStoreySearchContent.setSorting(request.getSorting());
+        topicStoreySearchContent.setGoodsName(request.getGoodsName());
+        columnGoodsRepository.save(topicStoreySearchContent);
+    }
+
+    /**
+     * 修改栏目商品
+     * @param request
+     */
+    public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
+        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        topicStoreySearchContent.setId(request.getId());
+        topicStoreySearchContent.setImageUrl(request.getImageUrl());
+        topicStoreySearchContent.setCreateTime(request.getCreateTime());
+        topicStoreySearchContent.setEndTime(request.getEndTime());
+        topicStoreySearchContent.setSkuNo(request.getSkuNo());
+        topicStoreySearchContent.setSorting(request.getSorting());
+        topicStoreySearchContent.setGoodsName(request.getGoodsName());
+        columnGoodsRepository.save(topicStoreySearchContent);
+    }
+
+    /**
+     * @Description 专栏调用商品
+     * @Author zh
+     * @Date  2023/2/8 09:54
+     * @param: request
+     */
+    public void enableStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
+        columnGoodsRepository.enable(request.getId(),request.getDeleted());
+    }
+
+    /**
+     * @Description 专栏调用商品
+     * @Author zh
+     * @Date  2023/2/8 09:54
+     * @param: request
+     */
+    public void deleteStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
+        columnGoodsRepository.deleteById(request.getId());
+    }
+
+    private List<TopicStoreyColumnDTO> changeTopicStoreyColumn(List<TopicStoreySearch> content) {
+        LocalDateTime now = LocalDateTime.now();
+        return content.stream().map(topicStoreySearch -> {
+            TopicStoreyColumnDTO topicStoreyColumnDTO = new TopicStoreyColumnDTO();
+            BeanUtils.copyProperties(topicStoreySearch, topicStoreyColumnDTO);
+            if (now.isBefore(topicStoreySearch.getCreateTime())) {
+                //未开始
+                topicStoreyColumnDTO.setState(0);
+            } else if (now.isAfter(topicStoreySearch.getEndTime())) {
+                //已结束
+                topicStoreyColumnDTO.setState(2);
+            } else {
+                //进行中
+                topicStoreyColumnDTO.setState(1);
+            }
+            topicStoreyColumnDTO.setPublishState(topicStoreySearch.getDeleted());
+            return topicStoreyColumnDTO;
+        }).collect(Collectors.toList());
+    }
+
+    private List<TopicStoreyColumnGoodsDTO> changeTopicStoreyColumnGoods(List<TopicStoreySearchContent> content) {
+        LocalDateTime now = LocalDateTime.now();
+        return content.stream().map(topicStoreySearchContent -> {
+            TopicStoreyColumnGoodsDTO topicStoreyColumnGoodsDTO = new TopicStoreyColumnGoodsDTO();
+            BeanUtils.copyProperties(topicStoreySearchContent, topicStoreyColumnGoodsDTO);
+            if (now.isBefore(topicStoreySearchContent.getCreateTime())) {
+                //未开始
+                topicStoreyColumnGoodsDTO.setState(0);
+            } else if (now.isAfter(topicStoreySearchContent.getEndTime())) {
+                //已结束
+                topicStoreyColumnGoodsDTO.setState(2);
+            } else {
+                //进行中
+                topicStoreyColumnGoodsDTO.setState(1);
+            }
+            topicStoreyColumnGoodsDTO.setPublishState(topicStoreySearchContent.getDeleted());
+            return topicStoreyColumnGoodsDTO;
+        }).collect(Collectors.toList());
     }
 }
