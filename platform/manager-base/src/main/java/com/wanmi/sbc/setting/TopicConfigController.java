@@ -4,8 +4,12 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import io.swagger.annotations.Api;
@@ -212,4 +216,116 @@ public class TopicConfigController {
     public BaseResponse deleteStorey(@RequestParam("storeyId") Integer storeyId){
         return  topicConfigProvider.deleteStorey(storeyId);
     }
+
+    /**
+     * @description 楼层栏目列表
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目列表")
+    @PostMapping("/storey/v2/column/list")
+    public BaseResponse<MicroServicePage<TopicStoreyColumnDTO>> listStoryColumn(@RequestBody TopicStoreyColumnQueryRequest request){
+        return topicConfigProvider.listStoryColumn(request);
+    }
+
+    /**
+     * @description 楼层栏目添加
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目添加")
+    @PostMapping("/storey/v2/column/add")
+    public BaseResponse addStoryColumn(@RequestBody TopicStoreyColumnAddRequest request){
+        return topicConfigProvider.addStoreyColumn(request);
+    }
+
+    /**
+     * @description 楼层栏目修改
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目添加")
+    @PostMapping("/storey/v2/column/update")
+    public BaseResponse updateStoryColumn(@RequestBody TopicStoreyColumnUpdateRequest request){
+        return topicConfigProvider.updateStoreyColumn(request);
+    }
+
+    /**
+     * @description 楼层栏目启用/禁用
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目启用/禁用")
+    @PostMapping("/storey/v2/column/enable")
+    public BaseResponse enableStoryColumn(@RequestBody EnableTopicStoreyColumnRequest request){
+        return topicConfigProvider.enableStoreyColumn(request);
+    }
+
+
+
+    /**
+     * @description 楼层栏目商品列表
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目列表")
+    @PostMapping("/storey/v2/column/goods/list")
+    public BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsQueryRequest request){
+        return topicConfigProvider.listStoryColumnGoods(request);
+    }
+
+    /**
+     * @description 楼层栏目商品列表添加
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目商品添加")
+    @PostMapping("/storey/v2/column/goods/add")
+    public BaseResponse addStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsAddRequest request){
+        return topicConfigProvider.addStoreyColumnGoods(request);
+    }
+
+    /**
+     * @description 楼层栏目商品修改
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目商品修改")
+    @PostMapping("/storey/v2/column/goods/update")
+    public BaseResponse updateStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsUpdateRequest request){
+        return topicConfigProvider.updateStoreyColumnGoods(request);
+    }
+
+    /**
+     * @description 楼层栏目商品启用/禁用
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目商品启用/禁用")
+    @PostMapping("/storey/v2/column/goods/enable")
+    public BaseResponse enableStoryColumnGoods(@RequestBody EnableTopicStoreyColumnGoodsRequest request){
+        return topicConfigProvider.enableStoreyColumnGoods(request);
+    }
+
+    /**
+     * @description 楼层栏目商品删除
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目商品删除")
+    @PostMapping("/storey/v2/column/goods/delete")
+    public BaseResponse deleteStoryColumnGoods(@RequestBody EnableTopicStoreyColumnGoodsRequest request){
+        return topicConfigProvider.deleteStoreyColumnGoods(request);
+    }
+
+
 }
