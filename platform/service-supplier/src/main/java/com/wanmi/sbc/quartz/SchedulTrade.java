@@ -42,6 +42,7 @@ public class SchedulTrade {     //订单同步
 
         for (int i=0;i<mongdbList.size();i++){
             Map map = (Map)mongdbList.get(i);
+            //可能会有多条
             String trade_order_id = String.valueOf(map.get("trade_order_id"));
             String oid = String.valueOf(map.get("oid"));
 
