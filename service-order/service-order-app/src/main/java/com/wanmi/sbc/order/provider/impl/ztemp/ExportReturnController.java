@@ -232,7 +232,7 @@ public class ExportReturnController {
                 return;
             }
         } catch (Exception e) {
-            log.info("历史退单同步到电商中台,同步错误:id={}", returnOrder.getId());
+            log.info("历史退单同步到电商中台,同步错误:id={}, msg={}", returnOrder.getId(), e.getMessage());
             this.countError ++;
             throw new RuntimeException(e);
         }

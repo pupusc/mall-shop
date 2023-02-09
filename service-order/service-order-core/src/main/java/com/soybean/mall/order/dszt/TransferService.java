@@ -1368,6 +1368,63 @@ public class TransferService {
             saleAfterRefundReqList.add(saleAfterRefundReq);
         }
         saleAfterCreateNewReq.setSaleAfterRefundBOList(saleAfterRefundReqList);
+
+        //不是退运费的退单，并且退运费明细为空
+        if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
+            if (saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().size() == 0) {
+                //item现金
+                int itemMoney = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
+                        .filter(i -> PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                //item积分
+                int itemPoint = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
+                        .filter(i -> PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                //item知豆
+                int itemBean = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
+                        .filter(i -> PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                //流水现金
+                int flowMoney = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream()
+                        .filter(i -> PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                //流水积分
+                int flowPoint = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream()
+                        .filter(i -> PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                //流水知豆
+                int flowBean = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream()
+                        .filter(i -> PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+
+                if (flowMoney > itemMoney) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(flowMoney - itemMoney);
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
+                }
+                if (flowPoint > itemPoint) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(flowPoint - itemPoint);
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
+                }
+                if (flowBean > itemBean) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                    saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
+                    saleAfterRefundDetailReq.setAmount(flowBean - itemBean);
+                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
+                }
+                if (saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().size() > 0) {
+                    log.info("退单的流水与明细对不上，差价部分记作运费退款，returnId={}", returnOrder.getId());
+                }
+            }
+        }
+        //再验证一遍金额
+        int sumItemFee = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream()).mapToInt(i -> i.getAmount()).sum();
+        int sumPostFee = saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().stream().mapToInt(i -> i.getAmount()).sum();
+        int sumFlowFee = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream().mapToInt(i -> i.getAmount()).sum();
+        if ((sumItemFee + sumPostFee) != sumFlowFee) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "退单的流水金额与明细金额对不上");
+        }
+        //返回结果
         return saleAfterCreateNewReq;
     }
 
