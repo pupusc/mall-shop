@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
@@ -261,9 +262,9 @@ public class ExportReturnController {
             return true;
         }
         //调用推送接口
-        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq4Sync(returnOrder);
         if (saleAfterCreateNewReq == null) {
-            return false;
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "创建退单的同步参数失败");
         }
         //saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
         saleAfterCreateNewReq.getSaleAfterOrderBO().setImportFlag(1); //导入标记
