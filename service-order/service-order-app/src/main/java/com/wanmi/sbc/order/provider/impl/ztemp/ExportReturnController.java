@@ -215,7 +215,11 @@ public class ExportReturnController {
         //排除有赞订单
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
         if (trade == null || trade.getYzTid() != null || Boolean.TRUE.equals(trade.getYzOrderFlag())) {
-            log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            if (trade == null) {
+                log.warn("历史退单同步到电商中台,同步失败:关联订单没有找到,trade.id={}", returnOrder.getId());
+            } else {
+                log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            }
             this.countIgnore ++;
             return;
         }
