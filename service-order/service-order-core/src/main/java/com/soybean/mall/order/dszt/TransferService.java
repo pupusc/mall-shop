@@ -1374,13 +1374,13 @@ public class TransferService {
             if (saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().size() == 0) {
                 //item现金
                 int itemMoney = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
-                        .filter(i -> PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                        .filter(i -> PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
                 //item积分
                 int itemPoint = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
-                        .filter(i -> PaymentPayTypeEnum.JI_FEN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                        .filter(i -> PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
                 //item知豆
                 int itemBean = saleAfterCreateNewReq.getSaleAfterItemBOList().stream().flatMap(i -> i.getSaleAfterRefundDetailBOList().stream())
-                        .filter(i -> PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
+                        .filter(i -> PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
                 //流水现金
                 int flowMoney = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream()
                         .filter(i -> PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().toString().equals(i.getPayType())).mapToInt(i -> i.getAmount()).sum();
