@@ -30,8 +30,12 @@ public class TopicStoreyColumnDTO implements Serializable {
     @ApiModelProperty("排序")
     private Integer orderNum;
 
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime;
 
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
     private Integer deleted;

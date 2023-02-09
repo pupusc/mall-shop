@@ -273,7 +273,7 @@ public class TopicConfigController {
      * @param request
      * @status undone
      */
-    @ApiOperation("楼层栏目列表")
+    @ApiOperation("楼层栏目商品列表")
     @PostMapping("/storey/v2/column/goods/list")
     public BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsQueryRequest request){
         return topicConfigProvider.listStoryColumnGoods(request);
