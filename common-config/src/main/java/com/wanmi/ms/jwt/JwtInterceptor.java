@@ -117,6 +117,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/error")
                     || requestURI.startsWith("/wx/callback")
                     || requestURI.startsWith("/wx/order/purchase")
+                    || requestURI.startsWith("/wx/sync")
                     || requestURI.startsWith("/invoice/callback")
                     || requestURI.startsWith("/wx/image")
                     || requestURI.startsWith("/wx/goods")
