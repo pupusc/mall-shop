@@ -3,10 +3,12 @@ package com.wanmi.sbc.setting.api.provider.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
@@ -61,6 +63,9 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/list")
     BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
+    List<RankRequest> rank(@RequestBody Integer topicStoreyId);
 
 
     @PostMapping("/setting/${application.setting.version}/topic/add/storey/content")

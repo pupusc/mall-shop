@@ -1,6 +1,7 @@
 package com.wanmi.sbc.topic.response;
 
 import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -58,4 +59,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("新书速递栏目信息")
     private List<NewBookPointResponse> newBookPointResponseList;
+
+    @ApiModelProperty("榜单相关")
+    private List<RankResponse> rankList;
 }

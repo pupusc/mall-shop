@@ -31,6 +31,9 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicRankRequest;
+import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -213,6 +216,9 @@ public class TopicService {
 
             if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
+            }
+            if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
+                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(topicResponse.getId()),RankResponse.class));
             }
         }
         return BaseResponse.success(response);

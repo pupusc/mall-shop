@@ -1,4 +1,4 @@
-package com.wanmi.sbc.setting.topicconfig.model.root;
+package com.wanmi.sbc.setting.api.response;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -6,84 +6,63 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
 
-import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * @Description 楼层专栏商品
- * @Author zh
+ * @Description 楼层商品
  * @Date  2023/2/7 14:47
  * @param: null
  * @return: null
  */
 @Data
-@Table(name = "topic_storey_search_content")
-@Entity
-public class TopicStoreySearchContent {
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class TopicStoreySearchContentRequest implements Serializable {
+
+    private static final long serialVersionUID = 7169124215109467084L;
+
     private Integer id;
 
-    @Column(name = "topic_storey_search_id")
     private Integer topicStoreySearchId;
 
-    @Column(name = "topic_storey_search_table")
     private String topicStoreySearchTable;
 
-    @Column(name = "spu_no")
     private String spuNo;
 
-    @Column(name = "sku_no")
     private String skuNo;
 
-    @Column(name = "type")
     private Integer type;
 
-    @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(name = "link_url")
     private String linkUrl;
 
-    @Column(name = "sorting")
     private Integer sorting;
 
-    @Column(name = "update_time")
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime updateTime;
-
-    @Column(name = "create_time")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createTime;
 
-    @Column(name = "deleted")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime updateTime;
+
     private Integer deleted;
 
-    @Column(name = "sku_id")
     private String skuId;
 
-    @Column(name = "goods_name")
     private String goodsName;
 
-    @Column(name = "spu_id")
     private String spuId;
 
-    @Column(name = "start_time")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime startTime;
 
-    @Column(name = "end_time")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endTime;
 
-    @Column(name = "attribute_info")
     private String attributeInfo;
 
-    @Column(name = "num")
     private int num;
 }

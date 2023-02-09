@@ -5,15 +5,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
+import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
@@ -27,12 +32,15 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.internal.NativeQueryImpl;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import springfox.documentation.spring.web.json.Json;
@@ -65,6 +73,9 @@ public class TopicConfigService {
 
     @Autowired
     private PartialUpdateUtil updateUtil;
+
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
@@ -165,7 +176,47 @@ public class TopicConfigService {
         }
         return KsBeanUtil.convertList(list, TopicStoreyDTO.class);
     }
-    
+
+
+    public List<RankRequest> rank(Integer topicStoreyId) {
+
+
+        String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?)";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
+        query.setParameter(1,topicStoreyId);
+        List<Map> list=getRankNameList(topicStoreyId);
+        List<TopicStoreySearchContent> resultList = query.getResultList();
+        List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
+        List<RankRequest> requests=new ArrayList<>();
+        list.forEach(map->{
+            RankRequest rankRequest=new RankRequest();
+            rankRequest.setRankName(map.get("name").toString());
+            rankRequest.setId((Integer) map.get("id"));
+            List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+            rankRequest.setRankList(contentRequestList);
+            requests.add(rankRequest);
+        });
+        requests.forEach(r->{
+            contentRequests.forEach(c->{
+                if(c.getTopicStoreySearchId().equals(r.getId())){
+                    r.getRankList().add(c);
+                }
+            });
+        });
+        return requests;
+    }
+
+    public List getRankNameList(Integer topicStoreyId){
+        String sql = "SELECT id,name FROM topic_storey_search where topic_store_id=?";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        query.setParameter(1,topicStoreyId);
+        List<Map> list=query.getResultList();
+        return list;
+    }
+
     public TopicActivityVO detail(String id){
         List<Topic> list = topicSettingRepository.getByKey(id);
         if(CollectionUtils.isEmpty(list)){
