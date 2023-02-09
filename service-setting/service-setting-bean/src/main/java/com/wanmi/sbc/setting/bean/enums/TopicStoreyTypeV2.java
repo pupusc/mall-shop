@@ -20,7 +20,7 @@ public enum TopicStoreyTypeV2 {
 
     POINTS(15, "积分"),
 
-    NEWBOOK( 16,"新书速递");
+    NEWBOOK( 13,"新书速递");
 
     private Integer id;
 
