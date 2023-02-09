@@ -216,7 +216,7 @@ public class ExportReturnController {
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
         if (trade == null || trade.getYzTid() != null || Boolean.TRUE.equals(trade.getYzOrderFlag())) {
             if (trade == null) {
-                log.warn("历史退单同步到电商中台,同步失败:关联订单没有找到,trade.id={}", returnOrder.getId());
+                log.warn("历史退单同步到电商中台,同步失败:关联订单没有找到,id={},tid={}", returnOrder.getId(), returnOrder.getTid());
             } else {
                 log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
             }
