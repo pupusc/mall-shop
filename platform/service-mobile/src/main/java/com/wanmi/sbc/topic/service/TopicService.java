@@ -209,15 +209,11 @@ public class TopicService {
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
-            }
-            if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
+            }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints());
-            }
-
-            if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
+            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
-            }
-            if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
+            }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(topicResponse.getId()),RankResponse.class));
             }
         }
