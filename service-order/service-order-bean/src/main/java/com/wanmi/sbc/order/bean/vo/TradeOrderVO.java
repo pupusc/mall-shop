@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel
-public class trade_order implements Serializable {
+public class TradeOrderVO implements Serializable {
 
     private String trade_order_id;
 
@@ -22,9 +22,9 @@ public class trade_order implements Serializable {
 
     private String customer_account;
 
-    private String supplier_id;
+    private Long supplier_id;
 
-    private String store_id;
+    private Long store_id;
 
     private String audit_state;
 

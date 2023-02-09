@@ -46,6 +46,19 @@ public class MongdbTradeService {
         BaseResponse<MicroServicePage<TradeVO>> supplierPage = supplierPage(tradeQueryRequest);
         List<TradeVO> tradeVOList = supplierPage.getContext().getContent();
         List<TradeItemVO> itemVOList=new ArrayList();
+        tradeVOList.forEach(tradeVO -> {
+            TradeOrderVO orderVO=new TradeOrderVO();
+            orderVO.setCustomer_id(tradeVO.getBuyer().getId());
+            orderVO.setCustomer_account(tradeVO.getBuyer().getAccount());
+            orderVO.setSupplier_id(tradeVO.getSupplier().getSupplierId());
+            orderVO.setStore_id(tradeVO.getSupplier().getStoreId());
+            orderVO.setAudit_state(tradeVO.getTradeState().getAuditState().getDescription());
+            orderVO.setFlow_state(tradeVO.getTradeState().getFlowState().getDescription());
+            orderVO.setPay_state(tradeVO.getTradeState().getPayState().getDescription());
+            orderVO.setDeliver_status(tradeVO.getTradeState().getDeliverStatus().getDescription());
+            orderVO.setCreate_time(StringUtil.getCurrentAllDate());
+            //
+        });
         for (TradeVO tradeVO:tradeVOList){
             itemVOList.addAll(tradeVO.getTradeItems());
         }
