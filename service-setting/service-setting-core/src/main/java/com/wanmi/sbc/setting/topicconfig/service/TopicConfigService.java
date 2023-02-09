@@ -181,7 +181,7 @@ public class TopicConfigService {
     public List<RankRequest> rank(Integer topicStoreyId) {
 
 
-        String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?)";
+        String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?) ORDER BY sorting asc";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
         query.setParameter(1,topicStoreyId);
