@@ -74,6 +74,8 @@ public class ExportReturnController {
     private ThirdInvokeService thirdInvokeService;
     @Autowired
     private TradeRepository tradeRepository;
+    @Autowired
+    private ExportReturnComponent exportReturnComponent;
 
     private AtomicBoolean inHand = new AtomicBoolean(false);
     private int selectVersion;
@@ -226,7 +228,7 @@ public class ExportReturnController {
 
         //同步电商中台
         try {
-            if (!syncData(returnOrder)) {
+            if (!exportReturnComponent.syncData(returnOrder)) {
                 log.info("历史退单同步到电商中台,同步失败:id={}", returnOrder.getId());
                 this.countFailed ++;
                 return;
@@ -257,6 +259,7 @@ public class ExportReturnController {
         }
         return selectVersion == sVersion;
     }
+
 
     public boolean syncData(ReturnOrder returnOrder) {
         //创建售后订单
