@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
@@ -84,8 +85,8 @@ public class TopicConfigController implements TopicConfigProvider {
         return BaseResponse.success(topicConfigService.listStorey(request));
     }
 
-    public List<RankRequest> rank(Integer topicStoreyId) {
-        return topicConfigService.rank(topicStoreyId);
+    public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
+        return topicConfigService.rank(storeyRequest);
     }
 
     @Override

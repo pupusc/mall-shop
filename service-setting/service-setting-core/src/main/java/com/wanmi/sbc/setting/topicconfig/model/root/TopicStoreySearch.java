@@ -32,6 +32,9 @@ public class TopicStoreySearch {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "sun_name")
+    private String subName;
+
     @Column(name = "cate_id")
     private String cateId;
 
@@ -61,4 +64,23 @@ public class TopicStoreySearch {
 
     @Column(name = "show_type")
     private Integer showType;
+
+    @Column(name = "p_id")
+    private Integer pId;
+
+    @Column(name = "book_type")
+    private Integer bookType;
+
+    @Column(name = "level")
+    private Integer level;
+
+    @Column(name = "relation_store_id")
+    private Integer relationStroeId;
+
+    @Column(name = "color")
+    private String clolr;
+
+    @Column(name = "image")
+    private String image;
+
 }

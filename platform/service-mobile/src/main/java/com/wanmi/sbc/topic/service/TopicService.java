@@ -32,6 +32,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicRankRequest;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
@@ -217,13 +218,13 @@ public class TopicService {
                 topicResponse.setPoints(this.getPoints());
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
+            }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
+                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),false)),RankResponse.class));
+            }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单详情
+                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),true)),RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
-            }
-            if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+            }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook());
-            }
-            if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
-                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(topicResponse.getId()),RankResponse.class));
             }
         }
         return BaseResponse.success(response);
