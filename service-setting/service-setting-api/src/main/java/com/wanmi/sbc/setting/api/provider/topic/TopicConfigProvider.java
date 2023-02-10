@@ -111,4 +111,7 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getStoreyIdByType")
     List<TopicStoreyDTO> getStoreyIdByType(@RequestBody Integer storeyType);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getContentByStoreyId")
+    List<TopicStoreyContentDTO> getContentByStoreyId(@RequestBody TopicStoreyContentRequest request);
 }

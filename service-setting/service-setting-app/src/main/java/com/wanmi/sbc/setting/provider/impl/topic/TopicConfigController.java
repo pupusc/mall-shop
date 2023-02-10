@@ -15,6 +15,7 @@ import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,5 +180,10 @@ public class TopicConfigController implements TopicConfigProvider {
     @Override
     public List<TopicStoreyDTO> getStoreyIdByType(Integer storeyType) {
         return topicConfigService.listTopicStoreyIdByType(storeyType);
+    }
+
+    @Override
+    public List<TopicStoreyContentDTO> getContentByStoreyId(TopicStoreyContentRequest request) {
+        return topicConfigService.listTopicStoreyContentByPage(request);
     }
 }

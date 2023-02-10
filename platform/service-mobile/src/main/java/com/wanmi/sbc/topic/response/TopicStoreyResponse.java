@@ -1,5 +1,6 @@
 package com.wanmi.sbc.topic.response;
 
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.home.response.NoticeResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -64,4 +65,10 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("三本好书栏目信息")
     private List<ThreeGoodBookResponse> threeGoodBookResponses;
+
+    @ApiModelProperty("商品栏目信息")
+    private List<GoodsInfoVO> GoodsResponses;
+
+    @ApiModelProperty("图书栏目信息")
+    private List<GoodsInfoVO> BooksResponses;
 }

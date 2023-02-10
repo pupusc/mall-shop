@@ -33,10 +33,8 @@ import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicRankRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
@@ -50,13 +48,13 @@ import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -216,42 +214,104 @@ public class TopicService {
                 initCouponV2(storeyList);
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints());
-            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
+            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),false)),RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单详情
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),true)),RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
-            }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
-                topicResponse.setThreeGoodBookResponses(this.threeGoodBook());
+            }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
+                topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
+            }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
+                TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+                topicStoreyContentRequest.setStoreyId(TopicStoreyTypeV2.Books.getId());
+                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest));
+            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//图书组件
+                TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+                topicStoreyContentRequest.setStoreyId(TopicStoreyTypeV2.Goods.getId());
+                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest));
             }
         }
         return BaseResponse.success(response);
     }
 
+    /**
+     * 商品组件及图书组件
+     */
+    public List<GoodsInfoVO> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest){
+        //获得主题id
+        topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+        //获得主题下商品skuList
+        List<TopicStoreyContentDTO> contentByStoreyId = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+        if(null==contentByStoreyId || contentByStoreyId.size()==0){
+            return null;
+        }
+        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
+            LocalDateTime now = LocalDateTime.now();
+            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
+                return true;
+            } else {
+                return false;
+            }
+        }).collect(Collectors.toList());
+
+        if(null==collectTemp || collectTemp.size()==0){
+            return null;
+        }
+        List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
+        //获取商品售价
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuList).isHavSpecText(DeleteFlag.YES.toValue()).deleteFlag(DeleteFlag.NO).build();
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+
+        //获取会员价
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
+        Map customerMap = ( Map ) request.getAttribute("claims");
+        if(null!=customerMap && null!=customerMap.get("customerId")) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+
+        }
+        //获取会员
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+        return goodsInfoVOList;
+    }
 
     /**
      * 三本好书,首页加载
      */
-     public List<ThreeGoodBookResponse> threeGoodBook(){
+     public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest){
 
          List<ThreeGoodBookResponse> threeGoodBookResponses=new ArrayList<>();
-         TopicStoreyColumnQueryRequest request=new TopicStoreyColumnQueryRequest();
-         request.setState(1);
-         request.setPublishState(0);
-         request.setTopicStoreId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
-         topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t->{
-             ThreeGoodBookResponse threeGoodBookResponse=new ThreeGoodBookResponse();
-             BeanUtils.copyProperties(t,threeGoodBookResponse);
+         if(null == threeGoodBookRequest.getId()) {
+             //没有指定栏目id
+             TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
+             request.setState(1);
+             request.setPublishState(0);
+             request.setTopicStoreId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+             topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
+                 ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+                 BeanUtils.copyProperties(t, threeGoodBookResponse);
+                 threeGoodBookResponses.add(threeGoodBookResponse);
+             });
+         }else {
+             //指定了特定栏目id
+             ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+             threeGoodBookResponse.setId(threeGoodBookRequest.getId());
              threeGoodBookResponses.add(threeGoodBookResponse);
-         });
+         }
 
          if(null != threeGoodBookResponses && threeGoodBookResponses.size()!=0) {
              TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
              topicStoreyColumnGoodsQueryRequest.setState(1);
              topicStoreyColumnGoodsQueryRequest.setPublishState(0);
              topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponses.get(0).getId());
+             //设定指定的分页
+             topicStoreyColumnGoodsQueryRequest.setPageNum(threeGoodBookRequest.getPageNum());
+             topicStoreyColumnGoodsQueryRequest.setPageSize(threeGoodBookRequest.getPageSize());
              List<TopicStoreyColumnGoodsDTO> content = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext().getContent();
 
              if(null != content && content.size()!=0){

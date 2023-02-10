@@ -27,7 +27,11 @@ public enum TopicStoreyTypeV2 {
     NEWBOOK( 13,"新书速递"),
 
 
-    THREEGOODBOOK(14,"三本好书");
+    THREEGOODBOOK(14,"三本好书"),
+
+    Goods(19,"商品组件"),
+
+    Books(18,"图书组件");
 
     private Integer id;
 
