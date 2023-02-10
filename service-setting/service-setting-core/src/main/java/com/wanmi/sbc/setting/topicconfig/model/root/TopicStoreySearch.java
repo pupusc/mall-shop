@@ -32,7 +32,7 @@ public class TopicStoreySearch {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "sun_name")
+    @Column(name = "sub_name")
     private String subName;
 
     @Column(name = "cate_id")
