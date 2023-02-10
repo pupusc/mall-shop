@@ -1395,21 +1395,21 @@ public class TransferService {
                     SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                     saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                     saleAfterRefundDetailReq.setAmount(flowMoney - itemMoney);
-                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterRefundDetailReq.setRefundReason("同步差价");
                     saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                 }
                 if (flowPoint > itemPoint) {
                     SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                     saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
                     saleAfterRefundDetailReq.setAmount(flowPoint - itemPoint);
-                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterRefundDetailReq.setRefundReason("同步差价");
                     saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                 }
                 if (flowBean > itemBean) {
                     SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                     saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
                     saleAfterRefundDetailReq.setAmount(flowBean - itemBean);
-                    saleAfterRefundDetailReq.setRefundReason(returnOrder.getReturnReason().getDesc());
+                    saleAfterRefundDetailReq.setRefundReason("同步差价");
                     saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                 }
                 if (saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().size() > 0) {
