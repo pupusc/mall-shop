@@ -1,4 +1,5 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
@@ -6,12 +7,6 @@ import com.soybean.mall.order.dszt.TransferService;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
-import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
-import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
-import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
-import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
-import com.wanmi.sbc.order.bean.vo.*;
-
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -19,18 +14,82 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
+import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
+import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
+import com.wanmi.sbc.order.api.enums.ThirdInvokeCategoryEnum;
+import com.wanmi.sbc.order.api.enums.ThirdInvokePublishStatusEnum;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
-import com.wanmi.sbc.order.api.request.trade.*;
-import com.wanmi.sbc.order.api.response.trade.*;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
+import com.wanmi.sbc.order.api.request.trade.CycleBuyPostponementRequest;
+import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.SyncOrderDataRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddBatchWithGroupRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddInvoiceRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddReceivableRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAddWithOpRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAuditBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAuditRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeCancelRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeConfirmPayOrderRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeConfirmReceiveRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDeliverRecordObsoleteRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDeliverRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeFinalTimeUpdateRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeModifyPriceRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeModifyRemedyRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayCallBackOnlineBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayCallBackOnlineRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayCallBackRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayOnlineCallBackRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayRecordObsoleteRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePushRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeRemedyPartRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeRemedySellerRemarkRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeRetrialRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeReturnOrderNumUpdateRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeReturnOrderRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeReverseRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateCommissionFlagRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateEmployeeIdRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateSettlementStatusRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeVoidedRequest;
+import com.wanmi.sbc.order.api.request.trade.WxTradePayCallBackRequest;
+import com.wanmi.sbc.order.api.response.trade.PointsTradeCommitResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeAddBatchResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeAddBatchWithGroupResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeAddWithOpResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeCommitResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeConfirmPayOrderResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeCountByPayStateResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeDefaultPayResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeDeliverResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetBookingTypeByIdResponse;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.PayCallBackType;
+import com.wanmi.sbc.order.bean.vo.PointsTradeCommitResultVO;
+import com.wanmi.sbc.order.bean.vo.TradeCommitResultVO;
+import com.wanmi.sbc.order.bean.vo.TradeStateVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.third.ThirdInvokeService;
 import com.wanmi.sbc.order.third.model.ThirdInvokeDTO;
-import com.wanmi.sbc.order.trade.model.entity.*;
+import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
+import com.wanmi.sbc.order.trade.model.entity.PayCallBackOnlineBatch;
+import com.wanmi.sbc.order.trade.model.entity.PointsTradeCommitResult;
+import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
+import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
@@ -39,7 +98,11 @@ import com.wanmi.sbc.order.trade.model.root.TradeGroup;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
-import com.wanmi.sbc.order.trade.service.*;
+import com.wanmi.sbc.order.trade.service.CycleBuyDeliverTimeService;
+import com.wanmi.sbc.order.trade.service.ProviderTradeService;
+import com.wanmi.sbc.order.trade.service.TradeOptimizeService;
+import com.wanmi.sbc.order.trade.service.TradePushERPService;
+import com.wanmi.sbc.order.trade.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +112,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -881,6 +948,12 @@ public class TradeController implements TradeProvider {
     public BaseResponse getSaleAfterCreateReq(String returnOrderNo) {
         ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
         return BaseResponse.success(transferService.changeSaleAfterCreateReq(returnOrder));
+    }
+
+    @Override
+    public BaseResponse getSaleAfterExportReq(String returnOrderNo) {
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderNo).get();
+        return BaseResponse.success(transferService.changeSaleAfterCreateReq4Sync(returnOrder));
     }
 
     @Override
