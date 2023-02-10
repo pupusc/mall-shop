@@ -14,6 +14,7 @@ import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
@@ -178,9 +179,10 @@ public class TopicConfigService {
     }
 
 
-    public List<RankRequest> rank(Integer topicStoreyId) {
+    public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
 
 
+        Integer topicStoreyId=storeyRequest.getTopicStoreyId();
         String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?) ORDER BY sorting asc";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
