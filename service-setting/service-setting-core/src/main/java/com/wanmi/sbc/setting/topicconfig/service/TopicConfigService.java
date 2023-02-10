@@ -558,4 +558,18 @@ public class TopicConfigService {
             return topicStoreyColumnGoodsDTO;
         }).collect(Collectors.toList());
     }
+
+
+    /**
+     * @Description 根据主题类型获得主题id
+     */
+    public List<TopicStoreyDTO> listTopicStoreyIdByType(Integer storeyType){
+        List<TopicStoreyDTO> collect = storeyRepository.getAvailByTopicType(storeyType).stream().map(t -> {
+            TopicStoreyDTO topicStoreyDTO = new TopicStoreyDTO();
+            BeanUtils.copyProperties(t, topicStoreyDTO);
+            return topicStoreyDTO;
+        }).collect(Collectors.toList());
+
+        return collect;
+    }
 }

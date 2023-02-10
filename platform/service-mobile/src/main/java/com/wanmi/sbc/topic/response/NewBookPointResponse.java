@@ -61,4 +61,15 @@ public class NewBookPointResponse implements Serializable {
      * 为空，以市场价为准
      */
     private BigDecimal salePrice;
+
+
+    /**
+     * 图片
+     */
+    private String goodsInfoImg;
+
+    /**
+     * 商品名
+     */
+    private String goodsInfoName;
 }

@@ -14,6 +14,7 @@ import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,5 +174,10 @@ public class TopicConfigController implements TopicConfigProvider {
     public BaseResponse deleteStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
         topicConfigService.deleteStoreyColumnGoods(request);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public List<TopicStoreyDTO> getStoreyIdByType(Integer storeyType) {
+        return topicConfigService.listTopicStoreyIdByType(storeyType);
     }
 }

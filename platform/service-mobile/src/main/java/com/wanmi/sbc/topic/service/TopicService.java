@@ -240,6 +240,7 @@ public class TopicService {
          TopicStoreyColumnQueryRequest request=new TopicStoreyColumnQueryRequest();
          request.setState(1);
          request.setPublishState(0);
+         request.setTopicStoreId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
          topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t->{
              ThreeGoodBookResponse threeGoodBookResponse=new ThreeGoodBookResponse();
              BeanUtils.copyProperties(t,threeGoodBookResponse);
@@ -305,6 +306,8 @@ public class TopicService {
 
         for(int i=0; i<newBookPointResponseList.size();i++ ){
             newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
+            newBookPointResponseList.get(i).setGoodsInfoName(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoName());
+            newBookPointResponseList.get(i).setGoodsInfoImg(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
         }
 
 
@@ -323,6 +326,7 @@ public class TopicService {
 
             for(int i=0; i<newBookPointResponseList.size();i++ ){
                 newBookPointResponseList.get(i).setSalePrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getSalePrice());
+                newBookPointResponseList.get(i).setGoodsInfoImg(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
             }
         }
         return newBookPointResponseList;

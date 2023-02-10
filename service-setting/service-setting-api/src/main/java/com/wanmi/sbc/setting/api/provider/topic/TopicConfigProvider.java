@@ -108,4 +108,7 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/delete")
     BaseResponse deleteStoreyColumnGoods(@RequestBody EnableTopicStoreyColumnGoodsRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getStoreyIdByType")
+    List<TopicStoreyDTO> getStoreyIdByType(@RequestBody Integer storeyType);
 }
