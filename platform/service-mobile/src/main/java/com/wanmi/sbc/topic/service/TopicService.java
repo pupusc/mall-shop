@@ -264,7 +264,7 @@ public class TopicService {
         //获取会员价
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Map customerMap = ( Map ) request.getAttribute("claims");
-        if(null!=customerMap.get("customerId").toString()) {
+        if(null!=customerMap && null!=customerMap.get("customerId")) {
             //获取会员
             CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
