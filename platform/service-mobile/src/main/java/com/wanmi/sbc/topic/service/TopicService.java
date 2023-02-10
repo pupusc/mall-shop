@@ -34,6 +34,10 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilter
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicRankRequest;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -214,11 +218,53 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
+            }
+            if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                topicResponse.setThreeGoodBookResponses(this.threeGoodBook());
+            }
+            if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(topicResponse.getId()),RankResponse.class));
             }
         }
         return BaseResponse.success(response);
     }
+
+
+    /**
+     * 三本好书,首页加载
+     */
+     public List<ThreeGoodBookResponse> threeGoodBook(){
+
+         List<ThreeGoodBookResponse> threeGoodBookResponses=new ArrayList<>();
+         TopicStoreyColumnQueryRequest request=new TopicStoreyColumnQueryRequest();
+         request.setState(1);
+         request.setPublishState(0);
+         topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t->{
+             ThreeGoodBookResponse threeGoodBookResponse=new ThreeGoodBookResponse();
+             BeanUtils.copyProperties(t,threeGoodBookResponse);
+             threeGoodBookResponses.add(threeGoodBookResponse);
+         });
+
+         if(null != threeGoodBookResponses && threeGoodBookResponses.size()!=0) {
+             TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
+             topicStoreyColumnGoodsQueryRequest.setState(1);
+             topicStoreyColumnGoodsQueryRequest.setPublishState(0);
+             topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponses.get(0).getId());
+             List<TopicStoreyColumnGoodsDTO> content = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext().getContent();
+
+             if(null != content && content.size()!=0){
+                 List<ThreeGoodBookGoods> goodBookGoods=new ArrayList<>();
+                 content.stream().forEach(t-> {
+                     ThreeGoodBookGoods goodBookGoodsTemp=new ThreeGoodBookGoods();
+                     BeanUtils.copyProperties(t,goodBookGoodsTemp);
+                     goodBookGoods.add(goodBookGoodsTemp);
+                 });
+                 threeGoodBookResponses.get(0).setGoodBookGoods(goodBookGoods);
+             }
+         }
+         return threeGoodBookResponses;
+     }
+
 
 
     /**
