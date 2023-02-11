@@ -26,7 +26,6 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
@@ -37,6 +36,8 @@ import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
+import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
+import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -212,6 +213,8 @@ public class TopicService {
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
+            } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
+                topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent());
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints());
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -220,7 +223,6 @@ public class TopicService {
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),false)),RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单详情
                 topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),true)),RankResponse.class));
-            }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){
             }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
@@ -637,6 +639,13 @@ public class TopicService {
             });
         }
 
+    }
+
+    private TopicStoreyMixedComponentResponse getMixedComponentContent() {
+        MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
+        TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
+        mixedComponent.getMixedComponentContents();
+        return mixedComponent;
     }
 
     private Map<String, String> getUrlParams(String url) {

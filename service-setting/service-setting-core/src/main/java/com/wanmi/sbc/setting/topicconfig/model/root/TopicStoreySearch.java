@@ -65,22 +65,22 @@ public class TopicStoreySearch {
     @Column(name = "show_type")
     private Integer showType;
 
-    @Column(name = "p_id")
-    private Integer pId;
-
     @Column(name = "book_type")
     private Integer bookType;
+
+    @Column(name = "p_id")
+    private Integer pId;
 
     @Column(name = "level")
     private Integer level;
 
-    @Column(name = "relation_store_id")
-    private Integer relationStroeId;
-
     @Column(name = "color")
-    private String clolr;
+    private String color;
 
     @Column(name = "image")
     private String image;
+
+    @Column(name = "relation_store_id")
+    private Integer relationStroeId;
 
 }

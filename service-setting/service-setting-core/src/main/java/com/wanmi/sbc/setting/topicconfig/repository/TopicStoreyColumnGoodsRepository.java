@@ -71,4 +71,6 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
     int enable(Integer id, Integer deleted);
 
 
+
+
 }

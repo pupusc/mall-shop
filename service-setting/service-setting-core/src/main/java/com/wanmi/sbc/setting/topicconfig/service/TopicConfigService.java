@@ -10,17 +10,16 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
+import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
@@ -37,6 +36,7 @@ import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -594,6 +594,59 @@ public class TopicConfigService {
             topicStoreyColumnGoodsDTO.setPublishState(topicStoreySearchContent.getDeleted());
             return topicStoreyColumnGoodsDTO;
         }).collect(Collectors.toList());
+    }
+
+    public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
+        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        topicStoreySearch.setTopicStoreId(request.getTopicStoreyId());
+        List<TopicStoreySearch> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
+                Sort.by(Sort.Direction.ASC, "orderNum"));
+        List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
+        MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request.getId());
+        return new TopicStoreyMixedComponentResponse(mixedComponentTabs, mixedComponentKeyWord, null);
+    }
+
+    public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreySearch> topicStoreySearches) {
+        return topicStoreySearches.stream().filter(s -> MixedComponentLevel.ONE.toValue().equals(s.getLevel())).map(s -> {
+                MixedComponentTabDto mixedComponentTabDto = new MixedComponentTabDto();
+                mixedComponentTabDto.setId(s.getId());
+                mixedComponentTabDto.setName(s.getName());
+                mixedComponentTabDto.setSubName(s.getSubName());
+                if (StringUtils.isNotEmpty(s.getColor())) {
+                    JSONObject color = JSON.parseObject(s.getColor());
+                    mixedComponentTabDto.setSelectedColor(color.getString("selected"));
+                    mixedComponentTabDto.setUnSelectedColor(color.getString("unselected"));
+                }
+                if (StringUtils.isNotEmpty(s.getImage())) {
+                    JSONObject image = JSON.parseObject(s.getImage());
+                    mixedComponentTabDto.setSelectedImage(image.getString("selected"));
+                    mixedComponentTabDto.setUnSelectedImage(image.getString("unselected"));
+                }
+
+            return mixedComponentTabDto;
+        }).collect(Collectors.toList());
+    }
+
+    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreySearch> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, Integer id) {
+        if (id == null) {
+            id = mixedComponentTabs.get(0).getId();
+        }
+        Integer finalId = id;
+        MixedComponentKeyWordsDto mixedComponentKeyWordsDto = new MixedComponentKeyWordsDto();
+        List<String> keyWords = topicStoreySearches.stream()
+                .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.THREE.toValue().equals(s.getLevel()))
+                .map(s -> {
+            String keyword = s.getName();
+            return keyword;
+        }).collect(Collectors.toList());
+        mixedComponentKeyWordsDto.setKeyWord(keyWords);
+        Optional<TopicStoreySearch> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.THREE.toValue().equals(s.getLevel())).findFirst();
+        if (storeySearch.get() != null && StringUtils.isNotEmpty(storeySearch.get().getColor())) {
+            JSONObject colorObject = JSON.parseObject(storeySearch.get().getColor());
+            mixedComponentKeyWordsDto.setKeyWordSelectedColor(colorObject.getString("selected"));
+            mixedComponentKeyWordsDto.setKeyWordUnSelectedColor(colorObject.getString("unselected"));
+        }
+        return mixedComponentKeyWordsDto;
     }
 
 

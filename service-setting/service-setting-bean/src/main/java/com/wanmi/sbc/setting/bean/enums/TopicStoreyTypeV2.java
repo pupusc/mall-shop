@@ -22,10 +22,11 @@ public enum TopicStoreyTypeV2 {
 
     RANKLIST(11,"大家都在买（榜单）"),
 
-    RANKDETAIL(21,"榜单详情"),
-
     NEWBOOK( 13,"新书速递"),
 
+    MIXED(20, "混合组件"),
+
+    RANKDETAIL(21,"榜单详情"),
 
     THREEGOODBOOK(14,"三本好书"),
 

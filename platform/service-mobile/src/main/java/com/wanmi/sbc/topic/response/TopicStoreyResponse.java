@@ -2,6 +2,7 @@ package com.wanmi.sbc.topic.response;
 
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -71,4 +72,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("图书栏目信息")
     private List<GoodsInfoVO> BooksResponses;
+
+    @ApiModelProperty("混合栏目信息")
+    private TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse;
 }

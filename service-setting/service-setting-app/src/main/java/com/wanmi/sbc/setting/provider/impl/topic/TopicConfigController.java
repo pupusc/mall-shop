@@ -10,6 +10,7 @@ import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
+import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
@@ -175,6 +176,11 @@ public class TopicConfigController implements TopicConfigProvider {
     public BaseResponse deleteStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
         topicConfigService.deleteStoreyColumnGoods(request);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(MixedComponentQueryRequest request) {
+        return BaseResponse.success(topicConfigService.getMixedComponent(request));
     }
 
     @Override

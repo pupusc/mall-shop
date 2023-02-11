@@ -10,6 +10,7 @@ import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
+import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
@@ -111,6 +112,9 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getStoreyIdByType")
     List<TopicStoreyDTO> getStoreyIdByType(@RequestBody Integer storeyType);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/mixedComponentContent")
+    BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(@RequestBody MixedComponentQueryRequest mixedComponentQueryRequest);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getContentByStoreyId")
     List<TopicStoreyContentDTO> getContentByStoreyId(@RequestBody TopicStoreyContentRequest request);
