@@ -27,7 +27,7 @@ public interface TopicStoreyRepository extends JpaRepository<TopicStorey, Intege
     @Query("update TopicStorey w set w.status = ?2, w.updateTime = now() where w.id = ?1")
     int enable(Integer storeyId,Integer status);
 
-    @Query("from TopicStorey w where w.topicId = ?1 and w.deleted = 0")
+    @Query("from TopicStorey w where w.topicId = ?1 and w.deleted = 0 order by w.sorting asc ")
     List<TopicStorey> getByTopicId(Integer topicId);
 
     @Modifying
