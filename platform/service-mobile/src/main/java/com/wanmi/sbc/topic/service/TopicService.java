@@ -262,9 +262,13 @@ public class TopicService {
             return null;
         }
         List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
-        //获取商品售价
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuList).isHavSpecText(DeleteFlag.YES.toValue()).deleteFlag(DeleteFlag.NO).build();
-        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+
+        //获取商品信息
+        GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+        goodsInfoByIdRequest.setGoodsInfoIds(skuList);
+        goodsInfoByIdRequest.setIsHavSpecText(1);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
 
         //获取会员价
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -295,7 +299,7 @@ public class TopicService {
 
          List<ThreeGoodBookResponse> threeGoodBookResponses=new ArrayList<>();
          if(null == threeGoodBookRequest.getId()) {
-             //没有指定栏目id
+             //没有指定栏目id,添加所有栏目
              TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
              request.setState(1);
              request.setPublishState(0);
@@ -314,7 +318,6 @@ public class TopicService {
 
          if(null != threeGoodBookResponses && threeGoodBookResponses.size()!=0) {
              TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
-             topicStoreyColumnGoodsQueryRequest.setState(1);
              topicStoreyColumnGoodsQueryRequest.setPublishState(0);
              topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponses.get(0).getId());
              //设定指定的分页
@@ -366,11 +369,16 @@ public class TopicService {
             newBookPointResponseList.add(newBookPointResponse);
         });
 
-        //获取商品售价
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = GoodsInfoViewByIdsRequest.builder().goodsInfoIds(skuIdList).isHavSpecText(DeleteFlag.YES.toValue()).deleteFlag(DeleteFlag.NO).build();
-        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //获取商品信息
+        GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+        goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
+        goodsInfoByIdRequest.setIsHavSpecText(1);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+
         Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
                 .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
 
         for(int i=0; i<newBookPointResponseList.size();i++ ){
             newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
