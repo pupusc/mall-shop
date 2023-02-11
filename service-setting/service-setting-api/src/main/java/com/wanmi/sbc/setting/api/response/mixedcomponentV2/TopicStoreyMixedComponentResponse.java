@@ -7,6 +7,7 @@ import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.data.domain.Page;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -22,5 +23,5 @@ public class TopicStoreyMixedComponentResponse implements Serializable {
 
     private MixedComponentKeyWordsDto mixedComponentKeyWord;
 
-    private List<MixedComponentContentDto> mixedComponentContents;
+    private Page<MixedComponentContentDto> mixedComponentContentPage;
 }

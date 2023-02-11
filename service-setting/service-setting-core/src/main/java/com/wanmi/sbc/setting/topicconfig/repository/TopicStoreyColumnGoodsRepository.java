@@ -1,6 +1,7 @@
 package com.wanmi.sbc.setting.topicconfig.repository;
 
 
+import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearch;
@@ -62,6 +63,16 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
                     conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
                 }
             }
+            return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+        };
+    }
+
+
+    default Specification<TopicStoreySearchContent> mixedComponentContent(MixedComponentQueryRequest request) {
+        return (Specification<TopicStoreySearchContent>) (root, criteriaQuery, criteriaBuilder) -> {
+            final List<Predicate> conditionList = new ArrayList<>();
+            conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getKeywordId()));
+            conditionList.add(criteriaBuilder.equal(root.get("deleted"), 0));
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
     }

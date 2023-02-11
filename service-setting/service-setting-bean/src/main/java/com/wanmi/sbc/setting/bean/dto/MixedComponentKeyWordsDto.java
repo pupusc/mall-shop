@@ -18,5 +18,5 @@ public class MixedComponentKeyWordsDto implements Serializable  {
 
     private String keyWordUnSelectedColor;
 
-    private List<String> keyWord;
+    private List<KeyWordDto> keyWord;
 }

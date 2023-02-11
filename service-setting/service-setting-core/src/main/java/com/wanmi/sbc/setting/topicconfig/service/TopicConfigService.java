@@ -672,6 +672,7 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
     }
 
+    //混合组件
     public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
@@ -679,7 +680,29 @@ public class TopicConfigService {
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
         MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request.getId());
-        return new TopicStoreyMixedComponentResponse(mixedComponentTabs, mixedComponentKeyWord, null);
+        Page<MixedComponentContentDto> mixedComponentContentPage = getMixedComponentContentPage(request, mixedComponentKeyWord);
+        return new TopicStoreyMixedComponentResponse(mixedComponentTabs, mixedComponentKeyWord, mixedComponentContentPage);
+    }
+
+    private Page<MixedComponentContentDto> getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
+        if (request.getKeywordId() == null) {
+            request.setKeywordId(mixedComponentKeyWord.getKeyWord().stream().findFirst().get().getId());
+        }
+        List<Sort.Order> sortList = new ArrayList<>();
+        sortList.add(Sort.Order.asc("sorting"));
+        sortList.add(Sort.Order.asc("type"));
+        Page<TopicStoreySearchContent> topicStoreySearchGoodsPage = columnGoodsRepository
+                .findAll(columnGoodsRepository.mixedComponentContent(request), PageRequest.of(request.getPageNum(),
+                        request.getPageSize(), Sort.by(sortList)));
+        List<TopicStoreySearchContent> content = topicStoreySearchGoodsPage.getContent();
+        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
+        mixedComponentContentPage.setContent(content.stream().map(s -> {
+            MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto();
+            BeanUtils.copyProperties(s, mixedComponentContentDto);
+            return mixedComponentContentDto;
+        }).collect(Collectors.toList()));
+        mixedComponentContentPage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
+        return mixedComponentContentPage;
     }
 
     public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreySearch> topicStoreySearches) {
@@ -709,14 +732,16 @@ public class TopicConfigService {
         }
         Integer finalId = id;
         MixedComponentKeyWordsDto mixedComponentKeyWordsDto = new MixedComponentKeyWordsDto();
-        List<String> keyWords = topicStoreySearches.stream()
-                .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.THREE.toValue().equals(s.getLevel()))
+        List<KeyWordDto> keyWords = topicStoreySearches.stream()
+                .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel()))
                 .map(s -> {
-            String keyword = s.getName();
-            return keyword;
+                    KeyWordDto keyWordDto = new KeyWordDto();
+                    keyWordDto.setId(s.getId());
+                    keyWordDto.setName(s.getName());
+            return keyWordDto;
         }).collect(Collectors.toList());
         mixedComponentKeyWordsDto.setKeyWord(keyWords);
-        Optional<TopicStoreySearch> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.THREE.toValue().equals(s.getLevel())).findFirst();
+        Optional<TopicStoreySearch> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel())).findFirst();
         if (storeySearch.get() != null && StringUtils.isNotEmpty(storeySearch.get().getColor())) {
             JSONObject colorObject = JSON.parseObject(storeySearch.get().getColor());
             mixedComponentKeyWordsDto.setKeyWordSelectedColor(colorObject.getString("selected"));
@@ -735,7 +760,6 @@ public class TopicConfigService {
             BeanUtils.copyProperties(t, topicStoreyDTO);
             return topicStoreyDTO;
         }).collect(Collectors.toList());
-
         return collect;
     }
 }

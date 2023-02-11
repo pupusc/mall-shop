@@ -1,9 +1,12 @@
 package com.wanmi.sbc.setting.bean.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @Description: TODO
@@ -15,5 +18,43 @@ import java.io.Serializable;
 public class MixedComponentContentDto implements Serializable {
 
     private static final long serialVersionUID = 2588838972751435906L;
+
+    private Integer id;
+
+    private Integer topicStoreySearchId;
+
+    private String topicStoreySearchTable;
+
+    private String spuNo;
+
+    private String skuNo;
+
+    private Integer type;
+
+    private String imageUrl;
+
+    private String linkUrl;
+
+    private Integer sorting;
+
+    private LocalDateTime updateTime;
+
+    private LocalDateTime createTime;
+
+    private Integer deleted;
+
+    private String skuId;
+
+    private String goodsName;
+
+    private String spuId;
+
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
+    private String attributeInfo;
+
+    private int num;
     
 }

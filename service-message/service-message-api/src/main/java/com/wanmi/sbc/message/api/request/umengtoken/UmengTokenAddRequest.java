@@ -56,5 +56,4 @@ public class UmengTokenAddRequest extends SmsBaseRequest {
 	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime bindingTime;
-
 }
