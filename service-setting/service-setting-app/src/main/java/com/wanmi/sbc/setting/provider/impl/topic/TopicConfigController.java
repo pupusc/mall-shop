@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.provider.impl.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -90,6 +91,10 @@ public class TopicConfigController implements TopicConfigProvider {
 
     public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
         return topicConfigService.rank(storeyRequest);
+    }
+
+    public RankPageRequest rankPage(RankStoreyRequest storeyRequest){
+        return topicConfigService.rankPage(storeyRequest);
     }
 
     @Override

@@ -40,7 +40,7 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreySe
     default Specification<TopicStoreySearch> topicStoreySearch(TopicStoreyColumnQueryRequest request) {
         return (Specification<TopicStoreySearch>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
-            conditionList.add(criteriaBuilder.equal(root.get("topicStoreId"), request.getTopicStoreId()));
+            conditionList.add(criteriaBuilder.equal(root.get("topicStoreyId"), request.getTopicStoreyId()));
             if (request.getId() != null &&  "".equals(request.getId())) {
                 conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
             }
@@ -69,7 +69,7 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreySe
     }
 
     //楼层栏目列表
-    List<TopicStoreySearch> getByTopicStoreIdAndDeletedOrderByOrderNumAscCreateTimeDesc(Integer topicStoreId, Integer deleted);
+    List<TopicStoreySearch> getByTopicStoreyIdAndDeletedOrderByOrderNumAscCreateTimeDesc(Integer topicStoreyId, Integer deleted);
 
     @Modifying
     @Query("update TopicStoreySearch T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")

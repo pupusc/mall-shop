@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RankStoreyRequest implements Serializable {
+public class RankStoreyRequest extends RankPageRequest implements Serializable {
     private static final long serialVersionUID = -5138062021719883495L;
 
     @ApiModelProperty("topicStoreyId")

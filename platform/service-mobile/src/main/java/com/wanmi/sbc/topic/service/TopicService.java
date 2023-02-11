@@ -30,6 +30,7 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -282,6 +283,12 @@ public class TopicService {
         return goodsInfoVOList;
     }
 
+    public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
+        request.setTopicStoreyId(185);
+        RankPageRequest pageRequest = topicConfigProvider.rankPage(request);
+        return BaseResponse.success(pageRequest);
+    }
+
     /**
      * 三本好书,首页加载
      */
@@ -293,7 +300,7 @@ public class TopicService {
              TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
              request.setState(1);
              request.setPublishState(0);
-             request.setTopicStoreId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+             request.setTopicStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
              topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
                  ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
                  BeanUtils.copyProperties(t, threeGoodBookResponse);

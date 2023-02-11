@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.api.provider.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -69,6 +70,8 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
     List<RankRequest> rank(@RequestBody RankStoreyRequest storeyRequest);
 
+    @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage")
+    RankPageRequest rankPage(@RequestBody RankStoreyRequest storeyRequest);
 
     @PostMapping("/setting/${application.setting.version}/topic/add/storey/content")
     BaseResponse addStoryContent(@RequestBody TopicStoreyContentAddRequest request);

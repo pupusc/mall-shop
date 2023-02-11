@@ -32,5 +32,5 @@ public class TopicStoreyColumnQueryRequest implements Serializable {
 
     @NotNull
     @ApiModelProperty("楼层ID")
-    private Integer topicStoreId;
+    private Integer topicStoreyId;
 }

@@ -1,7 +1,10 @@
 package com.wanmi.sbc.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
 import io.swagger.annotations.Api;
@@ -65,6 +68,13 @@ public class TopicController {
     @PostMapping(value = "/v2/headTopic")
     public BaseResponse<TopicResponse> storeyV2(@RequestBody TopicQueryRequest request) {
         BaseResponse<TopicResponse> response = topicService.detailV2(request,false);
+        return response;
+    }
+
+    @ApiOperation(value = "根据专题id返回数据，第一次加载只返回1，2楼层数据信息")
+    @PostMapping(value = "/v2/rankPage")
+    public BaseResponse<RankPageRequest> storeyV2(@RequestBody RankStoreyRequest request) {
+        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
         return response;
     }
 

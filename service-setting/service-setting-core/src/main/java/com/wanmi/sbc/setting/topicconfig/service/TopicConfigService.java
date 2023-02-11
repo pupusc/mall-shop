@@ -12,6 +12,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -63,6 +64,9 @@ public class TopicConfigService {
 
     @Autowired
     private TopicStoreyRepository storeyRepository;
+
+    @Autowired
+    private TopicStoreySearchRepository storeySearchRepository;
 
     @Autowired
     private TopicStoreyContentRepository contentRepository;
@@ -179,23 +183,34 @@ public class TopicConfigService {
         return KsBeanUtil.convertList(list, TopicStoreyDTO.class);
     }
 
-
+    /**
+     * 首页榜单查询
+     * @param storeyRequest
+     * @return
+     */
     public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
 
 
         Integer topicStoreyId=storeyRequest.getTopicStoreyId();
-        String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?) ORDER BY sorting asc";
+        String sql = "SELECT\n" +
+                " *\n" +
+                "FROM\n" +
+                " (SELECT * from topic_storey_search_content where topic_storey_id=?) AS a \n" +
+                "WHERE\n" +
+                "( SELECT count(*) FROM topic_storey_search_content tt WHERE topic_storey_search_id = a.topic_storey_search_id AND num >= a.num )<= 3\n" +
+                "ORDER BY\n" +
+                " topic_storey_search_id asc,num DESC";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
         query.setParameter(1,topicStoreyId);
-        List<Map> list=getRankNameList(topicStoreyId);
+        List<TopicStoreySearch> list=getRankNameList(topicStoreyId,true);
         List<TopicStoreySearchContent> resultList = query.getResultList();
         List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
         List<RankRequest> requests=new ArrayList<>();
-        list.forEach(map->{
+        list.forEach(ts->{
             RankRequest rankRequest=new RankRequest();
-            rankRequest.setRankName(map.get("name").toString());
-            rankRequest.setId((Integer) map.get("id"));
+            rankRequest.setRankName(ts.getName());
+            rankRequest.setId(ts.getId());
             List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
             rankRequest.setRankList(contentRequestList);
             requests.add(rankRequest);
@@ -210,13 +225,74 @@ public class TopicConfigService {
         return requests;
     }
 
-    public List getRankNameList(Integer topicStoreyId){
-        String sql = "SELECT id,name FROM topic_storey_search where topic_store_id=?";
+    /**
+     * 榜单详情页分页
+     * @param storeyRequest
+     * @return
+     */
+    public RankPageRequest rankPage(RankStoreyRequest storeyRequest) {
+        Integer topicStoreyId=storeyRequest.getTopicStoreyId();
+        String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_storey_id=?1) ";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql);
-        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        Query query1 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
+        query1.setParameter(1,topicStoreyId);
+        List<TopicStoreySearch> list=getRankNameList(topicStoreyId,false);
+
+        RankPageRequest pageRequest=new RankPageRequest();
+        Long total = Long.valueOf(query1.getResultList().size());
+        pageRequest.setTotal(total);
+        pageRequest.setTotalPages((total/storeyRequest.getPageSize()));
+        int start = (storeyRequest.getPageNum() - 1) * storeyRequest.getPageSize();
+        sql+="ORDER BY sorting asc limit ?2,?3";
+        Query query2 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
+        query2.setParameter(1,topicStoreyId);
+        query2.setParameter(2,start);
+        query2.setParameter(3,storeyRequest.getPageSize());
+        List<TopicStoreySearchContent> resultList = query2.getResultList();
+
+        List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
+        List<RankRequest> requests=new ArrayList<>();
+        list.stream().filter(ts->ts.getLevel().equals(0)||null==ts.getPId()).forEach(ts->{
+            RankRequest rankRequest=new RankRequest();
+            rankRequest.setRankName(ts.getName());
+            rankRequest.setId(ts.getId());
+            rankRequest.setLevel(ts.getLevel());
+            List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+            rankRequest.setRankList(contentRequestList);
+            requests.add(rankRequest);
+        });
+        list.stream().filter(ts->ts.getLevel()!=0||null!=ts.getPId()).forEach(ts->{
+            requests.forEach(r->{
+                if(ts.getPId().equals(r.getId())){
+                    RankRequest rankRequest=new RankRequest();
+                    rankRequest.setRankName(ts.getName());
+                    rankRequest.setId(ts.getId());
+                    rankRequest.setLevel(ts.getLevel());
+                    List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+                    contentRequests.forEach(c->{
+                        if(c.getTopicStoreySearchId().equals(ts.getId())){
+                            contentRequestList.add(c);
+                        }
+                    });
+                    rankRequest.setRankList(contentRequestList);
+                    r.getRankList().add(rankRequest);
+                }
+            });
+        });
+        pageRequest.setContentList(requests);
+        return pageRequest;
+    }
+
+    public List<TopicStoreySearch> getRankNameList(Integer topicStoreyId,Boolean isDitail){
+        String sql = "SELECT * FROM topic_storey_search where topic_storey_id=? ";
+        if(isDitail){
+            sql+="and level!=0 ";
+        }
+        sql+="ORDER BY order_num asc";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql,TopicStoreySearch.class);
         query.setParameter(1,topicStoreyId);
-        List<Map> list=query.getResultList();
+        List<TopicStoreySearch> list=query.getResultList();
         return list;
     }
 
@@ -450,7 +526,7 @@ public class TopicConfigService {
      */
     public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
-        topicStoreySearch.setTopicStoreId(request.getTopicStoreyId());
+        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
         topicStoreySearch.setCreateTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
@@ -598,7 +674,7 @@ public class TopicConfigService {
 
     public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
-        topicStoreySearch.setTopicStoreId(request.getTopicStoreyId());
+        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
         List<TopicStoreySearch> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);

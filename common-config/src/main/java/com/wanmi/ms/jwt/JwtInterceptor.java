@@ -113,6 +113,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/topic/v2/detail")
                     || requestURI.startsWith("/topic/headTopic")
                     || requestURI.startsWith("/topic/v2/headTopic")
+                    || requestURI.startsWith("/topic/v2/rankPage")
                     || requestURI.startsWith("/vote")
                     || requestURI.startsWith("/error")
                     || requestURI.startsWith("/wx/callback")

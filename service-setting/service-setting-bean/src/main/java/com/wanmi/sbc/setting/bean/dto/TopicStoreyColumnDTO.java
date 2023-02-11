@@ -22,7 +22,7 @@ public class TopicStoreyColumnDTO implements Serializable {
     @ApiModelProperty("专栏id")
     private Integer id;
 
-    private Integer topicStoreId;
+    private Integer topicStoreyId;
 
     @ApiModelProperty("专栏名称")
     private String Name;

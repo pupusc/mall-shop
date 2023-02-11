@@ -26,8 +26,8 @@ public class TopicStoreySearch {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "topic_store_id")
-    private Integer topicStoreId;
+    @Column(name = "topic_storey_id")
+    private Integer topicStoreyId;
 
     @Column(name = "name")
     private String name;
