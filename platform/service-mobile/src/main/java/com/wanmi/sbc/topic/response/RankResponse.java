@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -19,5 +20,5 @@ public class RankResponse implements Serializable {
     private Integer id;
 
     @ApiModelProperty("榜单")
-    private List<TopicStoreySearchContentRequest> rankList;
+    private Collection rankList;
 }

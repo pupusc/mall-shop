@@ -2,7 +2,6 @@ package com.wanmi.sbc.setting.topicconfig.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.ms.util.PageImpl;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -212,14 +211,22 @@ public class TopicConfigService {
             RankRequest rankRequest=new RankRequest();
             rankRequest.setRankName(ts.getName());
             rankRequest.setId(ts.getId());
-            List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+            List<Map> contentRequestList=new ArrayList<>();
             rankRequest.setRankList(contentRequestList);
             requests.add(rankRequest);
         });
         requests.forEach(r->{
             contentRequests.forEach(c->{
                 if(c.getTopicStoreySearchId().equals(r.getId())){
-                    r.getRankList().add(c);
+                    Map map=new HashMap<>();
+                    map.put("id",c.getId());
+                    map.put("spuNo",c.getSpuNo());
+                    map.put("skuNo",c.getSkuNo());
+                    map.put("imageUrl",c.getImageUrl());
+                    map.put("sorting",c.getSorting());
+                    map.put("goodsName",c.getGoodsName());
+                    map.put("num",c.getNum());
+                    r.getRankList().add(map);
                 }
             });
         });
@@ -242,6 +249,7 @@ public class TopicConfigService {
         RankPageRequest pageRequest=new RankPageRequest();
         Long total = Long.valueOf(query1.getResultList().size());
         pageRequest.setTotal(total);
+        pageRequest.setPageNum(storeyRequest.getPageNum());
         pageRequest.setTotalPages((total/storeyRequest.getPageSize()));
         int start = (storeyRequest.getPageNum() - 1) * storeyRequest.getPageSize();
         sql+="ORDER BY sorting asc limit ?2,?3";
@@ -258,7 +266,7 @@ public class TopicConfigService {
             rankRequest.setRankName(ts.getName());
             rankRequest.setId(ts.getId());
             rankRequest.setLevel(ts.getLevel());
-            List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+            List<Map> contentRequestList=new ArrayList<>();
             rankRequest.setRankList(contentRequestList);
             requests.add(rankRequest);
         });
@@ -269,10 +277,18 @@ public class TopicConfigService {
                     rankRequest.setRankName(ts.getName());
                     rankRequest.setId(ts.getId());
                     rankRequest.setLevel(ts.getLevel());
-                    List<TopicStoreySearchContentRequest> contentRequestList=new ArrayList<>();
+                    List<Map> contentRequestList=new ArrayList<>();
                     contentRequests.forEach(c->{
                         if(c.getTopicStoreySearchId().equals(ts.getId())){
-                            contentRequestList.add(c);
+                            Map map=new HashMap<>();
+                            map.put("id",c.getId());
+                            map.put("spuNo",c.getSpuNo());
+                            map.put("skuNo",c.getSkuNo());
+                            map.put("imageUrl",c.getImageUrl());
+                            map.put("sorting",c.getSorting());
+                            map.put("goodsName",c.getGoodsName());
+                            map.put("num",c.getNum());
+                            contentRequestList.add(map);
                         }
                     });
                     rankRequest.setRankList(contentRequestList);
