@@ -221,10 +221,9 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
-                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),false)),RankResponse.class));
-            }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单详情
-                topicResponse.setRankList(KsBeanUtil.convertList(topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(),true)),RankResponse.class));
-            }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
+                List<RankRequest> rank = topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(), false));
+                topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
+            } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
