@@ -652,7 +652,6 @@ public class TopicService {
         MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
         mixedComponentQueryRequest.setTopicStoreyId(id);
         TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
-        mixedComponent.getMixedComponentContents();
         return mixedComponent;
     }
 
