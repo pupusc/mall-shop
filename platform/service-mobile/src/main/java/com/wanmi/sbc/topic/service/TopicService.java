@@ -214,7 +214,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent());
+                topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints());
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -641,8 +641,9 @@ public class TopicService {
 
     }
 
-    private TopicStoreyMixedComponentResponse getMixedComponentContent() {
+    private TopicStoreyMixedComponentResponse getMixedComponentContent(Integer id) {
         MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
+        mixedComponentQueryRequest.setTopicStoreyId(id);
         TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
         mixedComponent.getMixedComponentContents();
         return mixedComponent;
