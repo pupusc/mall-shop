@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting.topicconfig.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.ms.util.PageImpl;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -680,11 +681,15 @@ public class TopicConfigService {
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
         MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request.getId());
-        Page<MixedComponentContentDto> mixedComponentContentPage = getMixedComponentContentPage(request, mixedComponentKeyWord);
-        return new TopicStoreyMixedComponentResponse(mixedComponentTabs, mixedComponentKeyWord, mixedComponentContentPage);
+        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = getMixedComponentContentPage(request, mixedComponentKeyWord);
+        TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse = new TopicStoreyMixedComponentResponse();
+        topicStoreyMixedComponentResponse.setMixedComponentTabs(mixedComponentTabs);
+        topicStoreyMixedComponentResponse.setMixedComponentKeyWord(mixedComponentKeyWord);
+        topicStoreyMixedComponentResponse.setMixedComponentContentPage(mixedComponentContentPage);
+        return topicStoreyMixedComponentResponse;
     }
 
-    private Page<MixedComponentContentDto> getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
+    private MicroServicePage<MixedComponentContentDto> getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
         if (request.getKeywordId() == null) {
             request.setKeywordId(mixedComponentKeyWord.getKeyWord().stream().findFirst().get().getId());
         }
