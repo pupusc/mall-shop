@@ -4,6 +4,7 @@ package com.wanmi.sbc.setting.api.provider.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
@@ -65,7 +66,7 @@ public interface TopicConfigProvider {
     BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
-    List<RankRequest> rank(@RequestBody Integer topicStoreyId);
+    List<RankRequest> rank(@RequestBody RankStoreyRequest storeyRequest);
 
 
     @PostMapping("/setting/${application.setting.version}/topic/add/storey/content")
@@ -107,4 +108,10 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/delete")
     BaseResponse deleteStoreyColumnGoods(@RequestBody EnableTopicStoreyColumnGoodsRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getStoreyIdByType")
+    List<TopicStoreyDTO> getStoreyIdByType(@RequestBody Integer storeyType);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getContentByStoreyId")
+    List<TopicStoreyContentDTO> getContentByStoreyId(@RequestBody TopicStoreyContentRequest request);
 }

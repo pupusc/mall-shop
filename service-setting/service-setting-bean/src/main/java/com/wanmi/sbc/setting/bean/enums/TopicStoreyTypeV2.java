@@ -22,7 +22,16 @@ public enum TopicStoreyTypeV2 {
 
     RANKLIST(11,"大家都在买（榜单）"),
 
-    NEWBOOK( 13,"新书速递");
+    RANKDETAIL(21,"榜单详情"),
+
+    NEWBOOK( 13,"新书速递"),
+
+
+    THREEGOODBOOK(14,"三本好书"),
+
+    Goods(19,"商品组件"),
+
+    Books(18,"图书组件");
 
     private Integer id;
 

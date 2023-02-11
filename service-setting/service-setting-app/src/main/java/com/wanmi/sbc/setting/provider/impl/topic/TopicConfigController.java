@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
@@ -13,6 +14,8 @@ import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,8 +87,8 @@ public class TopicConfigController implements TopicConfigProvider {
         return BaseResponse.success(topicConfigService.listStorey(request));
     }
 
-    public List<RankRequest> rank(Integer topicStoreyId) {
-        return topicConfigService.rank(topicStoreyId);
+    public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
+        return topicConfigService.rank(storeyRequest);
     }
 
     @Override
@@ -172,5 +175,15 @@ public class TopicConfigController implements TopicConfigProvider {
     public BaseResponse deleteStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
         topicConfigService.deleteStoreyColumnGoods(request);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public List<TopicStoreyDTO> getStoreyIdByType(Integer storeyType) {
+        return topicConfigService.listTopicStoreyIdByType(storeyType);
+    }
+
+    @Override
+    public List<TopicStoreyContentDTO> getContentByStoreyId(TopicStoreyContentRequest request) {
+        return topicConfigService.listTopicStoreyContentByPage(request);
     }
 }

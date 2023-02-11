@@ -5,8 +5,12 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyContentRequest;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
+import com.wanmi.sbc.topic.response.ThreeGoodBookResponse;
 import com.wanmi.sbc.topic.service.TopicService;
+import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,5 +40,15 @@ public class SuspensionController {
     @PostMapping("/test")
     public List<NewBookPointResponse> newBookPoint(@RequestBody @Valid BaseQueryRequest baseQueryRequest)  {
         return topicService.newBookPoint(baseQueryRequest);
+    }
+
+    @PostMapping("/test1")
+    public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest)  {
+        return topicService.threeGoodBook(threeGoodBookRequest);
+    }
+
+    @PostMapping("/test2")
+    public List<GoodsInfoVO> GoodsOrBook(TopicStoreyContentRequest topicStoreyContentRequest)  {
+        return topicService.bookOrGoods(topicStoreyContentRequest);
     }
 }

@@ -14,6 +14,7 @@ import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
@@ -38,6 +39,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -178,9 +180,10 @@ public class TopicConfigService {
     }
 
 
-    public List<RankRequest> rank(Integer topicStoreyId) {
+    public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
 
 
+        Integer topicStoreyId=storeyRequest.getTopicStoreyId();
         String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id in(SELECT DISTINCT id FROM topic_storey_search where topic_store_id=?) ORDER BY sorting asc";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
@@ -351,6 +354,30 @@ public class TopicConfigService {
     }
 
 
+    public List<TopicStoreyContentDTO> listTopicStoreyContentByPage(TopicStoreyContentRequest request){
+
+        TopicStoreyContentResponse response = new TopicStoreyContentResponse();
+        response.setStoreyId(request.getStoreyId());
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "sorting");
+
+        Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
+
+        Page<TopicStoreyContent> topicStoreyContentPage = contentRepository.findAll(packageWhere(request), pageable);
+        if(CollectionUtils.isEmpty(topicStoreyContentPage.getContent())){
+            return null;
+        }
+
+        List<TopicStoreyContentDTO> collect = topicStoreyContentPage.stream().map(t -> {
+            TopicStoreyContentDTO topicStoreyContentDTO = new TopicStoreyContentDTO();
+            BeanUtils.copyProperties(t, topicStoreyContentDTO);
+            return topicStoreyContentDTO;
+        }).collect(Collectors.toList());
+
+        return collect;
+    }
+
+
     public Specification<Topic> getTopicWhereCriteria(TopicQueryRequest request) {
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -373,6 +400,18 @@ public class TopicConfigService {
             }
             if (request.getTopicId() != null) {
                 predicates.add(cbuild.equal(root.get("topicId"), request.getTopicId()));
+            }
+            predicates.add(cbuild.equal(root.get("deleted"), 0));
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+    }
+
+    public Specification<TopicStoreyContent> packageWhere(TopicStoreyContentRequest request) {
+        return (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (request.getStoreyId() != null) {
+                predicates.add(cbuild.equal(root.get("storeyId"), request.getStoreyId()));
             }
             predicates.add(cbuild.equal(root.get("deleted"), 0));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
@@ -555,5 +594,19 @@ public class TopicConfigService {
             topicStoreyColumnGoodsDTO.setPublishState(topicStoreySearchContent.getDeleted());
             return topicStoreyColumnGoodsDTO;
         }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * @Description 根据主题类型获得主题id
+     */
+    public List<TopicStoreyDTO> listTopicStoreyIdByType(Integer storeyType){
+        List<TopicStoreyDTO> collect = storeyRepository.getAvailByTopicType(storeyType).stream().map(t -> {
+            TopicStoreyDTO topicStoreyDTO = new TopicStoreyDTO();
+            BeanUtils.copyProperties(t, topicStoreyDTO);
+            return topicStoreyDTO;
+        }).collect(Collectors.toList());
+
+        return collect;
     }
 }
