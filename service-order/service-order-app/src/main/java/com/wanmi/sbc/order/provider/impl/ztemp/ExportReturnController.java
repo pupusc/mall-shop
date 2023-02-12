@@ -234,7 +234,11 @@ public class ExportReturnController {
                 return;
             }
         } catch (Exception e) {
-            log.info("历史退单同步到电商中台,同步错误:id={}, msg={}", returnOrder.getId(), e.getMessage());
+            String msg = e.getMessage();
+            if (e instanceof SbcRuntimeException) {
+                msg = ((SbcRuntimeException) e).getResult();
+            }
+            log.info("历史退单同步到电商中台,同步错误:id={}, tid={}, msg={}", returnOrder.getId(), returnOrder.getTid(), msg);
             this.countError ++;
             throw new RuntimeException(e);
         }
