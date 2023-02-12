@@ -1274,7 +1274,7 @@ public class TransferService {
                 }
             }
             //验证组合商品的分摊金额
-            validatePrice(returnOrder, returnItems);
+            validatePrice4Sync(returnOrder, returnItems);
         }
 
         //赠品，不参与分摊
@@ -1592,6 +1592,184 @@ public class TransferService {
             int applyRefundCash = returnItem.getApplyRealPrice() == null ? 0 : returnItem.getApplyRealPrice().multiply(exchangeRate).intValue(); //申请退现金
             int applyRefundPoint = returnItem.getApplyPoint() == null ? 0 : returnItem.getApplyPoint().intValue(); //申请退积分
             int applyRefundKnow = returnItem.getApplyKnowledge() == null ? 0 : returnItem.getApplyKnowledge().intValue(); //申请退知豆
+
+            if (totalRefundCash != applyRefundCash || totalRefundPoint != applyRefundPoint || totalRefundKnow != applyRefundKnow) {
+                log.error("申请退款的金额与分摊计算的金额不一致，申请金额:{}/{}/{}，分摊金额:{}/{}/{}",
+                        applyRefundCash, applyRefundPoint, applyRefundKnow, totalRefundCash, totalRefundPoint, totalRefundKnow);
+                throw new SbcRuntimeException("999999", "分摊金额计算错误");
+            }
+        }
+    }
+
+    /**
+     * 补偿拆分导致的金额误差
+     */
+    private void validatePrice4Sync(ReturnOrder returnOrder, Map<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> returnItems) {
+        if (MapUtils.isEmpty(returnItems)) {
+            return;
+        }
+
+        for (Map.Entry<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> entry : returnItems.entrySet()) {
+            int totalSpillCash = 0;
+            int totalSpillPoint = 0;
+            int totalSpillKnow = 0;
+
+            ReturnItem returnItem = entry.getKey();
+            //打印拆分补偿前的价格信息
+            printPriceInfo(entry.getValue());
+
+            //检查是否超出金额
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee <= maxRefundFee) {
+                    continue;
+                }
+                //超出的金额
+                int spillFee = nowRefundFee - maxRefundFee;
+                Iterator<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> iterator = salAfterItem.getSaleAfterRefundDetailBOList().iterator();
+                while (iterator.hasNext() && spillFee > 0) {
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund = iterator.next();
+                    int cutFee = refund.getAmount() > spillFee ? spillFee : refund.getAmount();
+                    spillFee -= cutFee;
+                    refund.setAmount(refund.getAmount() - cutFee);
+                    if (refund.getAmount() <= 0) {
+                        iterator.remove();
+                    }
+                    if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillCash +=  cutFee;
+                    } else if (PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillPoint += cutFee;
+                    } else if (PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(refund.getPayType())) {
+                        totalSpillKnow += cutFee;
+                    } else {
+                        throw new SbcRuntimeException(CommonErrorCode.FAILED, "错误的支付类型，商城只支持现金/积分/知豆三种支付类型");
+                    }
+                }
+            }
+
+            if (totalSpillCash == 0 && totalSpillPoint == 0 && totalSpillKnow == 0) {
+                continue;
+            }
+
+            log.info("补偿拆分差价：溢出现金:{}，溢出积分：{}，溢出知豆：{}", totalSpillCash, totalSpillPoint, totalSpillKnow);
+
+            //分摊超出部分金额
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee >= maxRefundFee) {
+                    continue;
+                }
+                //可以分摊的金额
+                int consumeFee = maxRefundFee - nowRefundFee;
+                //现金
+                if (totalSpillCash > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillCash > consumeFee ? consumeFee : totalSpillCash;
+                    consumeFee -= tempFee;
+                    totalSpillCash -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+                //积分
+                if (totalSpillPoint > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillPoint > consumeFee ? consumeFee : totalSpillPoint;
+                    consumeFee -= tempFee;
+                    totalSpillPoint -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.JI_FEN.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+                //知豆
+                if (totalSpillKnow > 0 && consumeFee > 0) {
+                    int tempFee = totalSpillKnow > consumeFee ? consumeFee : totalSpillKnow;
+                    consumeFee -= tempFee;
+                    totalSpillKnow -= tempFee;
+
+                    Optional<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> refundOpt =
+                            salAfterItem.getSaleAfterRefundDetailBOList().stream().filter(i -> i.getPayType().equals(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode())).findFirst();
+                    SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund;
+                    if (refundOpt.isPresent()) {
+                        refund = refundOpt.get();
+                        refund.setAmount(refund.getAmount().intValue() + tempFee);
+                    } else {
+                        refund = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
+                        refund.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
+                        refund.setAmount(tempFee);
+                        refund.setRefundReason(returnOrder.getDescription());
+                        salAfterItem.getSaleAfterRefundDetailBOList().add(refund);
+                    }
+                }
+            }
+
+            //打印拆分补偿后的价格信息
+            printPriceInfo(entry.getValue());
+
+            //验证金额是否一致
+            int totalRefundCash = 0;
+            int totalRefundPoint = 0;
+            int totalRefundKnow = 0;
+
+            for (Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp> pair : entry.getValue()) {
+                SaleAfterCreateNewReq.SaleAfterItemReq  salAfterItem = pair.getKey();
+                OrderDetailResp.OrderItemResp orderItem = pair.getValue();
+
+                int maxRefundFee = orderItem.getOughtFee() - defaultIfNull(orderItem.getRefundFee(), 0); //剩余最多能退
+                int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
+                if (nowRefundFee > maxRefundFee) {
+                    log.error("订单分摊金额计算有误，itemId{}，订单最多能退金额={}，本次计算金额={}", orderItem.getTid(), maxRefundFee, nowRefundFee);
+                    throw new SbcRuntimeException("999999", "分摊金额计算错误");
+                }
+                for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund : salAfterItem.getSaleAfterRefundDetailBOList()) {
+                    if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundCash += refund.getAmount().intValue();
+                    } else if (PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundPoint += refund.getAmount().intValue();
+                    } else if (PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(refund.getPayType())) {
+                        totalRefundKnow += refund.getAmount().intValue();
+                    } else {
+                        throw new SbcRuntimeException("999999", "错误的支付类型, payType=" + refund.getPayType());
+                    }
+                }
+            }
+
+            boolean isOldProperty = Objects.isNull(returnItem.getApplyRealPrice());
+            BigDecimal applyRealPrice = isOldProperty ? returnItem.getSplitPrice() : returnItem.getApplyRealPrice();
+            Long applyPoint = isOldProperty ? returnItem.getSplitPoint() : returnItem.getApplyPoint();
+            Long applyKnowledge = isOldProperty ? returnItem.getSplitKnowledge() : returnItem.getApplyKnowledge();
+
+            int applyRefundCash = applyRealPrice == null ? 0 : applyRealPrice.multiply(exchangeRate).intValue(); //申请退现金
+            int applyRefundPoint = applyPoint == null ? 0 : applyPoint.intValue(); //申请退积分
+            int applyRefundKnow = applyKnowledge == null ? 0 : applyKnowledge.intValue(); //申请退知豆
 
             if (totalRefundCash != applyRefundCash || totalRefundPoint != applyRefundPoint || totalRefundKnow != applyRefundKnow) {
                 log.error("申请退款的金额与分摊计算的金额不一致，申请金额:{}/{}/{}，分摊金额:{}/{}/{}",
