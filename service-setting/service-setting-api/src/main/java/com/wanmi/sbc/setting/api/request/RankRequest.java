@@ -27,4 +27,7 @@ public class RankRequest implements Serializable {
 
     @ApiModelProperty("榜单")
     private Collection rankList;
+
+    @ApiModelProperty("榜单商品spuId")
+    private List<String> idList;
 }

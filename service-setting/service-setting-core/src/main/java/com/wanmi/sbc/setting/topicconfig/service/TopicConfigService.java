@@ -14,6 +14,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
@@ -188,7 +189,7 @@ public class TopicConfigService {
      * @param storeyRequest
      * @return
      */
-    public List<RankRequest> rank(RankStoreyRequest storeyRequest) {
+    public RankRequestListResponse rank(RankStoreyRequest storeyRequest) {
 
 
         Integer topicStoreyId=storeyRequest.getTopicStoreyId();
@@ -206,16 +207,18 @@ public class TopicConfigService {
         List<TopicStoreySearch> list=getRankNameList(topicStoreyId,true);
         List<TopicStoreySearchContent> resultList = query.getResultList();
         List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
-        List<RankRequest> requests=new ArrayList<>();
+        List<RankRequest> rankRequests=new ArrayList<>();
+        RankRequestListResponse response=new RankRequestListResponse();
+        List<String> idList=new ArrayList<>();
         list.forEach(ts->{
             RankRequest rankRequest=new RankRequest();
             rankRequest.setRankName(ts.getName());
             rankRequest.setId(ts.getId());
             List<Map> contentRequestList=new ArrayList<>();
             rankRequest.setRankList(contentRequestList);
-            requests.add(rankRequest);
+            rankRequests.add(rankRequest);
         });
-        requests.forEach(r->{
+        rankRequests.forEach(r->{
             contentRequests.forEach(c->{
                 if(c.getTopicStoreySearchId().equals(r.getId())){
                     Map map=new HashMap<>();
@@ -226,11 +229,20 @@ public class TopicConfigService {
                     map.put("sorting",c.getSorting());
                     map.put("goodsName",c.getGoodsName());
                     map.put("num",c.getNum());
+                    map.put("skuId",c.getSkuId());
+                    map.put("spuId",c.getSpuId());
+                    map.put("label","");
+                    map.put("subName","");
                     r.getRankList().add(map);
+                }
+                if(!idList.contains(c.getSkuId())) {
+                    idList.add(c.getSkuId());
                 }
             });
         });
-        return requests;
+        response.setRankRequestList(rankRequests);
+        response.setIdList(idList);
+        return response;
     }
 
     /**

@@ -32,6 +32,7 @@ import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
+import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
@@ -221,7 +222,7 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
-                List<RankRequest> rank = topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(), false));
+                List<RankRequest> rank = rank(topicResponse);
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
@@ -236,6 +237,26 @@ public class TopicService {
             }
         }
         return BaseResponse.success(response);
+    }
+
+    public List<RankRequest> rank(TopicStoreyResponse topicResponse){
+        RankRequestListResponse response = topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(), false));
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(response.getIdList());
+        goodsCustomResponses.forEach(g->{
+            String label = g.getGoodsLabelList().get(0);
+            response.getRankRequestList().forEach(r->{
+                if(null!=r.getRankList()&&r.getRankList().size()>0){
+                    r.getRankList().forEach(t->{
+                        Map map= (Map) t;
+                        if(map.get("spuId").equals(g.getGoodsId())){
+                            map.put("label",label);
+                            map.put("subName",g.getGoodsSubName());
+                        }
+                    });
+                }
+            });
+        });
+        return response.getRankRequestList();
     }
 
     /**
