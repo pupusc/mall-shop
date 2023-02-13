@@ -28,4 +28,6 @@ public class MixedComponentTabDto implements Serializable {
     private String selectedImage;
 
     private String unSelectedImage;
+
+    private MixedComponentKeyWordsDto mixedComponentKeyWord;
 }

@@ -696,12 +696,15 @@ public class TopicConfigService {
         List<TopicStoreySearch> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
-        MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request.getId());
-        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = getMixedComponentContentPage(request, mixedComponentKeyWord);
+        MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request);
+        getMixedComponentContentPage(request, mixedComponentKeyWord);
         TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse = new TopicStoreyMixedComponentResponse();
         topicStoreyMixedComponentResponse.setMixedComponentTabs(mixedComponentTabs);
-        topicStoreyMixedComponentResponse.setMixedComponentKeyWord(mixedComponentKeyWord);
-        topicStoreyMixedComponentResponse.setMixedComponentContentPage(mixedComponentContentPage);
+        mixedComponentTabs.forEach(s -> {
+            if(request.getId().equals(s.getId())){
+                s.setMixedComponentKeyWord(mixedComponentKeyWord);
+            }
+        });
         return topicStoreyMixedComponentResponse;
     }
 
@@ -723,6 +726,12 @@ public class TopicConfigService {
             return mixedComponentContentDto;
         }).collect(Collectors.toList()));
         mixedComponentContentPage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
+        List<KeyWordDto> keyWord = mixedComponentKeyWord.getKeyWord();
+        keyWord.forEach(s -> {
+            if(request.getKeywordId().equals(s.getId())){
+                s.setMixedComponentContentPage(mixedComponentContentPage);
+            }
+        });
         return mixedComponentContentPage;
     }
 
@@ -747,11 +756,11 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
     }
 
-    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreySearch> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, Integer id) {
-        if (id == null) {
-            id = mixedComponentTabs.get(0).getId();
+    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreySearch> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
+        if (request.getId() == null) {
+            request.setId(mixedComponentTabs.get(0).getId());
         }
-        Integer finalId = id;
+        Integer finalId = request.getId();
         MixedComponentKeyWordsDto mixedComponentKeyWordsDto = new MixedComponentKeyWordsDto();
         List<KeyWordDto> keyWords = topicStoreySearches.stream()
                 .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel()))
