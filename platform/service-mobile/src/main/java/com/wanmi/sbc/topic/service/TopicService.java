@@ -228,11 +228,11 @@ public class TopicService {
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyId(TopicStoreyTypeV2.Books.getId());
+                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Books.getId());
                 topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest));
-            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//图书组件
+            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyId(TopicStoreyTypeV2.Goods.getId());
+                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
                 topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest));
             }
         }
@@ -262,9 +262,11 @@ public class TopicService {
     /**
      * 商品组件及图书组件
      */
-    public List<GoodsInfoVO> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest){
+    public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest){
+
+        List<GoodsOrBookResponse> goodsOrBookResponse=new ArrayList<>();
         //获得主题id
-        topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+        topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
         //获得主题下商品skuList
         List<TopicStoreyContentDTO> contentByStoreyId = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
         if(null==contentByStoreyId || contentByStoreyId.size()==0){
@@ -304,7 +306,20 @@ public class TopicService {
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
         filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
         List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-        return goodsInfoVOList;
+
+        Map<String, GoodsInfoVO> salePriceMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        collectTemp.stream().forEach(g->{
+            GoodsOrBookResponse goodsOrBookResponseTemp=new GoodsOrBookResponse();
+            BeanUtils.copyProperties(g,goodsOrBookResponseTemp);
+            goodsOrBookResponseTemp.setMarketPrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketPrice());
+            goodsOrBookResponseTemp.setSalePrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getSalePrice());
+            goodsOrBookResponseTemp.getMarketingLabels().addAll(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketingLabels());
+            goodsOrBookResponse.add(goodsOrBookResponseTemp);
+        });
+
+
+        return goodsOrBookResponse;
     }
 
     public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){

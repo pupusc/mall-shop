@@ -18,4 +18,6 @@ public class TopicStoreyContentRequest implements Serializable {
 
     private Integer deleted;
 
+    private Integer storeyType;
+
 }

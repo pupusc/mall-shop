@@ -7,6 +7,7 @@ import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyContentRequest;
+import com.wanmi.sbc.topic.response.GoodsOrBookResponse;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.topic.response.ThreeGoodBookResponse;
 import com.wanmi.sbc.topic.service.TopicService;
@@ -43,12 +44,12 @@ public class SuspensionController {
     }
 
     @PostMapping("/test1")
-    public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest)  {
+    public List<ThreeGoodBookResponse> threeGoodBook(@RequestBody @Valid ThreeGoodBookRequest threeGoodBookRequest)  {
         return topicService.threeGoodBook(threeGoodBookRequest);
     }
 
     @PostMapping("/test2")
-    public List<GoodsInfoVO> GoodsOrBook(TopicStoreyContentRequest topicStoreyContentRequest)  {
+    public List<GoodsOrBookResponse> GoodsOrBook(@RequestBody @Valid  TopicStoreyContentRequest topicStoreyContentRequest)  {
         return topicService.bookOrGoods(topicStoreyContentRequest);
     }
 }
