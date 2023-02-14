@@ -20,8 +20,4 @@ public class TopicStoreyMixedComponentResponse implements Serializable {
     private static final long serialVersionUID = -6397511642982350302L;
 
     private List<MixedComponentTabDto>  mixedComponentTabs;
-
-    private MixedComponentKeyWordsDto mixedComponentKeyWord;
-
-    private MicroServicePage<MixedComponentContentDto> mixedComponentContentPage;
 }

@@ -85,5 +85,17 @@ public class TopicStoreySearchContent {
     private String attributeInfo;
 
     @Column(name = "num")
-    private int num;
+    private Integer num;
+
+    @Column(name = "p_id")
+    private Integer pId;
+
+    @Column(name = "level")
+    private Integer level;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "recommend")
+    private String recommend;
 }

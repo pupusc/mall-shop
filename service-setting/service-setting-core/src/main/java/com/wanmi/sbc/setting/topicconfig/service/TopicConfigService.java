@@ -23,6 +23,7 @@ import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedCompo
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
+import com.wanmi.sbc.setting.bean.enums.MixedComponentType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
@@ -48,12 +49,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import springfox.documentation.spring.web.json.Json;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -747,6 +748,7 @@ public class TopicConfigService {
     public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
         TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
+        topicStoreySearch.setDeleted(0);
         List<TopicStoreySearch> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
@@ -762,7 +764,7 @@ public class TopicConfigService {
         return topicStoreyMixedComponentResponse;
     }
 
-    private MicroServicePage<MixedComponentContentDto> getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
+    private void getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
         if (request.getKeywordId() == null) {
             request.setKeywordId(mixedComponentKeyWord.getKeyWord().stream().findFirst().get().getId());
         }
@@ -772,10 +774,39 @@ public class TopicConfigService {
         Page<TopicStoreySearchContent> topicStoreySearchGoodsPage = columnGoodsRepository
                 .findAll(columnGoodsRepository.mixedComponentContent(request), PageRequest.of(request.getPageNum(),
                         request.getPageSize(), Sort.by(sortList)));
+        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        topicStoreySearchContent.setTopicStoreySearchId(request.getKeywordId());
+        topicStoreySearchContent.setLevel(1);
+        List<TopicStoreySearchContent> goods = columnGoodsRepository.findAll(Example.of(topicStoreySearchContent), Sort.by(Sort.Direction.ASC, "sorting"));
         List<TopicStoreySearchContent> content = topicStoreySearchGoodsPage.getContent();
         MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
         mixedComponentContentPage.setContent(content.stream().map(s -> {
             MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto();
+            mixedComponentContentDto.setName(s.getTitle());
+            mixedComponentContentDto.setRecommend(s.getRecommend());
+            mixedComponentContentDto.setType(s.getType());
+            switch (s.getType()) {
+                case 1: //商品
+                    mixedComponentContentDto.setGoods(this.getGoods(s, null));
+                    break;
+                case 3: //视频
+                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+                    mixedComponentContentDto.setImage(s.getImageUrl());
+                    mixedComponentContentDto.setVideo(s.getLinkUrl());
+                    break;
+                case 4: //广告
+                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+                    mixedComponentContentDto.setImage(s.getImageUrl());
+                    mixedComponentContentDto.setUrl(s.getLinkUrl());
+                    break;
+                case 5: //指定内容
+                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+                    mixedComponentContentDto.setTitleImage(s.getImageUrl());
+                    mixedComponentContentDto.setImage(s.getLinkUrl());
+                    break;
+                default:
+                    break;
+            }
             BeanUtils.copyProperties(s, mixedComponentContentDto);
             return mixedComponentContentDto;
         }).collect(Collectors.toList()));
@@ -786,7 +817,19 @@ public class TopicConfigService {
                 s.setMixedComponentContentPage(mixedComponentContentPage);
             }
         });
-        return mixedComponentContentPage;
+    }
+
+    //获取商品信息
+    private List<GoodsDto> getGoods(TopicStoreySearchContent content, List<TopicStoreySearchContent> goods ) {
+        List<GoodsDto> goodsDtos = new ArrayList<>();
+        if (StringUtils.isNotEmpty(content.getSpuId())) {
+            goodsDtos.add(GoodsDto.builder().spuId(content.getSpuId()).goodsName(content.getGoodsName()).build());
+            return goodsDtos;
+        }
+         goodsDtos = goods.stream().filter(s -> content.getId().equals(s.getPId())).map(s -> {
+             return GoodsDto.builder().spuId(s.getSpuId()).goodsName(s.getGoodsName()).build();
+         }).collect(Collectors.toList());
+        return goodsDtos;
     }
 
     public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreySearch> topicStoreySearches) {

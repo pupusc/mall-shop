@@ -11,19 +11,23 @@ import com.wanmi.sbc.common.annotation.ApiEnumProperty;
  * @Date  2023/2/10 15:05
  */
 @ApiEnum(dataType = "java.lang.String")
-public enum MixedComponentLevel {
+public enum MixedComponentType {
 
-    @ApiEnumProperty("0")
-    ONE,
     @ApiEnumProperty("1")
-    TWO,
+    GOODS,
     @ApiEnumProperty("2")
-    THREE,
+    LINK,
     @ApiEnumProperty("3")
-    FOUR;
+    VIDEO,
+    @ApiEnumProperty("4")
+    ADVERTISEMENT,
+    @ApiEnumProperty("5")
+    SPECIFIEDCONTENT,
+    @ApiEnumProperty("6")
+    MODULEGOODS;
 
     @JsonCreator
-    public MixedComponentLevel fromValue(int value) {
+    public MixedComponentType fromValue(int value) {
         return values()[value];
     }
 

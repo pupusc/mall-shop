@@ -73,6 +73,7 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getKeywordId()));
             conditionList.add(criteriaBuilder.equal(root.get("deleted"), 0));
+            conditionList.add(criteriaBuilder.equal(root.get("level"), 0));
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
     }
