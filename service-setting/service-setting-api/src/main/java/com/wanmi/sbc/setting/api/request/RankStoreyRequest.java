@@ -16,5 +16,7 @@ public class RankStoreyRequest extends RankPageRequest implements Serializable {
     @ApiModelProperty("topicStoreyId")
     private Integer topicStoreyId;
 
+    private Integer topicStoreySearchId;
+
     private Boolean isRankDetail;
 }

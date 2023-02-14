@@ -35,6 +35,7 @@ import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
@@ -187,7 +188,7 @@ public class TopicService {
                         (customerId)).getContext();
                 pointsResponse.setPoints_available(customer.getPointsAvailable());
                 pointsResponse.setCustomer_id(customer.getCustomerId());
-                pointsResponse.setCustomer_name(customer.getCustomerDetail().getCustomerName());
+                pointsResponse.setCustomer_name(StringUtil.isNotBlank(customer.getCustomerDetail().getCustomerName())?customer.getCustomerDetail().getCustomerName():customer.getCustomerDetail().getCustomerId());
                 return pointsResponse;
             }
             return null;
@@ -240,7 +241,10 @@ public class TopicService {
     }
 
     public List<RankRequest> rank(TopicStoreyResponse topicResponse){
-        RankRequestListResponse response = topicConfigProvider.rank(new RankStoreyRequest(topicResponse.getId(), false));
+        RankStoreyRequest rankStoreyRequest = new RankStoreyRequest();
+        rankStoreyRequest.setTopicStoreyId(topicResponse.getId());
+        rankStoreyRequest.setIsRankDetail(false);
+        RankRequestListResponse response = topicConfigProvider.rank(rankStoreyRequest);
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(response.getIdList());
         goodsCustomResponses.forEach(g->{
             String label = g.getGoodsLabelList().get(0);
@@ -323,9 +327,26 @@ public class TopicService {
     }
 
     public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
-        request.setTopicStoreyId(185);
-        RankPageRequest pageRequest = topicConfigProvider.rankPage(request);
-        return BaseResponse.success(pageRequest);
+        RankPageResponse pageResponse = topicConfigProvider.rankPage(request);
+        List<String> idList = pageResponse.getIdList();
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
+        goodsCustomResponses.forEach(g-> {
+            String label = g.getGoodsLabelList().get(0);
+            pageResponse.getPageRequest().getContentList().forEach(r->{
+                r.getRankList().forEach(t->{
+                    Map tMap= (Map) t;
+                    List<Map> list=(List<Map>) tMap.get("rankList");
+                    list.forEach(m->{
+                            if(m.get("spuId").equals(g.getGoodsId())) {
+                                m.put("label", label);
+                                m.put("subName", g.getGoodsSubName());
+                            }
+
+                    });
+                });
+                });
+            });
+        return BaseResponse.success(pageResponse.getPageRequest());
     }
 
     /**

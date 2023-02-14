@@ -8,10 +8,7 @@ import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
+import com.wanmi.sbc.setting.api.response.*;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.*;
@@ -94,7 +91,7 @@ public class TopicConfigController implements TopicConfigProvider {
         return topicConfigService.rank(storeyRequest);
     }
 
-    public RankPageRequest rankPage(RankStoreyRequest storeyRequest){
+    public RankPageResponse rankPage(RankStoreyRequest storeyRequest){
         return topicConfigService.rankPage(storeyRequest);
     }
 
