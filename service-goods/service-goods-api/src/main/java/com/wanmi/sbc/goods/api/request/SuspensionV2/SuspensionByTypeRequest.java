@@ -24,7 +24,7 @@ public class SuspensionByTypeRequest extends BaseRequest {
 
 
     /**
-     * type
+     * type,1是悬浮窗，2是关键词
      */
     @ApiModelProperty(value = "type")
     @NotNull

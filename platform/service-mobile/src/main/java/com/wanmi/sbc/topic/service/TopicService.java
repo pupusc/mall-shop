@@ -21,9 +21,11 @@ import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
@@ -118,6 +120,10 @@ public class TopicService {
 
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private SuspensionProvider suspensionProvider;
+
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -235,6 +241,10 @@ public class TopicService {
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
                 topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest));
+            }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
+                SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
+                suspensionByTypeRequest.setType(2L);
+                topicResponse.setSuspensionDTOList(suspensionProvider.getByType(suspensionByTypeRequest).getContext().getSuspensionDTOList());
             }
         }
         return BaseResponse.success(response);

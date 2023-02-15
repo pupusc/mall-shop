@@ -32,6 +32,8 @@ public enum TopicStoreyTypeV2 {
 
     Goods(19,"商品组件"),
 
+    KeyWord(10,"关键词"),
+
     Books(18,"图书组件");
 
     private Integer id;

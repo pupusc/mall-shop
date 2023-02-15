@@ -1,5 +1,6 @@
 package com.wanmi.sbc.topic.response;
 
+import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
@@ -75,4 +76,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("混合栏目信息")
     private TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse;
+
+    @ApiModelProperty(value = "悬浮窗信息")
+    private List<SuspensionDTO> suspensionDTOList;
 }
