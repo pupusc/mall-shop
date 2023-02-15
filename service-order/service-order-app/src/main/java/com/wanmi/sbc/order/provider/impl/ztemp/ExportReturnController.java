@@ -261,6 +261,9 @@ public class ExportReturnController {
         if (selectVersion < 0 || sVersion == null) {
             return true;
         }
+        if (Objects.equals(updateVersion, sVersion)) {
+            return false;
+        }
         return selectVersion == sVersion;
     }
 

@@ -1422,6 +1422,7 @@ public class TransferService {
         int sumPostFee = saleAfterCreateNewReq.getSaleAfterPostFee().getSaleAfterRefundDetailBOList().stream().mapToInt(i -> i.getAmount()).sum();
         int sumFlowFee = saleAfterCreateNewReq.getSaleAfterRefundBOList().stream().mapToInt(i -> i.getAmount()).sum();
         if ((sumItemFee + sumPostFee) != sumFlowFee) {
+            log.warn("退单金额不匹配,id={},json={}", returnOrder.getId(), JSON.toJSONString(saleAfterCreateNewReq));
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "退单的流水金额与明细金额对不上");
         }
         //返回结果
