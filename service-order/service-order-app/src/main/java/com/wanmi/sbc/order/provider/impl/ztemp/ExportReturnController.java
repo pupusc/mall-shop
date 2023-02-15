@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.mongodb.client.result.UpdateResult;
 import com.soybean.mall.order.dszt.TransferService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.erp.api.provider.ShopCenterSaleAfterProvider;
 import com.wanmi.sbc.erp.api.req.SaleAfterCreateNewReq;
@@ -73,6 +74,8 @@ public class ExportReturnController {
     private ThirdInvokeService thirdInvokeService;
     @Autowired
     private TradeRepository tradeRepository;
+    @Autowired
+    private ExportReturnComponent exportReturnComponent;
 
     private AtomicBoolean inHand = new AtomicBoolean(false);
     private int selectVersion;
@@ -214,20 +217,28 @@ public class ExportReturnController {
         //排除有赞订单
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
         if (trade == null || trade.getYzTid() != null || Boolean.TRUE.equals(trade.getYzOrderFlag())) {
-            log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            if (trade == null) {
+                log.warn("历史退单同步到电商中台,同步失败:关联订单没有找到,id={},tid={}", returnOrder.getId(), returnOrder.getTid());
+            } else {
+                log.info("有赞订单跳过不做处理, id={}", returnOrder.getId());
+            }
             this.countIgnore ++;
             return;
         }
 
         //同步电商中台
         try {
-            if (!syncData(returnOrder)) {
+            if (!exportReturnComponent.syncData(returnOrder)) {
                 log.info("历史退单同步到电商中台,同步失败:id={}", returnOrder.getId());
                 this.countFailed ++;
                 return;
             }
         } catch (Exception e) {
-            log.info("历史退单同步到电商中台,同步错误:id={}", returnOrder.getId());
+            String msg = e.getMessage();
+            if (e instanceof SbcRuntimeException) {
+                msg = ((SbcRuntimeException) e).getResult();
+            }
+            log.info("历史退单同步到电商中台,同步错误:id={}, tid={}, msg={}", returnOrder.getId(), returnOrder.getTid(), msg);
             this.countError ++;
             throw new RuntimeException(e);
         }
@@ -250,8 +261,12 @@ public class ExportReturnController {
         if (selectVersion < 0 || sVersion == null) {
             return true;
         }
+        if (Objects.equals(updateVersion, sVersion)) {
+            return false;
+        }
         return selectVersion == sVersion;
     }
+
 
     public boolean syncData(ReturnOrder returnOrder) {
         //创建售后订单
@@ -261,9 +276,9 @@ public class ExportReturnController {
             return true;
         }
         //调用推送接口
-        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq(returnOrder);
+        SaleAfterCreateNewReq saleAfterCreateNewReq = transferService.changeSaleAfterCreateReq4Sync(returnOrder);
         if (saleAfterCreateNewReq == null) {
-            return false;
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "创建退单的同步参数失败");
         }
         //saleAfterCreateNewReq.setSaleAfterCreateEnum(5);
         saleAfterCreateNewReq.getSaleAfterOrderBO().setImportFlag(1); //导入标记
