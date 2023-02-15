@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.fsm.action;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.common.constant.MQConstant;
@@ -330,7 +331,7 @@ public class CompleteAction extends TradeAction {
             StoreByIdResponse storeByIdResponse = storeResponseBaseResponse.getContext();
             storeLogo = storeByIdResponse.getStoreVO().getStoreLogo();
         }
-        storeTobeEvaluateSaveProvider.add(StoreTobeEvaluateAddRequest.builder()
+        StoreTobeEvaluateAddRequest storeTobeEvaluateAddNewRequest = StoreTobeEvaluateAddRequest.builder()
                 .storeId(supplier.getStoreId())
                 .storeLogo(storeLogo)
                 .storeName(supplier.getStoreName())
@@ -344,7 +345,9 @@ public class CompleteAction extends TradeAction {
                 .autoStoreEvaluateDate(storeTobeEvaluateAddRequest.getAutoStoreEvaluateDate())
                 .createPerson(buyer.getName())
                 .createTime(LocalDateTime.now())
-                .build());
+                .build();
+        logger.info("CompleteAction processGoodsEvaluate storeTobeEvaluateAddNewRequest {}", JSON.toJSONString(storeTobeEvaluateAddNewRequest));
+        storeTobeEvaluateSaveProvider.add(storeTobeEvaluateAddNewRequest);
 
     }
 

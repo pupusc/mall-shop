@@ -91,10 +91,14 @@ public class NormalActivityController {
             } else {
                 String beginTime = skuNormalActivityResp.getBeginTime().getMonthValue() + "."
                         + skuNormalActivityResp.getBeginTime().getDayOfMonth() + " "
-                        + skuNormalActivityResp.getBeginTime().getHour() + "点";
+                        + skuNormalActivityResp.getBeginTime().getHour() + "点"
+                        + (skuNormalActivityResp.getEndTime().getMinute() < 10 ?
+                        "0" + skuNormalActivityResp.getEndTime().getMinute() : skuNormalActivityResp.getEndTime().getMinute()) + "分";
                 String endTime = skuNormalActivityResp.getEndTime().getMonthValue() + "."
                         + skuNormalActivityResp.getEndTime().getDayOfMonth() + " "
-                        + skuNormalActivityResp.getEndTime().getHour() + "点";
+                        + skuNormalActivityResp.getEndTime().getHour() + "点"
+                        + (skuNormalActivityResp.getEndTime().getMinute() < 10 ?
+                        "0" + skuNormalActivityResp.getEndTime().getMinute() : skuNormalActivityResp.getEndTime().getMinute()) + "分";
                 payAfterActivityResp.setShowTitle(String.format("下单返%s积分 %s-%s", skuNormalActivityResp.getNum(),beginTime, endTime));
             }
             payAfterActivityResp.setNormalActivityId(skuNormalActivityResp.getNormalActivityId());
