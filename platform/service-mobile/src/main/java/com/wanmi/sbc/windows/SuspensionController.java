@@ -2,6 +2,7 @@ package com.wanmi.sbc.windows;
 
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
@@ -40,7 +41,8 @@ public class SuspensionController {
 
     @PostMapping("/test")
     public List<NewBookPointResponse> newBookPoint(@RequestBody @Valid BaseQueryRequest baseQueryRequest)  {
-        return topicService.newBookPoint(baseQueryRequest);
+        CustomerGetByIdResponse customer=new CustomerGetByIdResponse();
+        return topicService.newBookPoint(baseQueryRequest,customer);
     }
 
     @PostMapping("/test1")
@@ -50,6 +52,7 @@ public class SuspensionController {
 
     @PostMapping("/test2")
     public List<GoodsOrBookResponse> GoodsOrBook(@RequestBody @Valid  TopicStoreyContentRequest topicStoreyContentRequest)  {
-        return topicService.bookOrGoods(topicStoreyContentRequest);
+        CustomerGetByIdResponse customer=new CustomerGetByIdResponse();
+        return topicService.bookOrGoods(topicStoreyContentRequest,customer);
     }
 }
