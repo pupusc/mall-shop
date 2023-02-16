@@ -19,7 +19,7 @@ public class EnableTopicStoreyColumnRequest implements Serializable {
 
     @NotNull
     @ApiModelProperty("操作类型：0禁用1启用")
-    private Integer deleted;
+    private Integer publishState;
 
 
 }

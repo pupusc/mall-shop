@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @Description: TODO
@@ -23,6 +24,12 @@ public class GoodsDto implements Serializable {
     private String spuId;
 
     private String goodsName;
+
+    private String image;
+
+    private BigDecimal retailPrice;
+
+    private BigDecimal paidCardPrice;
 
     private static final long serialVersionUID = 5071840004503566922L;
 }

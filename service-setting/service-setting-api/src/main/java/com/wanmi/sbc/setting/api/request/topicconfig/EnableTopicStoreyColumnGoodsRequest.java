@@ -18,8 +18,8 @@ public class EnableTopicStoreyColumnGoodsRequest implements Serializable {
     private Integer id;
 
     @NotNull
-    @ApiModelProperty("操作类型：0禁用1启用")
-    private Integer deleted;
+    @ApiModelProperty("操作类型：0启用1禁用")
+    private Integer publishState;
 
 
 }

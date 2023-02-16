@@ -49,9 +49,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -83,7 +86,6 @@ public class TopicConfigService {
 
     @Autowired
     private PartialUpdateUtil updateUtil;
-
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
@@ -631,7 +633,7 @@ public class TopicConfigService {
      */
     @Transactional
     public void enableStoreyColumn(EnableTopicStoreyColumnRequest request) {
-        columnRepository.enable(request.getId(),request.getDeleted());
+        columnRepository.enable(request.getId(),request.getPublishState());
     }
 
     public MicroServicePage<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoods(TopicStoreyColumnGoodsQueryRequest request) {
@@ -691,7 +693,7 @@ public class TopicConfigService {
      */
     @Transactional
     public void enableStoreyColumnGoods(EnableTopicStoreyColumnGoodsRequest request) {
-        columnGoodsRepository.enable(request.getId(),request.getDeleted());
+        columnGoodsRepository.enable(request.getId(),request.getPublishState());
     }
 
     /**
@@ -709,6 +711,8 @@ public class TopicConfigService {
         return content.stream().map(topicStoreySearch -> {
             TopicStoreyColumnDTO topicStoreyColumnDTO = new TopicStoreyColumnDTO();
             BeanUtils.copyProperties(topicStoreySearch, topicStoreyColumnDTO);
+            topicStoreyColumnDTO.setStartTime(topicStoreySearch.getCreateTime());
+            topicStoreyColumnDTO.setSorting(topicStoreySearch.getOrderNum());
             if (now.isBefore(topicStoreySearch.getCreateTime())) {
                 //未开始
                 topicStoreyColumnDTO.setState(0);
