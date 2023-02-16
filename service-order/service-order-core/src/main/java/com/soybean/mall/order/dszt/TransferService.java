@@ -1441,7 +1441,10 @@ public class TransferService {
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                         saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
                         saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                        saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                        if (saleAfterItemReq.getSaleAfterRefundDetailBOList() == null) {
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                        }
+                        saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                         saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                     }
                     if (flowPointExist && iPoint == 0) {
@@ -1462,7 +1465,10 @@ public class TransferService {
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
                         saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPoints().getApplyPoints().intValue());
                         saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                        saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                        if (saleAfterItemReq.getSaleAfterRefundDetailBOList() == null) {
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                        }
+                        saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                         saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                     }
                     if (flowBeanExist && iBean == 0) {
@@ -1483,7 +1489,10 @@ public class TransferService {
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
                         saleAfterRefundDetailReq.setAmount(returnOrder.getReturnKnowledge().getApplyKnowledge().intValue());
                         saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                        saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                        if (saleAfterItemReq.getSaleAfterRefundDetailBOList() == null) {
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                        }
+                        saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                         saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                     }
                 }
