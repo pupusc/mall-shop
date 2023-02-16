@@ -1084,6 +1084,7 @@ public class TransferService {
 
         SaleAfterPostFeeReq saleAfterPostFeeReq = new SaleAfterPostFeeReq();
 
+//region运费
         //运费
         List<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> saleAfterFreeList = new ArrayList<>();
         if (Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
@@ -1155,8 +1156,8 @@ public class TransferService {
         }
         saleAfterPostFeeReq.setSaleAfterRefundDetailBOList(saleAfterFreeList);
         saleAfterCreateNewReq.setSaleAfterPostFee(saleAfterPostFeeReq);
-
-
+//endregion
+//region商品
         List<SaleAfterCreateNewReq.SaleAfterItemReq> saleAfterItemReqList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
             Map<ReturnItem, List<Pair<SaleAfterCreateNewReq.SaleAfterItemReq, OrderDetailResp.OrderItemResp>>> returnItems = new HashMap<>();
@@ -1310,9 +1311,13 @@ public class TransferService {
             }
         }
         saleAfterCreateNewReq.setSaleAfterItemBOList(saleAfterItemReqList);
-
+//endregion
         //退款流水
         //获取流水信息
+
+        boolean flowCashExist = false;
+        boolean flowPointExist = false;
+        boolean flowBeanExist = false;
 
         List<SaleAfterCreateNewReq.SaleAfterRefundReq> saleAfterRefundReqList =  new ArrayList<>();
         if (Objects.nonNull(returnOrder.getReturnPrice().getApplyPrice())) {
@@ -1340,6 +1345,8 @@ public class TransferService {
             }
             saleAfterRefundReq.setRefundMchid(appId);
             saleAfterRefundReqList.add(saleAfterRefundReq);
+
+            flowCashExist = returnOrder.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0;
         }
 
         if (Objects.nonNull(returnOrder.getReturnPoints())
@@ -1353,6 +1360,7 @@ public class TransferService {
             saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
 //            saleAfterRefundReq.setRefundMchid("");
             saleAfterRefundReqList.add(saleAfterRefundReq);
+            flowPointExist = true;
         }
 
         if (Objects.nonNull(returnOrder.getReturnKnowledge())
@@ -1366,8 +1374,38 @@ public class TransferService {
             saleAfterRefundReq.setRefundTime(returnOrder.getFinishTime());
 //            saleAfterRefundReq.setRefundMchid("");
             saleAfterRefundReqList.add(saleAfterRefundReq);
+            flowBeanExist = true;
         }
         saleAfterCreateNewReq.setSaleAfterRefundBOList(saleAfterRefundReqList);
+
+//region流水是0，商品不是0
+        Iterator<SaleAfterCreateNewReq.SaleAfterItemReq> iteratorI = saleAfterCreateNewReq.getSaleAfterItemBOList().iterator();
+        while (iteratorI.hasNext()) {
+            SaleAfterCreateNewReq.SaleAfterItemReq itemI = iteratorI.next();
+            Iterator<SaleAfterCreateNewReq.SaleAfterRefundDetailReq> iteratorJ = itemI.getSaleAfterRefundDetailBOList().iterator();
+            while (iteratorJ.hasNext()) {
+                SaleAfterCreateNewReq.SaleAfterRefundDetailReq itemJ = iteratorJ.next();
+                //流水现金是空
+                if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(itemJ.getPayType()) && !flowCashExist) {
+                    iteratorJ.remove();
+                    continue;
+                }
+                //流水积分是空
+                if (PaymentPayTypeEnum.JI_FEN.getPayTypeCode().equals(itemJ.getPayType()) && !flowPointExist) {
+                    iteratorJ.remove();
+                    continue;
+                }
+                //流水知豆是空
+                if (PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode().equals(itemJ.getPayType()) && !flowBeanExist) {
+                    iteratorJ.remove();
+                    continue;
+                }
+            }
+            if (itemI.getSaleAfterRefundDetailBOList().isEmpty()) {
+                iteratorI.remove();
+            }
+        }
+//endregion
 
         //不是退运费的退单，并且退运费明细为空
         if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
@@ -1748,7 +1786,7 @@ public class TransferService {
                 int nowRefundFee = salAfterItem.getSaleAfterRefundDetailBOList().stream().mapToInt(SaleAfterCreateNewReq.SaleAfterRefundDetailReq::getAmount).sum();
                 if (nowRefundFee > maxRefundFee) {
                     log.error("订单分摊金额计算有误，itemId{}，订单最多能退金额={}，本次计算金额={}", orderItem.getTid(), maxRefundFee, nowRefundFee);
-                    throw new SbcRuntimeException("999999", "分摊金额计算错误");
+                    throw new SbcRuntimeException("999999", "分摊金额计算错误1");
                 }
                 for (SaleAfterCreateNewReq.SaleAfterRefundDetailReq refund : salAfterItem.getSaleAfterRefundDetailBOList()) {
                     if (PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode().equals(refund.getPayType())) {
