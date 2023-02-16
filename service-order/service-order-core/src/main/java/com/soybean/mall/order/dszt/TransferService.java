@@ -1444,7 +1444,8 @@ public class TransferService {
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                             saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                            saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                            saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                             saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                         }
                     }
@@ -1469,7 +1470,8 @@ public class TransferService {
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
                             saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPoints().getApplyPoints().intValue());
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                            saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                            saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                             saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                         }
                     }
@@ -1494,7 +1496,8 @@ public class TransferService {
                             saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
                             saleAfterRefundDetailReq.setAmount(returnOrder.getReturnKnowledge().getApplyKnowledge().intValue());
                             saleAfterRefundDetailReq.setRefundReason(returnOrder.getDescription());
-                            saleAfterItemReq.setSaleAfterRefundDetailBOList(Arrays.asList(saleAfterRefundDetailReq));
+                            saleAfterItemReq.setSaleAfterRefundDetailBOList(new ArrayList<>());
+                            saleAfterItemReq.getSaleAfterRefundDetailBOList().add(saleAfterRefundDetailReq);
                             saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                         }
                     }
