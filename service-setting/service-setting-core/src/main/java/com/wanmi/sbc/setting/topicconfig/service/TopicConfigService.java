@@ -3,10 +3,7 @@ package com.wanmi.sbc.setting.topicconfig.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
-import com.wanmi.sbc.common.base.BaseRequest;
-import com.wanmi.sbc.common.base.BaseResponse;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -23,7 +20,6 @@ import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedCompo
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
-import com.wanmi.sbc.setting.bean.enums.MixedComponentType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
@@ -31,13 +27,10 @@ import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.*;
 import com.wanmi.sbc.setting.topicconfig.repository.*;
 import com.wanmi.sbc.setting.util.PartialUpdateUtil;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.internal.NativeQueryImpl;
-import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -49,14 +42,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.persistence.criteria.CriteriaBuilder;
+
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
