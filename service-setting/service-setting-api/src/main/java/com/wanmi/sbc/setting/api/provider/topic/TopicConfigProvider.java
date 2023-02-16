@@ -99,6 +99,9 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/list")
     BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsQueryRequest request);
 
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/listByIdAndSpu")
+    BaseResponse<List<TopicStoreyColumnGoodsDTO>> listStoryColumnGoodsByIdAndSpu(@RequestBody TopicStoreyColumnGoodsQueryRequest request);
+
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/add")
     BaseResponse addStoreyColumnGoods(@RequestBody TopicStoreyColumnGoodsAddRequest request);
 

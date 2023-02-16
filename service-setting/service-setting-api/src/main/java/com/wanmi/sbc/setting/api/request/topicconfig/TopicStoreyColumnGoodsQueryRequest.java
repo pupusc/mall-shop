@@ -53,5 +53,7 @@ public class TopicStoreyColumnGoodsQueryRequest implements Serializable {
     @ApiModelProperty("楼层ID")
     private Integer topicStoreySearchId;
 
+    public Integer topicStoreyId;
 
+    public String spuNo;
 }

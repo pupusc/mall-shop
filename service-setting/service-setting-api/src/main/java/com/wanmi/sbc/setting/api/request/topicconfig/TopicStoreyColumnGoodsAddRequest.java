@@ -42,4 +42,12 @@ public class TopicStoreyColumnGoodsAddRequest implements Serializable {
     private Integer sorting;
 
     private Integer topicStoreySearchId;
+
+    private String spuNo;
+
+    private Integer topicStoreyId;
+
+    private String showLabelTxt;
+
+    private String numTxt;
 }

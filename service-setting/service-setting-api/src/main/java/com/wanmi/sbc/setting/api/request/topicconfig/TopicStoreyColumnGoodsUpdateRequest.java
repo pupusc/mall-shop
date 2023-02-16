@@ -42,4 +42,8 @@ public class TopicStoreyColumnGoodsUpdateRequest implements Serializable {
     private String goodsName;
 
     private Integer sorting;
+
+    private String numTxt;
+
+    private String showLabeTxt;
 }

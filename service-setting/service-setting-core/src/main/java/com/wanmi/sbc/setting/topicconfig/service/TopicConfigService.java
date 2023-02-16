@@ -54,7 +54,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -647,6 +646,16 @@ public class TopicConfigService {
         return microServicePage;
     }
 
+    public List<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoodsByIdAndSpu(TopicStoreyColumnGoodsQueryRequest request) {
+        List<TopicStoreyColumnGoodsDTO> topicStoreyColumnGoodsDTOList=new ArrayList<>();
+        columnGoodsRepository.getById(request.getTopicStoreyId(), request.getSpuNo()).stream().forEach(o->{
+            TopicStoreyColumnGoodsDTO topicStoreyColumnGoodsDTO=new TopicStoreyColumnGoodsDTO();
+            BeanUtils.copyProperties(o,topicStoreyColumnGoodsDTO);
+            topicStoreyColumnGoodsDTOList.add(topicStoreyColumnGoodsDTO);
+        });
+        return topicStoreyColumnGoodsDTOList;
+    }
+
     /**
      * 新增栏目商品
      * @param request
@@ -665,6 +674,10 @@ public class TopicConfigService {
         topicStoreySearchContent.setDeleted(0);
         topicStoreySearchContent.setType(1);
         topicStoreySearchContent.setTopicStoreySearchTable("topic_storey_search");
+        topicStoreySearchContent.setSpuNo(request.getSpuNo());
+        topicStoreySearchContent.setTopicStoreyId(request.getTopicStoreyId());
+        topicStoreySearchContent.setShowLabeTxt(request.getShowLabelTxt());
+        topicStoreySearchContent.setNumTxt(request.getNumTxt());
         columnGoodsRepository.save(topicStoreySearchContent);
     }
 
@@ -682,6 +695,8 @@ public class TopicConfigService {
         topicStoreySearchContent.setSkuNo(request.getSkuNo());
         topicStoreySearchContent.setSorting(request.getSorting());
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
+        topicStoreySearchContent.setShowLabeTxt(request.getShowLabeTxt());
+        topicStoreySearchContent.setNumTxt(request.getNumTxt());
         updateUtil.partialUpdate(topicStoreySearchContent.getId(), topicStoreySearchContent, columnGoodsRepository);
     }
 

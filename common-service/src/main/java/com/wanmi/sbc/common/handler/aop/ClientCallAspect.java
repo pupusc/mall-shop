@@ -86,7 +86,11 @@ public class ClientCallAspect {
     private String getMessage(JoinPoint point) {
         String message = "业务特殊处理, 忽略请求参数!";
         if (!excludedMethods.contains(point.getSignature().getName())) {
-            message = JSONObject.toJSONString(point.getArgs());
+            try {
+                message = JSONObject.toJSONString(point.getArgs());
+            }catch (Exception e){
+                return "文件不能使用json处理日志";
+            }
         }
         return message;
     }

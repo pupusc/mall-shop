@@ -28,6 +28,9 @@ public class TopicStoreySearchContent {
     @Column(name = "topic_storey_search_id")
     private Integer topicStoreySearchId;
 
+    @Column(name = "topic_storey_id")
+    private Integer topicStoreyId;
+
     @Column(name = "topic_storey_search_table")
     private String topicStoreySearchTable;
 
@@ -95,6 +98,12 @@ public class TopicStoreySearchContent {
 
     @Column(name = "title")
     private String title;
+
+    @Column(name = "num_txt")
+    private String numTxt;
+
+    @Column(name = "show_label_txt")
+    private String showLabeTxt;
 
     @Column(name = "recommend")
     private String recommend;

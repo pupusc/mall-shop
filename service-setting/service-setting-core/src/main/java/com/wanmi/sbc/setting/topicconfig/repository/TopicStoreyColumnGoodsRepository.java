@@ -4,6 +4,7 @@ package com.wanmi.sbc.setting.topicconfig.repository;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearch;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,7 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
     int enable(Integer id, Integer deleted);
 
 
-
+    @Query("from TopicStoreySearchContent w where w.topicStoreyId = ?1 and w.spuNo = ?2")
+    List<TopicStoreySearchContent> getById(Integer topicId, String spuNo);
 
 }
