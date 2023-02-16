@@ -76,6 +76,49 @@ public class MetaLabel implements Serializable {
     @Column(name = "path")
     private String path;
 
+    @Column(name = "is_static")
+    private Integer isStatic;
+
+    @Column(name = "is_run")
+    private Integer isRun;
+
+    @Column(name = "run_from_time")
+    private java.sql.Date runFromTime;
+
+    @Column(name = "run_to_time")
+    private java.sql.Date runToTime;
+
+    public Integer getIsStatic() {
+        return isStatic;
+    }
+
+    public void setIsStatic(Integer isStatic) {
+        this.isStatic = isStatic;
+    }
+
+    public Integer getIsRun() {
+        return isRun;
+    }
+
+    public void setIsRun(Integer isRun) {
+        this.isRun = isRun;
+    }
+
+    public java.sql.Date getRunFromTime() {
+        return runFromTime;
+    }
+
+    public void setRunFromTime(java.sql.Date runFromTime) {
+        this.runFromTime = runFromTime;
+    }
+
+    public java.sql.Date getRunToTime() {
+        return runToTime;
+    }
+
+    public void setRunToTime(java.sql.Date runToTime) {
+        this.runToTime = runToTime;
+    }
 
     public Integer getId() {
         return id;

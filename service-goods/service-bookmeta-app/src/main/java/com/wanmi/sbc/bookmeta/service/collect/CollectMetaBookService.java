@@ -369,6 +369,10 @@ public class CollectMetaBookService extends AbstractCollectBookService{
                 tag.setStagId(thirdMetaLabel.getParentId());
                 tag.setTagId(thirdMetaLabel.getId());
                 tag.setTagName(thirdMetaLabel.getName());
+                tag.setIsRun(thirdMetaLabel.getIsRun());
+                tag.setIsStatic(thirdMetaLabel.getIsStatic());
+                tag.setRunFromTime(thirdMetaLabel.getRunFromTime());
+                tag.setRunToTime(thirdMetaLabel.getRunToTime());
                 tags.add(tag);
             }
         }

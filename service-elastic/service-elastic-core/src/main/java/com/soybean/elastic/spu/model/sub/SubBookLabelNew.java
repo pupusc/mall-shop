@@ -1,8 +1,11 @@
 package com.soybean.elastic.spu.model.sub;
 
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import java.sql.Date;
 
 /**
  * Description: 图书标签信息
@@ -40,4 +43,16 @@ public class SubBookLabelNew {
 
     @Field(type = FieldType.Keyword)
     private String tagName;
+
+    @Field(type = FieldType.Integer)
+    private Integer isStatic;
+
+    @Field(type = FieldType.Integer)
+    private Integer isRun;
+
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    private Date runFromTime;
+
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    private Date runToTime;
 }
