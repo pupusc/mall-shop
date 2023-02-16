@@ -1424,12 +1424,19 @@ public class TransferService {
                 if (orderItemResp.getOughtFee() > defaultIfNull(orderItemResp.getRefundFee(), 0)) {
                     //处理金额
                     if (flowCashExist && iCash == 0) {
-                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                        saleAfterItemReq.setRefundType(refundType);
-                        saleAfterItemReq.setRefundNum(orderItemResp.getNum());
-                        saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
-                        saleAfterItemReq.setObjectType("ORD_ITEM");
-
+                        Optional<SaleAfterCreateNewReq.SaleAfterItemReq> first =
+                                saleAfterCreateNewReq.getSaleAfterItemBOList().stream().filter(i -> i.getObjectId().equals(orderItemResp.getTid().toString())).findFirst();
+                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq;
+                        if (first.isPresent()) {
+                            saleAfterItemReq = first.get();
+                        } else {
+                            saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                            saleAfterItemReq.setRefundType(refundType);
+                            saleAfterItemReq.setRefundNum(orderItemResp.getNum());
+                            saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                            saleAfterItemReq.setObjectType("ORD_ITEM");
+                        }
+                        //现金
                         SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.XIAN_JIN.getPayTypeCode());
                         saleAfterRefundDetailReq.setAmount(returnOrder.getReturnPrice().getApplyPrice().multiply(exchangeRate).intValue());
@@ -1438,11 +1445,18 @@ public class TransferService {
                         saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                     }
                     if (flowPointExist && iPoint == 0) {
-                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                        saleAfterItemReq.setRefundType(refundType);
-                        saleAfterItemReq.setRefundNum(orderItemResp.getNum());
-                        saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
-                        saleAfterItemReq.setObjectType("ORD_ITEM");
+                        Optional<SaleAfterCreateNewReq.SaleAfterItemReq> first =
+                                saleAfterCreateNewReq.getSaleAfterItemBOList().stream().filter(i -> i.getObjectId().equals(orderItemResp.getTid().toString())).findFirst();
+                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq;
+                        if (first.isPresent()) {
+                            saleAfterItemReq = first.get();
+                        } else {
+                            saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                            saleAfterItemReq.setRefundType(refundType);
+                            saleAfterItemReq.setRefundNum(orderItemResp.getNum());
+                            saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                            saleAfterItemReq.setObjectType("ORD_ITEM");
+                        }
                         //积分
                         SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.JI_FEN.getPayTypeCode());
@@ -1452,11 +1466,18 @@ public class TransferService {
                         saleAfterCreateNewReq.getSaleAfterItemBOList().add(saleAfterItemReq);
                     }
                     if (flowBeanExist && iBean == 0) {
-                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
-                        saleAfterItemReq.setRefundType(refundType);
-                        saleAfterItemReq.setRefundNum(orderItemResp.getNum());
-                        saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
-                        saleAfterItemReq.setObjectType("ORD_ITEM");
+                        Optional<SaleAfterCreateNewReq.SaleAfterItemReq> first =
+                                saleAfterCreateNewReq.getSaleAfterItemBOList().stream().filter(i -> i.getObjectId().equals(orderItemResp.getTid().toString())).findFirst();
+                        SaleAfterCreateNewReq.SaleAfterItemReq saleAfterItemReq;
+                        if (first.isPresent()) {
+                            saleAfterItemReq = first.get();
+                        } else {
+                            saleAfterItemReq = new SaleAfterCreateNewReq.SaleAfterItemReq();
+                            saleAfterItemReq.setRefundType(refundType);
+                            saleAfterItemReq.setRefundNum(orderItemResp.getNum());
+                            saleAfterItemReq.setObjectId(orderItemResp.getTid().toString());
+                            saleAfterItemReq.setObjectType("ORD_ITEM");
+                        }
                         //知豆
                         SaleAfterCreateNewReq.SaleAfterRefundDetailReq saleAfterRefundDetailReq = new SaleAfterCreateNewReq.SaleAfterRefundDetailReq();
                         saleAfterRefundDetailReq.setPayType(PaymentPayTypeEnum.ZHI_DOU.getPayTypeCode());
