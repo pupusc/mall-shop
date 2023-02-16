@@ -176,7 +176,7 @@ public class TopicService {
     }
 
 
-    public TopicCustomerPointsResponse getPoints(){
+    public TopicCustomerPointsResponse getPoints(CustomerGetByIdResponse customer){
         String key="showUserIntegral.config";
         String pointsText=SpringUtil.getBean(key);
         Gson gson=new Gson();
@@ -190,8 +190,6 @@ public class TopicService {
                 if(null!=map.get("text")){
                     pointsResponse.setPoints_text(map.get("text").toString());
                 }
-                CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                        (customerId)).getContext();
                 pointsResponse.setPoints_available(customer.getPointsAvailable());
                 pointsResponse.setCustomer_id(customer.getCustomerId());
                 pointsResponse.setCustomer_name(StringUtil.isNotBlank(customer.getCustomerDetail().getCustomerName())?customer.getCustomerDetail().getCustomerName():customer.getCustomerDetail().getCustomerId());
@@ -207,6 +205,14 @@ public class TopicService {
     }
 
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
+
+        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
+        Map customerMap = ( Map ) httpRequest.getAttribute("claims");
+        if(null!=customerMap && null!=customerMap.get("customerId")) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+
+        }
         BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
         if(null==detail||null==detail.getContext()){
             return BaseResponse.success(null);
@@ -225,9 +231,9 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
                 topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
-                topicResponse.setPoints(this.getPoints());
+                topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
-                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest()));
+                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank(topicResponse);
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
@@ -236,11 +242,11 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Books.getId());
-                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest));
+                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
-                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest));
+                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 suspensionByTypeRequest.setType(2L);
@@ -276,7 +282,7 @@ public class TopicService {
     /**
      * 商品组件及图书组件
      */
-    public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest){
+    public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest,CustomerGetByIdResponse customer){
 
         List<GoodsOrBookResponse> goodsOrBookResponse=new ArrayList<>();
         //获得主题id
@@ -307,14 +313,14 @@ public class TopicService {
         goodsInfoByIdRequest.setIsHavSpecText(1);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
 
-        //获取会员价
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
-        Map customerMap = ( Map ) request.getAttribute("claims");
-        if(null!=customerMap && null!=customerMap.get("customerId")) {
-            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-
-        }
+//        //获取会员价
+//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
+//        Map customerMap = ( Map ) request.getAttribute("claims");
+//        if(null!=customerMap && null!=customerMap.get("customerId")) {
+//            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+//
+//        }
         //获取会员
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
@@ -410,7 +416,7 @@ public class TopicService {
     /**
      * 商品信息及赠送积分信息
      */
-    public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest) {
+    public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest,CustomerGetByIdResponse customer) {
 
 
         List<NewBookPointResponse> newBookPointResponseList= new ArrayList<>();
@@ -454,12 +460,14 @@ public class TopicService {
         }
 
 
-        //获取会员价
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        Map customerMap = ( Map ) request.getAttribute("claims");
-        if(null!=customerMap && null!=customerMap.get("customerId")) {
-            //获取会员
-            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+//        //获取会员价
+//        CustomerGetByIdResponse customer=new CustomerGetByIdResponse();
+//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//        Map customerMap = ( Map ) request.getAttribute("claims");
+//        if(null!=customerMap && null!=customerMap.get("customerId")) {
+//            //获取会员
+//             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+//        }
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
@@ -471,7 +479,7 @@ public class TopicService {
                 newBookPointResponseList.get(i).setSalePrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getSalePrice());
                 newBookPointResponseList.get(i).setGoodsInfoImg(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
             }
-        }
+
         return newBookPointResponseList;
     }
 
