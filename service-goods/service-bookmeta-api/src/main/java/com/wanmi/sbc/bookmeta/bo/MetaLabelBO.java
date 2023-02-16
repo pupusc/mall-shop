@@ -3,6 +3,7 @@ package com.wanmi.sbc.bookmeta.bo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 标签(MetaLabel)实体类
@@ -51,5 +52,23 @@ public class MetaLabelBO implements Serializable {
      * 路径名称：下划线分隔
      */
     private String pathName;
+
+    private Integer isStatic;
+
+    private Integer isRun;
+
+    private Date runFromTime;
+
+    private Date runToTime;
+
+    private Integer showStatus;
+
+    private String showImg;
+
+    private String showText;
+
+    private String remark;
+
+    private Integer isShow;
 }
 

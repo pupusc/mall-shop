@@ -36,5 +36,7 @@ public class MetaLabelQueryByPageReqVO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
+
+    private Integer isStatic;
 }
 

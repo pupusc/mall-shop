@@ -1,5 +1,8 @@
 package com.wanmi.sbc.bookmeta.entity;
 
+import io.swagger.models.auth.In;
+import lombok.Data;
+
 import java.util.Date;
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -14,6 +17,7 @@ import javax.persistence.Table;
  * @since 2022-05-26 01:28:20
  */
 @Table(name = "meta_label")
+@Data
 public class MetaLabel implements Serializable {
     private static final long serialVersionUID = 262954670573753788L;
          
@@ -180,41 +184,29 @@ public class MetaLabel implements Serializable {
         return seq;
     }
 
-    public void setSeq(Integer seq) {
-        this.seq = seq;
-    }
+    @Column(name = "is_run")
+    private Integer isRun;
 
-    public Integer getParentId() {
-        return parentId;
-    }
+    @Column(name = "run_from_time")
+    private Date runFromTime;
 
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
-    }
+    @Column(name = "run_to_time")
+    private Date runToTime;
 
-    public Integer getType() {
-        return type;
-    }
+    @Column(name = "show_status")
+    private Integer showStatus;
 
-    public void setType(Integer type) {
-        this.type = type;
-    }
+    @Column(name = "show_img")
+    private String showImg;
 
-    public Integer getScene() {
-        return scene;
-    }
+    @Column(name = "show_text")
+    private String showText;
 
-    public void setScene(Integer scene) {
-        this.scene = scene;
-    }
+    @Column(name = "remark")
+    private String remark;
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
+    @Column(name = "is_show")
+    private Integer isShow;
 
 }
 
