@@ -133,6 +133,10 @@ public class BookCollect extends AbstractSpuCollect {
                 subBookLabelNew.setStagName(tag.getStagName());
                 subBookLabelNew.setTagId(tag.getTagId());
                 subBookLabelNew.setTagName(tag.getTagName());
+                subBookLabelNew.setIsStatic(tag.getIsStatic());
+                subBookLabelNew.setIsRun(tag.getIsRun());
+                subBookLabelNew.setRunFromTime(tag.getRunFromTime());
+                subBookLabelNew.setRunToTime(tag.getRunToTime());
                 bookLabelNews.add(subBookLabelNew);
             }
             book.setTags(bookLabelNews);
