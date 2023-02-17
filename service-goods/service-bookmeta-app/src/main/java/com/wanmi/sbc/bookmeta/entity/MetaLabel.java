@@ -184,15 +184,6 @@ public class MetaLabel implements Serializable {
         return seq;
     }
 
-    @Column(name = "is_run")
-    private Integer isRun;
-
-    @Column(name = "run_from_time")
-    private Date runFromTime;
-
-    @Column(name = "run_to_time")
-    private Date runToTime;
-
     @Column(name = "show_status")
     private Integer showStatus;
 
