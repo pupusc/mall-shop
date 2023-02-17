@@ -14,6 +14,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import tk.mybatis.mapper.entity.Example;
@@ -105,6 +106,15 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         entity.setScene(metaLabel.getScene());
         entity.setDescr(metaLabel.getDescr());
         entity.setStatus(metaLabel.getStatus());
+        entity.setIsStatic(metaLabel.getIsStatic());
+        entity.setIsRun(metaLabel.getIsRun());
+        entity.setRunFromTime(metaLabel.getRunFromTime());
+        entity.setRunToTime(metaLabel.getRunToTime());
+        entity.setShowStatus(metaLabel.getShowStatus());
+        entity.setShowImg(metaLabel.getShowImg());
+        entity.setShowText(metaLabel.getShowText());
+        entity.setRemark(metaLabel.getRemark());
+        entity.setIsShow(metaLabel.getIsShow());
         this.metaLabelMapper.updateByPrimaryKey(entity);
         return BusinessResponse.success(true);
     }
