@@ -229,7 +229,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
+                //topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
