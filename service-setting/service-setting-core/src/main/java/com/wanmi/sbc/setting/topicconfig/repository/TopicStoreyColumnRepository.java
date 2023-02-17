@@ -35,7 +35,7 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
         return (Specification<TopicStoreyColumn>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreyId"), request.getTopicStoreyId()));
-            if (request.getId() != null &&  "".equals(request.getId())) {
+            if (request.getId() != null &&  !"".equals(request.getId())) {
                 conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
             }
             if (StringUtils.isNotEmpty(request.getName())) {

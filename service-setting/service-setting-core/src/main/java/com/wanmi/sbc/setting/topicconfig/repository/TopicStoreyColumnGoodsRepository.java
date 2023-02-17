@@ -32,10 +32,10 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
         return (Specification<TopicStoreyColumnContent>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getTopicStoreySearchId()));
-            if (request.getId() != null &&  "".equals(request.getId())) {
+            if (request.getId() != null &&  !"".equals(request.getId())) {
                 conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
             }
-            if (StringUtils.isNotEmpty(request.getGoodsName())) {
+            if (request.getGoodsName() != null &&  !"".equals(request.getGoodsName())) {
                 conditionList.add(criteriaBuilder.like(root.get("name"), request.getGoodsName() + "%"));
             }
             if (request.getStartTime() != null) {
