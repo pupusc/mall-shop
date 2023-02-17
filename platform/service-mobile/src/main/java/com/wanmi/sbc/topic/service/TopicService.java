@@ -351,6 +351,9 @@ public class TopicService {
     public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
         RankPageResponse pageResponse = topicConfigProvider.rankPage(request);
         List<String> idList = pageResponse.getIdList();
+        if(CollectionUtils.isEmpty(idList)){
+            return BaseResponse.success(null);
+        }
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
         goodsCustomResponses.forEach(g-> {
             String label = g.getGoodsLabelList().get(0);
