@@ -7,10 +7,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
-import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
+import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -227,6 +224,16 @@ public class TopicConfigController {
     @PostMapping("/storey/v2/column/list")
     public BaseResponse<MicroServicePage<TopicStoreyColumnDTO>> listStoryColumn(@RequestBody TopicStoreyColumnQueryRequest request){
         return topicConfigProvider.listStoryColumn(request);
+    }
+
+    /**
+     * 榜单列表
+     * @param request
+     * @return
+     */
+    @PostMapping("/storey/v2/rank/list")
+    public BaseResponse<MicroServicePage<RankListDTO>> listRankList(@RequestBody TopicStoreyColumnQueryRequest request){
+        return topicConfigProvider.listRankList(request);
     }
 
     /**

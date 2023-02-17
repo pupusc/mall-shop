@@ -87,6 +87,9 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/list")
     BaseResponse<MicroServicePage<TopicStoreyColumnDTO>> listStoryColumn(@RequestBody TopicStoreyColumnQueryRequest request);
 
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/list")
+    BaseResponse<MicroServicePage<RankListDTO>> listRankList(@RequestBody TopicStoreyColumnQueryRequest request);
+
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/add")
     BaseResponse addStoreyColumn(@RequestBody TopicStoreyColumnAddRequest request);
 

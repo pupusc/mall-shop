@@ -62,8 +62,42 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
         };
     }
 
+    default Specification<TopicStoreyColumn> topicStoreyRankLevel0Search(TopicStoreyColumnQueryRequest request) {
+        return (Specification<TopicStoreyColumn>) (root, criteriaQuery, criteriaBuilder) -> {
+            final List<Predicate> conditionList = new ArrayList<>();
+            conditionList.add(criteriaBuilder.equal(root.get("topicStoreyId"), request.getTopicStoreyId()));
+            conditionList.add(criteriaBuilder.equal(root.get("level"),0));
+            if (request.getId() != null &&  !"".equals(request.getId())) {
+                conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
+            }
+            if (StringUtils.isNotEmpty(request.getName())) {
+                conditionList.add(criteriaBuilder.like(root.get("name"), request.getName() + "%"));
+            }
+            if (request.getPublishState() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("deleted"), request.getPublishState()));
+            }
+            if(request.getState() != null){
+                LocalDateTime now = LocalDateTime.now();
+                if(request.getState() == 0){
+                    //未开始
+                    conditionList.add(criteriaBuilder.greaterThan(root.get("createTime"), now));
+                }else if(request.getState() == 1){
+                    //进行中
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"), now));
+                }else if(request.getState() == 2){
+                    //已结束
+                    conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
+                }
+            }
+            return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+        };
+    }
+
     //楼层栏目列表
     List<TopicStoreyColumn> getByTopicStoreyIdAndDeletedOrderByOrderNumAscCreateTimeDesc(Integer topicStoreyId, Integer deleted);
+
+    List<TopicStoreyColumn> getByTopicStoreyIdAndLevelOrderByOrderNumAscCreateTimeDesc(Integer topicStoreyId, Integer level);
 
     @Modifying
     @Query("update TopicStoreyColumn T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")
