@@ -19,6 +19,8 @@ public class MetaZoneQueryByPageReqVO implements Serializable {
      * 类型：1榜单；2书单；3套系；4版本；
      */
     private Integer type;
+
+    private Integer scType;
     /**
      * 名称
       */

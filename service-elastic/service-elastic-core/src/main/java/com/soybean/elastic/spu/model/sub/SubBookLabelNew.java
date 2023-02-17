@@ -5,7 +5,7 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.sql.Date;
+import java.util.Date;
 
 /**
  * Description: 图书标签信息
