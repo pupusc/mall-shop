@@ -246,7 +246,9 @@ public class TopicConfigService {
      */
     public RankPageResponse rankPage(RankStoreyRequest storeyRequest) {
         Integer topicStoreyId=0;
-        storeyRequest.setTopicStoreyId(getRankId());
+        if(null==storeyRequest.getTopicStoreyId()) {
+            storeyRequest.setTopicStoreyId(getRankId());
+        }
         List<TopicStoreySearch> list=getRankNameList(storeyRequest.getTopicStoreyId(),false);
         String sql = "SELECT * FROM topic_storey_search_content where topic_storey_search_id  ";
         if(null!=storeyRequest.getTopicStoreySearchId()){
