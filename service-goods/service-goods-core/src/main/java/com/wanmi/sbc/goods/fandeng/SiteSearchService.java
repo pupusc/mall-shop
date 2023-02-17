@@ -23,6 +23,7 @@ import com.wanmi.sbc.goods.fandeng.model.SyncBookPkgReqVO;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaLabelReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResReqVO;
+import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -320,6 +321,7 @@ public class SiteSearchService {
 
         Map<String, GoodsInfo> skuId2ModelAllMap = new HashMap<>();
         Map<String, Goods> spuId2ModelAllMap = new HashMap<>();
+        Map<String, GoodsImage> spuId2GoodsImageMap = new HashMap<>();
         if (publishList.size() > 0){
             List<String> spuIds = publishList.stream().map(BookListGoodsPublishDTO::getSpuId).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(spuIds)){
@@ -338,6 +340,14 @@ public class SiteSearchService {
                             .filter(e -> Objects.equals(e.getAddedFlag(), AddedFlag.YES.toValue()) && Objects.equals(e.getDelFlag(), DeleteFlag.NO))
                             .collect(Collectors.toMap(Goods::getGoodsId, Function.identity(), (k1, k2) -> k1));
                     spuId2ModelAllMap.putAll(spuId2ModelMap);
+                }
+
+                List<GoodsImage> spuImages = goodsImageRepository.findByGoodsIds(spuIds);
+                if (!org.springframework.util.CollectionUtils.isEmpty(spuImages)){
+                    Map<String, GoodsImage> tempSpuId2GoodsMap = spuImages.stream()
+                            .filter(ex -> Objects.equals(ex.getSort(), 0))
+                            .collect(Collectors.toMap(GoodsImage::getGoodsId, Function.identity(), (k1,k2) -> k1));
+                    spuId2GoodsImageMap.putAll(tempSpuId2GoodsMap);
                 }
             }
 
@@ -367,7 +377,15 @@ public class SiteSearchService {
             Goods goods = spuId2ModelAllMap.get(bookListGoodsPublishDTO.getSpuId());
             item.setTitle(goods == null ? "" : goods.getGoodsName());
             GoodsInfo goodsInfo = skuId2ModelAllMap.get(bookListGoodsPublishDTO.getSkuId());
-            item.setCoverImageUrl(goodsInfo == null ? "" : goodsInfo.getGoodsInfoImg());
+            String goodsInfoImgUrl = goodsInfo == null ? "" : goodsInfo.getGoodsInfoImg();
+            if (StringUtils.isBlank(goodsInfoImgUrl)) {
+                GoodsImage goodsImage = spuId2GoodsImageMap.get(bookListGoodsPublishDTO.getSpuId());
+                goodsInfoImgUrl = goodsImage == null ? "" : goodsImage.getArtworkUrl();
+            }
+
+            item.setCoverImageUrl(goodsInfoImgUrl);
+//            GoodsInfo goodsInfo = skuId2ModelAllMap.get(bookListGoodsPublishDTO.getSkuId());
+//            item.setCoverImageUrl(goodsInfo == null ? "" : goodsInfo.getGoodsInfoImg());
 //            item.setHasShow((goods == null || goodsInfo == null) ? 1 : 0);
             if (goods == null || goodsInfo == null) {
                 continue;
