@@ -52,30 +52,31 @@ public class GoodsExcelController implements GoodsExcelProvider {
 
     @Override
     public BaseResponse loadExcel(MultipartFile multipartFile,Integer topicStoreyId,Integer topicStoreySearchId) {
-        List list = new ArrayList();
+        int addNum = 0;
+        int updateNum = 0;
+        Workbook wb = null;
         try {
-            Workbook wb = null;
-            try{
+            try {
                 wb = new HSSFWorkbook(new POIFSFileSystem(multipartFile.getInputStream()));
-            }catch(Exception e){
-                wb = new XSSFWorkbook(multipartFile.getInputStream());		//XSSF不能读取Excel2003以前（包括2003）的版本
+            } catch (Exception e) {
+                wb = new XSSFWorkbook(multipartFile.getInputStream());        //XSSF不能读取Excel2003以前（包括2003）的版本
             }
 
             Sheet sheet = wb.getSheetAt(0);
 
-            if(sheet == null){
+            if (sheet == null) {
                 return null;
             }
 
             //获得当前sheet的开始行
-            int firstRowNum  = sheet.getFirstRowNum();
+            int firstRowNum = sheet.getFirstRowNum();
             //获得当前sheet的结束行
             int lastRowNum = sheet.getLastRowNum();
             //循环除了第一行的所有行
-            for(int rowNum = firstRowNum;rowNum <= lastRowNum;rowNum++){
+            for (int rowNum = firstRowNum; rowNum <= lastRowNum; rowNum++) {
                 //获得当前行
                 Row row = sheet.getRow(rowNum);
-                if(row == null){
+                if (row == null) {
                     continue;
                 }
                 //获得当前行的开始列
@@ -87,17 +88,17 @@ public class GoodsExcelController implements GoodsExcelProvider {
                 String[] cells = new String[row.getLastCellNum()];
 
                 //循环当前行
-                for(int cellNum = firstCellNum; cellNum < lastCellNum;cellNum++){
+                for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
                     Cell cell = row.getCell(cellNum);
                     cell.setCellType(CellType.STRING);
                     cells[cellNum] = cell.getStringCellValue();
                 }
-                TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest=new TopicStoreyColumnGoodsQueryRequest();
+                TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
                 topicStoreyColumnGoodsQueryRequest.setTopicStoreyId(topicStoreyId);
                 topicStoreyColumnGoodsQueryRequest.setSpuNo(cells[0]);
                 List<TopicStoreyColumnGoodsDTO> content = topicConfigProvider.listStoryColumnGoodsByIdAndSpu(topicStoreyColumnGoodsQueryRequest).getContext();
                 //没有就更新
-                if(null==content || content.size()==0) {
+                if (null == content || content.size() == 0) {
                     TopicStoreyColumnGoodsAddRequest topicStoreyColumnGoodsAddRequest = new TopicStoreyColumnGoodsAddRequest();
                     topicStoreyColumnGoodsAddRequest.setSpuNo(cells[0]);
                     topicStoreyColumnGoodsAddRequest.setGoodsName(cells[1]);
@@ -106,16 +107,15 @@ public class GoodsExcelController implements GoodsExcelProvider {
                     topicStoreyColumnGoodsAddRequest.setSorting(Integer.parseInt(cells[4]));
                     topicStoreyColumnGoodsAddRequest.setTopicStoreyId(topicStoreyId);
                     topicStoreyColumnGoodsAddRequest.setTopicStoreySearchId(topicStoreySearchId);
-                    try{
-                    topicConfigProvider.addStoreyColumnGoods(topicStoreyColumnGoodsAddRequest);
-                    }catch (Exception e){
-                        BaseResponse baseResponse=new BaseResponse<>();
-                        baseResponse.setMessage("导入失败");
-                        return baseResponse;
+                    try {
+                        topicConfigProvider.addStoreyColumnGoods(topicStoreyColumnGoodsAddRequest);
+                        addNum++;
+                    } catch (Exception e) {
+                        BaseResponse baseResponse = new BaseResponse<>();
+                        return baseResponse.error( "导入失败");
                     }
-
-                }else { //有就更新
-                    TopicStoreyColumnGoodsUpdateRequest topicStoreyColumnGoodsUpdateRequest=new TopicStoreyColumnGoodsUpdateRequest();
+                } else { //有就更新
+                    TopicStoreyColumnGoodsUpdateRequest topicStoreyColumnGoodsUpdateRequest = new TopicStoreyColumnGoodsUpdateRequest();
                     topicStoreyColumnGoodsUpdateRequest.setId(content.get(0).getId());
                     topicStoreyColumnGoodsUpdateRequest.setGoodsName(cells[1]);
                     topicStoreyColumnGoodsUpdateRequest.setSorting(Integer.parseInt(cells[4]));
@@ -123,13 +123,12 @@ public class GoodsExcelController implements GoodsExcelProvider {
                     topicStoreyColumnGoodsUpdateRequest.setNumTxt(cells[3]);
                     try {
                         topicConfigProvider.updateStoreyColumnGoods(topicStoreyColumnGoodsUpdateRequest);
-                    }catch (Exception e){
-                        return new BaseResponse(null,"更新失败",null,null);
+                        updateNum++;
+                    } catch (Exception e) {
+                        BaseResponse baseResponse=new BaseResponse<>();
+                        return baseResponse.error( "更新失败");
                     }
-
                 }
-
-                list.add(cells);
             }
 
 
@@ -137,8 +136,16 @@ public class GoodsExcelController implements GoodsExcelProvider {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                wb.close();
+                multipartFile.getInputStream().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            BaseResponse baseResponse=new BaseResponse<>();
+            return baseResponse.info("操作成功", "成功增加" + addNum + "条," + "成功更新" + updateNum + "条");
         }
 
-        return null;
     }
 }

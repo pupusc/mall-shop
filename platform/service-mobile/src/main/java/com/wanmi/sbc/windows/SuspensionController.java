@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
+import com.wanmi.sbc.goods.api.provider.excel.GoodsExcelProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -15,10 +16,8 @@ import com.wanmi.sbc.topic.service.TopicService;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -33,6 +32,9 @@ public class SuspensionController {
 
     @Autowired
     private TopicService topicService;
+
+    @Autowired
+    private GoodsExcelProvider goodsExcelProvider;
 
     @PostMapping("/getSuspensionByType")
     public BaseResponse<SuspensionByTypeResponse> getByType(@RequestBody @Valid SuspensionByTypeRequest suspensionByTypeRequest) {
@@ -54,5 +56,10 @@ public class SuspensionController {
     public List<GoodsOrBookResponse> GoodsOrBook(@RequestBody @Valid  TopicStoreyContentRequest topicStoreyContentRequest)  {
         CustomerGetByIdResponse customer=new CustomerGetByIdResponse();
         return topicService.bookOrGoods(topicStoreyContentRequest,customer);
+    }
+
+    @PostMapping("/test3")
+    public BaseResponse loadExcel(@RequestParam(value = "file") MultipartFile file, @RequestParam(value = "topicStoreId") Integer topicStoreyId, @RequestParam(value = "topicStoreySearchId") Integer topicStoreySearchId)  {
+        return goodsExcelProvider.loadExcel(file,topicStoreyId,topicStoreySearchId);
     }
 }
