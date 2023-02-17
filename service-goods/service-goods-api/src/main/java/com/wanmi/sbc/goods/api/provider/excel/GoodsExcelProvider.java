@@ -30,5 +30,5 @@ public interface GoodsExcelProvider {
      * 商品excel导入商品到数据可
      */
     @PostMapping("/goods/${application.goods.version}/excel/load-excel")
-    BaseResponse loadExcel(@RequestParam(value = "file") MultipartFile file, @RequestParam(value = "topicStoreId") Integer topicStoreyId,@RequestParam(value = "topicStoreySearchId") Integer topicStoreySearchId) throws IOException;
+    BaseResponse loadExcel(@RequestParam(value = "file") MultipartFile file, @RequestParam(value = "topicStoreId") Integer topicStoreyId,@RequestParam(value = "topicStoreySearchId") Integer topicStoreySearchId);
 }
