@@ -573,10 +573,10 @@ public class TopicConfigService {
      * @return: com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse
      */
     public MicroServicePage<TopicStoreyColumnDTO> listTopicStoreyColumn(TopicStoreyColumnQueryRequest request){
-        Page<TopicStoreySearch> topicStoreySearchPage = columnRepository
+        Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
                 .findAll(columnRepository.topicStoreySearch(request), PageRequest.of(request.getPageNum(),
                 request.getPageSize(), Sort.by(Sort.Direction.ASC, "orderNum")));
-        List<TopicStoreySearch> content = topicStoreySearchPage.getContent();
+        List<TopicStoreyColumn> content = topicStoreySearchPage.getContent();
         MicroServicePage<TopicStoreyColumnDTO> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
         microServicePage.setContent(changeTopicStoreyColumn(content));
@@ -588,7 +588,7 @@ public class TopicConfigService {
      * @param request
      */
     public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
-        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
         topicStoreySearch.setCreateTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
@@ -605,7 +605,7 @@ public class TopicConfigService {
      */
     @SneakyThrows
     public void updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
-        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setId(request.getId());
         topicStoreySearch.setCreateTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
@@ -626,10 +626,10 @@ public class TopicConfigService {
     }
 
     public MicroServicePage<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoods(TopicStoreyColumnGoodsQueryRequest request) {
-        Page<TopicStoreySearchContent> topicStoreySearchGoodsPage = columnGoodsRepository
+        Page<TopicStoreyColumnContent> topicStoreySearchGoodsPage = columnGoodsRepository
                 .findAll(columnGoodsRepository.topicStoreySearchContent(request), PageRequest.of(request.getPageNum(),
                         request.getPageSize(), Sort.by(Sort.Direction.ASC, "sorting")));
-        List<TopicStoreySearchContent> content = topicStoreySearchGoodsPage.getContent();
+        List<TopicStoreyColumnContent> content = topicStoreySearchGoodsPage.getContent();
         MicroServicePage<TopicStoreyColumnGoodsDTO> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
         microServicePage.setContent(changeTopicStoreyColumnGoods(content));
@@ -651,7 +651,7 @@ public class TopicConfigService {
      * @param request
      */
     public void addStoreyColumnGoods(TopicStoreyColumnGoodsAddRequest request) {
-        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
         topicStoreySearchContent.setTopicStoreySearchId(request.getTopicStoreySearchId());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
         topicStoreySearchContent.setStartTime(request.getStartTime());
@@ -663,7 +663,6 @@ public class TopicConfigService {
         topicStoreySearchContent.setUpdateTime(LocalDateTime.now());
         topicStoreySearchContent.setDeleted(0);
         topicStoreySearchContent.setType(1);
-        topicStoreySearchContent.setTopicStoreySearchTable("topic_storey_search");
         topicStoreySearchContent.setSpuNo(request.getSpuNo());
         topicStoreySearchContent.setTopicStoreyId(request.getTopicStoreyId());
         topicStoreySearchContent.setShowLabeTxt(request.getShowLabelTxt());
@@ -677,7 +676,7 @@ public class TopicConfigService {
      */
     @SneakyThrows
     public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
-        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
         topicStoreySearchContent.setId(request.getId());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
         topicStoreySearchContent.setStartTime(request.getStartTime());
@@ -711,7 +710,7 @@ public class TopicConfigService {
         columnGoodsRepository.deleteById(request.getId());
     }
 
-    private List<TopicStoreyColumnDTO> changeTopicStoreyColumn(List<TopicStoreySearch> content) {
+    private List<TopicStoreyColumnDTO> changeTopicStoreyColumn(List<TopicStoreyColumn> content) {
         LocalDateTime now = LocalDateTime.now();
         return content.stream().map(topicStoreySearch -> {
             TopicStoreyColumnDTO topicStoreyColumnDTO = new TopicStoreyColumnDTO();
@@ -733,7 +732,7 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
     }
 
-    private List<TopicStoreyColumnGoodsDTO> changeTopicStoreyColumnGoods(List<TopicStoreySearchContent> content) {
+    private List<TopicStoreyColumnGoodsDTO> changeTopicStoreyColumnGoods(List<TopicStoreyColumnContent> content) {
         LocalDateTime now = LocalDateTime.now();
         return content.stream().map(topicStoreySearchContent -> {
             TopicStoreyColumnGoodsDTO topicStoreyColumnGoodsDTO = new TopicStoreyColumnGoodsDTO();
@@ -755,10 +754,10 @@ public class TopicConfigService {
 
     //混合组件
     public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
-        TopicStoreySearch topicStoreySearch = new TopicStoreySearch();
+        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
         topicStoreySearch.setDeleted(0);
-        List<TopicStoreySearch> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
+        List<TopicStoreyColumn> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
                 Sort.by(Sort.Direction.ASC, "orderNum"));
         List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
         MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request);
@@ -780,14 +779,13 @@ public class TopicConfigService {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.asc("sorting"));
         sortList.add(Sort.Order.asc("type"));
-        Page<TopicStoreySearchContent> topicStoreySearchGoodsPage = columnGoodsRepository
+        Page<TopicStoreyColumnContent> topicStoreySearchGoodsPage = columnGoodsRepository
                 .findAll(columnGoodsRepository.mixedComponentContent(request), PageRequest.of(request.getPageNum(),
                         request.getPageSize(), Sort.by(sortList)));
-        TopicStoreySearchContent topicStoreySearchContent = new TopicStoreySearchContent();
+        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
         topicStoreySearchContent.setTopicStoreySearchId(request.getKeywordId());
-        topicStoreySearchContent.setLevel(1);
-        List<TopicStoreySearchContent> goods = columnGoodsRepository.findAll(Example.of(topicStoreySearchContent), Sort.by(Sort.Direction.ASC, "sorting"));
-        List<TopicStoreySearchContent> content = topicStoreySearchGoodsPage.getContent();
+        List<TopicStoreyColumnContent> goods = columnGoodsRepository.findAll(Example.of(topicStoreySearchContent), Sort.by(Sort.Direction.ASC, "sorting"));
+        List<TopicStoreyColumnContent> content = topicStoreySearchGoodsPage.getContent();
         MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
         mixedComponentContentPage.setContent(content.stream().map(s -> {
             MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto();
@@ -829,19 +827,19 @@ public class TopicConfigService {
     }
 
     //获取商品信息
-    private List<GoodsDto> getGoods(TopicStoreySearchContent content, List<TopicStoreySearchContent> goods ) {
+    private List<GoodsDto> getGoods(TopicStoreyColumnContent content, List<TopicStoreyColumnContent> goods ) {
         List<GoodsDto> goodsDtos = new ArrayList<>();
         if (StringUtils.isNotEmpty(content.getSpuId())) {
             goodsDtos.add(GoodsDto.builder().spuId(content.getSpuId()).goodsName(content.getGoodsName()).build());
             return goodsDtos;
         }
-         goodsDtos = goods.stream().filter(s -> content.getId().equals(s.getPId())).map(s -> {
-             return GoodsDto.builder().spuId(s.getSpuId()).goodsName(s.getGoodsName()).build();
-         }).collect(Collectors.toList());
+//         goodsDtos = goods.stream().filter(s -> content.getId().equals(s.getPId())).map(s -> {
+//             return GoodsDto.builder().spuId(s.getSpuId()).goodsName(s.getGoodsName()).build();
+//         }).collect(Collectors.toList());
         return goodsDtos;
     }
 
-    public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreySearch> topicStoreySearches) {
+    public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreyColumn> topicStoreySearches) {
         return topicStoreySearches.stream().filter(s -> MixedComponentLevel.ONE.toValue().equals(s.getLevel())).map(s -> {
                 MixedComponentTabDto mixedComponentTabDto = new MixedComponentTabDto();
                 mixedComponentTabDto.setId(s.getId());
@@ -862,7 +860,7 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
     }
 
-    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreySearch> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
+    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreyColumn> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
         if (request.getId() == null) {
             request.setId(mixedComponentTabs.get(0).getId());
         }
@@ -877,7 +875,7 @@ public class TopicConfigService {
             return keyWordDto;
         }).collect(Collectors.toList());
         mixedComponentKeyWordsDto.setKeyWord(keyWords);
-        Optional<TopicStoreySearch> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel())).findFirst();
+        Optional<TopicStoreyColumn> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel())).findFirst();
         if (storeySearch.get() != null && StringUtils.isNotEmpty(storeySearch.get().getColor())) {
             JSONObject colorObject = JSON.parseObject(storeySearch.get().getColor());
             mixedComponentKeyWordsDto.setKeyWordSelectedColor(colorObject.getString("selected"));

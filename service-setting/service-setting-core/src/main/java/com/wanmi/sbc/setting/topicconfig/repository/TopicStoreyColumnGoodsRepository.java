@@ -3,10 +3,7 @@ package com.wanmi.sbc.setting.topicconfig.repository;
 
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearch;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumnContent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,11 +25,11 @@ import java.util.List;
  * @return: null
  */
 @Repository
-public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicStoreySearchContent, Integer>,
-        JpaSpecificationExecutor<TopicStoreySearchContent> {
+public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicStoreyColumnContent, Integer>,
+        JpaSpecificationExecutor<TopicStoreyColumnContent> {
     //楼层栏目商品列表
-    default Specification<TopicStoreySearchContent> topicStoreySearchContent(TopicStoreyColumnGoodsQueryRequest request) {
-        return (Specification<TopicStoreySearchContent>) (root, criteriaQuery, criteriaBuilder) -> {
+    default Specification<TopicStoreyColumnContent> topicStoreySearchContent(TopicStoreyColumnGoodsQueryRequest request) {
+        return (Specification<TopicStoreyColumnContent>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getTopicStoreySearchId()));
             if (request.getId() != null &&  "".equals(request.getId())) {
@@ -69,8 +66,8 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
     }
 
 
-    default Specification<TopicStoreySearchContent> mixedComponentContent(MixedComponentQueryRequest request) {
-        return (Specification<TopicStoreySearchContent>) (root, criteriaQuery, criteriaBuilder) -> {
+    default Specification<TopicStoreyColumnContent> mixedComponentContent(MixedComponentQueryRequest request) {
+        return (Specification<TopicStoreyColumnContent>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getKeywordId()));
             conditionList.add(criteriaBuilder.equal(root.get("deleted"), 0));
@@ -80,11 +77,11 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
     }
 
     @Modifying
-    @Query("update TopicStoreySearchContent T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")
+    @Query("update TopicStoreyColumnContent T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")
     int enable(Integer id, Integer deleted);
 
 
-    @Query("from TopicStoreySearchContent w where w.topicStoreyId = ?1 and w.spuNo = ?2")
-    List<TopicStoreySearchContent> getById(Integer topicId, String spuNo);
+    @Query("from TopicStoreyColumnContent w where w.topicStoreyId = ?1 and w.spuNo = ?2")
+    List<TopicStoreyColumnContent> getById(Integer topicId, String spuNo);
 
 }
