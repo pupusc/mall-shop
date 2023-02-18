@@ -328,6 +328,7 @@ public class TopicConfigService {
             });
         RankPageResponse response=new RankPageResponse();
         pageRequest.setContentList(requests);
+        pageRequest.setImageUrl(images);
         response.setPageRequest(pageRequest);
         response.setIdList(idList);
         response.setImgUrl(images);
