@@ -277,6 +277,11 @@ public class TopicService {
                         if(map.get("spuId").equals(g.getGoodsId())){
                             map.put("label",label);
                             map.put("subName",g.getGoodsSubName());
+                            map.put("showPrice",g.getShowPrice());
+                            map.put("linePrice",g.getLinePrice());
+                            map.put("stock",g.getStock());
+                            map.put("author",g.getGoodsExtProperties().getAuthor());
+                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
                         }
                     });
                 }
@@ -365,6 +370,11 @@ public class TopicService {
                             if(m.get("spuId").equals(g.getGoodsId())) {
                                 m.put("label", label);
                                 m.put("subName", g.getGoodsSubName());
+                                m.put("showPrice",g.getShowPrice());
+                                m.put("linePrice",g.getLinePrice());
+                                m.put("stock",g.getStock());
+                                m.put("author",g.getGoodsExtProperties().getAuthor());
+                                m.put("publisher",g.getGoodsExtProperties().getPublisher());
                             }
 
                     });

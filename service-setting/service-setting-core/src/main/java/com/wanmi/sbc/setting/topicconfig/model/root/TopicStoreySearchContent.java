@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * @return: null
  */
 @Data
-@Table(name = "topic_storey_search_content")
+@Table(name = "topic_storey_column_content")
 @Entity
 public class TopicStoreySearchContent {
     @Id
@@ -25,14 +25,11 @@ public class TopicStoreySearchContent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "topic_storey_search_id")
+    @Column(name = "topic_storey_column_id")
     private Integer topicStoreySearchId;
 
     @Column(name = "topic_storey_id")
     private Integer topicStoreyId;
-
-    @Column(name = "topic_storey_search_table")
-    private String topicStoreySearchTable;
 
     @Column(name = "spu_no")
     private String spuNo;
@@ -84,18 +81,6 @@ public class TopicStoreySearchContent {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endTime;
 
-    @Column(name = "attribute_info")
-    private String attributeInfo;
-
-    @Column(name = "num")
-    private Integer num;
-
-    @Column(name = "p_id")
-    private Integer pId;
-
-    @Column(name = "level")
-    private Integer level;
-
     @Column(name = "title")
     private String title;
 
@@ -107,4 +92,16 @@ public class TopicStoreySearchContent {
 
     @Column(name = "recommend")
     private String recommend;
+
+    @Column(name = "publisher_id")
+    private Integer publisherId;
+
+    @Column(name = "publisher_name")
+    private String publisherName;
+
+    @Column(name = "isbn")
+    private String isbn;
+
+    @Column(name = "order_num")
+    private Integer orderNum;
 }

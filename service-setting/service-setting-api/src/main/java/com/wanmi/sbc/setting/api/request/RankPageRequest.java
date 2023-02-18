@@ -20,6 +20,8 @@ public class RankPageRequest implements Serializable {
 
     private Long totalPages;
 
+    private String imageUrl;
+
     private List<RankRequest> contentList;
 
 }

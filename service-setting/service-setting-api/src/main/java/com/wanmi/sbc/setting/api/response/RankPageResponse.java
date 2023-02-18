@@ -14,4 +14,6 @@ public class RankPageResponse implements Serializable {
 
     private List<String> idList;
 
+    private String imgUrl;
+
 }

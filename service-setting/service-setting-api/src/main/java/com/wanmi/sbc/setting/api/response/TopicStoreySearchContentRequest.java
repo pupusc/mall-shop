@@ -24,7 +24,7 @@ public class TopicStoreySearchContentRequest implements Serializable {
 
     private Integer topicStoreySearchId;
 
-    private String topicStoreySearchTable;
+    private Integer topicStoreyId;
 
     private String spuNo;
 
@@ -62,7 +62,17 @@ public class TopicStoreySearchContentRequest implements Serializable {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endTime;
 
-    private String attributeInfo;
+    private String title;
 
-    private int num;
+    private String numTxt;
+
+    private String showLabeTxt;
+
+    private String recommend;
+
+    private Integer publisherId;
+
+    private String isbn;
+
+    private Integer orderNum;
 }
