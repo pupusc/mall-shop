@@ -71,7 +71,7 @@ public class TopicController {
         return response;
     }
 
-    @ApiOperation(value = "根据专题id返回数据，第一次加载只返回1，2楼层数据信息")
+    @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) {
         BaseResponse<RankPageRequest> response = topicService.rankPage(request);
