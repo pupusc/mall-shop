@@ -192,9 +192,9 @@ public class TopicConfigService {
                 "FROM\n" +
                 " (SELECT * from topic_storey_column_content where topic_storey_id=?) AS a \n" +
                 "WHERE\n" +
-                "( SELECT count(*) FROM topic_storey_column_content tt WHERE topic_storey_column_id = a.topic_storey_column_id AND num >= a.num )<= 3\n" +
+                "( SELECT count(*) FROM topic_storey_column_content tt WHERE topic_storey_column_id = a.topic_storey_column_id AND order_num >= a.order_num )<= 3\n" +
                 "ORDER BY\n" +
-                " topic_storey_column_id asc,num DESC";
+                " topic_storey_column_id asc,order_num DESC";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
         query.setParameter(1,topicStoreyId);
@@ -222,11 +222,15 @@ public class TopicConfigService {
                     map.put("imageUrl",c.getImageUrl());
                     map.put("sorting",c.getSorting());
                     map.put("goodsName",c.getGoodsName());
-                    if(Integer.parseInt(c.getNumTxt())>=10000){
-                        String num=String.valueOf(Integer.parseInt(c.getNumTxt())/10000)+"万";
-                        map.put("num",num);
+                    if(StringUtils.isNotBlank(c.getNumTxt())) {
+                        if (Integer.parseInt(c.getNumTxt()) >= 10000) {
+                            String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
+                            map.put("num", num);
+                        } else {
+                            map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                        }
                     }else {
-                        map.put("num",String.valueOf(Integer.parseInt(c.getNumTxt())));
+                        map.put("num", "");
                     }
                     map.put("skuId",c.getSkuId());
                     map.put("spuId",c.getSpuId());
