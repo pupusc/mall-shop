@@ -652,6 +652,26 @@ public class TopicConfigService {
     }
 
     /**
+     * 新增榜单分类
+     * @param request
+     */
+    public void addRankLevel(RankLevelAddRequest request) {
+        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
+        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
+        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setEndTime(request.getEndTime());
+        topicStoreySearch.setOrderNum(request.getSorting());
+        topicStoreySearch.setName(request.getName());
+        topicStoreySearch.setUpdateTime(LocalDateTime.now());
+        topicStoreySearch.setDeleted(0);
+        topicStoreySearch.setLevel(request.getLevel());
+        if(null!=request.getPId()){
+            topicStoreySearch.setPId(request.getPId());
+        }
+        columnRepository.save(topicStoreySearch);
+    }
+
+    /**
      * 修改栏目
      * @param request
      */
