@@ -749,12 +749,12 @@ public class TopicService {
 
     }
 
-    private TopicStoreyMixedComponentResponse getMixedComponentContent(Integer id) {
-        MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
-        mixedComponentQueryRequest.setTopicStoreyId(id);
-        TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
-        return mixedComponent;
-    }
+//    private TopicStoreyMixedComponentResponse getMixedComponentContent(Integer id) {
+//        MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
+//        mixedComponentQueryRequest.setTopicStoreyId(id);
+//        TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
+//        return mixedComponent;
+//    }
 
     private Map<String, String> getUrlParams(String url) {
         Map<String, String> map = new HashMap<>();
