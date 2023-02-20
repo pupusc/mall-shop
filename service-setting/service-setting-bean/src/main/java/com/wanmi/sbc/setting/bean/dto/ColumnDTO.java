@@ -68,6 +68,8 @@ public class ColumnDTO implements Serializable {
 
     private Integer orderWay;
 
+    private String dropName;
+
     /**
      * 0-未开始 1-进行中 2-已结束
      */

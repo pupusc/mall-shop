@@ -28,6 +28,8 @@ public class MixedComponentTabDto implements Serializable {
 
     private String subName;
 
+    private String dropName;
+
     private SelectDto color;
 
     private SelectDto image;
@@ -51,6 +53,7 @@ public class MixedComponentTabDto implements Serializable {
         this.id = columnDTO.getId();
         this.name = columnDTO.getName();
         this.subName = columnDTO.getSubName();
+        this.dropName = columnDTO.getDropName();
         this.sorting = columnDTO.getOrderNum();
         this.startTime = columnDTO.getCreateTime();
         this.endTime = columnDTO.getEndTime();
