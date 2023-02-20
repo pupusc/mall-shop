@@ -207,28 +207,30 @@ public class TopicConfigService {
         rankRequests.forEach(r->{
             contentRequests.forEach(c->{
                 if(c.getTopicStoreySearchId().equals(r.getId())){
-                    Map map=new HashMap<>();
-                    map.put("id",c.getId());
-                    map.put("spuNo",c.getSpuNo());
-                    map.put("skuNo",c.getSkuNo());
-                    map.put("imageUrl",c.getImageUrl());
-                    map.put("sorting",c.getSorting());
-                    map.put("goodsName",c.getGoodsName());
-                    if(StringUtils.isNotBlank(c.getNumTxt())) {
-                        if (Integer.parseInt(c.getNumTxt()) >= 10000) {
-                            String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
-                            map.put("num", num);
+                    if(r.getRankList().size()<3) {
+                        Map map = new HashMap<>();
+                        map.put("id", c.getId());
+                        map.put("spuNo", c.getSpuNo());
+                        map.put("skuNo", c.getSkuNo());
+                        map.put("imageUrl", c.getImageUrl());
+                        map.put("sorting", c.getSorting());
+                        map.put("goodsName", c.getGoodsName());
+                        if (StringUtils.isNotBlank(c.getNumTxt())) {
+                            if (Integer.parseInt(c.getNumTxt()) >= 10000) {
+                                String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
+                                map.put("num", num);
+                            } else {
+                                map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                            }
                         } else {
-                            map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                            map.put("num", "");
                         }
-                    }else {
-                        map.put("num", "");
+                        map.put("skuId", c.getSkuId());
+                        map.put("spuId", c.getSpuId());
+                        map.put("label", "");
+                        map.put("subName", "");
+                        r.getRankList().add(map);
                     }
-                    map.put("skuId",c.getSkuId());
-                    map.put("spuId",c.getSpuId());
-                    map.put("label","");
-                    map.put("subName","");
-                    r.getRankList().add(map);
                 }
                 if(!idList.contains(c.getSkuId())) {
                     idList.add(c.getSkuId());
