@@ -146,6 +146,12 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public BaseResponse updateRankLevel(RankLevelUpdateRequest request) {
+        topicConfigService.updateRankLevel(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
         topicConfigService.updateStoreyColumn(request);
         return BaseResponse.SUCCESSFUL();

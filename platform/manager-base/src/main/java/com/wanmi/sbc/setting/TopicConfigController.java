@@ -258,6 +258,18 @@ public class TopicConfigController {
     }
 
     /**
+     * @description 榜单分类修改
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("榜单分类添加")
+    @PostMapping("/storey/v2/rank/level/update")
+    public BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request){
+        return topicConfigProvider.updateRankLevel(request);
+    }
+
+    /**
      * @description 楼层栏目修改
      * @menu 专题
      * @param request

@@ -687,6 +687,22 @@ public class TopicConfigService {
     }
 
     /**
+     * 榜单分类修改
+     * @param request
+     */
+    @SneakyThrows
+    public void updateRankLevel(RankLevelUpdateRequest request) {
+        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
+        topicStoreySearch.setId(request.getId());
+        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setEndTime(request.getEndTime());
+        topicStoreySearch.setOrderNum(request.getSorting());
+        topicStoreySearch.setName(request.getName());
+        topicStoreySearch.setPId(request.getPId());
+        updateUtil.partialUpdate(topicStoreySearch.getId(), topicStoreySearch, columnRepository);
+    }
+
+    /**
      * @Description 专栏调用
      * @Author zh
      * @Date  2023/2/8 09:54

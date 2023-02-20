@@ -154,6 +154,14 @@ public interface TopicConfigProvider {
     BaseResponse addRankLevel(@RequestBody RankLevelAddRequest request);
 
     /**
+     * @Description 榜单分类添加
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/level/update")
+    BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request);
+
+    /**
      * @Description topic_storey_column表add
      * @Author zh
      * @Date  2023/2/18 11:50
