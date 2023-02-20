@@ -4,8 +4,6 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnGoodsResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
@@ -205,7 +203,6 @@ public class TopicConfigController {
     /**
      * @description 删除楼层
      * @menu 专题
-     * @param request
      * @status undone
      */
     @ApiOperation("删除楼层")
@@ -334,5 +331,48 @@ public class TopicConfigController {
         return topicConfigProvider.deleteStoreyColumnGoods(request);
     }
 
+    /**
+     * @description 混合标签tab列表
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab列表")
+    @PostMapping("/storey/v2/tag/list")
+    public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request){
+        return topicConfigProvider.listMixedComponentTab(request);
+    }
+
+    /**
+     * @description 混合标签tab添加
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab添加")
+    @PostMapping("/storey/v2/tag/add")
+    public BaseResponse listMixedComponentTab(@RequestBody MixedComponentTabAddRequest request){
+        return topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest());
+    }
+
+    /**
+     * @description 混合标签tab修改
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab修改")
+    @PostMapping("/storey/v2/tag/update")
+    public BaseResponse updateMixedComponentTab(@RequestBody MixedComponentTabUpdateRequest request){
+        return topicConfigProvider.updateTopicStoreyColumn(request.getColumnUpdateRequest());
+    }
+
+    /**
+     * @description 混合标签tab状态修改
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab状态修改")
+    @PostMapping("/storey/v2/tag/enable")
+    public BaseResponse enableMixedComponentTab(@RequestBody ColumnEnableRequest request){
+        return topicConfigProvider.enableTopicStoreyColumn(request);
+    }
 
 }

@@ -89,4 +89,7 @@ public class TopicStoreyColumn {
 
     @Column(name = "order_way")
     private Integer orderWay;
+
+    @Column(name = "drop_name")
+    private String dropName;
 }

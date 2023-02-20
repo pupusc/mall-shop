@@ -3,8 +3,6 @@ package com.wanmi.sbc.setting.api.provider.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.setting.api.request.RankPageRequest;
-import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -120,9 +118,123 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getStoreyIdByType")
     List<TopicStoreyDTO> getStoreyIdByType(@RequestBody Integer storeyType);
 
-    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/mixedComponentContent")
-    BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(@RequestBody MixedComponentQueryRequest mixedComponentQueryRequest);
-
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getContentByStoreyId")
     List<TopicStoreyContentDTO> getContentByStoreyId(@RequestBody TopicStoreyContentRequest request);
+
+    /**
+     * @Description 混合标签tab列表
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
+    BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+
+    /**
+     * @Description 混合标签tab添加
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/add")
+    BaseResponse addMixedComponentTab(@RequestBody MixedComponentTabAddRequest request);
+
+    /**
+     * @Description topic_storey_column表list
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/list")
+    BaseResponse<MicroServicePage<ColumnDTO>> listTopicStoreyColumn(@RequestBody ColumnQueryRequest request);
+
+    /**
+     * @Description topic_storey_column表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/add")
+    BaseResponse addTopicStoreyColumn(@RequestBody ColumnAddRequest request);
+
+    /**
+     * @Description topic_storey_column表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/update")
+    BaseResponse updateTopicStoreyColumn(@RequestBody ColumnUpdateRequest request);
+
+    /**
+     * @Description topic_storey_column表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/enable")
+    BaseResponse enableTopicStoreyColumn(@RequestBody ColumnEnableRequest request);
+
+    /**
+     * @Description topic_storey_column表删除
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/delete")
+    BaseResponse deleteTopicStoreyColumn(@RequestParam("id") Integer id);
+
+    /**
+     * @Description topic_storey_column表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/getById")
+    BaseResponse<ColumnDTO> getTopicStoreyColumnById(@RequestParam("id") Integer id);
+
+    /**
+     * @Description topic_storey_column_content表list
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/list")
+    BaseResponse<MicroServicePage<ColumnContentDTO>> listTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
+
+    /**
+     * @Description topic_storey_column_content表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/add")
+    BaseResponse addTopicStoreyColumnContent(@RequestBody ColumnContentAddRequest request);
+
+    /**
+     * @Description topic_storey_column_content表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/update")
+    BaseResponse updateTopicStoreyColumnContent(@RequestBody ColumnContentUpdateRequest request);
+
+    /**
+     * @Description topic_storey_column_content表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/enable")
+    BaseResponse enableTopicStoreyColumnContent(@RequestBody ColumnContentEnableRequest request);
+
+    /**
+     * @Description topic_storey_column_content表删除
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/delete")
+    BaseResponse deleteTopicStoreyColumnContent(@RequestParam("id") Integer id);
+
+    /**
+     * @Description topic_storey_column_content表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/getById")
+    BaseResponse<ColumnContentDTO> getTopicStoreyColumnContentById(@RequestParam("id") Integer id);
+
+//    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/mixedComponentContent")
+//    BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(@RequestBody MixedComponentQueryRequest mixedComponentQueryRequest);
+
+
 }

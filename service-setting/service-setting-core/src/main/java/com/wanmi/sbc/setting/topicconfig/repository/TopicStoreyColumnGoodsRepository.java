@@ -1,6 +1,7 @@
 package com.wanmi.sbc.setting.topicconfig.repository;
 
 
+import com.wanmi.sbc.setting.api.request.topicconfig.ColumnContentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumnContent;
@@ -83,5 +84,42 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
 
     @Query("from TopicStoreyColumnContent w where w.topicStoreyId = ?1 and w.spuNo = ?2")
     List<TopicStoreyColumnContent> getById(Integer topicId, String spuNo);
+
+    default Specification<TopicStoreyColumnContent> topicStoreySearchContent(ColumnContentQueryRequest request) {
+        return (Specification<TopicStoreyColumnContent>) (root, criteriaQuery, criteriaBuilder) -> {
+            final List<Predicate> conditionList = new ArrayList<>();
+            conditionList.add(criteriaBuilder.equal(root.get("topicStoreySearchId"), request.getTopicStoreySearchId()));
+            if (request.getId() != null &&  !"".equals(request.getId())) {
+                conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
+            }
+            if (request.getGoodsName() != null &&  !"".equals(request.getGoodsName())) {
+                conditionList.add(criteriaBuilder.like(root.get("goods_name"), request.getGoodsName() + "%"));
+            }
+            if (request.getStartTime() != null) {
+                conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), request.getStartTime()));
+            }
+            if (request.getEndTime() != null) {
+                conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), request.getEndTime()));
+            }
+            if (request.getPublishState() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("deleted"), request.getPublishState()));
+            }
+            if(request.getState() != null){
+                LocalDateTime now = LocalDateTime.now();
+                if(request.getState() == 0){
+                    //未开始
+                    conditionList.add(criteriaBuilder.greaterThan(root.get("startTime"), now));
+                }else if(request.getState() == 1){
+                    //进行中
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("startTime"), now));
+                }else if(request.getState() == 2){
+                    //已结束
+                    conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
+                }
+            }
+            return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+        };
+    }
 
 }

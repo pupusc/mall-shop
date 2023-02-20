@@ -1,6 +1,7 @@
 package com.wanmi.sbc.setting.topicconfig.repository;
 
 
+import com.wanmi.sbc.setting.api.request.topicconfig.ColumnQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumn;
 import org.apache.commons.lang3.StringUtils;
@@ -102,6 +103,46 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
     @Modifying
     @Query("update TopicStoreyColumn T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")
     int enable(Integer id, Integer deleted);
+
+
+    /**
+     * @Description topic_storey_column表查询
+     * @Author zh
+     * @Date  2023/2/18 12:41
+     */
+    default Specification<TopicStoreyColumn> columnSearch(ColumnQueryRequest request) {
+        return (Specification<TopicStoreyColumn>) (root, criteriaQuery, criteriaBuilder) -> {
+            final List<Predicate> conditionList = new ArrayList<>();
+            conditionList.add(criteriaBuilder.equal(root.get("topicStoreyId"), request.getTopicStoreyId()));
+            if (request.getId() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
+            }
+            if (StringUtils.isNotEmpty(request.getName())) {
+                conditionList.add(criteriaBuilder.like(root.get("name"), request.getName() + "%"));
+            }
+            if (request.getLevel() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("level"), request.getLevel()));
+            }
+            if (request.getPublishState() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("deleted"), request.getPublishState()));
+            }
+            if(request.getState() != null){
+                LocalDateTime now = LocalDateTime.now();
+                if(request.getState() == 0){
+                    //未开始
+                    conditionList.add(criteriaBuilder.greaterThan(root.get("createTime"), now));
+                }else if(request.getState() == 1){
+                    //进行中
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"), now));
+                }else if(request.getState() == 2){
+                    //已结束
+                    conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
+                }
+            }
+            return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+        };
+    }
 
 
 }

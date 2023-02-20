@@ -1,7 +1,6 @@
 package com.wanmi.sbc.setting.api.response;
 
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

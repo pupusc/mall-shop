@@ -3,20 +3,14 @@ package com.wanmi.sbc.setting.provider.impl.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
-import com.wanmi.sbc.setting.api.request.RankPageRequest;
-import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.*;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
-import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreySearchContent;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -164,8 +158,6 @@ public class TopicConfigController implements TopicConfigProvider {
 
     @Override
     public BaseResponse<List<TopicStoreyColumnGoodsDTO>> listStoryColumnGoodsByIdAndSpu(TopicStoreyColumnGoodsQueryRequest request) {
-
-
         return BaseResponse.success(topicConfigService.listTopicStoreyColumnGoodsByIdAndSpu(request));
     }
 
@@ -194,11 +186,6 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
-    public BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(MixedComponentQueryRequest request) {
-        return BaseResponse.success(topicConfigService.getMixedComponent(request));
-    }
-
-    @Override
     public List<TopicStoreyDTO> getStoreyIdByType(Integer storeyType) {
         return topicConfigService.listTopicStoreyIdByType(storeyType);
     }
@@ -206,5 +193,154 @@ public class TopicConfigController implements TopicConfigProvider {
     @Override
     public List<TopicStoreyContentDTO> getContentByStoreyId(TopicStoreyContentRequest request) {
         return topicConfigService.listTopicStoreyContentByPage(request);
+    }
+
+    /**
+     * @Description 混合标签tab列表
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(MixedComponentTabQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listMixedComponentTab(request));
+    }
+
+    /**
+     * @Description 混合标签tab添加
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse addMixedComponentTab(MixedComponentTabAddRequest request) {
+        topicConfigService.addMixedComponentTab(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column表list
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<MicroServicePage<ColumnDTO>> listTopicStoreyColumn(ColumnQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listTopicStoreyColumn(request));
+    }
+
+    /**
+     * @Description topic_storey_column表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse addTopicStoreyColumn(ColumnAddRequest request) {
+        topicConfigService.addTopicStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column表更新
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse updateTopicStoreyColumn(ColumnUpdateRequest request) {
+        topicConfigService.updateTopicStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column表状态修改
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse enableTopicStoreyColumn(ColumnEnableRequest request) {
+        topicConfigService.enableTopicStoreyColumn(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column表删除
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse deleteTopicStoreyColumn(Integer id) {
+        topicConfigService.deleteTopicStoreyColumn(id);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<ColumnDTO> getTopicStoreyColumnById(Integer id) {
+        return BaseResponse.success(topicConfigService.getTopicStoreyColumnById(id));
+    }
+
+    /**
+     * @Description topic_storey_column_content表list
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<MicroServicePage<ColumnContentDTO>> listTopicStoreyColumnContent(ColumnContentQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listTopicStoreyColumnContent(request));
+    }
+
+    /**
+     * @Description topic_storey_column_content表add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse addTopicStoreyColumnContent(ColumnContentAddRequest request) {
+        topicConfigService.addTopicStoreyColumnContent(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column_content表更新
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse updateTopicStoreyColumnContent(ColumnContentUpdateRequest request) {
+        topicConfigService.updateTopicStoreyColumnContent(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column_content表状态修改
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse enableTopicStoreyColumnContent(ColumnContentEnableRequest request) {
+        topicConfigService.enableTopicStoreyColumnContent(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column_content表删除
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse deleteTopicStoreyColumnContent(Integer id) {
+        topicConfigService.deleteTopicStoreyColumnContent(id);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @Description topic_storey_column_content表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<ColumnContentDTO> getTopicStoreyColumnContentById(Integer id) {
+        return BaseResponse.success(topicConfigService.getTopicStoreyColumnContentById(id));
     }
 }

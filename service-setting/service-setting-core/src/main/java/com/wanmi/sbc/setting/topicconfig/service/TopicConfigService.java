@@ -16,7 +16,6 @@ import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
-import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
@@ -33,11 +32,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
@@ -60,9 +55,6 @@ public class TopicConfigService {
 
     @Autowired
     private TopicStoreyRepository storeyRepository;
-
-    @Autowired
-    private TopicStoreySearchRepository storeySearchRepository;
 
     @Autowired
     private TopicStoreyContentRepository contentRepository;
@@ -841,78 +833,78 @@ public class TopicConfigService {
     }
 
     //混合组件
-    public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
-        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
-        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearch.setDeleted(0);
-        List<TopicStoreyColumn> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
-                Sort.by(Sort.Direction.ASC, "orderNum"));
-        List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
-        MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request);
-        getMixedComponentContentPage(request, mixedComponentKeyWord);
-        TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse = new TopicStoreyMixedComponentResponse();
-        topicStoreyMixedComponentResponse.setMixedComponentTabs(mixedComponentTabs);
-        mixedComponentTabs.forEach(s -> {
-            if(request.getId().equals(s.getId())){
-                s.setMixedComponentKeyWord(mixedComponentKeyWord);
-            }
-        });
-        return topicStoreyMixedComponentResponse;
-    }
-
-    private void getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
-        if (request.getKeywordId() == null) {
-            request.setKeywordId(mixedComponentKeyWord.getKeyWord().stream().findFirst().get().getId());
-        }
-        List<Sort.Order> sortList = new ArrayList<>();
-        sortList.add(Sort.Order.asc("sorting"));
-        sortList.add(Sort.Order.asc("type"));
-        Page<TopicStoreyColumnContent> topicStoreySearchGoodsPage = columnGoodsRepository
-                .findAll(columnGoodsRepository.mixedComponentContent(request), PageRequest.of(request.getPageNum(),
-                        request.getPageSize(), Sort.by(sortList)));
-        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
-        topicStoreySearchContent.setTopicStoreySearchId(request.getKeywordId());
-        List<TopicStoreyColumnContent> goods = columnGoodsRepository.findAll(Example.of(topicStoreySearchContent), Sort.by(Sort.Direction.ASC, "sorting"));
-        List<TopicStoreyColumnContent> content = topicStoreySearchGoodsPage.getContent();
-        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
-        mixedComponentContentPage.setContent(content.stream().map(s -> {
-            MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto();
-            mixedComponentContentDto.setName(s.getTitle());
-            mixedComponentContentDto.setRecommend(s.getRecommend());
-            mixedComponentContentDto.setType(s.getType());
-            switch (s.getType()) {
-                case 1: //商品
-                    mixedComponentContentDto.setGoods(this.getGoods(s, null));
-                    break;
-                case 3: //视频
-                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
-                    mixedComponentContentDto.setImage(s.getImageUrl());
-                    mixedComponentContentDto.setVideo(s.getLinkUrl());
-                    break;
-                case 4: //广告
-                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
-                    mixedComponentContentDto.setImage(s.getImageUrl());
-                    mixedComponentContentDto.setUrl(s.getLinkUrl());
-                    break;
-                case 5: //指定内容
-                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
-                    mixedComponentContentDto.setTitleImage(s.getImageUrl());
-                    mixedComponentContentDto.setImage(s.getLinkUrl());
-                    break;
-                default:
-                    break;
-            }
-            BeanUtils.copyProperties(s, mixedComponentContentDto);
-            return mixedComponentContentDto;
-        }).collect(Collectors.toList()));
-        mixedComponentContentPage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
-        List<KeyWordDto> keyWord = mixedComponentKeyWord.getKeyWord();
-        keyWord.forEach(s -> {
-            if(request.getKeywordId().equals(s.getId())){
-                s.setMixedComponentContentPage(mixedComponentContentPage);
-            }
-        });
-    }
+//    public TopicStoreyMixedComponentResponse getMixedComponent(MixedComponentQueryRequest request) {
+//        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
+//        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
+//        topicStoreySearch.setDeleted(0);
+//        List<TopicStoreyColumn> topicStoreySearches = columnRepository.findAll(Example.of(topicStoreySearch),
+//                Sort.by(Sort.Direction.ASC, "orderNum"));
+//        List<MixedComponentTabDto> mixedComponentTabs = getMixedComponentTabs(topicStoreySearches);
+//        MixedComponentKeyWordsDto mixedComponentKeyWord = getMixedComponentKeyWord(topicStoreySearches, mixedComponentTabs, request);
+//        getMixedComponentContentPage(request, mixedComponentKeyWord);
+//        TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse = new TopicStoreyMixedComponentResponse();
+//        topicStoreyMixedComponentResponse.setMixedComponentTabs(mixedComponentTabs);
+//        mixedComponentTabs.forEach(s -> {
+//            if(request.getId().equals(s.getId())){
+//                s.setMixedComponentKeyWord(mixedComponentKeyWord);
+//            }
+//        });
+//        return topicStoreyMixedComponentResponse;
+//    }
+//
+//    private void getMixedComponentContentPage(MixedComponentQueryRequest request, MixedComponentKeyWordsDto mixedComponentKeyWord) {
+//        if (request.getKeywordId() == null) {
+//            request.setKeywordId(mixedComponentKeyWord.getKeyWord().stream().findFirst().get().getId());
+//        }
+//        List<Sort.Order> sortList = new ArrayList<>();
+//        sortList.add(Sort.Order.asc("sorting"));
+//        sortList.add(Sort.Order.asc("type"));
+//        Page<TopicStoreyColumnContent> topicStoreySearchGoodsPage = columnGoodsRepository
+//                .findAll(columnGoodsRepository.mixedComponentContent(request), PageRequest.of(request.getPageNum(),
+//                        request.getPageSize(), Sort.by(sortList)));
+//        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
+//        topicStoreySearchContent.setTopicStoreySearchId(request.getKeywordId());
+//        List<TopicStoreyColumnContent> goods = columnGoodsRepository.findAll(Example.of(topicStoreySearchContent), Sort.by(Sort.Direction.ASC, "sorting"));
+//        List<TopicStoreyColumnContent> content = topicStoreySearchGoodsPage.getContent();
+//        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
+//        mixedComponentContentPage.setContent(content.stream().map(s -> {
+//            MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto();
+//            mixedComponentContentDto.setName(s.getTitle());
+//            mixedComponentContentDto.setRecommend(s.getRecommend());
+//            mixedComponentContentDto.setType(s.getType());
+//            switch (s.getType()) {
+//                case 1: //商品
+//                    mixedComponentContentDto.setGoods(this.getGoods(s, null));
+//                    break;
+//                case 3: //视频
+//                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+//                    mixedComponentContentDto.setImage(s.getImageUrl());
+//                    mixedComponentContentDto.setVideo(s.getLinkUrl());
+//                    break;
+//                case 4: //广告
+//                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+//                    mixedComponentContentDto.setImage(s.getImageUrl());
+//                    mixedComponentContentDto.setUrl(s.getLinkUrl());
+//                    break;
+//                case 5: //指定内容
+//                    mixedComponentContentDto.setGoods(this.getGoods(s, goods));
+//                    mixedComponentContentDto.setTitleImage(s.getImageUrl());
+//                    mixedComponentContentDto.setImage(s.getLinkUrl());
+//                    break;
+//                default:
+//                    break;
+//            }
+//            BeanUtils.copyProperties(s, mixedComponentContentDto);
+//            return mixedComponentContentDto;
+//        }).collect(Collectors.toList()));
+//        mixedComponentContentPage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
+//        List<KeyWordDto> keyWord = mixedComponentKeyWord.getKeyWord();
+//        keyWord.forEach(s -> {
+//            if(request.getKeywordId().equals(s.getId())){
+//                s.setMixedComponentContentPage(mixedComponentContentPage);
+//            }
+//        });
+//    }
 
     //获取商品信息
     private List<GoodsDto> getGoods(TopicStoreyColumnContent content, List<TopicStoreyColumnContent> goods ) {
@@ -927,26 +919,26 @@ public class TopicConfigService {
         return goodsDtos;
     }
 
-    public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreyColumn> topicStoreySearches) {
-        return topicStoreySearches.stream().filter(s -> MixedComponentLevel.ONE.toValue().equals(s.getLevel())).map(s -> {
-                MixedComponentTabDto mixedComponentTabDto = new MixedComponentTabDto();
-                mixedComponentTabDto.setId(s.getId());
-                mixedComponentTabDto.setName(s.getName());
-                mixedComponentTabDto.setSubName(s.getSubName());
-                if (StringUtils.isNotEmpty(s.getColor())) {
-                    JSONObject color = JSON.parseObject(s.getColor());
-                    mixedComponentTabDto.setSelectedColor(color.getString("selected"));
-                    mixedComponentTabDto.setUnSelectedColor(color.getString("unselected"));
-                }
-                if (StringUtils.isNotEmpty(s.getImage())) {
-                    JSONObject image = JSON.parseObject(s.getImage());
-                    mixedComponentTabDto.setSelectedImage(image.getString("selected"));
-                    mixedComponentTabDto.setUnSelectedImage(image.getString("unselected"));
-                }
-
-            return mixedComponentTabDto;
-        }).collect(Collectors.toList());
-    }
+//    public List<MixedComponentTabDto> getMixedComponentTabs(List<TopicStoreyColumn> topicStoreySearches) {
+//        return topicStoreySearches.stream().filter(s -> MixedComponentLevel.ONE.toValue().equals(s.getLevel())).map(s -> {
+//                MixedComponentTabDto mixedComponentTabDto = new MixedComponentTabDto();
+//                mixedComponentTabDto.setId(s.getId());
+//                mixedComponentTabDto.setName(s.getName());
+//                mixedComponentTabDto.setSubName(s.getSubName());
+//                if (StringUtils.isNotEmpty(s.getColor())) {
+//                    JSONObject color = JSON.parseObject(s.getColor());
+//                    mixedComponentTabDto.setSelectedColor(color.getString("selected"));
+//                    mixedComponentTabDto.setUnSelectedColor(color.getString("unselected"));
+//                }
+//                if (StringUtils.isNotEmpty(s.getImage())) {
+//                    JSONObject image = JSON.parseObject(s.getImage());
+//                    mixedComponentTabDto.setSelectedImage(image.getString("selected"));
+//                    mixedComponentTabDto.setUnSelectedImage(image.getString("unselected"));
+//                }
+//
+//            return mixedComponentTabDto;
+//        }).collect(Collectors.toList());
+//    }
 
     public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreyColumn> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
         if (request.getId() == null) {
@@ -984,4 +976,207 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
         return collect;
     }
+
+    /**
+     * @Description 混合标签tab列表
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    public MicroServicePage<MixedComponentTabDto> listMixedComponentTab(MixedComponentTabQueryRequest request) {
+        ColumnQueryRequest columnQueryRequest = new ColumnQueryRequest();
+        BeanUtils.copyProperties(request, columnQueryRequest);
+        columnQueryRequest.setLevel(MixedComponentLevel.ONE.toValue());
+        MicroServicePage<ColumnDTO> columnDTOS = listTopicStoreyColumn(columnQueryRequest);
+        List<ColumnDTO> content = columnDTOS.getContent();
+        List<MixedComponentTabDto> collect = content.stream().map(s -> {
+            return new MixedComponentTabDto(s);
+        }).collect(Collectors.toList());
+        MicroServicePage<MixedComponentTabDto> mixedComponentTabDtos = new MicroServicePage<>();
+        mixedComponentTabDtos.setContent(collect);
+        mixedComponentTabDtos.setTotal(columnDTOS.getTotal());
+        return mixedComponentTabDtos;
+    }
+
+    /**
+     * @Description 混合标签tab添加
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    public void addMixedComponentTab(MixedComponentTabAddRequest request) {
+        ColumnAddRequest columnAddRequest = new ColumnAddRequest();
+        BeanUtils.copyProperties(request, columnAddRequest);
+        columnAddRequest.setCreateTime(request.getStartTime());
+        columnAddRequest.setOrderNum(request.getSorting());
+        addTopicStoreyColumn(columnAddRequest);
+    }
+
+    /**
+     * @Description topic_storey_column表list
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public MicroServicePage<ColumnDTO> listTopicStoreyColumn(ColumnQueryRequest request) {
+        List<Sort.Order> sortList = new ArrayList<>();
+        sortList.add(Sort.Order.asc("deleted"));
+        sortList.add(Sort.Order.asc("orderNum"));
+        Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
+                .findAll(columnRepository.columnSearch(request), PageRequest.of(request.getPageNum(),
+                        request.getPageSize(), Sort.by(sortList)));
+        List<TopicStoreyColumn> content = topicStoreySearchPage.getContent();
+        MicroServicePage<ColumnDTO> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
+        microServicePage.setContent(content.stream().map(topicStoreyColumn -> {
+            ColumnDTO columnDTO = new ColumnDTO(topicStoreyColumn.getCreateTime(),
+                    topicStoreyColumn.getEndTime(), topicStoreyColumn.getDeleted());
+            BeanUtils.copyProperties(topicStoreyColumn, columnDTO);
+            return columnDTO;
+        }).collect(Collectors.toList()));
+        return microServicePage;
+    }
+
+    /**
+     * @Description topic_storey_column表add
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public void addTopicStoreyColumn(ColumnAddRequest request) {
+        TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
+        BeanUtils.copyProperties(request, topicStoreyColumn);
+        topicStoreyColumn.setUpdateTime(LocalDateTime.now());
+        topicStoreyColumn.setColor(JSON.toJSONString(request.getColor()));
+        topicStoreyColumn.setImage(JSON.toJSONString(request.getImage()));
+        topicStoreyColumn.setDeleted(0);
+        columnRepository.save(topicStoreyColumn);
+    }
+
+    /**
+     * @Description topic_storey_column表update
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    @SneakyThrows
+    public void updateTopicStoreyColumn(ColumnUpdateRequest request) {
+        TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
+        BeanUtils.copyProperties(request, topicStoreyColumn);
+        topicStoreyColumn.setColor(request.getColor() != null ? JSON.toJSONString(request.getColor()) : null);
+        topicStoreyColumn.setImage(request.getImage() != null ? JSON.toJSONString(request.getImage()) : null);
+        updateUtil.partialUpdate(topicStoreyColumn.getId(), topicStoreyColumn, columnRepository);
+    }
+
+    /**
+     * @Description topic_storey_column表状态修改
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    @Transactional
+    public void enableTopicStoreyColumn(ColumnEnableRequest request) {
+        columnRepository.enable(request.getId(),request.getPublishState());
+    }
+
+    /**
+     * @Description topic_storey_column表删除
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public void deleteTopicStoreyColumn(Integer id) {
+        columnRepository.deleteById(id);
+    }
+
+    /**
+     * @Description topic_storey_column表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public ColumnDTO getTopicStoreyColumnById(Integer id) {
+        TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
+        topicStoreyColumn.setId(id);
+        topicStoreyColumn.setDeleted(0);
+        ColumnDTO columnDTO = new ColumnDTO();
+        BeanUtils.copyProperties(columnRepository.findOne(Example.of(topicStoreyColumn)), columnDTO);
+        return columnDTO;
+    }
+
+    /**
+     * @Description topic_storey_column_content表list
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public MicroServicePage<ColumnContentDTO> listTopicStoreyColumnContent(ColumnContentQueryRequest request) {
+        List<Sort.Order> sortList = new ArrayList<>();
+        sortList.add(Sort.Order.desc("deleted"));
+        sortList.add(Sort.Order.asc("orderNum"));
+        Page<TopicStoreyColumnContent> topicStoreySearchContentPage = columnGoodsRepository
+                .findAll(columnGoodsRepository.topicStoreySearchContent(request), PageRequest.of(request.getPageNum(),
+                        request.getPageSize(), Sort.by(sortList)));
+        List<TopicStoreyColumnContent> content = topicStoreySearchContentPage.getContent();
+        MicroServicePage<ColumnContentDTO> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(topicStoreySearchContentPage.getTotalElements());
+        microServicePage.setContent(content.stream().map(topicStoreyColumnContent -> {
+            ColumnContentDTO columnContentDTO = new ColumnContentDTO();
+            BeanUtils.copyProperties(topicStoreyColumnContent, columnContentDTO);
+            return columnContentDTO;
+        }).collect(Collectors.toList()));
+        return microServicePage;
+    }
+
+    /**
+     * @Description topic_storey_column_content表add
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public void addTopicStoreyColumnContent(ColumnContentAddRequest request) {
+        TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
+        BeanUtils.copyProperties(request, topicStoreyColumnContent);
+        topicStoreyColumnContent.setUpdateTime(LocalDateTime.now());
+        topicStoreyColumnContent.setDeleted(0);
+        columnGoodsRepository.save(topicStoreyColumnContent);
+    }
+
+    /**
+     * @Description topic_storey_column_content表update
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    @SneakyThrows
+    public void updateTopicStoreyColumnContent(ColumnContentUpdateRequest request) {
+        TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
+        BeanUtils.copyProperties(request, topicStoreyColumnContent);
+        updateUtil.partialUpdate(topicStoreyColumnContent.getId(), topicStoreyColumnContent, columnGoodsRepository);
+    }
+
+    /**
+     * @Description topic_storey_column_content表状态修改
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    @Transactional
+    public void enableTopicStoreyColumnContent(ColumnContentEnableRequest request) {
+        columnGoodsRepository.enable(request.getId(),request.getPublishState());
+    }
+
+
+    /**
+     * @Description topic_storey_column_content表删除
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public void deleteTopicStoreyColumnContent(Integer id) {
+        columnGoodsRepository.deleteById(id);
+    }
+
+    /**
+     * @Description topic_storey_column_content表根据id获取
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public ColumnContentDTO getTopicStoreyColumnContentById(Integer id) {
+        TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
+        topicStoreyColumnContent.setId(id);
+        topicStoreyColumnContent.setDeleted(0);
+        ColumnContentDTO columnContentDTO = new ColumnContentDTO();
+        BeanUtils.copyProperties(columnGoodsRepository.findOne(Example.of(topicStoreyColumnContent)), columnContentDTO);
+        return columnContentDTO;
+    }
+
+
 }
