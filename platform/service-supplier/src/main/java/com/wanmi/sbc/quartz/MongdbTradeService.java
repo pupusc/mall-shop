@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,15 +49,15 @@ public class MongdbTradeService {
         List<TradeItemVO> itemVOList=new ArrayList();
         tradeVOList.forEach(tradeVO -> {
             TradeOrderVO orderVO=new TradeOrderVO();
-            orderVO.setCustomer_id(tradeVO.getBuyer().getId());
-            orderVO.setCustomer_account(tradeVO.getBuyer().getAccount());
-            orderVO.setSupplier_id(tradeVO.getSupplier().getSupplierId());
-            orderVO.setStore_id(tradeVO.getSupplier().getStoreId());
-            orderVO.setAudit_state(tradeVO.getTradeState().getAuditState().getDescription());
-            orderVO.setFlow_state(tradeVO.getTradeState().getFlowState().getDescription());
-            orderVO.setPay_state(tradeVO.getTradeState().getPayState().getDescription());
-            orderVO.setDeliver_status(tradeVO.getTradeState().getDeliverStatus().getDescription());
-            orderVO.setCreate_time(StringUtil.getCurrentAllDate());
+            orderVO.setCustomerId(tradeVO.getBuyer().getId());
+            orderVO.setCustomerAccount(tradeVO.getBuyer().getAccount());
+            orderVO.setSupplierId(Integer.parseInt(tradeVO.getSupplier().getSupplierId().toString()));
+            orderVO.setStoreId(Integer.parseInt(tradeVO.getSupplier().getStoreId().toString()));
+            orderVO.setAuditState(tradeVO.getTradeState().getAuditState().getDescription());
+            orderVO.setFlowState(tradeVO.getTradeState().getFlowState().getDescription());
+            orderVO.setPayState(tradeVO.getTradeState().getPayState().getDescription());
+            orderVO.setDeliverStatus(tradeVO.getTradeState().getDeliverStatus().getDescription());
+            orderVO.setCreateTime(LocalDateTime.now());
             //
         });
         for (TradeVO tradeVO:tradeVOList){

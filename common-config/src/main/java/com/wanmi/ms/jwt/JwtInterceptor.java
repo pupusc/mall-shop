@@ -132,6 +132,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/freight/getFreightPriceList")
                     || requestURI.startsWith("/default_search_terms/v2")
                     || requestURI.startsWith("/windows/v2")
+                    || requestURI.startsWith("/order-trade")
             ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);

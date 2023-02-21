@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -16,37 +17,37 @@ import java.io.Serializable;
 @ApiModel
 public class TradeOrderVO implements Serializable {
 
-    private String trade_order_id;
+    private String tradeOrderId;
 
-    private String customer_id;
+    private String customerId;
 
-    private String customer_account;
+    private String customerAccount;
 
-    private Long supplier_id;
+    private Integer supplierId;
 
-    private Long store_id;
+    private Integer storeId;
 
-    private String audit_state;
+    private String auditState;
 
-    private String flow_state;
+    private String flowState;
 
-    private String pay_state;
+    private String payState;
 
-    private String deliver_status;
+    private String deliverStatus;
 
-    private String create_time;
+    private LocalDateTime createTime;
 
-    private String oid;
+    private String oId;
 
-    private String spu_id;
+    private String spuId;
 
-    private String sku_id;
+    private String skuId;
 
-    private String sku_name;
+    private String skuName;
 
-    private String sku_no;
+    private String skuNo;
 
-    private int cate_id;
+    private Integer cateId;
 
-    private int brand_id;
+    private Integer brandId;
 }
