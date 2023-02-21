@@ -40,7 +40,7 @@ public class MongdbTradeService {
     @Autowired
     private CommonUtil commonUtil;
     //获取list
-    public List<GoodsMonthRequest> getList() {
+    public List<GoodsMonthRequest> getOrdeerGoodsList() {
         TradeQueryDTO tradeQueryRequest=new TradeQueryDTO();
 //        tradeQueryRequest.setBeginTime("2023-01-01");
 //        tradeQueryRequest.setEndTime("2023-02-01");
@@ -69,31 +69,33 @@ public class MongdbTradeService {
             tradeQueryRequest.setPageNum(tradeQueryRequest.getPageNum()+1);
         }
         itemVOList.forEach(i->{
-                if(CollectionUtils.isNotEmpty(requests)){
-                    AtomicBoolean flag= new AtomicBoolean(false);
-                    requests.stream().filter(r->r.getGoodsInfoId().equals(i.getSpuId())).forEach(r->{
-                            r.setPayMoney(r.getPayMoney().add(i.getPrice().multiply(BigDecimal.valueOf(i.getNum()))));
-                            r.setPayNum(r.getPayNum().add(BigDecimal.valueOf(i.getNum())));
-                            flag.set(true);
+            if(!i.getPrice().equals(BigDecimal.ZERO)||!i.getNum().equals(BigDecimal.ZERO)) {
+                if (CollectionUtils.isNotEmpty(requests)) {
+                    AtomicBoolean flag = new AtomicBoolean(false);
+                    requests.stream().filter(r -> r.getGoodsInfoId().equals(i.getSpuId())).forEach(r -> {
+                        r.setPayMoney(r.getPayMoney().add(i.getPrice().multiply(BigDecimal.valueOf(i.getNum()))));
+                        r.setPayNum(r.getPayNum().add(BigDecimal.valueOf(i.getNum())));
+                        flag.set(true);
                     });
-                    if(!flag.get()){
-                        GoodsMonthRequest request=new GoodsMonthRequest();
-                        request.setId(dateId+"-"+i.getSpuId());
+                    if (!flag.get()) {
+                        GoodsMonthRequest request = new GoodsMonthRequest();
+                        request.setId(dateId + "-" + i.getSpuId());
                         request.setGoodsInfoId(i.getSpuId());
-                        request.setPayMoney(BigDecimal.ZERO);
-                        request.setPayNum(BigDecimal.ZERO);
+                        request.setPayMoney(i.getPrice().multiply(BigDecimal.valueOf(i.getNum())));
+                        request.setPayNum(BigDecimal.valueOf(i.getNum()));
                         request.setCreatTM(LocalDateTime.now());
                         requests.add(request);
                     }
-                }else {
-                    GoodsMonthRequest request=new GoodsMonthRequest();
-                    request.setId(dateId+"-"+i.getSpuId());
+                } else {
+                    GoodsMonthRequest request = new GoodsMonthRequest();
+                    request.setId(dateId + "-" + i.getSpuId());
                     request.setGoodsInfoId(i.getSpuId());
-                    request.setPayMoney(BigDecimal.ZERO);
-                    request.setPayNum(BigDecimal.ZERO);
+                    request.setPayMoney(i.getPrice().multiply(BigDecimal.valueOf(i.getNum())));
+                    request.setPayNum(BigDecimal.valueOf(i.getNum()));
                     request.setCreatTM(LocalDateTime.now());
                     requests.add(request);
                 }
+            }
         });
         return requests;
     }

@@ -7,12 +7,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "trade_order")
+@Table(name = "goods_month")
 @Entity
 public class GoodsMonth {
     @Id
     @Column(name = "ID")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
     @Column(name = "GOODS_INFO_ID")
