@@ -534,4 +534,43 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
     }
 
 
+    /**
+     * 关键词搜索
+     * @param req
+     * @return
+     */
+    public EsSpuNewAggResp<List<EsSpuNewResp>> listKeyWorldEsSpu_v2(EsKeyWordSpuNewQueryProviderReq req) {
+        NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
+        builder.withIndices(AbstractCollectFactory.INDEX_ES_SPU_NEW);
+
+        //分页 从0开始
+        req.setPageNum(Math.max((req.getPageNum() - 1), 0));
+        builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
+
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryCondition(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.MULTIPLY);
+
+
+        //查询 条件
+        builder.withQuery(functionScoreQueryBuilder);
+
+        //聚合
+        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations(/*context*/)) {
+            builder.addAggregation(packageAggregation);
+        }
+
+        //排序
+        for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
+            builder.withSort(fieldSortBuilder);
+        }
+
+
+
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsBookListModelService.listKeyWorldEsSpu DSL: {}", build.getQuery().toString());
+        AggregatedPage<EsSpuNew> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsSpuNew.class);
+
+//        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+        return super.packageEsSpuNewAggResp(resultQueryPage, req);
+    }
+
 }
