@@ -195,6 +195,7 @@ public class TopicConfigService {
         List<TopicStoreySearch> list=getRankNameList(topicStoreyId,true);
         List<TopicStoreySearchContent> resultList = query.getResultList();
         List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
+        entityManager.close();
         List<RankRequest> rankRequests=new ArrayList<>();
         RankRequestListResponse response=new RankRequestListResponse();
         List<String> idList=new ArrayList<>();
@@ -285,6 +286,7 @@ public class TopicConfigService {
         query2.setParameter(2,start);
         query2.setParameter(3,storeyRequest.getPageSize());
         List<TopicStoreySearchContent> resultList = query2.getResultList();
+        entityManager.close();
 
         List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
         List<String> idList=new ArrayList<>();
@@ -378,7 +380,7 @@ public class TopicConfigService {
         query2.setParameter(2,start);
         query2.setParameter(3,storeyRequest.getPageSize());
         List<TopicStoreySearchContent> resultList = query2.getResultList();
-
+        entityManager.close();
         List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
         List<String> idList=new ArrayList<>();
         requests.forEach(r->{
@@ -432,6 +434,7 @@ public class TopicConfigService {
         Query query = entityManager.createNativeQuery(sql);
         query.setParameter(1,"185");
         List<Integer> resultList = query.getResultList();
+        entityManager.close();
         return resultList;
     }
 
@@ -449,6 +452,7 @@ public class TopicConfigService {
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql);
         Integer id = Integer.parseInt(query.getSingleResult().toString());
+        entityManager.close();
         return id;
     }
 
@@ -468,6 +472,7 @@ public class TopicConfigService {
         Query query = entityManager.createNativeQuery(sql);
         query.setParameter(1,topicStoreyId);
         Integer id = Integer.parseInt(query.getSingleResult().toString());
+        entityManager.close();
         return id;
     }
 
@@ -481,6 +486,7 @@ public class TopicConfigService {
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearch.class);
         query.setParameter(1,topicStoreyId);
         List<TopicStoreySearch> list=query.getResultList();
+        entityManager.close();
         return list;
     }
 
@@ -494,6 +500,7 @@ public class TopicConfigService {
         Query query = entityManager.createNativeQuery(sql,TopicStoreySearch.class);
         query.setParameter(1,topicStoreyId);
         List<TopicStoreySearch> list=query.getResultList();
+        entityManager.close();
         List<RankRequest> rankRequests=new ArrayList<>();
         List<Integer> dislodgeBlankRankList = dislodgeBlankRank();
         list.forEach(l->{
