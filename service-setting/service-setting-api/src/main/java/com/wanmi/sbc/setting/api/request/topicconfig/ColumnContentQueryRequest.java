@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -79,6 +80,10 @@ public class ColumnContentQueryRequest implements Serializable {
     private String numTxt;
 
     private String showLabeTxt;
+
+    private BigDecimal marketPrice;
+
+    private Integer goodsStatus;
 
     /**
      * 0-未开始 1-进行中 2-已结束

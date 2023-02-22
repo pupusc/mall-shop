@@ -207,28 +207,30 @@ public class TopicConfigService {
         rankRequests.forEach(r->{
             contentRequests.forEach(c->{
                 if(c.getTopicStoreySearchId().equals(r.getId())){
-                    Map map=new HashMap<>();
-                    map.put("id",c.getId());
-                    map.put("spuNo",c.getSpuNo());
-                    map.put("skuNo",c.getSkuNo());
-                    map.put("imageUrl",c.getImageUrl());
-                    map.put("sorting",c.getSorting());
-                    map.put("goodsName",c.getGoodsName());
-                    if(StringUtils.isNotBlank(c.getNumTxt())) {
-                        if (Integer.parseInt(c.getNumTxt()) >= 10000) {
-                            String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
-                            map.put("num", num);
+                    if(r.getRankList().size()<3) {
+                        Map map = new HashMap<>();
+                        map.put("id", c.getId());
+                        map.put("spuNo", c.getSpuNo());
+                        map.put("skuNo", c.getSkuNo());
+                        map.put("imageUrl", c.getImageUrl());
+                        map.put("sorting", c.getSorting());
+                        map.put("goodsName", c.getGoodsName());
+                        if (StringUtils.isNotBlank(c.getNumTxt())) {
+                            if (Integer.parseInt(c.getNumTxt()) >= 10000) {
+                                String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
+                                map.put("num", num);
+                            } else {
+                                map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                            }
                         } else {
-                            map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                            map.put("num", "");
                         }
-                    }else {
-                        map.put("num", "");
+                        map.put("skuId", c.getSkuId());
+                        map.put("spuId", c.getSpuId());
+                        map.put("label", "");
+                        map.put("subName", "");
+                        r.getRankList().add(map);
                     }
-                    map.put("skuId",c.getSkuId());
-                    map.put("spuId",c.getSpuId());
-                    map.put("label","");
-                    map.put("subName","");
-                    r.getRankList().add(map);
                 }
                 if(!idList.contains(c.getSkuId())) {
                     idList.add(c.getSkuId());
@@ -1021,7 +1023,6 @@ public class TopicConfigService {
     public MicroServicePage<MixedComponentTabDto> listMixedComponentTab(MixedComponentTabQueryRequest request) {
         ColumnQueryRequest columnQueryRequest = new ColumnQueryRequest();
         BeanUtils.copyProperties(request, columnQueryRequest);
-        columnQueryRequest.setLevel(MixedComponentLevel.ONE.toValue());
         MicroServicePage<ColumnDTO> columnDTOS = listTopicStoreyColumn(columnQueryRequest);
         List<ColumnDTO> content = columnDTOS.getContent();
         List<MixedComponentTabDto> collect = content.stream().map(s -> {
@@ -1039,11 +1040,11 @@ public class TopicConfigService {
      * @Date  2023/2/18 11:50
      */
     public void addMixedComponentTab(MixedComponentTabAddRequest request) {
-        ColumnAddRequest columnAddRequest = new ColumnAddRequest();
-        BeanUtils.copyProperties(request, columnAddRequest);
-        columnAddRequest.setCreateTime(request.getStartTime());
-        columnAddRequest.setOrderNum(request.getSorting());
-        addTopicStoreyColumn(columnAddRequest);
+//        ColumnAddRequest columnAddRequest = new ColumnAddRequest();
+//        BeanUtils.copyProperties(request, columnAddRequest);
+//        columnAddRequest.setCreateTime(request.getStartTime());
+//        columnAddRequest.setOrderNum(request.getSorting());
+        addTopicStoreyColumn(request.getColumnAddRequest());
     }
 
     /**
@@ -1075,14 +1076,15 @@ public class TopicConfigService {
      * @Author zh
      * @Date  2023/2/18 12:53
      */
-    public void addTopicStoreyColumn(ColumnAddRequest request) {
+    public TopicStoreyColumn addTopicStoreyColumn(ColumnAddRequest request) {
         TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
         BeanUtils.copyProperties(request, topicStoreyColumn);
         topicStoreyColumn.setUpdateTime(LocalDateTime.now());
         topicStoreyColumn.setColor(JSON.toJSONString(request.getColor()));
         topicStoreyColumn.setImage(JSON.toJSONString(request.getImage()));
         topicStoreyColumn.setDeleted(0);
-        columnRepository.save(topicStoreyColumn);
+        TopicStoreyColumn column = columnRepository.save(topicStoreyColumn);
+        return column;
     }
 
     /**

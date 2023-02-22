@@ -77,6 +77,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import springfox.documentation.spring.web.json.Json;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -279,6 +281,7 @@ public class TopicService {
                             map.put("subName",g.getGoodsSubName());
                             map.put("showPrice",g.getShowPrice());
                             map.put("linePrice",g.getLinePrice());
+                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
                             map.put("stock",g.getStock());
                             map.put("author",g.getGoodsExtProperties().getAuthor());
                             map.put("publisher",g.getGoodsExtProperties().getPublisher());
@@ -372,6 +375,7 @@ public class TopicService {
                                 m.put("subName", g.getGoodsSubName());
                                 m.put("showPrice",g.getShowPrice());
                                 m.put("linePrice",g.getLinePrice());
+                                m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
                                 m.put("stock",g.getStock());
                                 m.put("author",g.getGoodsExtProperties().getAuthor());
                                 m.put("publisher",g.getGoodsExtProperties().getPublisher());

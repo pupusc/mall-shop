@@ -15,6 +15,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -122,30 +123,6 @@ public interface TopicConfigProvider {
     List<TopicStoreyContentDTO> getContentByStoreyId(@RequestBody TopicStoreyContentRequest request);
 
     /**
-     * @Description 混合标签tab列表
-     * @Author zh
-     * @Date  2023/2/18 11:50
-     */
-    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
-    BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
-
-    /**
-     * @Description 混合标签tab添加
-     * @Author zh
-     * @Date  2023/2/18 11:50
-     */
-    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/add")
-    BaseResponse addMixedComponentTab(@RequestBody MixedComponentTabAddRequest request);
-
-    /**
-     * @Description topic_storey_column表list
-     * @Author zh
-     * @Date  2023/2/18 11:50
-     */
-    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/list")
-    BaseResponse<MicroServicePage<ColumnDTO>> listTopicStoreyColumn(@RequestBody ColumnQueryRequest request);
-
-    /**
      * @Description 榜单分类添加
      * @Author
      * @Date  2023/2/18 11:50
@@ -162,6 +139,30 @@ public interface TopicConfigProvider {
     BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request);
 
     /**
+     * @Description 混合标签tab列表
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
+    BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+
+    /**
+     * @Description 商品池add
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnGoods/add")
+    BaseResponse addTopicStoreyColumnGoods(@RequestBody MixedComponentGoodsAddRequest request, @RequestParam(value="file") MultipartFile file);
+
+    /**
+     * @Description topic_storey_column表list
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumn/list")
+    BaseResponse<MicroServicePage<ColumnDTO>> listTopicStoreyColumn(@RequestBody ColumnQueryRequest request);
+
+    /**
      * @Description topic_storey_column表add
      * @Author zh
      * @Date  2023/2/18 11:50
@@ -170,7 +171,7 @@ public interface TopicConfigProvider {
     BaseResponse addTopicStoreyColumn(@RequestBody ColumnAddRequest request);
 
     /**
-     * @Description topic_storey_column表add
+     * @Description topic_storey_column表update
      * @Author zh
      * @Date  2023/2/18 11:50
      */
@@ -178,7 +179,7 @@ public interface TopicConfigProvider {
     BaseResponse updateTopicStoreyColumn(@RequestBody ColumnUpdateRequest request);
 
     /**
-     * @Description topic_storey_column表add
+     * @Description topic_storey_column表状态更新
      * @Author zh
      * @Date  2023/2/18 11:50
      */
@@ -218,7 +219,7 @@ public interface TopicConfigProvider {
     BaseResponse addTopicStoreyColumnContent(@RequestBody ColumnContentAddRequest request);
 
     /**
-     * @Description topic_storey_column_content表add
+     * @Description topic_storey_column_content表更新
      * @Author zh
      * @Date  2023/2/18 11:50
      */
@@ -226,7 +227,7 @@ public interface TopicConfigProvider {
     BaseResponse updateTopicStoreyColumnContent(@RequestBody ColumnContentUpdateRequest request);
 
     /**
-     * @Description topic_storey_column_content表add
+     * @Description topic_storey_column_content表状态修改
      * @Author zh
      * @Date  2023/2/18 11:50
      */
@@ -248,9 +249,5 @@ public interface TopicConfigProvider {
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/getById")
     BaseResponse<ColumnContentDTO> getTopicStoreyColumnContentById(@RequestParam("id") Integer id);
-
-//    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/mixedComponentContent")
-//    BaseResponse<TopicStoreyMixedComponentResponse> mixedComponentContent(@RequestBody MixedComponentQueryRequest mixedComponentQueryRequest);
-
 
 }

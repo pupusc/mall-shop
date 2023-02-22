@@ -21,14 +21,13 @@ import java.util.stream.Collectors;
  */
 @Data
 @ApiModel
-public class MixedComponentTabDto implements Serializable {
-    private static final long serialVersionUID = 1817873869725056066L;
+public class MixedComponentDto implements Serializable {
 
     private Integer id;
 
-    private String name;
+    private String psuId;
 
-    private String subName;
+    private String goodsName;
 
     private String dropName;
 
@@ -53,22 +52,6 @@ public class MixedComponentTabDto implements Serializable {
 
     private List<KeyWordsDto> keywords;
 
-    public MixedComponentTabDto(ColumnDTO columnDTO) {
-        this.id = columnDTO.getId();
-        this.name = columnDTO.getName();
-        this.subName = columnDTO.getSubName();
-        this.dropName = columnDTO.getDropName();
-        this.sorting = columnDTO.getOrderNum();
-        this.startTime = columnDTO.getCreateTime();
-        this.endTime = columnDTO.getEndTime();
-        this.publishState = columnDTO.getDeleted();
-        this.color = JSON.parseObject(columnDTO.getColor(), SelectDto.class);
-        this.image = JSON.parseObject(columnDTO.getImage(), SelectDto.class);
-        List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);
-        this.keywords = keyWordsDtos != null ? keyWordsDtos.stream().sorted(Comparator.comparing(KeyWordsDto::getSort))
-                .collect(Collectors.toList()) : null;
-    }
-
-    public MixedComponentTabDto() {
+    public MixedComponentDto() {
     }
 }

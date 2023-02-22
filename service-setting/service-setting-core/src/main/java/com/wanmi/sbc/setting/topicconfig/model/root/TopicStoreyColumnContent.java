@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -107,4 +108,14 @@ public class TopicStoreyColumnContent {
 
     @Column(name = "show_label_txt")
     private String showLabeTxt;
+
+    @Column(name = "market_price")
+    private BigDecimal marketPrice;
+
+    @Column(name = "goods_status")
+    private Integer goodsStatus;
+
+    @Column(name = "image_id")
+    private Long imageId;
+
 }

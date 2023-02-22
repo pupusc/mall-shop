@@ -1,4 +1,4 @@
-package com.wanmi.sbc.quartz;
+package com.wanmi.sbc.order.service;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -12,18 +12,23 @@ import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.bean.enums.QueryOrderType;
 import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.setting.api.request.tradeOrder.GoodsMonthRequest;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.utils.DateUtil;
+import com.wanmi.sbc.utils.GoodsDateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,35 +40,64 @@ public class MongdbTradeService {
     @Autowired
     private CommonUtil commonUtil;
     //获取list
-    public List<TradeItemVO> getList(String orderTime, int pageSize) {
+    public List<GoodsMonthRequest> getOrdeerGoodsList() {
         TradeQueryDTO tradeQueryRequest=new TradeQueryDTO();
-        tradeQueryRequest.setBeginTime("2023-01-01");
-        tradeQueryRequest.setEndTime("2023-02-01");
+//        tradeQueryRequest.setBeginTime("2023-01-01");
+//        tradeQueryRequest.setEndTime("2023-02-01");
+
+        LocalDate localDate = LocalDate.now();
+        LocalDate beforeDate = localDate.minusMonths(1);
+        String date = GoodsDateUtil.getDay(1);
+        String beginTime = DateUtil.format(LocalDate.of(beforeDate.getYear(), beforeDate.getMonth(), 1),DateUtil.FMT_DATE_1);//前一个月
+        String endTime = DateUtil.format(LocalDate.of(localDate.getYear(), localDate.getMonth(), 1),DateUtil.FMT_DATE_1);//本月第一天
+        String dateId=DateUtil.format(LocalDate.of(localDate.getYear(), localDate.getMonth(), 1),DateUtil.FMT_MONTH_1);
+
+        tradeQueryRequest.setBeginTime(beginTime);
+        tradeQueryRequest.setEndTime(endTime);
         tradeQueryRequest.setPageNum(0);
         tradeQueryRequest.setPageSize(100);
         TradeStateDTO stateDTO=new TradeStateDTO();
         stateDTO.setPayState(PayState.PAID);
         tradeQueryRequest.setTradeState(stateDTO);
-        BaseResponse<MicroServicePage<TradeVO>> supplierPage = supplierPage(tradeQueryRequest);
-        List<TradeVO> tradeVOList = supplierPage.getContext().getContent();
         List<TradeItemVO> itemVOList=new ArrayList();
-        tradeVOList.forEach(tradeVO -> {
-            TradeOrderVO orderVO=new TradeOrderVO();
-            orderVO.setCustomerId(tradeVO.getBuyer().getId());
-            orderVO.setCustomerAccount(tradeVO.getBuyer().getAccount());
-            orderVO.setSupplierId(Integer.parseInt(tradeVO.getSupplier().getSupplierId().toString()));
-            orderVO.setStoreId(Integer.parseInt(tradeVO.getSupplier().getStoreId().toString()));
-            orderVO.setAuditState(tradeVO.getTradeState().getAuditState().getDescription());
-            orderVO.setFlowState(tradeVO.getTradeState().getFlowState().getDescription());
-            orderVO.setPayState(tradeVO.getTradeState().getPayState().getDescription());
-            orderVO.setDeliverStatus(tradeVO.getTradeState().getDeliverStatus().getDescription());
-            orderVO.setCreateTime(LocalDateTime.now());
-            //
-        });
-        for (TradeVO tradeVO:tradeVOList){
-            itemVOList.addAll(tradeVO.getTradeItems());
+        List<GoodsMonthRequest> requests=new ArrayList<>();
+        int totalPages = supplierPage(tradeQueryRequest).getContext().getTotalPages();;
+        while (tradeQueryRequest.getPageNum()<=totalPages){
+            BaseResponse<MicroServicePage<TradeVO>> supplierPage =supplierPage(tradeQueryRequest);
+            List<TradeVO> tradeVOList = supplierPage.getContext().getContent();
+            tradeVOList.stream().filter(t->t.getTradeState().getPayState().getStateId().equals("PAID")).forEach(tradeVO -> {itemVOList.addAll(tradeVO.getTradeItems());});
+            tradeQueryRequest.setPageNum(tradeQueryRequest.getPageNum()+1);
         }
-        return itemVOList;
+        itemVOList.forEach(i->{
+            if(!i.getPrice().equals(BigDecimal.ZERO)||!i.getNum().equals(BigDecimal.ZERO)) {
+                if (CollectionUtils.isNotEmpty(requests)) {
+                    AtomicBoolean flag = new AtomicBoolean(false);
+                    requests.stream().filter(r -> r.getGoodsInfoId().equals(i.getSpuId())).forEach(r -> {
+                        r.setPayMoney(r.getPayMoney().add(i.getPrice().multiply(BigDecimal.valueOf(i.getNum()))));
+                        r.setPayNum(r.getPayNum().add(BigDecimal.valueOf(i.getNum())));
+                        flag.set(true);
+                    });
+                    if (!flag.get()) {
+                        GoodsMonthRequest request = new GoodsMonthRequest();
+                        request.setId(dateId + "-" + i.getSpuId());
+                        request.setGoodsInfoId(i.getSpuId());
+                        request.setPayMoney(i.getPrice().multiply(BigDecimal.valueOf(i.getNum())));
+                        request.setPayNum(BigDecimal.valueOf(i.getNum()));
+                        request.setCreatTM(LocalDateTime.now());
+                        requests.add(request);
+                    }
+                } else {
+                    GoodsMonthRequest request = new GoodsMonthRequest();
+                    request.setId(dateId + "-" + i.getSpuId());
+                    request.setGoodsInfoId(i.getSpuId());
+                    request.setPayMoney(i.getPrice().multiply(BigDecimal.valueOf(i.getNum())));
+                    request.setPayNum(BigDecimal.valueOf(i.getNum()));
+                    request.setCreatTM(LocalDateTime.now());
+                    requests.add(request);
+                }
+            }
+        });
+        return requests;
     }
 
     public BaseResponse<MicroServicePage<TradeVO>> supplierPage(TradeQueryDTO tradeQueryRequest) {
@@ -120,4 +154,5 @@ public class MongdbTradeService {
         });
         return BaseResponse.success(microServicePage);
     }
+
 }
