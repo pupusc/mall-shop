@@ -417,5 +417,8 @@
         update meta_book set del_flag = del_flag where id = #{id}
     </update>
 
+    <select id="getAllBook" resultType="Map">
+        select id,name from meta_book book
+    </select>
 </mapper>
 

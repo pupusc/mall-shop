@@ -319,5 +319,9 @@
             #{pid}
         </foreach>
     </select>
+
+    <select id="getAllLabel" resultType="Map">
+        select id,name from meta_label label
+    </select>
 </mapper>
 

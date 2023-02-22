@@ -79,4 +79,9 @@ public interface MetaBookProvider {
     @PostMapping("/goods/${application.goods.version}/metaBook/queryBookLable")
     List<Map> queryBookLable();
 
+    /**查询所有book
+     */
+    @PostMapping("/goods/${application.goods.version}/metaBook/queryBook")
+    List<Map> queryAllBook();
+
 }

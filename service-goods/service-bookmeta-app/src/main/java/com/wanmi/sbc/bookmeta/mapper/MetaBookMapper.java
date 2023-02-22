@@ -9,6 +9,7 @@ import tk.mybatis.mapper.common.Mapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 书籍(MetaBook)表数据库访问层
@@ -147,6 +148,11 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      */
     Boolean updateDelflag(@Param("id") Integer id);
 
+    /**
+     *
+     * @return
+     */
+    List<Map> getAllBook();
 
 }
 
