@@ -26,6 +26,7 @@ import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.*;
 import com.wanmi.sbc.setting.topicconfig.repository.*;
 import com.wanmi.sbc.setting.util.PartialUpdateUtil;
+import io.swagger.models.auth.In;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -422,6 +423,18 @@ public class TopicConfigService {
         return response;
     }
 
+    /**
+     * 去除空榜单
+     */
+    public List<Integer> dislodgeBlankRank(){
+        String sql = "select distinct topic_storey_column_id from topic_storey_column_content where topic_storey_id=?1";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1,"185");
+        List<Integer> resultList = query.getResultList();
+        return resultList;
+    }
+
     public Integer getRankId(){
         String sql = "SELECT\n" +
                 "\tss.relation_store_id AS r_id\n" +
@@ -482,6 +495,7 @@ public class TopicConfigService {
         query.setParameter(1,topicStoreyId);
         List<TopicStoreySearch> list=query.getResultList();
         List<RankRequest> rankRequests=new ArrayList<>();
+        List<Integer> dislodgeBlankRankList = dislodgeBlankRank();
         list.forEach(l->{
             if(null==l.getPId()||l.getLevel().equals(0)){
                 RankRequest rankRequest=new RankRequest();
@@ -493,7 +507,7 @@ public class TopicConfigService {
                 rankRequests.add(rankRequest);
             }
         });
-        list.stream().filter(l->null!=l.getPId()&&!l.getLevel().equals(0)).forEach(l->{
+        list.stream().filter(l->null!=l.getPId()&&!l.getLevel().equals(0)&&dislodgeBlankRankList.contains(l.getId())).forEach(l->{
             rankRequests.stream().filter(r->r.getId().equals(l.getPId())).forEach(r->{
                 RankRequest rankRequest=new RankRequest();
                 rankRequest.setRankName(l.getName());
@@ -505,6 +519,13 @@ public class TopicConfigService {
                 r.getRankList().add(rankRequest);
             });
         });
+        Iterator<RankRequest> iterator= rankRequests.iterator();
+        while (iterator.hasNext()){
+            RankRequest next = iterator.next();
+            if(CollectionUtils.isEmpty(next.getRankList())){
+                iterator.remove();
+            }
+        }
         return rankRequests;
     }
 
