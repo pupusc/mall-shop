@@ -366,12 +366,12 @@ public class TopicConfigService {
             storeyRequest.setPageSize(10);
         }
         if(null==storeyRequest.getPageNum()){
-            storeyRequest.setPageNum(1);
+            storeyRequest.setPageNum(0);
         }
         pageRequest.setTotal(total);
         pageRequest.setPageNum(storeyRequest.getPageNum());
-        pageRequest.setTotalPages((long) (Math.ceil(total/storeyRequest.getPageSize())));
-        int start = (storeyRequest.getPageNum() - 1) * storeyRequest.getPageSize();
+        pageRequest.setTotalPages((long) (Math.ceil(total/storeyRequest.getPageSize())+1));
+        int start = (storeyRequest.getPageNum()) * storeyRequest.getPageSize();
         sql+="ORDER BY sorting asc limit ?2,?3";
         Query query2 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
         query2.setParameter(1,topicStoreySearchId);
