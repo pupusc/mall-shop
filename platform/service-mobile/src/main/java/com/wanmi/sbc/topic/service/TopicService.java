@@ -245,6 +245,9 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank(topicResponse);
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
+            }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单更多
+                RankPageRequest rankPage = rankPage2(topicResponse);
+                topicResponse.setRankPageRequest(rankPage);
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
@@ -291,6 +294,13 @@ public class TopicService {
             });
         });
         return response.getRankRequestList();
+    }
+
+    /**
+     * 获取广告
+     */
+    public void getADV(){
+
     }
 
     /**
@@ -362,6 +372,26 @@ public class TopicService {
         if(CollectionUtils.isEmpty(idList)){
             return BaseResponse.success(null);
         }
+        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
+        Iterator<RankRequest> iterator=contentList.iterator();
+        //删除空榜单
+//        while (iterator.hasNext()){
+//            RankRequest rankRequest = iterator.next();
+//            List<Map> mapList = (List<Map>) rankRequest.getRankList();
+//            if(CollectionUtils.isNotEmpty(mapList)){
+//                Iterator<Map> it1=mapList.iterator();
+//                while (it1.hasNext()){
+//                    Map tMap= (Map) it1.next();
+//                    List<Map> rankList = (List<Map>) tMap.get("rankList");
+//                    if(CollectionUtils.isEmpty(rankList)){
+//                        it1.remove();
+//                    }
+//                }
+//            }
+//            if(null==rankRequest||CollectionUtils.isEmpty(mapList)){
+//                iterator.remove();
+//            }
+//        }
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
         goodsCustomResponses.forEach(g-> {
             String label = g.getGoodsLabelList().get(0);
@@ -386,6 +416,41 @@ public class TopicService {
                 });
             });
         return BaseResponse.success(pageResponse.getPageRequest());
+    }
+
+    public RankPageRequest rankPage2(TopicStoreyResponse storeyResponse){
+        RankStoreyRequest request=new RankStoreyRequest();
+        request.setTopicStoreyId(storeyResponse.getId());
+        RankPageResponse pageResponse = topicConfigProvider.rankPage2(request);
+        List<String> idList = pageResponse.getIdList();
+        if(CollectionUtils.isEmpty(idList)){
+            return null;
+        }
+        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
+        goodsCustomResponses.forEach(g-> {
+            String label = g.getGoodsLabelList().get(0);
+            pageResponse.getPageRequest().getContentList().forEach(r->{
+                r.getRankList().forEach(t->{
+                    Map tMap= (Map) t;
+                    List<Map> list=(List<Map>) tMap.get("rankList");
+                    list.forEach(m->{
+                        if(m.get("spuId").equals(g.getGoodsId())) {
+                            m.put("label", label);
+                            m.put("subName", g.getGoodsSubName());
+                            m.put("showPrice",g.getShowPrice());
+                            m.put("linePrice",g.getLinePrice());
+                            m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+                            m.put("stock",g.getStock());
+                            m.put("author",g.getGoodsExtProperties().getAuthor());
+                            m.put("publisher",g.getGoodsExtProperties().getPublisher());
+                        }
+
+                    });
+                });
+            });
+        });
+        return pageResponse.getPageRequest();
     }
 
     /**
