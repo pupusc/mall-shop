@@ -14,8 +14,15 @@ import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.HttpUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +56,9 @@ public class MetaLabelController {
      */
     @Resource
     private MetaLabelProvider metaLabelProvider;
+
+    @Value("classpath:/download/lable.xlsx")
+    private org.springframework.core.io.Resource templateLabelFile;
 
     /**
      * 标签-分页查询
@@ -174,5 +190,40 @@ public class MetaLabelController {
         return this.metaLabelProvider.deleteById(id.getId());
     }
 
+    /**
+     * 下载模板
+     */
+    @PostMapping("/templateLabel")
+    public void templateLabel() {
+        InputStream is = null;
+        org.springframework.core.io.Resource file=templateLabelFile;
+        try{
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            is = file.getInputStream();
+            Workbook wk = WorkbookFactory.create(is);
+
+            Sheet expressCompanySheet = wk.getSheetAt(0);
+            List<Map> bookMap = metaLabelProvider.queryAllLabel();
+            AtomicInteger rowCount= new AtomicInteger(1);
+            bookMap.stream().forEach(map -> {
+                Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
+                row.createCell(0).setCellValue(map.get("id").toString());
+                row.createCell(1).setCellValue(map.get("name").toString());
+            });
+            wk.write(outputStream);
+            String fileName = URLEncoder.encode("lable.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
+            HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
+        } catch (Exception e) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+        }finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
 

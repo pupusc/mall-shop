@@ -8,6 +8,7 @@ import tk.mybatis.mapper.common.Mapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签(MetaLabel)表数据库访问层
@@ -106,5 +107,7 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
      * @return
      */
     List<MetaLabel> collectMetaLabel(@Param("parentIds") List<Integer> parentIds);
+
+    List<Map> getAllLabel();
 }
 

@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签(MetaLabel)表服务实现类
@@ -152,5 +153,10 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public BusinessResponse<Boolean> deleteById(Integer id) {
         this.metaLabelService.deleteById(id);
         return BusinessResponse.success(true);
+    }
+
+    @Override
+    public List<Map> queryAllLabel() {
+        return metaLabelMapper.getAllLabel();
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签(MetaLabel)表服务接口
@@ -73,5 +74,12 @@ public interface MetaLabelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaLabel/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
+
+
+
+    /**查询所有label
+     */
+    @PostMapping("/goods/${application.goods.version}/metaLabel/queryLabel")
+    List<Map> queryAllLabel();
 
 }

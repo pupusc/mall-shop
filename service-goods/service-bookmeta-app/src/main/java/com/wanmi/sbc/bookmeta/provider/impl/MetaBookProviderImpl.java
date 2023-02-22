@@ -136,6 +136,10 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         return metaBookLabelMapper.queryBookLable();
     }
 
+    @Override
+    public List<Map> queryAllBook() {
+        return metaBookMapper.getAllBook();
+    }
 
 
     /**

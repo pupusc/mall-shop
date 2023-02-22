@@ -71,6 +71,9 @@ public class MetaBookController {
     @Value("classpath:/download/book_lable.xlsx")
     private org.springframework.core.io.Resource templateFile;
 
+    @Value("classpath:/download/book.xlsx")
+    private org.springframework.core.io.Resource templateBookFile;
+
     /**
      * 书籍-分页查询
      *
@@ -391,6 +394,42 @@ public class MetaBookController {
 
     }
 
+
+    /**
+     * 下载模板
+     */
+    @PostMapping("/templateBook")
+    public void templateBook() {
+        InputStream is = null;
+        org.springframework.core.io.Resource file=templateBookFile;
+        try{
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            is = file.getInputStream();
+            Workbook wk = WorkbookFactory.create(is);
+
+            Sheet expressCompanySheet = wk.getSheetAt(0);
+            List<Map> bookMap = metaBookProvider.queryAllBook();
+            AtomicInteger rowCount= new AtomicInteger(1);
+            bookMap.stream().forEach(map -> {
+                Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
+                row.createCell(0).setCellValue(map.get("id").toString());
+                row.createCell(1).setCellValue(map.get("name").toString());
+            });
+            wk.write(outputStream);
+            String fileName = URLEncoder.encode("book.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
+            HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
+        } catch (Exception e) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+        }finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }
 
