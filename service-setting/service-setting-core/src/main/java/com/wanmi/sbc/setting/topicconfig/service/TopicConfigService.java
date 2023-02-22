@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -343,7 +344,17 @@ public class TopicConfigService {
                 topicStoreySearchId = first.get().getId();
             }
         }else {
-            topicStoreySearchId=storeyRequest.getTopicStoreySearchId();
+            if(isLevel0(storeyRequest.getTopicStoreySearchId(),requests)){
+                Optional<RankRequest> first = requests.stream().filter(r -> r.getId().equals(storeyRequest.getTopicStoreySearchId())).findFirst();
+                if(first.isPresent()){
+                    RankRequest rankRequest = first.get();
+                    List<RankRequest> rankList = (List<RankRequest>) rankRequest.getRankList();
+                    Integer id = rankList.get(0).getId();
+                    topicStoreySearchId=id;
+                }
+            }else {
+                topicStoreySearchId = storeyRequest.getTopicStoreySearchId();
+            }
         }
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query1 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
@@ -426,6 +437,16 @@ public class TopicConfigService {
         Query query = entityManager.createNativeQuery(sql);
         Integer id = Integer.parseInt(query.getSingleResult().toString());
         return id;
+    }
+
+    public boolean isLevel0(Integer topicStoreySearchId, List<RankRequest> requests){
+        AtomicBoolean flag= new AtomicBoolean(false);
+        requests.forEach(r->{
+            if(topicStoreySearchId.equals(r.getId())){
+                flag.set(true);
+            }
+        });
+        return flag.get();
     }
 
     public Integer getRankIdByTopicStoreyId(Integer topicStoreyId){

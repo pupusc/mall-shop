@@ -94,7 +94,7 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     public RankPageResponse rankPage(RankStoreyRequest storeyRequest){
-        return topicConfigService.rankPage(storeyRequest);
+        return topicConfigService.rankPage2(storeyRequest);
     }
 
     public RankPageResponse rankPage2(RankStoreyRequest storeyRequest){
