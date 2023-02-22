@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -276,13 +277,17 @@ public class MetaBookController {
      */
     @PostMapping("/templateBookLable")
     public void templateBookLable() {
+        InputStream is = null;
         org.springframework.core.io.Resource file=templateFile;
-        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            InputStream is = file.getInputStream();
-            Workbook wk = WorkbookFactory.create(is)){
-            Sheet expressCompanySheet = wk.getSheetAt(1);
+        try{
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+             is = file.getInputStream();
+            Workbook wk = WorkbookFactory.create(is);
+
+            Sheet expressCompanySheet = wk.getSheetAt(0);
             List<Map> bookLableMap = metaBookProvider.queryBookLable();
-            AtomicInteger rowCount= new AtomicInteger();
+            AtomicInteger rowCount= new AtomicInteger(1);
             bookLableMap.stream().forEach(map -> {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
                 row.createCell(0).setCellValue(map.get("isbn").toString());
@@ -297,6 +302,12 @@ public class MetaBookController {
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+        }finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
