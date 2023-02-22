@@ -413,8 +413,8 @@ public class MetaBookController {
             AtomicInteger rowCount= new AtomicInteger(1);
             bookMap.stream().forEach(map -> {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
-                row.createCell(0).setCellValue(map.get("book_id").toString());
-                row.createCell(1).setCellValue(map.get("book_name").toString());
+                row.createCell(0).setCellValue(map.get("id").toString());
+                row.createCell(1).setCellValue(map.get("name").toString());
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("book.xlsx", "UTF-8");
