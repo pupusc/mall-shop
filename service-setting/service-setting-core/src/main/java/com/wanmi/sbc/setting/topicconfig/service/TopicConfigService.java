@@ -1023,7 +1023,6 @@ public class TopicConfigService {
     public MicroServicePage<MixedComponentTabDto> listMixedComponentTab(MixedComponentTabQueryRequest request) {
         ColumnQueryRequest columnQueryRequest = new ColumnQueryRequest();
         BeanUtils.copyProperties(request, columnQueryRequest);
-        columnQueryRequest.setLevel(MixedComponentLevel.ONE.toValue());
         MicroServicePage<ColumnDTO> columnDTOS = listTopicStoreyColumn(columnQueryRequest);
         List<ColumnDTO> content = columnDTOS.getContent();
         List<MixedComponentTabDto> collect = content.stream().map(s -> {
@@ -1041,11 +1040,11 @@ public class TopicConfigService {
      * @Date  2023/2/18 11:50
      */
     public void addMixedComponentTab(MixedComponentTabAddRequest request) {
-        ColumnAddRequest columnAddRequest = new ColumnAddRequest();
-        BeanUtils.copyProperties(request, columnAddRequest);
-        columnAddRequest.setCreateTime(request.getStartTime());
-        columnAddRequest.setOrderNum(request.getSorting());
-        addTopicStoreyColumn(columnAddRequest);
+//        ColumnAddRequest columnAddRequest = new ColumnAddRequest();
+//        BeanUtils.copyProperties(request, columnAddRequest);
+//        columnAddRequest.setCreateTime(request.getStartTime());
+//        columnAddRequest.setOrderNum(request.getSorting());
+        addTopicStoreyColumn(request.getColumnAddRequest());
     }
 
     /**
@@ -1077,14 +1076,15 @@ public class TopicConfigService {
      * @Author zh
      * @Date  2023/2/18 12:53
      */
-    public void addTopicStoreyColumn(ColumnAddRequest request) {
+    public TopicStoreyColumn addTopicStoreyColumn(ColumnAddRequest request) {
         TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
         BeanUtils.copyProperties(request, topicStoreyColumn);
         topicStoreyColumn.setUpdateTime(LocalDateTime.now());
         topicStoreyColumn.setColor(JSON.toJSONString(request.getColor()));
         topicStoreyColumn.setImage(JSON.toJSONString(request.getImage()));
         topicStoreyColumn.setDeleted(0);
-        columnRepository.save(topicStoreyColumn);
+        TopicStoreyColumn column = columnRepository.save(topicStoreyColumn);
+        return column;
     }
 
     /**

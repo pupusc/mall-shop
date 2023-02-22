@@ -92,4 +92,7 @@ public class TopicStoreyColumn {
 
     @Column(name = "drop_name")
     private String dropName;
+
+    @Column(name = "attribute_info")
+    private String AttributeInfo;
 }

@@ -11,9 +11,14 @@ import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedCompo
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumn;
+import com.wanmi.sbc.setting.topicconfig.service.ExcelService;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +27,9 @@ public class TopicConfigController implements TopicConfigProvider {
 
     @Autowired
     private TopicConfigService topicConfigService;
+
+    @Autowired
+    private ExcelService excelService;
 
     @Override
     public BaseResponse add(TopicConfigAddRequest request) {
@@ -218,13 +226,14 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     /**
-     * @Description 混合标签tab添加
+     * @Description topic_storey_column表add
      * @Author zh
      * @Date  2023/2/18 11:50
      */
     @Override
-    public BaseResponse addMixedComponentTab(MixedComponentTabAddRequest request) {
-        topicConfigService.addMixedComponentTab(request);
+    public BaseResponse addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request, MultipartFile file) {
+        TopicStoreyColumn topicStoreyColumn = topicConfigService.addTopicStoreyColumn(request.getColumnAddRequest());
+        excelService.importExcel(file, topicStoreyColumn.getTopicStoreyId(), topicStoreyColumn.getBookType());
         return BaseResponse.SUCCESSFUL();
     }
 

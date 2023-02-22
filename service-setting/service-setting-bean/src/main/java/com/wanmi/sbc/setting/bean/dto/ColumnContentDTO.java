@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -85,6 +86,13 @@ public class ColumnContentDTO {
      * 1-未启用 0-启用
      */
     public Integer publishState;
+
+    private BigDecimal marketPrice;
+
+    private Integer goodsStatus;
+
+    private Long imageId;
+
 
     public ColumnContentDTO() {
         LocalDateTime now = LocalDateTime.now();

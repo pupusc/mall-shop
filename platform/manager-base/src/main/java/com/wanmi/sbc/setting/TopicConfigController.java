@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -373,7 +374,7 @@ public class TopicConfigController {
      */
     @ApiOperation("混合标签tab添加")
     @PostMapping("/storey/v2/tag/add")
-    public BaseResponse listMixedComponentTab(@RequestBody MixedComponentTabAddRequest request){
+    public BaseResponse addMixedComponentTab(@RequestBody MixedComponentTabAddRequest request){
         return topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest());
     }
 
@@ -396,6 +397,50 @@ public class TopicConfigController {
     @ApiOperation("混合标签tab状态修改")
     @PostMapping("/storey/v2/tag/enable")
     public BaseResponse enableMixedComponentTab(@RequestBody ColumnEnableRequest request){
+        return topicConfigProvider.enableTopicStoreyColumn(request);
+    }
+
+    /**
+     * @description 混合标签tabRule列表
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab规则列表")
+    @PostMapping("/storey/v2/tagRule/list")
+    public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTabRule(@RequestBody MixedComponentTabQueryRequest request){
+        return topicConfigProvider.listMixedComponentTab(request);
+    }
+
+    /**
+     * @description 商品池投放数据添加
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("商品池投放数据添加")
+    @PostMapping("/storey/v2/goods/add")
+    public BaseResponse addMixedComponentGoods(@RequestBody MixedComponentGoodsAddRequest request, @RequestParam(value="file") MultipartFile file){
+        return topicConfigProvider.addTopicStoreyColumnGoods(request, file);
+    }
+
+    /**
+     * @description 混合标签tabRule修改
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab规则修改")
+    @PostMapping("/storey/v2/tagRule/update")
+    public BaseResponse updateMixedComponentTabRule(@RequestBody MixedComponentTabUpdateRequest request){
+        return topicConfigProvider.updateTopicStoreyColumn(request.getColumnUpdateRequest());
+    }
+
+    /**
+     * @description 混合标签tabRule状态修改
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("混合标签tab规则状态修改")
+    @PostMapping("/storey/v2/tagRule/enable")
+    public BaseResponse enableMixedComponentTabRule(@RequestBody ColumnEnableRequest request){
         return topicConfigProvider.enableTopicStoreyColumn(request);
     }
 

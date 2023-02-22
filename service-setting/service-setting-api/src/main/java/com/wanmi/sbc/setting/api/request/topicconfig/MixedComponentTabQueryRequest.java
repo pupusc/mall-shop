@@ -29,4 +29,12 @@ public class MixedComponentTabQueryRequest implements Serializable {
     public Integer id;
 
     private Integer topicStoreyId;
+
+    private String name;
+
+    private String dropName;
+
+    private String keyWord;
+
+    private Integer level;
 }
