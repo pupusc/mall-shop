@@ -3,6 +3,7 @@ package com.wanmi.sbc.topic.response;
 import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -79,4 +80,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty(value = "悬浮窗信息")
     private List<SuspensionDTO> suspensionDTOList;
+
+    @ApiModelProperty(value = "榜单更多组件")
+    private RankPageRequest rankPageRequest;
 }

@@ -249,9 +249,6 @@ public class TopicConfigService {
      */
     public RankPageResponse rankPage(RankStoreyRequest storeyRequest) {
         Integer topicStoreyId=0;
-        if(null==storeyRequest.getTopicStoreyId()) {
-            storeyRequest.setTopicStoreyId(getRankId());
-        }
         List<TopicHeadImage> imageList = topicHeadImageRepository.getByTopicId(storeyRequest.getTopicId());
         String images="";
         if(!CollectionUtils.isEmpty(imageList)){
@@ -278,7 +275,7 @@ public class TopicConfigService {
         Long total = Long.valueOf(query1.getResultList().size());
         pageRequest.setTotal(total);
         pageRequest.setPageNum(storeyRequest.getPageNum());
-        pageRequest.setTotalPages((total/storeyRequest.getPageSize())+1);
+        pageRequest.setTotalPages((long) (Math.ceil(total/storeyRequest.getPageSize())));
         int start = (storeyRequest.getPageNum() - 1) * storeyRequest.getPageSize();
         sql+="ORDER BY sorting asc limit ?2,?3";
         Query query2 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
@@ -333,6 +330,87 @@ public class TopicConfigService {
         return response;
     }
 
+    public RankPageResponse rankPage2(RankStoreyRequest storeyRequest) {
+        Integer rankIdByTopicStoreyId = getRankIdByTopicStoreyId(storeyRequest.getTopicStoreyId());
+        storeyRequest.setTopicStoreyId(rankIdByTopicStoreyId);
+        List<RankRequest> requests = getRankNameList2(storeyRequest.getTopicStoreyId(), false);
+        String sql = "SELECT * FROM topic_storey_column_content where topic_storey_column_id = ?1 ";
+        Integer topicStoreySearchId=0;
+        if(null==storeyRequest.getTopicStoreySearchId()){
+            RankRequest request = requests.get(0);
+            Optional<RankRequest> first = request.getRankList().stream().findFirst();
+            if(first.isPresent()){
+                topicStoreySearchId = first.get().getId();
+            }
+        }else {
+            topicStoreySearchId=storeyRequest.getTopicStoreySearchId();
+        }
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query1 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
+        query1.setParameter(1,topicStoreySearchId);
+        RankPageRequest pageRequest=new RankPageRequest();
+        Long total = Long.valueOf(query1.getResultList().size());
+        if(null==storeyRequest.getPageSize()){
+            storeyRequest.setPageSize(10);
+        }
+        if(null==storeyRequest.getPageNum()){
+            storeyRequest.setPageNum(1);
+        }
+        pageRequest.setTotal(total);
+        pageRequest.setPageNum(storeyRequest.getPageNum());
+        pageRequest.setTotalPages((long) (Math.ceil(total/storeyRequest.getPageSize())));
+        int start = (storeyRequest.getPageNum() - 1) * storeyRequest.getPageSize();
+        sql+="ORDER BY sorting asc limit ?2,?3";
+        Query query2 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
+        query2.setParameter(1,topicStoreySearchId);
+        query2.setParameter(2,start);
+        query2.setParameter(3,storeyRequest.getPageSize());
+        List<TopicStoreySearchContent> resultList = query2.getResultList();
+
+        List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
+        List<String> idList=new ArrayList<>();
+        requests.forEach(r->{
+            r.getRankList().forEach(q->{
+                RankRequest rankRequest= (RankRequest) q;
+                List<Map> contentRequestList= (List<Map>) rankRequest.getRankList();
+                contentRequests.forEach(c->{
+                    if(c.getTopicStoreySearchId().equals(rankRequest.getId())){
+                        Map map=new HashMap<>();
+                        map.put("id",c.getId());
+                        map.put("spuNo",c.getSpuNo());
+                        map.put("skuNo",c.getSkuNo());
+                        map.put("imageUrl",c.getImageUrl());
+                        map.put("sorting",c.getSorting());
+                        map.put("goodsName",c.getGoodsName());
+                        if(StringUtils.isNotBlank(c.getNumTxt())) {
+                            if (Integer.parseInt(c.getNumTxt()) >= 10000) {
+                                String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
+                                map.put("num", num);
+                            } else {
+                                map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
+                            }
+                        }else {
+                            map.put("num", "");
+                        }
+                        map.put("skuId",c.getSkuId());
+                        map.put("spuId",c.getSpuId());
+                        map.put("label","");
+                        map.put("subName","");
+                        contentRequestList.add(map);
+                    }
+                    if(!idList.contains(c.getSkuId())) {
+                        idList.add(c.getSkuId());
+                    }
+                });
+            });
+        });
+        RankPageResponse response=new RankPageResponse();
+        pageRequest.setContentList(requests);
+        response.setPageRequest(pageRequest);
+        response.setIdList(idList);
+        return response;
+    }
+
     public Integer getRankId(){
         String sql = "SELECT\n" +
                 "\tss.relation_store_id AS r_id\n" +
@@ -346,6 +424,15 @@ public class TopicConfigService {
                 "\tts.storey_type = 21";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql);
+        Integer id = Integer.parseInt(query.getSingleResult().toString());
+        return id;
+    }
+
+    public Integer getRankIdByTopicStoreyId(Integer topicStoreyId){
+        String sql = "SELECT relation_store_id FROM topic_storey_column WHERE topic_storey_id = ?1";
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1,topicStoreyId);
         Integer id = Integer.parseInt(query.getSingleResult().toString());
         return id;
     }
