@@ -8,6 +8,7 @@ import tk.mybatis.mapper.common.Mapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签(MetaBookLabel)表数据库访问层
@@ -102,5 +103,11 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
      * @return
      */
     List<MetaBookLabel> collectMetaBookLabel(@Param("labelIds") List<Integer> labelIds);
+
+    /**
+     * 采集图书标签信息
+     * @return
+     */
+    List<Map> queryBookLable();
 }
 

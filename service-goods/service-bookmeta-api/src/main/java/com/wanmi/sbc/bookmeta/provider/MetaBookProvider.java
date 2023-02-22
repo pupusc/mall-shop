@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 书籍(MetaBook)表服务接口
@@ -74,4 +75,8 @@ public interface MetaBookProvider {
 
     @PostMapping("/goods/${application.goods.version}/metaBook/updatePublishInfo")
     BusinessResponse<Boolean> updatePublishInfo(@RequestBody @Valid MetaBookEditPublishInfoReqBO metaBook);
+
+    @PostMapping("/goods/${application.goods.version}/metaBook/queryBookLable")
+    List<Map> queryBookLable();
+
 }

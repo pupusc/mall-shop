@@ -40,12 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -134,6 +129,14 @@ public class MetaBookProviderImpl implements MetaBookProvider {
 
         return BusinessResponse.success(metaBookBO);
     }
+
+
+    @Override
+    public List<Map> queryBookLable() {
+        return metaBookLabelMapper.queryBookLable();
+    }
+
+
 
     /**
      * 分页查询

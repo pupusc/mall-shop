@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: ZhangLingKe
@@ -63,4 +65,11 @@ public interface MarketingProvider {
     @PostMapping("/marketing/${application.marketing.version}/start-by-id")
     BaseResponse<MarketingStartResponse> startById(@RequestBody @Valid MarketingStartByIdRequest startByIdRequest);
 
+    /**
+     * 启动营销
+     * @param marketingIdList 营销ID {@link MarketingStartByIdRequest}
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/get-marketing-info")
+    BaseResponse<List> getMarketingInfo(@RequestBody @Valid List<Long> marketingIdList);
 }

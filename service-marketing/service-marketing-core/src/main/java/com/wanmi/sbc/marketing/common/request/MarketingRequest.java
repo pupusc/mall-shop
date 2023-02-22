@@ -56,6 +56,11 @@ public class MarketingRequest extends BaseQueryRequest {
 
 
     /**
+     * 活动id集合，查询出对应的营销信息
+     */
+    List<Long> marketingIdList;
+
+    /**
      * 封装公共条件
      *
      * @return
@@ -100,6 +105,14 @@ public class MarketingRequest extends BaseQueryRequest {
                 CriteriaBuilder.In in = cBuild.in(marketingJoin.get("scopeId"));
                 for (String goodsId : goodsInfoIdList) {
                     in.value(goodsId);
+                }
+                predicates.add(in);
+            }
+
+            if (CollectionUtils.isNotEmpty(marketingIdList)) {
+                CriteriaBuilder.In in = cBuild.in(marketingJoin.get("marketingId"));
+                for (Long marketingId : marketingIdList) {
+                    in.value(marketingId);
                 }
                 predicates.add(in);
             }

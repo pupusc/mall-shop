@@ -1,16 +1,21 @@
 package com.wanmi.sbc.marketing.provider.impl.market;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingProvider;
 import com.wanmi.sbc.marketing.api.request.market.*;
 import com.wanmi.sbc.marketing.api.response.market.MarketingAddResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingDeleteResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingPauseResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingStartResponse;
+import com.wanmi.sbc.marketing.bean.enums.MarketingStatus;
 import com.wanmi.sbc.marketing.bean.vo.MarketingVO;
 import com.wanmi.sbc.marketing.common.model.root.Marketing;
+import com.wanmi.sbc.marketing.common.request.MarketingRequest;
 import com.wanmi.sbc.marketing.common.request.MarketingSaveRequest;
+import com.wanmi.sbc.marketing.common.response.MarketingResponse;
 import com.wanmi.sbc.marketing.common.service.MarketingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Author: ZhangLingKe
@@ -92,5 +100,21 @@ public class MarketingController implements MarketingProvider {
                 .resultNum(marketingService.startMarketingById(startByIdRequest.getMarketingId())).build();
 
         return BaseResponse.success(response);
+    }
+
+    /**
+     * @param marketingIdList
+     * @return
+     */
+    @Override
+    public BaseResponse<List> getMarketingInfo(@RequestBody @Valid List<Long> marketingIdList) {
+        //查询正在进行中的有效营销信息
+        List<MarketingResponse> marketingResponseList = marketingService.getMarketingGoodsIofo(
+                MarketingRequest.builder()
+                        .marketingIdList(marketingIdList)
+                        .deleteFlag(DeleteFlag.NO)
+                        .cascadeLevel(true)
+                        .marketingStatus(MarketingStatus.STARTED).build());
+        return BaseResponse.success(marketingResponseList);
     }
 }

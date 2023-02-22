@@ -17,10 +17,17 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,11 +35,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -43,13 +54,16 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-@RequestMapping("metaBook")
+@RequestMapping("/metaBook")
 public class MetaBookController {
     /**
      * 书籍-服务对象
      */
     @Resource
     private MetaBookProvider metaBookProvider;
+
+    @Value("classpath:/download/book_lable.xlsx")
+    private org.springframework.core.io.Resource templateFile;
 
     /**
      * 书籍-分页查询
@@ -254,6 +268,35 @@ public class MetaBookController {
             figure.setFigureId(figureId);
             figure.setFigureType(figureType);
             figures.add(figure);
+        }
+    }
+
+    /**
+     * 下载模板
+     */
+    @PostMapping("/templateBookLable")
+    public void templateBookLable() {
+        org.springframework.core.io.Resource file=templateFile;
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            InputStream is = file.getInputStream();
+            Workbook wk = WorkbookFactory.create(is)){
+            Sheet expressCompanySheet = wk.getSheetAt(1);
+            List<Map> bookLableMap = metaBookProvider.queryBookLable();
+            AtomicInteger rowCount= new AtomicInteger();
+            bookLableMap.stream().forEach(map -> {
+                Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
+                row.createCell(0).setCellValue(map.get("isbn").toString());
+                row.createCell(1).setCellValue(map.get("book_name").toString());
+                row.createCell(2).setCellValue(map.get("label_id").toString());
+                row.createCell(3).setCellValue(map.get("label_name").toString());
+                row.createCell(4).setCellValue(map.get("book_id").toString());
+            });
+            wk.write(outputStream);
+            String fileName = URLEncoder.encode("book_lable.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
+            HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
+        } catch (Exception e) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
         }
     }
 }
