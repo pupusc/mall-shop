@@ -109,5 +109,11 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
      * @return
      */
     List<Map> queryBookLable();
+
+    /**
+     * 查询图书标签关系是否存在
+     * @return
+     */
+    List<MetaBookLabel> queryExitByBookAndLabelId(@Param("book_id") Integer bookId,@Param("label_id") Integer labelId);
 }
 

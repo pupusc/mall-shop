@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -139,6 +140,12 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      * @return
      */
     List<MetaBook> collectMetaBookByCondition(@Param("isbns") List<String> isbns);
+
+    /**
+     * 更新删除标志
+     * @return
+     */
+    Boolean updateDelflag(@Param("id") Integer id);
 
 
 }

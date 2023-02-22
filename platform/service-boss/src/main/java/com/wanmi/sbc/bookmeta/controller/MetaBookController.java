@@ -1,13 +1,8 @@
 package com.wanmi.sbc.bookmeta.controller;
 
-import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
+import com.wanmi.sbc.bookmeta.provider.MetaBookLabelProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookAddReqVO;
@@ -16,26 +11,33 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookQueryByPageResVO;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsUpdateRequest;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -62,6 +64,9 @@ public class MetaBookController {
      */
     @Resource
     private MetaBookProvider metaBookProvider;
+
+    @Resource
+    private MetaBookLabelProvider metaBookLabelProvider;
 
     @Value("classpath:/download/book_lable.xlsx")
     private org.springframework.core.io.Resource templateFile;
@@ -310,5 +315,82 @@ public class MetaBookController {
             }
         }
     }
+
+    /**
+     * 下载模板
+     */
+    @PostMapping("/loadExcel")
+    public BaseResponse loadExcel(MultipartFile multipartFile) {
+        int addNum = 0;
+        int updateNum = 0;
+        String res=null;
+        Workbook wb = null;
+        try {
+            try {
+                wb = new HSSFWorkbook(new POIFSFileSystem(multipartFile.getInputStream()));
+            } catch (Exception e) {
+                wb = new XSSFWorkbook(multipartFile.getInputStream());        //XSSF不能读取Excel2003以前（包括2003）的版本
+            }
+
+            Sheet sheet = wb.getSheetAt(0);
+
+            if (sheet == null) {
+                return null;
+            }
+
+            //获得当前sheet的开始行
+            int firstRowNum = sheet.getFirstRowNum();
+            //获得当前sheet的结束行
+            int lastRowNum = sheet.getLastRowNum();
+            //循环除了第一行的所有行
+            for (int rowNum = firstRowNum+1; rowNum <= lastRowNum; rowNum++) {
+                //获得当前行
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    continue;
+                }
+                //获得当前行的开始列
+                int firstCellNum = row.getFirstCellNum();
+                //获得当前行的列数
+
+
+                int lastCellNum = row.getLastCellNum();
+                String[] cells = new String[row.getLastCellNum()];
+
+                //循环当前行
+                for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
+                    Cell cell = row.getCell(cellNum);
+                    cell.setCellType(CellType.STRING);
+                    cells[cellNum] = cell.getStringCellValue();
+                }
+                MetaBookLabelBO metaBookLabelBO=new MetaBookLabelBO();
+                metaBookLabelBO.setBookId(Integer.parseInt(cells[0]));
+                metaBookLabelBO.setLabelId(Integer.parseInt(cells[1]));
+                metaBookLabelBO.setDelFlag(Integer.parseInt(cells[2]));
+                res = metaBookLabelProvider.importBookLabel(metaBookLabelBO).getContext();
+                if(null!=res) {
+                    String[] split = res.split(",");
+                    addNum = addNum + Integer.parseInt(split[1]);
+                    updateNum = updateNum + Integer.parseInt(split[0]);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                wb.close();
+                multipartFile.getInputStream().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            BaseResponse baseResponse=new BaseResponse<>();
+            return baseResponse.info("操作成功", "成功增加" + addNum + "条," + "成功更新" + updateNum + "条");
+        }
+
+    }
+
+
 }
 

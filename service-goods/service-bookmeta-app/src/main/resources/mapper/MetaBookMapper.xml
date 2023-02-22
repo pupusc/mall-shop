@@ -413,6 +413,9 @@
         </foreach>
     </select>
 
+    <update id="updateDelflag" >
+        update meta_book set del_flag = del_flag where id = #{id}
+    </update>
 
 </mapper>
 

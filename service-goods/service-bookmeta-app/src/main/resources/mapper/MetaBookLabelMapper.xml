@@ -21,6 +21,15 @@
     </select>
 
 
+    <!--查询图书标签关系是否存在-->
+    <select id="queryExitByBookAndLabelId" resultMap="MetaBookLabelMap">
+        select
+            id, book_id, label_id, create_time, update_time, del_flag
+        from meta_book_label
+        where book_id = #{book_id} and label_id= #{label_id}
+    </select>
+
+
     <select id="queryBookLable" resultType="java.util.HashMap">
 
         select c.*,d.name as label_name

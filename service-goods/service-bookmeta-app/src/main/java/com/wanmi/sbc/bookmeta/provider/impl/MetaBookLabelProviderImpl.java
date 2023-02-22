@@ -3,18 +3,25 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
+import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookLabelProvider;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * 标签(MetaBookLabel)表服务实现类
@@ -27,6 +34,10 @@ import java.util.List;
 public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
     @Resource
     private MetaBookLabelMapper metaBookLabelMapper;
+    @Resource
+    private MetaBookMapper metaBookMapper;
+    @Resource
+    private MetaLabelMapper metaLabelMapper;
 
     /**
      * 通过ID查询单条数据
@@ -90,5 +101,31 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
         return BusinessResponse.success(this.metaBookLabelMapper.deleteById(id) > 0);
+    }
+
+    @Override
+    public BusinessResponse<String> importBookLabel(MetaBookLabelBO metaBookLabel) {
+        int updateCount=0;
+        int addCount=0;
+        Map map=new HashMap<>();
+        boolean bookExit = metaBookMapper.existsWithPrimaryKey(metaBookLabel.getBookId());
+        if(bookExit){
+            boolean labelExit = metaLabelMapper.existsWithPrimaryKey(metaBookLabel.getLabelId());
+            if(labelExit){
+                List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.queryExitByBookAndLabelId(metaBookLabel.getBookId(), metaBookLabel.getLabelId());
+                if(null != metaBookLabels && metaBookLabels.size()!=0){//该数据已存在，更新该条数据
+                    metaBookLabel.setId(metaBookLabels.get(0).getId());
+                    updateCount=metaBookLabelMapper.update(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
+                }else{//该数据不存在，插入该条数据
+                    Date date=new Date();
+                    metaBookLabel.setCreateTime(date);
+                    metaBookLabel.setUpdateTime(date);
+                    addCount=metaBookLabelMapper.insert(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
+                    //触发图书库更新到es
+                    metaBookMapper.updateDelflag(metaBookLabel.getBookId());
+                }
+            }
+        }
+        return BusinessResponse.success(updateCount+","+addCount);
     }
 }

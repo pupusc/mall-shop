@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签(MetaBookLabel)表服务接口
@@ -61,5 +62,15 @@ public interface MetaBookLabelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
+
+
+    /**
+     * 新增数据
+     *
+     * @param metaBookLabel 实例对象
+     * @return 实例对象
+     */
+    @PostMapping("/goods/${application.goods.version}/metaBookLabel/importBookLabel")
+    BusinessResponse<String> importBookLabel(@RequestBody @Valid MetaBookLabelBO metaBookLabel);
 
 }
