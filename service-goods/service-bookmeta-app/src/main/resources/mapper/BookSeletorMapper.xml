@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.BookSeletorMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.BookSeletor" id="BookSeletorMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="VARCHAR"/>
+        <result property="rank" column="rank" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BookSeletorMap">
+        select
+        id, name, create_time, update_time, del_flag, book_id,rank
+        from book_seletor
+        <where>
+            <if test="bookSeletor.id != null">
+                and id = #{bookSeletor.id}
+            </if>
+            <if test="bookSeletor.name != null and bookSeletor.name != ''">
+                and name like concat('%', #{bookSeletor.name}, '%')
+            </if>
+            <if test="bookSeletor.delFlag != null">
+                and del_flag = #{bookSeletor.delFlag}
+            </if>
+            <if test="bookSeletor.bookId != null and bookSeletor.bookId != ''">
+                and book_id = #{bookSeletor.bookId}
+            </if>
+            <if test="bookSeletor.rank != null and bookSeletor.rank != ''">
+                and rank = #{bookSeletor.rank}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+</mapper>
