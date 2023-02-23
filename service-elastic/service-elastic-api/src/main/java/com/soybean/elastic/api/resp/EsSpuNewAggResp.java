@@ -21,46 +21,46 @@ public class EsSpuNewAggResp<S> implements Serializable {
      */
     private List<AggsCategoryResp> aggsCategorys;
 
-//    /**
-//     * 聚合 标签 信息
-//     */
-//    private List<LabelAggs> labelAggs;
-//
-//    /**
-//     * 店铺分类
-//     */
-//    private List<ClassifyAggs> classifyAggs;
-//
-//    /**
-//     * 作者名
-//     */
-//    private List<AuthorAggs> authorAggs;
-//
-//    /**
-//     * 出版社
-//     */
-//    private List<PublisherAggs> publisherAggs;
-//
-//    /**
-//     * 奖项
-//     */
-//    private List<AwardAggs> awardAggs;
-//
-//
-//    /**
-//     * 从书
-//     */
-//    private List<ClumpAggs> clumpAggs;
-//
-//    /**
-//     * 商品类别
-//     */
-//    private List<SpuCategoryAggs> spuCategoryAggs;
-//
-//    /**
-//     * 出品方
-//     */
-//    private List<ProducerAggs> producerAggs;
+    /**
+     * 聚合 标签 信息
+     */
+    private List<LabelAggs> labelAggs;
+
+    /**
+     * 店铺分类
+     */
+    private List<ClassifyAggs> classifyAggs;
+
+    /**
+     * 作者名
+     */
+    private List<AuthorAggs> authorAggs;
+
+    /**
+     * 出版社
+     */
+    private List<PublisherAggs> publisherAggs;
+
+    /**
+     * 奖项
+     */
+    private List<AwardAggs> awardAggs;
+
+
+    /**
+     * 从书
+     */
+    private List<ClumpAggs> clumpAggs;
+
+    /**
+     * 商品类别
+     */
+    private List<SpuCategoryAggs> spuCategoryAggs;
+
+    /**
+     * 出品方
+     */
+    private List<ProducerAggs> producerAggs;
 
     /**
      * 请求参数信息
@@ -73,85 +73,85 @@ public class EsSpuNewAggResp<S> implements Serializable {
     private CommonPageResp<S> result;
 
 
-//    /**
-//     * 标签名
-//     */
-//    @Data
-//    public static class LabelAggs {
-//        /**
-//         * 分类名称{@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
-//         */
-//        private Integer category;
-//
-//        /**
-//         * 标签名称
-//         */
-//        private String labelName;
-//    }
-//
-//    /**
-//     * 店铺分类
-//     */
-//    @Data
-//    public static class ClassifyAggs {
-//        private String classifyName;
-//    }
-//
-//    /**
-//     * 作者名
-//     */
-//    @Data
-//    public static class AuthorAggs {
-//        private String authorName;
-//    }
-//
-//    /**
-//     * 出版社
-//     */
-//    @Data
-//    public static class PublisherAggs {
-//        private String publisherName;
-//    }
-//
-//    /**
-//     * 奖项
-//     */
-//    @Data
-//    public static class AwardAggs {
-//        private String awardName;
-//    }
-//
-//    /**
-//     * 从书
-//     */
-//    @Data
-//    public static class ClumpAggs {
-//
-//        private String clumpName;
-//    }
-//
-//    /**
-//     * 出品方
-//     */
-//    @Data
-//    public static class ProducerAggs {
-//
-//        private String producerName;
-//    }
-//
-//    /**
-//     * 商品类型
-//     */
-//    @Data
-//    public static class SpuCategoryAggs {
-//
-//        /**
-//         * {@link com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum}
-//         */
-//        private Integer spuCategory;
-//
-//        private String spuCategoryName;
-//    }
+    /**
+     * 标签名
+     */
+    @Data
+    public static class LabelAggs {
+        /**
+         * 分类名称{@link com.soybean.elastic.api.enums.SearchSpuNewLabelCategoryEnum}
+         */
+        private Integer category;
+
+        /**
+         * 标签名称
+         */
+        private String labelName;
+    }
+
+    /**
+     * 店铺分类
+     */
+    @Data
+    public static class ClassifyAggs {
+        private String classifyName;
+    }
+
+    /**
+     * 作者名
+     */
+    @Data
+    public static class AuthorAggs {
+        private String authorName;
+    }
+
+    /**
+     * 出版社
+     */
+    @Data
+    public static class PublisherAggs {
+        private String publisherName;
+    }
+
+    /**
+     * 奖项
+     */
+    @Data
+    public static class AwardAggs {
+        private String awardName;
+    }
+
+    /**
+     * 从书
+     */
+    @Data
+    public static class ClumpAggs {
+
+        private String clumpName;
+    }
+
+    /**
+     * 出品方
+     */
+    @Data
+    public static class ProducerAggs {
+
+        private String producerName;
+    }
+
+    /**
+     * 商品类型
+     */
+    @Data
+    public static class SpuCategoryAggs {
+
+        /**
+         * {@link com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum}
+         */
+        private Integer spuCategory;
+
+        private String spuCategoryName;
+    }
 
 
     /**

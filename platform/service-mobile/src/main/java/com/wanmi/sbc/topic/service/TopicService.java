@@ -5,12 +5,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
+import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
+import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -29,6 +34,7 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
+import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
@@ -42,10 +48,10 @@ import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
+import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
+import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -57,7 +63,6 @@ import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
@@ -83,6 +88,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -93,6 +99,9 @@ public class TopicService {
 
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+
+    @Autowired
+    private EsSpuNewProvider esSpuNewProvider;
 
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
@@ -821,12 +830,132 @@ public class TopicService {
 
     }
 
-//    private TopicStoreyMixedComponentResponse getMixedComponentContent(Integer id) {
-//        MixedComponentQueryRequest mixedComponentQueryRequest = new MixedComponentQueryRequest();
-//        mixedComponentQueryRequest.setTopicStoreyId(id);
-//        TopicStoreyMixedComponentResponse mixedComponent = topicConfigProvider.mixedComponentContent(mixedComponentQueryRequest).getContext();
-//        return mixedComponent;
-//    }
+    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer) {
+        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
+        request.setTopicStoreyId(topicStoreyId);
+        request.setPublishState(0);
+        request.setPageSize(10000);
+        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext().getContent();
+        List<MixedComponentDto> mixedComponentDtos = new ArrayList<MixedComponentDto>();
+        // tab
+        if (tabId == null) {
+            mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
+                return new MixedComponentDto(c);
+            }).collect(Collectors.toList());
+            tabId = mixedComponentDtos.get(0).getId();
+        } else {
+            Integer finalTabId = tabId;
+            mixedComponentDtos = mixedComponentTab.stream().filter(c -> finalTabId.equals(c.getId())).map(c -> {
+                return new MixedComponentDto(c);
+            }).collect(Collectors.toList());
+        }
+        // 获取规则
+        Integer finalTabId = tabId;
+        List<String> rules = new ArrayList<>();
+        mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
+                .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
+        List<KeyWordDto> keywords = new ArrayList<>();
+        if (keyWord == null) {
+            // 获取关键字
+            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
+                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getName()));});});
+            keyWord = keywords.get(0).getName();
+        } else {
+            keywords.add(new KeyWordDto(keyWord));
+        }
+        //根据规则获取商品池信息
+        List<MixedComponentTabDto> goodsCollect = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
+        String finalKeyWord = keyWord;
+        MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
+        List<MixedComponentContentDto> content = new ArrayList<>();
+        goodsCollect.forEach(c -> {
+            Integer id = c.getId();
+            ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+            columnContentQueryRequest.setTopicStoreySearchId(id);
+            columnContentQueryRequest.setDeleted(0);
+            List<ColumnContentDTO> columnContent = topicConfigProvider.listTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
+            if(c.getBookType() != null && MixedComponentLevel.TWO.toValue().equals(c.getBookType())) {
+                columnContent.forEach(column -> {
+                    List<GoodsDto> goods = new ArrayList<>();
+                    List<String> spuIds = new ArrayList<>();
+                    spuIds.add(column.getSpuId());
+                    getGoods(finalKeyWord, spuIds, null, goods, customer);
+                    MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
+                    content.add(mixedComponentContentDto);
+                });
+            } else {
+                List<GoodsDto> goods = new ArrayList<>();
+                List<String> spuIds = new ArrayList<>();
+                columnContent.forEach(column -> {spuIds.add(column.getSpuId());});
+                getGoods(finalKeyWord, spuIds, null, goods, customer);
+                MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
+                content.add(mixedComponentContentDto);
+            }
+        });
+        // 每页显示的数据条数
+        int pageSize = 10;
+        int number = 1;
+        // 数据总条数
+        int totalPageSize = content.size();
+        // 总页数
+        int totalPage = (totalPageSize % pageSize) > 0 ? (totalPageSize / pageSize) + 1 : (totalPageSize / pageSize);
+        // 一页一页读取数据
+        Stream.iterate(1, i -> i + 1).limit(totalPage).forEach(pageIndex -> {
+            if (pageIndex == number) {
+                List<MixedComponentContentDto> collect = content.stream().skip((pageIndex - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
+                mixedComponentContentPage.setContent(collect);
+            }
+        });
+        mixedComponentContentPage.setTotal(totalPage);
+        keywords.get(0).setMixedComponentContentPage(mixedComponentContentPage);
+        mixedComponentDtos.get(0).setKeywords(keywords);
+        return mixedComponentDtos;
+    }
+
+    //获取商品详情
+    private void getGoods(String finalKeyWord, List<String> spuIds, String isbn, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
+        //获取会员价
+        if (customer == null) {
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            customer =new CustomerGetByIdResponse();
+            Map customerMap = ( Map ) request.getAttribute("claims");
+            if(null!=customerMap && null!=customerMap.get("customerId")) {
+                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+
+            }
+        }
+        if (spuIds != null) {
+            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
+            es.setSpuIds(spuIds);
+            es.setKeyword(finalKeyWord);
+            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
+            if (esSpuNewResps == null) {return;}
+            CustomerGetByIdResponse finalCustomer = customer;
+            esSpuNewResps.forEach(res -> {
+                DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
+                request.setGoodsId(res.getSpuId());
+                List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
+                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(finalCustomer, CustomerDTO.class));
+                List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+                GoodsDto goodsDto = new GoodsDto();
+                goodsDto.setSpuId(res.getSpuId());
+                goodsDto.setGoodsName(res.getSpuName());
+                goodsDto.setImage(res.getPic());
+                goodsDto.setScore(String.valueOf(res.getBook().getScore()));
+                goodsDto.setRetailPrice(res.getSalesPrice());
+                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+                goods.add(goodsDto);
+            });
+        }
+
+    }
+
+
+
 
     private Map<String, String> getUrlParams(String url) {
         Map<String, String> map = new HashMap<>();

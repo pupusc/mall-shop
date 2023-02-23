@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -25,33 +26,24 @@ public class MixedComponentDto implements Serializable {
 
     private Integer id;
 
-    private String psuId;
+    private String name;
 
-    private String goodsName;
-
-    private String dropName;
+    private String subName;
 
     private SelectDto color;
 
     private SelectDto image;
 
-    private Integer sorting;
-
-    /**
-     * 1-未启用 0-启用
-     */
-    public Integer publishState;
-
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime startTime;
-
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime endTime;
-
-    private List<KeyWordsDto> keywords;
+    private List<KeyWordDto> keywords;
 
     public MixedComponentDto() {
+    }
+
+    public MixedComponentDto(MixedComponentTabDto columnDTO) {
+        this.id = columnDTO.getId();
+        this.name = columnDTO.getName();
+        this.subName = columnDTO.getSubName();
+        this.color = columnDTO.getColor();
+        this.image = columnDTO.getImage();
     }
 }
