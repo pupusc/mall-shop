@@ -7,6 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: TODO
@@ -32,6 +33,8 @@ public class MixedComponentContentDto implements Serializable {
     private String video;
 
     private String url;
+
+    private List<Map<String, Object>> labelId;
 
     private List<GoodsDto> goods;
     public MixedComponentContentDto() {

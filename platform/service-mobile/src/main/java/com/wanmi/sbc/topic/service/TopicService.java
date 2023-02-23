@@ -13,6 +13,8 @@ import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvide
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
+import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -138,6 +140,9 @@ public class TopicService {
 
     @Autowired
     private SuspensionProvider suspensionProvider;
+
+    @Autowired
+    private MetaLabelProvider metaLabelProvider;
 
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
@@ -875,6 +880,17 @@ public class TopicService {
             ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
             columnContentQueryRequest.setTopicStoreySearchId(id);
             columnContentQueryRequest.setDeleted(0);
+            List<Map<String, Object>> tabs = new ArrayList<>();
+            if (c.getLabelId() != null) {
+                for (String s : c.getLabelId().split(",")) {
+                    MetaLabelBO metaLabelBO = metaLabelProvider.queryById(Integer.valueOf(s)).getContext();
+                    HashMap<String, Object> map = new HashMap<>();
+                    map.put("name" , metaLabelBO.getName());
+                    map.put("showStatus" , metaLabelBO.getStatus());
+                    map.put("showImg", metaLabelBO.getShowImg());
+                    tabs.add(map);
+                }
+            }
             List<ColumnContentDTO> columnContent = topicConfigProvider.listTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
             if(c.getBookType() != null && MixedComponentLevel.TWO.toValue().equals(c.getBookType())) {
                 columnContent.forEach(column -> {
@@ -883,6 +899,7 @@ public class TopicService {
                     spuIds.add(column.getSpuId());
                     getGoods(finalKeyWord, spuIds, null, goods, customer);
                     MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
+                    mixedComponentContentDto.setLabelId(tabs);
                     content.add(mixedComponentContentDto);
                 });
             } else {
@@ -923,7 +940,6 @@ public class TopicService {
             Map customerMap = ( Map ) request.getAttribute("claims");
             if(null!=customerMap && null!=customerMap.get("customerId")) {
                 customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-
             }
         }
         if (spuIds != null) {

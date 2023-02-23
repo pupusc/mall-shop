@@ -30,6 +30,8 @@ public class MixedComponentTabDto implements Serializable {
 
     private Integer level;
 
+    private String labelId;
+
     private String subName;
 
     private String dropName;
@@ -67,6 +69,7 @@ public class MixedComponentTabDto implements Serializable {
         this.name = columnDTO.getName();
         this.subName = columnDTO.getSubName();
         this.dropName = columnDTO.getDropName();
+        this.labelId = columnDTO.getLabelId();
         this.sorting = columnDTO.getOrderNum();
         this.startTime = columnDTO.getCreateTime();
         this.endTime = columnDTO.getEndTime();
