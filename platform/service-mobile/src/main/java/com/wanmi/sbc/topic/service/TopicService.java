@@ -281,6 +281,7 @@ public class TopicService {
                         Map map= (Map) t;
                         if(map.get("spuId").equals(g.getGoodsId())){
                             map.put("label",label);
+                            map.put("goodsInfoId",g.getGoodsInfoId());
                             map.put("subName",g.getGoodsSubName());
                             map.put("showPrice",g.getShowPrice());
                             map.put("linePrice",g.getLinePrice());
@@ -403,6 +404,7 @@ public class TopicService {
                             if(m.get("spuId").equals(g.getGoodsId())) {
                                 m.put("label", label);
                                 m.put("subName", g.getGoodsSubName());
+                                m.put("goodsInfoId",g.getGoodsInfoId());
                                 m.put("showPrice",g.getShowPrice());
                                 m.put("linePrice",g.getLinePrice());
                                 m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
@@ -437,6 +439,7 @@ public class TopicService {
                     list.forEach(m->{
                         if(m.get("spuId").equals(g.getGoodsId())) {
                             m.put("label", label);
+                            m.put("goodsInfoId",g.getGoodsInfoId());
                             m.put("subName", g.getGoodsSubName());
                             m.put("showPrice",g.getShowPrice());
                             m.put("linePrice",g.getLinePrice());
