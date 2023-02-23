@@ -122,7 +122,7 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
                     metaBookLabel.setUpdateTime(date);
                     addCount=metaBookLabelMapper.insert(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
                     //触发图书库更新到es
-                    metaBookMapper.updateDelflag(metaBookLabel.getBookId());
+                    metaBookMapper.updateDelflag(metaBookLabel.getBookId(),date);
                 }
             }
         }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -146,7 +147,7 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      * 更新删除标志
      * @return
      */
-    Boolean updateDelflag(@Param("id") Integer id);
+    Boolean updateDelflag(@Param("id") Integer id,@Param("date") Date date);
 
     /**
      *

@@ -414,7 +414,7 @@
     </select>
 
     <update id="updateDelflag" >
-        update meta_book set del_flag = del_flag where id = #{id}
+        update meta_book set update_time = #{date} where id = #{id}
     </update>
 
     <select id="getAllBook" resultType="Map">
