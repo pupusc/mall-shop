@@ -335,18 +335,18 @@ public class TopicService {
         //获得主题id
         topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
         //获得主题下商品skuList
-        List<TopicStoreyContentDTO> contentByStoreyId = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
-        if(null==contentByStoreyId || contentByStoreyId.size()==0){
-            return null;
-        }
-        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
-            LocalDateTime now = LocalDateTime.now();
-            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
-                return true;
-            } else {
-                return false;
-            }
-        }).collect(Collectors.toList());
+        List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+//        if(null==contentByStoreyId || contentByStoreyId.size()==0){
+//            return null;
+//        }
+//        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
+//            LocalDateTime now = LocalDateTime.now();
+//            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
+//                return true;
+//            } else {
+//                return false;
+//            }
+//        }).collect(Collectors.toList());
 
         if(null==collectTemp || collectTemp.size()==0){
             return null;
