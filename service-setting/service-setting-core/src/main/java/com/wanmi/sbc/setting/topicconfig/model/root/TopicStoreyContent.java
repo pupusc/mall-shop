@@ -11,7 +11,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "topic_storey_column")
+@Table(name = "topic_storey_content")
 @Entity
 public class TopicStoreyContent {
     @Id
