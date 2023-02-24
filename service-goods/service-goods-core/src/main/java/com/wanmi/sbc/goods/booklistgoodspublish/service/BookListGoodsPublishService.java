@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.booklistgoodspublish.service;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
@@ -8,8 +9,10 @@ import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
+import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishV2Repository;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.Transformers;
@@ -43,6 +46,9 @@ public class BookListGoodsPublishService {
 
     @Resource
     private BookListGoodsPublishRepository bookListGoodsPublishRepository;
+
+    @Resource
+    private BookListGoodsPublishV2Repository bookListGoodsPublishV2Repository;
 
     @Resource
     private BookListGoodsService bookListGoodsService;
@@ -190,26 +196,13 @@ public class BookListGoodsPublishService {
         };
     }
 
-    public List<Map> getIds(List<Integer> ids) {
-        List<BookListGoodsPublishDTO> list = bookListGoodsPublishRepository.findByBookListIdIn(ids);
-        List<Map> idList=new ArrayList<>();
-        List<String> skuIds=new ArrayList<>();
-        Map map=new HashMap();
-        list.forEach(l->{
-            if(map.keySet().contains(l.getBookListId())) {
-                List<String> stringList= (List<String>) map.get(l.getBookListId());
-                stringList.add(l.getSkuId());
-            }else {
-                List<String> stringList=new ArrayList<>();
-                stringList.add(l.getSkuId());
-                map.put(l.getBookListId(),stringList);
-            }
-            if(!skuIds.contains(l.getSkuId())){
-                skuIds.add(l.getSkuId());
-            }
-        });
-        map.put("skuIds",skuIds);
-        idList.add(map);
-        return idList;
+    public List<RankGoodsPublishResponse> getIds(List<Integer> ids) {
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findByBookListIdIn(ids), RankGoodsPublishResponse.class);
+        return responses;
+    }
+
+    public List<RankGoodsPublishResponse> getPublishGoodsById(Integer id){
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findByBookListId(id), RankGoodsPublishResponse.class);
+        return responses;
     }
 }

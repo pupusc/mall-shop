@@ -17,6 +17,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassify
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
@@ -31,7 +32,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -124,8 +124,14 @@ public class BookListModelController implements BookListModelProvider {
     }
 
     @Override
-    public BaseResponse<List<Map>> listBookListGoodsPublishByIds(GoodsIdsByRankListIdsRequest request) {
-        List<Map> ids = bookListGoodsPublishService.getIds(request.getIds());
+    public BaseResponse<List<RankGoodsPublishResponse>> listBookListGoodsPublishByIds(GoodsIdsByRankListIdsRequest request) {
+        List<RankGoodsPublishResponse> ids = bookListGoodsPublishService.getIds(request.getIds());
+        return BaseResponse.success(ids);
+    }
+
+    @Override
+    public BaseResponse<List<RankGoodsPublishResponse>> getPublishGoodsById(Integer id) {
+        List<RankGoodsPublishResponse> ids = bookListGoodsPublishService.getPublishGoodsById(id);
         return BaseResponse.success(ids);
     }
 

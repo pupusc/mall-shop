@@ -8,17 +8,10 @@ import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGr
 import com.wanmi.sbc.goods.api.request.booklistmodel.*;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
@@ -121,8 +114,17 @@ public interface BookListModelProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublishByIds")
-    BaseResponse<List<Map>> listBookListGoodsPublishByIds(
+    BaseResponse<List<RankGoodsPublishResponse>> listBookListGoodsPublishByIds(
             @RequestBody GoodsIdsByRankListIdsRequest request);
+
+    /**
+     * 根据bookListId获取发布商品列表V2
+     * @param id
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublishByIdV2")
+    BaseResponse<List<RankGoodsPublishResponse>> getPublishGoodsById(
+            @RequestParam Integer id);
 
     /**
      * 根据商品spuId列表 获取书单列表和商品列表
