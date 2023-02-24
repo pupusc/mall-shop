@@ -5,9 +5,11 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishTempResponse;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishV2DTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishV2Repository;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
@@ -15,10 +17,12 @@ import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroup
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SQLQuery;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -56,6 +60,8 @@ public class BookListGoodsPublishService {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
 
     @Transactional
     public void publish(Integer bookListId, Integer categoryId, String operator) {
@@ -201,8 +207,33 @@ public class BookListGoodsPublishService {
         return responses;
     }
 
-    public List<RankGoodsPublishResponse> getPublishGoodsById(Integer id){
-        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findByBookListId(id), RankGoodsPublishResponse.class);
+    public List<RankGoodsPublishTempResponse> getPublishGoodsById(Integer id){
+        List<RankGoodsPublishTempResponse> resultList=new ArrayList<>();
+        String sql="select a.*,b.goods_info_name as name from t_book_list_goods_publish as a left join goods_info as b on a.sku_id=b.goods_info_id where a.book_list_id = ?1 and a.del_flag = 0";
+        try {
+            EntityManager entityManager = entityManagerFactoryBean.getNativeEntityManagerFactory().createEntityManager();
+            resultList = entityManager.createNativeQuery(sql, RankGoodsPublishTempResponse.class).setParameter(1, id).getResultList();
+        }finally {
+            entityManager.close();
+        }
+        return resultList;
+    }
+
+    public List<RankGoodsPublishResponse> getPublishGoodsBySkuNo(String skuNo){
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findBySkuNo(skuNo), RankGoodsPublishResponse.class);
         return responses;
+    }
+
+    @Transactional
+    public int updateBookListGoodsPublish(RankGoodsPublishResponse rankGoodsPublishResponse){
+        int update=bookListGoodsPublishV2Repository.updateBookListGoodsPublish(rankGoodsPublishResponse.getSkuNo(),rankGoodsPublishResponse.getSaleNum(),rankGoodsPublishResponse.getRankText());
+        return update;
+    }
+
+    public BookListGoodsPublishV2DTO saveBookListGoodsPublish(RankGoodsPublishResponse rankGoodsPublishResponse){
+        BookListGoodsPublishV2DTO bookListGoodsPublishV2DTO=new BookListGoodsPublishV2DTO();
+        BeanUtils.copyProperties(rankGoodsPublishResponse,bookListGoodsPublishV2DTO);
+        BookListGoodsPublishV2DTO save = bookListGoodsPublishV2Repository.save(bookListGoodsPublishV2DTO);
+        return save;
     }
 }

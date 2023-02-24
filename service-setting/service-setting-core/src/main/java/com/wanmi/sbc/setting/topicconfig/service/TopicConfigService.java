@@ -773,6 +773,7 @@ public class TopicConfigService {
      * 新增榜单分类
      * @param request
      */
+    @Transactional
     public void addRankLevel(RankLevelAddRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
@@ -783,10 +784,26 @@ public class TopicConfigService {
         topicStoreySearch.setUpdateTime(LocalDateTime.now());
         topicStoreySearch.setDeleted(0);
         topicStoreySearch.setLevel(request.getLevel());
-        if(null!=request.getPId()){
-            topicStoreySearch.setPId(request.getPId());
-        }
         columnRepository.save(topicStoreySearch);
+    }
+
+    /**
+     * 新增二级榜单列表
+     * @param request
+     */
+    public void addRankrelation(TopicRalationRequest request) {
+        TopicRankRelation rankRelation =KsBeanUtil.convert(request, TopicRankRelation.class);
+        relationRepository.save(rankRelation);
+    }
+
+    /**
+     * 修改二级榜单列表
+     * @param request
+     */
+    @SneakyThrows
+    public void updateRankrelation(TopicRalationRequest request) {
+        TopicRankRelation rankRelation =KsBeanUtil.convert(request, TopicRankRelation.class);
+        updateUtil.partialUpdate(rankRelation.getId(),rankRelation,relationRepository);
     }
 
     /**
@@ -940,30 +957,24 @@ public class TopicConfigService {
 
     private List<RankListDTO> getRankList(List<TopicStoreyColumn> content,Integer topicStoryId) {
         List<RankListDTO> list=new ArrayList<>();
-        List<TopicStoreyColumn> childList=columnRepository.getByTopicStoreyIdAndLevelOrderByOrderNumAsc(topicStoryId,1);
-        content.stream().filter(c->c.getLevel().equals(0)||null==c.getPId()).forEach(c->{
+        List<Integer> ids=new ArrayList<>();
+        content.forEach(c->{
             RankListDTO rankListDTO=new RankListDTO();
             BeanUtils.copyProperties(c, rankListDTO);
-            List<RankListDTO> rankList=new ArrayList<>();
+            List<TopicRankRelation> rankList=new ArrayList<>();
             rankListDTO.setRankList(rankList);
             rankListDTO.setSorting(c.getOrderNum());
             rankListDTO.setPublishState(c.getDeleted());
             list.add(rankListDTO);
+            ids.add(c.getId());
         });
-        if(!CollectionUtils.isEmpty(list)) {
-            list.forEach(l->{
-                childList.stream().filter(c->null!=c.getPId()&&c.getPId().equals(l.getId())).forEach(c->{
-                    RankListDTO rankListDTO=new RankListDTO();
-                    BeanUtils.copyProperties(c, rankListDTO);
-                    rankListDTO.setSorting(c.getOrderNum());
-                    rankListDTO.setPublishState(c.getDeleted());
-                    l.getRankList().add(rankListDTO);
-                });
+        List<TopicRankRelation> rankRelations = relationRepository.collectByPRankColumIdOrderByCRankSortingAsc(ids);
+        list.forEach(l->{
+            rankRelations.stream().filter(r->r.getPRankColumId().equals(l.getId())).forEach(r->{
+                l.getRankList().add(r);
             });
-            return list;
-        }else {
-            return null;
-        }
+        });
+        return list;
     }
 
     private List<TopicStoreyColumnGoodsDTO> changeTopicStoreyColumnGoods(List<TopicStoreyColumnContent> content) {
