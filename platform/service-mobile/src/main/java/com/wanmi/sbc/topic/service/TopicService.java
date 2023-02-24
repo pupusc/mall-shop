@@ -86,6 +86,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import springfox.documentation.spring.web.json.Json;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -397,24 +398,6 @@ public class TopicService {
         }
         List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
         Iterator<RankRequest> iterator=contentList.iterator();
-        //删除空榜单
-//        while (iterator.hasNext()){
-//            RankRequest rankRequest = iterator.next();
-//            List<Map> mapList = (List<Map>) rankRequest.getRankList();
-//            if(CollectionUtils.isNotEmpty(mapList)){
-//                Iterator<Map> it1=mapList.iterator();
-//                while (it1.hasNext()){
-//                    Map tMap= (Map) it1.next();
-//                    List<Map> rankList = (List<Map>) tMap.get("rankList");
-//                    if(CollectionUtils.isEmpty(rankList)){
-//                        it1.remove();
-//                    }
-//                }
-//            }
-//            if(null==rankRequest||CollectionUtils.isEmpty(mapList)){
-//                iterator.remove();
-//            }
-//        }
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
         goodsCustomResponses.forEach(g-> {
             String label = g.getGoodsLabelList().get(0);
@@ -444,6 +427,9 @@ public class TopicService {
 
     public BaseResponse<RankPageRequest> rankPageByBookList(RankStoreyRequest request){
         RankPageResponse pageResponse = topicConfigProvider.rankPageByBookList(request);
+        if(null==pageResponse){
+            return BaseResponse.error("无榜单数据");
+        }
         List<Integer> idList = pageResponse.getRankIdList();
         if(CollectionUtils.isEmpty(idList)){
             return BaseResponse.success(null);
@@ -454,8 +440,21 @@ public class TopicService {
         if(CollectionUtils.isEmpty(baseResponse)){
             return BaseResponse.error("无商品");
         }
+        Integer total=baseResponse.size();
+        Integer pageSize= request.getPageSize();
+        long totalPages=(long)Math.ceil(total/ pageSize);
+        Integer pageNum= request.getPageNum();
+        Integer start=(pageNum)*pageSize;
+        Integer end=start+pageSize;
+        if(start>=total){
+            return BaseResponse.error("到底了！");
+        }
+        if(end>total){
+            end=total;
+        }
+        List<RankGoodsPublishResponse> subList = baseResponse.subList(start, end);
         List<String> skus= new ArrayList<>();
-        baseResponse.forEach(b->{
+        subList.forEach(b->{
             if(!skus.contains(b.getSkuId())){
                 skus.add(b.getSkuId());
             }
@@ -465,7 +464,7 @@ public class TopicService {
                 r.getRankList().forEach(t->{
                     Map tMap= (Map) t;
                     List<Map> rankList=(List<Map>) tMap.get("rankList");
-                    baseResponse.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
+                    subList.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
                         goodsCustomResponses.stream().filter(g->b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
                             Map map=new HashMap();
                             map.put("id",g.getGoodsId());
@@ -488,12 +487,18 @@ public class TopicService {
                             map.put("spuId",b.getSpuId());
                             map.put("label",g.getLabels());
                             map.put("subName",g.getGoodsSubName());
+                            map.put("rankText",b.getRankText());
                             rankList.add(map);
                         });
                     });
                 });
             });
-        return BaseResponse.success(pageResponse.getPageRequest());
+        RankPageRequest pageRequest = pageResponse.getPageRequest();
+        pageRequest.setPageNum(pageNum);
+        pageRequest.setTotalPages(totalPages);
+        pageRequest.setPageSize(pageSize);
+        pageRequest.setTotal(Long.valueOf(total));
+        return BaseResponse.success(pageRequest);
     }
 
     public RankPageRequest rankPage2(TopicStoreyResponse storeyResponse){

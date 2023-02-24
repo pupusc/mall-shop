@@ -21,4 +21,6 @@ public class RankStoreyRequest extends RankPageRequest implements Serializable {
     private Integer topicStoreySearchId;
 
     private Boolean isRankDetail;
+
+    private Integer rankId;
 }
