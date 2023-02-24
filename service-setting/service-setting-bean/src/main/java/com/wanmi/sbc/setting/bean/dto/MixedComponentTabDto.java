@@ -28,6 +28,10 @@ public class MixedComponentTabDto implements Serializable {
 
     private String name;
 
+    private Integer level;
+
+    private String labelId;
+
     private String subName;
 
     private String dropName;
@@ -37,6 +41,13 @@ public class MixedComponentTabDto implements Serializable {
     private SelectDto image;
 
     private Integer sorting;
+    private Integer pId;
+
+    private Integer bookType;
+
+    private String recommend;
+
+    private String attributeInfo;
 
     /**
      * 1-未启用 0-启用
@@ -58,10 +69,16 @@ public class MixedComponentTabDto implements Serializable {
         this.name = columnDTO.getName();
         this.subName = columnDTO.getSubName();
         this.dropName = columnDTO.getDropName();
+        this.labelId = columnDTO.getLabelId();
         this.sorting = columnDTO.getOrderNum();
         this.startTime = columnDTO.getCreateTime();
         this.endTime = columnDTO.getEndTime();
         this.publishState = columnDTO.getDeleted();
+        this.level = columnDTO.getLevel();
+        this.pId = columnDTO.getPId();
+        this.bookType = columnDTO.getBookType();
+        this.recommend = columnDTO.getRecommend();
+        this.attributeInfo = columnDTO.getAttributeInfo();
         this.color = JSON.parseObject(columnDTO.getColor(), SelectDto.class);
         this.image = JSON.parseObject(columnDTO.getImage(), SelectDto.class);
         List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);

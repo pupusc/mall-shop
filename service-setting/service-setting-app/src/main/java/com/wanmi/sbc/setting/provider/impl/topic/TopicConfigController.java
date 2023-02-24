@@ -7,16 +7,13 @@ import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.*;
-import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumn;
 import com.wanmi.sbc.setting.topicconfig.service.ExcelService;
 import com.wanmi.sbc.setting.topicconfig.service.TopicConfigService;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 

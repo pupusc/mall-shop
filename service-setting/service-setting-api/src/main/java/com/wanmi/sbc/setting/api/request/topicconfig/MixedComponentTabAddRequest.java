@@ -54,7 +54,7 @@ public class MixedComponentTabAddRequest implements Serializable {
 
     private List<KeyWordsDto> keyWords;
 
-    private Integer pId;
+    private Integer id;
 
     public ColumnAddRequest getColumnAddRequest() {
         ColumnAddRequest columnAddRequest = new ColumnAddRequest();
@@ -68,7 +68,7 @@ public class MixedComponentTabAddRequest implements Serializable {
         columnAddRequest.setSubName(subName);
         columnAddRequest.setOrderNum(sorting);
         columnAddRequest.setTopicStoreyId(topicStoreyId);
-        columnAddRequest.setPId(pId);
+        columnAddRequest.setPId(id != null ? id : null);
         columnAddRequest.setAttributeInfo(keyWords != null ? JSON.toJSONString(keyWords) : null);
         return columnAddRequest;
     }

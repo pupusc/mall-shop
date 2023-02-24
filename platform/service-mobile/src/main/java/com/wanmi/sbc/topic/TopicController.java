@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @menu 专题
@@ -79,6 +82,11 @@ public class TopicController {
     }
 
 
+    @PostMapping(value = "/v2/getMixedComponentContent")
+    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(@RequestBody RankStoreyRequest request) {
+        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent(request.getTopicStoreyId(), null, null, null);
+        return BaseResponse.success(mixedComponentContent);
+    }
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPageV2")
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {

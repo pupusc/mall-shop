@@ -1081,29 +1081,29 @@ public class TopicConfigService {
 //        }).collect(Collectors.toList());
 //    }
 
-    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreyColumn> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
-        if (request.getId() == null) {
-            request.setId(mixedComponentTabs.get(0).getId());
-        }
-        Integer finalId = request.getId();
-        MixedComponentKeyWordsDto mixedComponentKeyWordsDto = new MixedComponentKeyWordsDto();
-        List<KeyWordDto> keyWords = topicStoreySearches.stream()
-                .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel()))
-                .map(s -> {
-                    KeyWordDto keyWordDto = new KeyWordDto();
-                    keyWordDto.setId(s.getId());
-                    keyWordDto.setName(s.getName());
-            return keyWordDto;
-        }).collect(Collectors.toList());
-        mixedComponentKeyWordsDto.setKeyWord(keyWords);
-        Optional<TopicStoreyColumn> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel())).findFirst();
-        if (storeySearch.get() != null && StringUtils.isNotEmpty(storeySearch.get().getColor())) {
-            JSONObject colorObject = JSON.parseObject(storeySearch.get().getColor());
-            mixedComponentKeyWordsDto.setKeyWordSelectedColor(colorObject.getString("selected"));
-            mixedComponentKeyWordsDto.setKeyWordUnSelectedColor(colorObject.getString("unselected"));
-        }
-        return mixedComponentKeyWordsDto;
-    }
+//    public MixedComponentKeyWordsDto getMixedComponentKeyWord(List<TopicStoreyColumn> topicStoreySearches, List<MixedComponentTabDto> mixedComponentTabs, MixedComponentQueryRequest request) {
+//        if (request.getId() == null) {
+//            request.setId(mixedComponentTabs.get(0).getId());
+//        }
+//        Integer finalId = request.getId();
+//        MixedComponentKeyWordsDto mixedComponentKeyWordsDto = new MixedComponentKeyWordsDto();
+//        List<KeyWordDto> keyWords = topicStoreySearches.stream()
+//                .filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel()))
+//                .map(s -> {
+//                    KeyWordDto keyWordDto = new KeyWordDto();
+//                    keyWordDto.setId(s.getId());
+//                    keyWordDto.setName(s.getName());
+//            return keyWordDto;
+//        }).collect(Collectors.toList());
+//        mixedComponentKeyWordsDto.setKeyWord(keyWords);
+//        Optional<TopicStoreyColumn> storeySearch = topicStoreySearches.stream().filter(s -> finalId.equals(s.getPId()) && MixedComponentLevel.TWO.toValue().equals(s.getLevel())).findFirst();
+//        if (storeySearch.get() != null && StringUtils.isNotEmpty(storeySearch.get().getColor())) {
+//            JSONObject colorObject = JSON.parseObject(storeySearch.get().getColor());
+//            mixedComponentKeyWordsDto.setKeyWordSelectedColor(colorObject.getString("selected"));
+//            mixedComponentKeyWordsDto.setKeyWordUnSelectedColor(colorObject.getString("unselected"));
+//        }
+//        return mixedComponentKeyWordsDto;
+//    }
 
 
     /**
