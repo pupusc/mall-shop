@@ -22,6 +22,8 @@ public class TopicQueryRequest implements Serializable {
 
     private String keyWord;
 
+    private Integer tabId;
+
     @ApiModelProperty(value = "第几页")
     private Integer pageNum = 0;
 

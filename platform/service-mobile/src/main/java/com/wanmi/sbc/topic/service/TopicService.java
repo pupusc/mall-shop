@@ -259,7 +259,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                topicResponse.setMixedComponentContent(getMixedComponentContent(storeyType, null, request.getKeyWord(), null));
+                topicResponse.setMixedComponentContent(getMixedComponentContent(storeyType, request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -897,7 +897,7 @@ public class TopicService {
 
     }
 
-    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer) {
+    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
@@ -972,8 +972,7 @@ public class TopicService {
             }
         });
         // 每页显示的数据条数
-        int pageSize = 10;
-        int number = 1;
+        int number = pageNum + 1;
         // 数据总条数
         int totalPageSize = content.size();
         // 总页数
