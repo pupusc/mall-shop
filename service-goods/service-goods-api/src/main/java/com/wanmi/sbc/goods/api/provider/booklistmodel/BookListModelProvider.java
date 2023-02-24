@@ -123,7 +123,7 @@ public interface BookListModelProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublishByIdV2")
-    BaseResponse<List<RankGoodsPublishResponse>> getPublishGoodsById(
+    List<RankGoodsPublishTempResponse>  getPublishGoodsById(
             @RequestParam Integer id);
 
     /**
@@ -159,4 +159,6 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
     BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
 
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/importById")
+    String importById(@RequestBody RankGoodsPublishResponse response);
 }

@@ -1,17 +1,20 @@
 package com.wanmi.sbc.goods.booklistgoodspublish.repository;
 
 
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishV2DTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface BookListGoodsPublishV2Repository extends JpaRepository<BookListGoodsPublishV2DTO, Integer>, JpaSpecificationExecutor<BookListGoodsPublishV2DTO> {
@@ -75,8 +78,15 @@ public interface BookListGoodsPublishV2Repository extends JpaRepository<BookList
 
     List<BookListGoodsPublishV2DTO> findByBookListIdIn(List<Integer> ids);
 
-    List<BookListGoodsPublishV2DTO> findByBookListId(Integer id);
 
+    @Query(value = "select a.*,b.goods_info_name as name from t_book_list_goods_publish as a left join goods_info as b on a.sku_id=b.goods_info_id where book_list_id in ?1 and del_flag = 0", nativeQuery = true)
+    List<Map> findByBookListId(Integer id);
+
+    List<BookListGoodsPublishV2DTO> findBySkuNo(String skuNo);
+
+    @Modifying
+    @Query(value = "update t_book_list_goods_publish set sale_num=?2 , rank_text=?3  where sku_no = ?1", nativeQuery = true)
+    int updateBookListGoodsPublish(String skuNo, Integer saleNum, String rankText);
 }
 
 
