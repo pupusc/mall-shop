@@ -19,6 +19,9 @@ public class TopicQueryRequest implements Serializable {
     @ApiModelProperty("页面名称")
     private String topicName;
 
+
+    private String keyWord;
+
     @ApiModelProperty(value = "第几页")
     private Integer pageNum = 0;
 

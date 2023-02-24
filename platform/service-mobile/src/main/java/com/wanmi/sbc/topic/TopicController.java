@@ -82,11 +82,11 @@ public class TopicController {
     }
 
 
-    @PostMapping(value = "/v2/getMixedComponentContent")
-    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(@RequestBody RankStoreyRequest request) {
-        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent(request.getTopicStoreyId(), null, null, null);
-        return BaseResponse.success(mixedComponentContent);
-    }
+//    @PostMapping(value = "/v2/getMixedComponentContent")
+//    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(@RequestBody RankStoreyRequest request) {
+//        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent(request.getTopicStoreyId(), null, null, null);
+//        return BaseResponse.success(mixedComponentContent);
+//    }
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPageV2")
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {

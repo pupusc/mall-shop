@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
+import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -76,7 +77,7 @@ public class TopicStoreyResponse implements Serializable {
     private List<GoodsOrBookResponse> BooksResponses;
 
     @ApiModelProperty("混合栏目信息")
-    private TopicStoreyMixedComponentResponse topicStoreyMixedComponentResponse;
+    private List<MixedComponentDto> mixedComponentContent;
 
     @ApiModelProperty(value = "悬浮窗信息")
     private List<SuspensionDTO> suspensionDTOList;
