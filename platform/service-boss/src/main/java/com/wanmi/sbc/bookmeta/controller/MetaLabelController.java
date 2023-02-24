@@ -213,6 +213,7 @@ public class MetaLabelController {
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("lable.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {

@@ -306,6 +306,7 @@ public class MetaBookController {
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("book_lable.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
@@ -418,6 +419,7 @@ public class MetaBookController {
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("book.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
