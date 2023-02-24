@@ -260,7 +260,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                //topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
+                topicResponse.setMixedComponentContent(getMixedComponentContent(storeyType, request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -336,18 +336,18 @@ public class TopicService {
         //获得主题id
         topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
         //获得主题下商品skuList
-        List<TopicStoreyContentDTO> contentByStoreyId = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
-        if(null==contentByStoreyId || contentByStoreyId.size()==0){
-            return null;
-        }
-        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
-            LocalDateTime now = LocalDateTime.now();
-            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
-                return true;
-            } else {
-                return false;
-            }
-        }).collect(Collectors.toList());
+        List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+//        if(null==contentByStoreyId || contentByStoreyId.size()==0){
+//            return null;
+//        }
+//        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
+//            LocalDateTime now = LocalDateTime.now();
+//            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
+//                return true;
+//            } else {
+//                return false;
+//            }
+//        }).collect(Collectors.toList());
 
         if(null==collectTemp || collectTemp.size()==0){
             return null;
@@ -902,7 +902,7 @@ public class TopicService {
 
     }
 
-    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer) {
+    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
@@ -947,6 +947,7 @@ public class TopicService {
             ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
             columnContentQueryRequest.setTopicStoreySearchId(id);
             columnContentQueryRequest.setDeleted(0);
+            columnContentQueryRequest.setPageSize(10000);
             List<Map<String, Object>> tabs = new ArrayList<>();
             if (c.getLabelId() != null) {
                 for (String s : c.getLabelId().split(",")) {
@@ -962,25 +963,22 @@ public class TopicService {
             if(c.getBookType() != null && MixedComponentLevel.TWO.toValue().equals(c.getBookType())) {
                 columnContent.forEach(column -> {
                     List<GoodsDto> goods = new ArrayList<>();
-                    List<String> spuIds = new ArrayList<>();
-                    spuIds.add(column.getSpuId());
-                    getGoods(finalKeyWord, spuIds, null, goods, customer);
+                    getGoods(finalKeyWord, column, goods, customer);
                     MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
                     mixedComponentContentDto.setLabelId(tabs);
                     content.add(mixedComponentContentDto);
                 });
             } else {
                 List<GoodsDto> goods = new ArrayList<>();
-                List<String> spuIds = new ArrayList<>();
-                columnContent.forEach(column -> {spuIds.add(column.getSpuId());});
-                getGoods(finalKeyWord, spuIds, null, goods, customer);
+                columnContent.forEach(column -> {
+                    getGoods(finalKeyWord, column, goods, customer);
+                });
                 MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
                 content.add(mixedComponentContentDto);
             }
         });
         // 每页显示的数据条数
-        int pageSize = 10;
-        int number = 1;
+        int number = pageNum + 1;
         // 数据总条数
         int totalPageSize = content.size();
         // 总页数
@@ -999,7 +997,7 @@ public class TopicService {
     }
 
     //获取商品详情
-    private void getGoods(String finalKeyWord, List<String> spuIds, String isbn, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
+    private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
         if (customer == null) {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -1009,27 +1007,34 @@ public class TopicService {
                 customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
             }
         }
-        if (spuIds != null) {
+        if (column.getSpuId() != null) {
+            List<String> spuIds = new ArrayList<>();
+            spuIds.add(column.getSpuId());
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             es.setSpuIds(spuIds);
             es.setKeyword(finalKeyWord);
             List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (esSpuNewResps == null) {return;}
-            CustomerGetByIdResponse finalCustomer = customer;
+            CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
             esSpuNewResps.forEach(res -> {
                 DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
                 request.setGoodsId(res.getSpuId());
                 List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
                 MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
                 filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(finalCustomer, CustomerDTO.class));
+                filterRequest.setCustomerDTO(convert);
                 List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
                 GoodsDto goodsDto = new GoodsDto();
                 goodsDto.setSpuId(res.getSpuId());
                 goodsDto.setGoodsName(res.getSpuName());
-                goodsDto.setImage(res.getPic());
+                goodsDto.setImage(column.getImageUrl());
+                goodsDto.setRecommend(column.getRecommend());
+                goodsDto.setRecommendName(column.getRecommendName());
+                goodsDto.setReferrer(column.getReferrer());
+                goodsDto.setReferrerTitle(column.getReferrerTitle() != null ? Arrays.asList(column.getReferrerTitle().split(",")) : null);
                 goodsDto.setScore(String.valueOf(res.getBook().getScore()));
                 goodsDto.setRetailPrice(res.getSalesPrice());
+//                goodsDto.setTags(res.getBook().getTags());
                 goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
                 goods.add(goodsDto);
             });
