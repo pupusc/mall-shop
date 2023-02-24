@@ -259,7 +259,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                //topicResponse.setTopicStoreyMixedComponentResponse(getMixedComponentContent(topicResponse.getId()));
+                topicResponse.setMixedComponentContent(getMixedComponentContent(storeyType, null, request.getKeyWord(), null));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -957,18 +957,16 @@ public class TopicService {
             if(c.getBookType() != null && MixedComponentLevel.TWO.toValue().equals(c.getBookType())) {
                 columnContent.forEach(column -> {
                     List<GoodsDto> goods = new ArrayList<>();
-                    List<String> spuIds = new ArrayList<>();
-                    spuIds.add(column.getSpuId());
-                    getGoods(finalKeyWord, spuIds, null, goods, customer);
+                    getGoods(finalKeyWord, column, goods, customer);
                     MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
                     mixedComponentContentDto.setLabelId(tabs);
                     content.add(mixedComponentContentDto);
                 });
             } else {
                 List<GoodsDto> goods = new ArrayList<>();
-                List<String> spuIds = new ArrayList<>();
-                columnContent.forEach(column -> {spuIds.add(column.getSpuId());});
-                getGoods(finalKeyWord, spuIds, null, goods, customer);
+                columnContent.forEach(column -> {
+                    getGoods(finalKeyWord, column, goods, customer);
+                });
                 MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
                 content.add(mixedComponentContentDto);
             }
@@ -994,7 +992,7 @@ public class TopicService {
     }
 
     //获取商品详情
-    private void getGoods(String finalKeyWord, List<String> spuIds, String isbn, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
+    private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
         if (customer == null) {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -1004,7 +1002,9 @@ public class TopicService {
                 customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
             }
         }
-        if (spuIds != null) {
+        if (column.getSpuId() != null) {
+            List<String> spuIds = new ArrayList<>();
+            spuIds.add(column.getSpuId());
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             es.setSpuIds(spuIds);
             es.setKeyword(finalKeyWord);
@@ -1022,9 +1022,14 @@ public class TopicService {
                 GoodsDto goodsDto = new GoodsDto();
                 goodsDto.setSpuId(res.getSpuId());
                 goodsDto.setGoodsName(res.getSpuName());
-                goodsDto.setImage(res.getPic());
+                goodsDto.setImage(column.getImageUrl());
+                goodsDto.setRecommend(column.getRecommend());
+                goodsDto.setRecommendName(column.getRecommendName());
+                goodsDto.setReferrer(column.getReferrer());
+                goodsDto.setReferrerTitle(Arrays.asList(column.getReferrerTitle().split(",")));
                 goodsDto.setScore(String.valueOf(res.getBook().getScore()));
                 goodsDto.setRetailPrice(res.getSalesPrice());
+//                goodsDto.setTags(res.getBook().getTags());
                 goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
                 goods.add(goodsDto);
             });

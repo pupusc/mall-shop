@@ -118,4 +118,13 @@ public class TopicStoreyColumnContent {
     @Column(name = "image_id")
     private Long imageId;
 
+    @Column(name = "referrer")
+    private String referrer;
+
+    @Column(name = "referrer_title")
+    private String referrerTitle;
+
+    @Column(name = "recommendName")
+    private String recommendName;
+
 }

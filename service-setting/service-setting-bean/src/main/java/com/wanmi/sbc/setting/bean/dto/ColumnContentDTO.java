@@ -93,6 +93,12 @@ public class ColumnContentDTO {
 
     private Long imageId;
 
+    private String referrer;
+
+    private String referrerTitle;
+
+    private String recommendName;
+
 
     public ColumnContentDTO() {
         LocalDateTime now = LocalDateTime.now();

@@ -82,6 +82,12 @@ public class ColumnContentAddRequest implements Serializable {
 
     private Long imageId;
 
+    private String referrer;
+
+    private String referrerTitle;
+
+    private String recommendName;
+
 
     /**
      * 0-未开始 1-进行中 2-已结束
