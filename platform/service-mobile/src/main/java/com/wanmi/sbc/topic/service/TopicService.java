@@ -40,6 +40,7 @@ import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -449,63 +450,47 @@ public class TopicService {
         }
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
         idsRequest.setIds(idList);
-        BaseResponse<List<Map>> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest);
-        if(CollectionUtils.isEmpty(baseResponse.getContext())){
+        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
+        if(CollectionUtils.isEmpty(baseResponse)){
             return BaseResponse.error("无商品");
         }
-        Map context = baseResponse.getContext().get(0);
-        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
-        List<String> skus= (List<String>) context.get("skuIds");
-        //删除空榜单
-//        while (iterator.hasNext()){
-//            RankRequest rankRequest = iterator.next();
-//            List<Map> mapList = (List<Map>) rankRequest.getRankList();
-//            if(CollectionUtils.isNotEmpty(mapList)){
-//                Iterator<Map> it1=mapList.iterator();
-//                while (it1.hasNext()){
-//                    Map tMap= (Map) it1.next();
-//                    List<Map> rankList = (List<Map>) tMap.get("rankList");
-//                    if(CollectionUtils.isEmpty(rankList)){
-//                        it1.remove();
-//                    }
-//                }
-//            }
-//            if(null==rankRequest||CollectionUtils.isEmpty(mapList)){
-//                iterator.remove();
-//            }
-//        }
+        List<String> skus= new ArrayList<>();
+        baseResponse.forEach(b->{
+            if(!skus.contains(b.getSkuId())){
+                skus.add(b.getSkuId());
+            }
+        });
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(skus);
             pageResponse.getPageRequest().getContentList().forEach(r->{
                 r.getRankList().forEach(t->{
                     Map tMap= (Map) t;
                     List<Map> rankList=(List<Map>) tMap.get("rankList");
-                    if(context.keySet().contains(tMap.get("id").toString())){
-                        List<String> stringList= (List<String>) context.get(tMap.get("id").toString());
-                        goodsCustomResponses.stream().filter(g->stringList.contains(g.getGoodsInfoId())).forEach(g->{
+                    baseResponse.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
+                        goodsCustomResponses.stream().filter(g->b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
                             Map map=new HashMap();
                             map.put("id",g.getGoodsId());
                             map.put("spuNo",g.getGoodsNo());
                             map.put("skuNo",g.getGoodsInfoNo());
                             map.put("imageUrl",g.getImageUrl());
-                            map.put("sorting",1);
+                            map.put("sorting",b.getOrderNum());
                             map.put("goodsName",g.getGoodsName());
-//                            if(org.apache.commons.lang3.StringUtils.isNotBlank(c.getNumTxt())) {
-//                                if (Integer.parseInt(c.getNumTxt()) >= 10000) {
-//                                    String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
-//                                    map.put("num", num);
-//                                } else {
-//                                    map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
-//                                }
-//                            }else {
-//                                map.put("num", "");
-//                            }
-                            map.put("skuId",g.getGoodsInfoId());
-                            map.put("spuId",g.getGoodsId());
+                            if(null!=b.getSaleNum()) {
+                                if (b.getSaleNum() >= 10000) {
+                                    String num = String.valueOf(b.getSaleNum() / 10000) + "万";
+                                    map.put("num", num);
+                                } else {
+                                    map.put("num", String.valueOf(b.getSaleNum()));
+                                }
+                            }else {
+                                map.put("num", "");
+                            }
+                            map.put("skuId",b.getSkuId());
+                            map.put("spuId",b.getSpuId());
                             map.put("label",g.getLabels());
                             map.put("subName",g.getGoodsSubName());
                             rankList.add(map);
                         });
-                    }
+                    });
                 });
             });
         return BaseResponse.success(pageResponse.getPageRequest());
