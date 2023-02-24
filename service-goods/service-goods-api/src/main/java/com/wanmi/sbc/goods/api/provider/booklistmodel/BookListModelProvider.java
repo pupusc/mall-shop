@@ -124,7 +124,7 @@ public interface BookListModelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublishByIdV2")
     List<RankGoodsPublishTempResponse>  getPublishGoodsById(
-            @RequestParam Integer id);
+            @RequestParam(value = "id") Integer id);
 
     /**
      * 根据商品spuId列表 获取书单列表和商品列表
