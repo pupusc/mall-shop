@@ -5,10 +5,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.*;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
@@ -26,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 
 @FeignClient(value = "${application.goods.name}", contextId = "BookListModelProvider")
@@ -61,6 +59,10 @@ public interface BookListModelProvider {
     BaseResponse<BookListModelProviderResponse> findSimpleById(
             @Validated(BookListModelProviderRequest.FindById.class)
             @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/findByIds")
+    BaseResponse<List<BookListModelProviderResponse>> findByIds(
+            @RequestBody RankListByBookListModelIdsRequest rankListByBookListModelIdsRequest);
 
     /**
      * 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
@@ -112,6 +114,15 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublish")
     BaseResponse<List<BookListGoodsPublishProviderResponse>> listBookListGoodsPublish(
             @Validated @RequestBody BookListGoodsPublishProviderRequest request);
+
+    /**
+     * 根据bookListIdList 获取发布商品列表
+     * @param request
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublishByIds")
+    BaseResponse<List<Map>> listBookListGoodsPublishByIds(
+            @RequestBody GoodsIdsByRankListIdsRequest request);
 
     /**
      * 根据商品spuId列表 获取书单列表和商品列表

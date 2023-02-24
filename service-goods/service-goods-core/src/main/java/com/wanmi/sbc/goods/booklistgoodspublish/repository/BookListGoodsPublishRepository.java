@@ -73,6 +73,8 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
     @Query(value = "select * from t_book_list_goods_publish where spu_id in ?1", nativeQuery = true)
     List<BookListGoodsPublishDTO> collectBookListGoodsPublishIdBySpuIds(List<String> spuIds);
 
+    List<BookListGoodsPublishDTO> findByBookListIdIn(List<Integer> ids);
+
 }
 
 

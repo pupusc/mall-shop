@@ -316,6 +316,20 @@ public class BookListModelService {
     }
 
     /**
+     * 根据ids获取书单列表
+     * @param ids
+     * @return
+     */
+    public List<BookListModelDTO> findByIds(List<Integer> ids){
+        Iterable<Integer> id=ids;
+        List<BookListModelDTO> bookListModelDTOList = bookListModelRepository.findAllById(id);
+        if (CollectionUtils.isEmpty(bookListModelDTOList)) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
+        }
+        return bookListModelDTOList;
+    }
+
+    /**
      * 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
      * @param bookListModelId
      * @return

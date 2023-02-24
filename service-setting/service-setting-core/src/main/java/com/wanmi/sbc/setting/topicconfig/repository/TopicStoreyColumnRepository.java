@@ -98,7 +98,7 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
     //楼层栏目列表
     List<TopicStoreyColumn> getByTopicStoreyIdAndDeletedOrderByOrderNumAscCreateTimeDesc(Integer topicStoreyId, Integer deleted);
 
-    List<TopicStoreyColumn> getByTopicStoreyIdAndLevelOrderByOrderNumAscCreateTimeDesc(Integer topicStoreyId, Integer level);
+    List<TopicStoreyColumn> getByTopicStoreyIdAndLevelOrderByOrderNumAsc(Integer topicStoreyId, Integer level);
 
     @Modifying
     @Query("update TopicStoreyColumn T set T.deleted = ?2, T.updateTime = now() where T.id = ?1")

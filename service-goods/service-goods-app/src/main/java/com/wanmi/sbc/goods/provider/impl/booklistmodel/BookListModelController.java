@@ -2,14 +2,12 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.*;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
@@ -33,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -110,6 +109,24 @@ public class BookListModelController implements BookListModelProvider {
         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
         BeanUtils.copyProperties(simpleBookListModelDTO, bookListModelProviderResponse);
         return BaseResponse.success(bookListModelProviderResponse);
+    }
+
+    /**
+     * 根据ids获取书单信息
+     * @param rankListByBookListModelIdsRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<List<BookListModelProviderResponse>> findByIds(RankListByBookListModelIdsRequest rankListByBookListModelIdsRequest) {
+        List<BookListModelDTO> modelDTOS = bookListModelService.findByIds(rankListByBookListModelIdsRequest.getIds());
+        List<BookListModelProviderResponse> bookListModelProviderResponses = KsBeanUtil.convertList(modelDTOS, BookListModelProviderResponse.class);
+        return BaseResponse.success(bookListModelProviderResponses);
+    }
+
+    @Override
+    public BaseResponse<List<Map>> listBookListGoodsPublishByIds(GoodsIdsByRankListIdsRequest request) {
+        List<Map> ids = bookListGoodsPublishService.getIds(request.getIds());
+        return BaseResponse.success(ids);
     }
 
     /**

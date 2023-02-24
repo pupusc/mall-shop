@@ -12,7 +12,6 @@ import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLin
 import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SQLQuery;
-import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +28,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Description:
@@ -195,4 +190,26 @@ public class BookListGoodsPublishService {
         };
     }
 
+    public List<Map> getIds(List<Integer> ids) {
+        List<BookListGoodsPublishDTO> list = bookListGoodsPublishRepository.findByBookListIdIn(ids);
+        List<Map> idList=new ArrayList<>();
+        List<String> skuIds=new ArrayList<>();
+        Map map=new HashMap();
+        list.forEach(l->{
+            if(map.keySet().contains(l.getBookListId())) {
+                List<String> stringList= (List<String>) map.get(l.getBookListId());
+                stringList.add(l.getSkuId());
+            }else {
+                List<String> stringList=new ArrayList<>();
+                stringList.add(l.getSkuId());
+                map.put(l.getBookListId(),stringList);
+            }
+            if(!skuIds.contains(l.getSkuId())){
+                skuIds.add(l.getSkuId());
+            }
+        });
+        map.put("skuIds",skuIds);
+        idList.add(map);
+        return idList;
+    }
 }

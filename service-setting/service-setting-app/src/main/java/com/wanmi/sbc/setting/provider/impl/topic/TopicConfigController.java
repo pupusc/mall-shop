@@ -101,6 +101,10 @@ public class TopicConfigController implements TopicConfigProvider {
         return topicConfigService.rankPage2(storeyRequest);
     }
 
+    public RankPageResponse rankPageByBookList(RankStoreyRequest storeyRequest){
+        return topicConfigService.rankPageByBookList(storeyRequest);
+    }
+
     @Override
     public BaseResponse<TopicActivityVO> detail(TopicQueryRequest request) {
         return BaseResponse.success(topicConfigService.detail(request.getTopicKey()));
