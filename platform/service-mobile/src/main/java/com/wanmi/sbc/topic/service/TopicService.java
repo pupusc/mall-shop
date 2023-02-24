@@ -942,6 +942,7 @@ public class TopicService {
             ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
             columnContentQueryRequest.setTopicStoreySearchId(id);
             columnContentQueryRequest.setDeleted(0);
+            columnContentQueryRequest.setPageSize(10000);
             List<Map<String, Object>> tabs = new ArrayList<>();
             if (c.getLabelId() != null) {
                 for (String s : c.getLabelId().split(",")) {
@@ -1009,14 +1010,14 @@ public class TopicService {
             es.setKeyword(finalKeyWord);
             List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (esSpuNewResps == null) {return;}
-            CustomerGetByIdResponse finalCustomer = customer;
+            CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
             esSpuNewResps.forEach(res -> {
                 DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
                 request.setGoodsId(res.getSpuId());
                 List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
                 MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
                 filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(finalCustomer, CustomerDTO.class));
+                filterRequest.setCustomerDTO(convert);
                 List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
                 GoodsDto goodsDto = new GoodsDto();
                 goodsDto.setSpuId(res.getSpuId());
@@ -1025,7 +1026,7 @@ public class TopicService {
                 goodsDto.setRecommend(column.getRecommend());
                 goodsDto.setRecommendName(column.getRecommendName());
                 goodsDto.setReferrer(column.getReferrer());
-                goodsDto.setReferrerTitle(Arrays.asList(column.getReferrerTitle().split(",")));
+                goodsDto.setReferrerTitle(column.getReferrerTitle() != null ? Arrays.asList(column.getReferrerTitle().split(",")) : null);
                 goodsDto.setScore(String.valueOf(res.getBook().getScore()));
                 goodsDto.setRetailPrice(res.getSalesPrice());
 //                goodsDto.setTags(res.getBook().getTags());
