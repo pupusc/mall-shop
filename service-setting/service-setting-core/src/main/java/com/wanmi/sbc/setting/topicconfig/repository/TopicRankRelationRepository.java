@@ -6,6 +6,7 @@ import jdk.internal.dynalink.linker.LinkerServices;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,5 +15,6 @@ import java.util.List;
 public interface TopicRankRelationRepository extends JpaRepository<TopicRankRelation, Integer>,
         JpaSpecificationExecutor<TopicRankRelation> {
 
-    List<TopicRankRelation> findByPRankColumIdIn(List<Integer> ids);
+    @Query(value = "select * from topic_rank_relation where p_rank_colum_id in ?1 order by c_rank_sorting asc,p_rank_colum_id asc", nativeQuery = true)
+    List<TopicRankRelation> collectByPRankColumIdOrderByCRankSortingAsc(List<Integer> ids);
 }

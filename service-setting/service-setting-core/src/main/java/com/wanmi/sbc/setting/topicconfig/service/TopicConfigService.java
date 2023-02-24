@@ -347,7 +347,7 @@ public class TopicConfigService {
     public RankPageResponse rankPageByBookList(RankStoreyRequest storeyRequest) {
         Integer rankIdByTopicStoreyId = getRankIdByTopicStoreyId(storeyRequest.getTopicStoreyId());
         storeyRequest.setTopicStoreyId(rankIdByTopicStoreyId);
-        return getRankNameListRel(storeyRequest.getTopicStoreyId(), false);
+        return getRankNameListRel(storeyRequest, false);
     }
 
     /**
@@ -461,19 +461,31 @@ public class TopicConfigService {
         return rankRequests;
     }
 
-    public RankPageResponse getRankNameListRel(Integer topicStoreyId,Boolean isDitail){
+    public RankPageResponse getRankNameListRel(RankStoreyRequest storeyRequest,Boolean isDitail){
+        Integer topicStoreyId = storeyRequest.getTopicStoreyId();
         List<TopicStoreyColumn> list = columnRepository.getByTopicStoreyIdAndLevelOrderByOrderNumAsc(topicStoreyId, 0);
         List<Integer> idList=new ArrayList<>();
-        list.forEach(t->{
-            idList.add(t.getId());
-        });
+        if(null!=storeyRequest.getTopicStoreySearchId()){
+            list.stream().filter(t->t.getId().equals(storeyRequest.getTopicStoreySearchId())).forEach(t->{
+                idList.add(t.getId());
+            });
+        }else {
+            idList.add(list.get(0).getId());
+        }
         List<Integer> cIds=new ArrayList<>();
-        List<TopicRankRelation> rankRelations = relationRepository.findByPRankColumIdIn(idList);
-        rankRelations.forEach(r->{
-            if(!cIds.contains(r.getCRankId())) {
-                cIds.add(r.getCRankId());
-            }
-        });
+        List<TopicRankRelation> rankRelations = relationRepository.collectByPRankColumIdOrderByCRankSortingAsc(idList);
+        if(CollectionUtils.isEmpty(rankRelations)){
+            return null;
+        }
+        if(null!=storeyRequest.getRankId()){
+            rankRelations.stream().filter(r->r.getPRankColumId().equals(storeyRequest.getRankId())).forEach(r->cIds.add(r.getCRankId()));
+            cIds.add(storeyRequest.getRankId());
+        }else {
+            cIds.add(rankRelations.get(0).getCRankId());
+        }
+        if(CollectionUtils.isEmpty(cIds)){
+            return null;
+        }
         List<RankRequest> rankRequests=new ArrayList<>();
         list.forEach(l->{
             RankRequest rankRequest=new RankRequest();
@@ -487,6 +499,7 @@ public class TopicConfigService {
                 rankRequest1.setRankName(r.getCRankName());
                 rankRequest1.setId(r.getCRankId());
                 rankRequest1.setLevel(1);
+                rankRequest1.setP_id(l.getId());
                 List<Map> requestList=new ArrayList<>();
                 rankRequest1.setRankList(requestList);
                 rankRequest.getRankList().add(rankRequest1);
