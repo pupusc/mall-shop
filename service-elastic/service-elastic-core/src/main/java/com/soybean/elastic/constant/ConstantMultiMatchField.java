@@ -62,4 +62,6 @@ public class ConstantMultiMatchField {
     public static final String FIELD_SPU_LABEL_NAME = "labels.labelName";
 
     public static final String FIELD_SPU_LABEL_NAME_KEYWORD = "labels.labelName.keyword";
+
+    public static final String BOOK_ISBN = "book.isbn";
 }

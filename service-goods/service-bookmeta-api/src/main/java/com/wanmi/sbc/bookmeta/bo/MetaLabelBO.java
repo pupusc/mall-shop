@@ -37,7 +37,7 @@ public class MetaLabelBO implements Serializable {
      */     
     private Integer parentId;
     /**
-     * 类型：1目录；2标签；
+     * 类型：1目录；2标签；3.榜单
      */     
     private Integer type;
     /**

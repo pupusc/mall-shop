@@ -28,7 +28,7 @@ public class GoodsDto implements Serializable {
 
     private String referrer;
 
-    private List<String> referrerTitle;
+    private String referrerTitle;
 
     private String goodsName;
 
@@ -43,6 +43,8 @@ public class GoodsDto implements Serializable {
     private BigDecimal retailPrice;
 
     private BigDecimal paidCardPrice;
+
+    private String discount;
 
     private List<String> tags;
 }
