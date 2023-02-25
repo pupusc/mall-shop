@@ -31,6 +31,7 @@
         <result property="bookClumpId" column="book_clump_id" jdbcType="INTEGER"/>
         <result property="bookGroupDescr" column="book_group_descr" jdbcType="VARCHAR"/>
         <result property="languageId" column="language_id" jdbcType="INTEGER"/>
+        <result property="score" column="score" jdbcType="INTEGER"/>
     </resultMap>
 
     <!--查询单个-->
