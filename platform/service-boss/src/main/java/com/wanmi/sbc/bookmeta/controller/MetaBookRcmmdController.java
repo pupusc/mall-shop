@@ -135,6 +135,7 @@ public class MetaBookRcmmdController {
             rcmmdVO.setBizTime(item.getBizTime());
             rcmmdVO.setDescr(item.getDescr());
             rcmmdVO.setName(item.getName());
+            rcmmdVO.setIsSelected(item.getIsSelected());
             if (BookRcmmdTypeEnum.AWARD.getCode().equals(item.getBizType())) {
                 voResult.getAwardList().add(rcmmdVO);
             } else if (BookRcmmdTypeEnum.EDITOR.getCode().equals(item.getBizType())) {
@@ -151,6 +152,18 @@ public class MetaBookRcmmdController {
                 voResult.getDraftList().add(rcmmdVO);
             } else if (BookRcmmdTypeEnum.MENTION.getCode().equals(item.getBizType())) {
                 voResult.getMentionList().add(rcmmdVO);
+            } else if (BookRcmmdTypeEnum.WENMIAO.getCode().equals(item.getBizType())) { //文喵推荐
+                if(rcmmdVO.getBizId() == null || "".equals(rcmmdVO.getBizId())) {
+                    voResult.getWenMiao().setId(rcmmdVO.getId());
+                    voResult.getWenMiao().setBizType(rcmmdVO.getBizType());
+                    voResult.getWenMiao().setBizTime(rcmmdVO.getBizTime());
+                    voResult.getWenMiao().setDescr(rcmmdVO.getDescr());
+                    voResult.getWenMiao().setIsSelected(rcmmdVO.getIsSelected());
+                } else {
+                    voResult.getWenMiao().setBizId(rcmmdVO.getBizId());
+                    voResult.getWenMiao().setName(rcmmdVO.getName());
+                    voResult.getWenMiao().setRecommend(rcmmdVO.getDescr());
+                }
             }
             else {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());
@@ -180,7 +193,21 @@ public class MetaBookRcmmdController {
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.QUOTE.getCode(), editReqVO.getQuoteList(), boList);
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.DRAFT.getCode(), editReqVO.getDraftList(), boList);
         wrapEditBO(editReqVO.getBookId(), BookRcmmdTypeEnum.MENTION.getCode(), editReqVO.getMentionList(), boList);
-
+        //文喵 start
+        if (editReqVO.getWenMiao() != null) {
+            MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO bo = new MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO();
+            BeanUtils.copyProperties(editReqVO.getWenMiao(), bo);
+            bo.setBookId(editReqVO.getBookId());
+            if (editReqVO.getWenMiao().getBizId() != null) {
+                MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO boRec = new MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO();
+                BeanUtils.copyProperties(bo, boRec);
+                boRec.setDescr(editReqVO.getWenMiao().getRecommend());
+                bo.setBizId(null);
+            }
+            bo.setBizType(BookRcmmdTypeEnum.WENMIAO.getCode());
+            boList.add(bo);
+        }
+        //文喵 end
         this.metaBookRcmmdProvider.editByBookId(editBO);
         return BusinessResponse.success(true);
     }
