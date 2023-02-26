@@ -10,6 +10,7 @@
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
         <result property="bookId" column="book_id" jdbcType="VARCHAR"/>
         <result property="rank" column="rank" jdbcType="VARCHAR"/>
+        <result property="recommendation" column="recommendation" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询指定行数据-->
@@ -32,6 +33,9 @@
             </if>
             <if test="bookSeletor.rank != null and bookSeletor.rank != ''">
                 and rank = #{bookSeletor.rank}
+            </if>
+            <if test="bookSeletor.recommendation != null and bookSeletor.recommendation != ''">
+                and rank = #{bookSeletor.recommendation}
             </if>
         </where>
         ORDER BY create_time DESC
