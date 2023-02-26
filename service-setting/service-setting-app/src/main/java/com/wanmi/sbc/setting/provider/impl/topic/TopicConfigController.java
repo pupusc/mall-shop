@@ -258,9 +258,9 @@ public class TopicConfigController implements TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @Override
-    public BaseResponse addTopicStoreyColumn(ColumnAddRequest request) {
-        topicConfigService.addTopicStoreyColumn(request);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<Integer> addTopicStoreyColumn(ColumnAddRequest request) {
+        TopicStoreyColumn topicStoreyColumn = topicConfigService.addTopicStoreyColumn(request);
+        return BaseResponse.success(topicStoreyColumn.getId());
     }
 
     /**
