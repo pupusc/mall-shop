@@ -11,6 +11,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -84,4 +85,9 @@ public interface MetaBookProvider {
     @PostMapping("/goods/${application.goods.version}/metaBook/queryBook")
     List<Map> queryAllBook();
 
+
+    /**根据bookname或者labelname模糊分页查询bookLabel信息
+     */
+    @PostMapping("/goods/${application.goods.version}/metaBook/queryBookLabelBypage")
+    List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,@RequestParam("pageNum") Integer pageNum,@RequestParam("pageSize") Integer pageSize);
 }

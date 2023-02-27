@@ -16,10 +16,6 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnGoodsUpdateRequest;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyColumnGoodsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -28,10 +24,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -278,6 +271,15 @@ public class MetaBookController {
             figure.setFigureType(figureType);
             figures.add(figure);
         }
+    }
+
+    /**
+     *书名和标签名的分页模糊查询
+     * @return
+     */
+    @GetMapping("bookLabelQuery")
+    public List<Map> bookLabelQueryByPage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) {
+        return metaBookProvider.queryBookLabelBypage(bookName,labelName,pageNum,pageSize);
     }
 
     /**
