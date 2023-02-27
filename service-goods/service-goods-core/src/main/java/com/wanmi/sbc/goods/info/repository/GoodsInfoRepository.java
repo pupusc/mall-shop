@@ -619,7 +619,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     /**
      * 根据isbnList查询(不包含已删除的)
      */
-    @Query("from GoodsInfo w where w.delFlag = '0' and w.isbn_no in ?1")
+    @Query(value = "from GoodsInfo w where w.delFlag = '0' and w.isbn_no in ?1",nativeQuery = true)
     List<GoodsInfo> findAllByIsbn(List<String> isbnList);
 
 }
