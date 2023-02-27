@@ -90,7 +90,7 @@ public class TopicController {
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPageV2")
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {
-        BaseResponse<RankPageRequest> response = topicService.rankPageByBookList(request);
+        BaseResponse<RankPageRequest> response = BaseResponse.success(topicService.rankPageByBookList(request));
         return response;
     }
 

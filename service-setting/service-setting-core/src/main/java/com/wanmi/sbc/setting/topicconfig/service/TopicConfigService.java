@@ -363,19 +363,11 @@ public class TopicConfigService {
         return resultList;
     }
 
-    public Integer getRankId(){
-        String sql = "SELECT\n" +
-                "\tss.relation_store_id AS r_id\n" +
-                "FROM\n" +
-                "\ttopic_storey_column AS ss\n" +
-                "\tINNER JOIN\n" +
-                "\ttopic_storey AS ts\n" +
-                "\tON \n" +
-                "\t\tss.topic_storey_id = ts.id\n" +
-                "WHERE\n" +
-                "\tts.storey_type = 21";
+    public Integer getTopicStoryId(RankStoreyRequest storeyRequest){
+        String sql = "SELECT id from topic_story where storey_type = 21 and topic_id=?1";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
         Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1,storeyRequest.getTopicId());
         Integer id = Integer.parseInt(query.getSingleResult().toString());
         entityManager.close();
         return id;

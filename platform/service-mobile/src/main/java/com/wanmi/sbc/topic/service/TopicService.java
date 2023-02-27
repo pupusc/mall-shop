@@ -290,6 +290,11 @@ public class TopicService {
         return BaseResponse.success(response);
     }
 
+    /**
+     * 首页榜单
+     * @param topicResponse
+     * @return
+     */
     public List<RankRequest> rank(TopicStoreyResponse topicResponse){
         RankStoreyRequest rankStoreyRequest = new RankStoreyRequest();
         rankStoreyRequest.setTopicStoreyId(topicResponse.getId());
@@ -425,20 +430,20 @@ public class TopicService {
         return BaseResponse.success(pageResponse.getPageRequest());
     }
 
-    public BaseResponse<RankPageRequest> rankPageByBookList(RankStoreyRequest request){
+    public RankPageRequest rankPageByBookList(RankStoreyRequest request){
         RankPageResponse pageResponse = topicConfigProvider.rankPageByBookList(request);
         if(null==pageResponse){
-            return BaseResponse.error("无榜单数据");
+            return null;
         }
         List<Integer> idList = pageResponse.getRankIdList();
         if(CollectionUtils.isEmpty(idList)){
-            return BaseResponse.success(null);
+            return null;
         }
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
         idsRequest.setIds(idList);
         List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
         if(CollectionUtils.isEmpty(baseResponse)){
-            return BaseResponse.error("无商品");
+            return null;
         }
         Integer total=baseResponse.size();
         Integer pageSize= request.getPageSize();
@@ -447,7 +452,7 @@ public class TopicService {
         Integer start=(pageNum)*pageSize;
         Integer end=start+pageSize;
         if(start>=total){
-            return BaseResponse.error("到底了！");
+            return null;
         }
         if(end>total){
             end=total;
@@ -498,43 +503,16 @@ public class TopicService {
         pageRequest.setTotalPages(totalPages);
         pageRequest.setPageSize(pageSize);
         pageRequest.setTotal(Long.valueOf(total));
-        return BaseResponse.success(pageRequest);
+        return pageRequest;
     }
 
     public RankPageRequest rankPage2(TopicStoreyResponse storeyResponse){
         RankStoreyRequest request=new RankStoreyRequest();
         request.setTopicStoreyId(storeyResponse.getId());
-        RankPageResponse pageResponse = topicConfigProvider.rankPage2(request);
-        List<String> idList = pageResponse.getIdList();
-        if(CollectionUtils.isEmpty(idList)){
-            return null;
-        }
-        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
-        goodsCustomResponses.forEach(g-> {
-            String label = g.getGoodsLabelList().get(0);
-            pageResponse.getPageRequest().getContentList().forEach(r->{
-                r.getRankList().forEach(t->{
-                    Map tMap= (Map) t;
-                    List<Map> list=(List<Map>) tMap.get("rankList");
-                    list.forEach(m->{
-                        if(m.get("spuId").equals(g.getGoodsId())) {
-                            m.put("label", label);
-                            m.put("goodsInfoId",g.getGoodsInfoId());
-                            m.put("subName", g.getGoodsSubName());
-                            m.put("showPrice",g.getShowPrice());
-                            m.put("linePrice",g.getLinePrice());
-                            m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-                            m.put("stock",g.getStock());
-                            m.put("author",g.getGoodsExtProperties().getAuthor());
-                            m.put("publisher",g.getGoodsExtProperties().getPublisher());
-                        }
-
-                    });
-                });
-            });
-        });
-        return pageResponse.getPageRequest();
+        request.setPageNum(0);
+        request.setPageSize(10);
+        RankPageRequest rankPageRequest = rankPageByBookList(request);
+        return rankPageRequest;
     }
 
     /**
