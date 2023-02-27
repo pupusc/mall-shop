@@ -7,6 +7,8 @@ import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
+import com.wanmi.sbc.setting.service.ExcelService;
+import com.wanmi.sbc.setting.service.TopicConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class TopicConfigController {
 
     @Autowired
     private TopicConfigProvider topicConfigProvider;
+
+    @Autowired
+    private ExcelService excelService;
 
     /**
      * @description 新增专题
@@ -416,10 +421,25 @@ public class TopicConfigController {
      * @param request
      * @status undone
      */
-    @ApiOperation("商品池投放数据添加")
+    @ApiOperation("商品池广告池投放数据添加")
     @PostMapping("/storey/v2/goods/add")
     public BaseResponse addMixedComponentGoods(@RequestBody MixedComponentGoodsAddRequest request, @RequestParam(value="file") MultipartFile file){
-        return topicConfigProvider.addTopicStoreyColumnGoods(request, file);
+        Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
+        excelService.importExcel(file, id, request.getBookType());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 视频指定内容投放数据添加
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("视频指定内容投放数据添加")
+    @PostMapping("/storey/v2/video/add")
+    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request){
+        Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
+        excelService.importExcel(file, id, request.getBookType());
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

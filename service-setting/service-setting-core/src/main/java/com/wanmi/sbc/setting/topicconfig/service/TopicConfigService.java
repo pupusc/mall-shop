@@ -701,6 +701,9 @@ public class TopicConfigService {
             if (request.getStoreyId() != null) {
                 predicates.add(cbuild.equal(root.get("storeyId"), request.getStoreyId()));
             }
+            if (request.getType() != null) {
+                predicates.add(cbuild.equal(root.get("type"), request.getType()));
+            }
             predicates.add(cbuild.equal(root.get("deleted"), 0));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

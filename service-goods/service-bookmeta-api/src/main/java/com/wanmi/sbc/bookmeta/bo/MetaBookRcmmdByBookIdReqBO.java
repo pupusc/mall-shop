@@ -74,6 +74,10 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
          * 描述信息：推荐语、获奖理由
          */
         private String descr;
+        /**
+         * 是否选中
+         */
+        private Integer isSelected;
     }
 }
 

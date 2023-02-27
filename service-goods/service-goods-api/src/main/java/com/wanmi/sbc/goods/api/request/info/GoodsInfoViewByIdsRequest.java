@@ -32,6 +32,11 @@ public class GoodsInfoViewByIdsRequest implements Serializable {
 
 
     /**
+     * 批量isbn编号
+     */
+    @ApiModelProperty(value = "批量isbn编号")
+    private List<String> isbnList;
+    /**
      * 是否需要显示规格明细
      * 0:否,1:是
      */

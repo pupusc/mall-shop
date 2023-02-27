@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface BookSeletorMapper extends Mapper<BookSeletor> {
     List<BookSeletor> queryAllByLimit(@Param("bookSeletor")BookSeletor bookSeletor, @Param("limitIndex")Integer pageInt, @Param("limitSize")Integer pageSize);
+
+    List<String> selectIsbnById(@Param("id")Integer id);
 }

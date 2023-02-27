@@ -934,6 +934,7 @@ public class TopicService {
                     map.put("name" , metaLabelBO.getName());
                     map.put("showStatus" , metaLabelBO.getStatus());
                     map.put("showImg", metaLabelBO.getShowImg());
+                    map.put("type", metaLabelBO.getType());
                     tabs.add(map);
                 }
             }
@@ -978,47 +979,51 @@ public class TopicService {
     private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
         if (customer == null) {
-            String c="{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-            customer= JSON.parseObject(c, CustomerGetByIdResponse.class);
-//            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-//            customer =new CustomerGetByIdResponse();
-//            Map customerMap = ( Map ) request.getAttribute("claims");
-//            if(null!=customerMap && null!=customerMap.get("customerId")) {
-//                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-//            }
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            customer =new CustomerGetByIdResponse();
+            Map customerMap = ( Map ) request.getAttribute("claims");
+            if(null!=customerMap && null!=customerMap.get("customerId")) {
+                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+            }
         }
+        List<EsSpuNewResp> esSpuNewResps = null;
         if (column.getSpuId() != null) {
+            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
+            es.setIsbn(column.getIsbn());
+            es.setKeyword(finalKeyWord);
+            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
+        } else {
             List<String> spuIds = new ArrayList<>();
             spuIds.add(column.getSpuId());
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             es.setSpuIds(spuIds);
             es.setKeyword(finalKeyWord);
-            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-            if (esSpuNewResps == null) {return;}
-            CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
-            esSpuNewResps.forEach(res -> {
-                DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
-                request.setGoodsId(res.getSpuId());
-                List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
-                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(convert);
-                List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-                GoodsDto goodsDto = new GoodsDto();
-                goodsDto.setSpuId(res.getSpuId());
-                goodsDto.setGoodsName(res.getSpuName());
-                goodsDto.setImage(column.getImageUrl());
-                goodsDto.setRecommend(column.getRecommend());
-                goodsDto.setRecommendName(column.getRecommendName());
-                goodsDto.setReferrer(column.getReferrer());
-                goodsDto.setReferrerTitle(column.getReferrerTitle() != null ? Arrays.asList(column.getReferrerTitle().split(",")) : null);
-                goodsDto.setScore(String.valueOf(res.getBook().getScore()));
-                goodsDto.setRetailPrice(res.getSalesPrice());
-//                goodsDto.setTags(res.getBook().getTags());
-                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
-                goods.add(goodsDto);
-            });
+            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
         }
+        if (esSpuNewResps == null) {return;}
+        CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
+        esSpuNewResps.forEach(res -> {
+            DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
+            request.setGoodsId(res.getSpuId());
+            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+            filterRequest.setCustomerDTO(convert);
+            //List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            GoodsDto goodsDto = new GoodsDto();
+            goodsDto.setSpuId(res.getSpuId());
+            goodsDto.setGoodsName(res.getSpuName());
+            goodsDto.setImage(column.getImageUrl());
+            goodsDto.setRecommend(column.getRecommend());
+            goodsDto.setRecommendName(column.getRecommendName());
+            goodsDto.setReferrer(column.getReferrer());
+            goodsDto.setReferrerTitle(column.getReferrerTitle());
+            goodsDto.setScore(String.valueOf(res.getBook().getScore()));
+            goodsDto.setRetailPrice(res.getSalesPrice());
+            goodsDto.setTags(new ArrayList<>());
+//                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+            goods.add(goodsDto);
+        });
 
     }
 

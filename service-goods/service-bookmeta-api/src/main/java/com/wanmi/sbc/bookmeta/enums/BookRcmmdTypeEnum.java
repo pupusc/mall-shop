@@ -15,7 +15,10 @@ public enum BookRcmmdTypeEnum {
     EXPERT(5, "名家推荐"),
     QUOTE(6, "书中引用推荐"),
     DRAFT(7, "讲稿引用推荐"),
-    MENTION(8, "书中提到的人物");
+    MENTION(8, "书中提到的人物"),
+
+    WENMIAO(9, "文喵君推荐");
+
 
     private Integer code;
     private String desc;

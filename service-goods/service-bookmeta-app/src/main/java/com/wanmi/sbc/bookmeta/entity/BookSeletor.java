@@ -51,6 +51,18 @@ public class BookSeletor implements Serializable {
     @Column(name = "rank")
     private String rank;
 
+    /**
+     * 推荐语
+     */
+    @Column(name = "recommendation")
+    private String recommendation;
+
+    /**
+     * isbn
+     */
+    @Column(name = "isbn")
+    private String isbn;
+
     public Integer getId() {
         return id;
     }
@@ -105,5 +117,21 @@ public class BookSeletor implements Serializable {
 
     public void setRank(String rank) {
         this.rank = rank;
+    }
+
+    public String getRecommendation() {
+        return recommendation;
+    }
+
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 }

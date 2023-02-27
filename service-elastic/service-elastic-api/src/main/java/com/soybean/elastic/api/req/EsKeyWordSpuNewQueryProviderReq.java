@@ -21,6 +21,9 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
 //    @NotBlank
     private String keyword;
 
+    //图书编号
+    private String isbn;
+
     /**
      * 书单类别 1图书 2商品
      */

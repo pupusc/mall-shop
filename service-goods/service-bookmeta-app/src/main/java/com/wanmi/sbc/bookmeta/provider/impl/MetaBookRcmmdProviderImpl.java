@@ -194,6 +194,7 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
                 bookRcmmd.setCreateTime(now);
                 bookRcmmd.setUpdateTime(now);
                 bookRcmmd.setDelFlag(0);
+                bookRcmmd.setIsSelected(item.getIsSelected());
                 return bookRcmmd;
             }).collect(Collectors.toList());
             this.metaBookRcmmdMapper.insertBatch(insertBookRcmmds);
@@ -293,6 +294,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
                 bookList.add(item);
             } else if (BookRcmmdTypeEnum.DRAFT.getCode().equals(item.getBizType())) {
                 bookList.add(item);
+            } else if (BookRcmmdTypeEnum.WENMIAO.getCode().equals(item.getBizType()) && item.getBizId() != null) {
+                figureList.add(item);
             } else {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());
             }

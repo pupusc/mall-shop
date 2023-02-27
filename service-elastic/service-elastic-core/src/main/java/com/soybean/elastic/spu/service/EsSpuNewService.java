@@ -96,6 +96,11 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             }
         }
 
+        //查询isbn
+        if (req.getIsbn() != null) {
+            boolQb.must(nestedQuery("book", termQuery(ConstantMultiMatchField.BOOK_ISBN, req.getIsbn()), ScoreMode.None));
+        }
+
         //传递值，0表示非知识顾问商品可以访问
         if (req.getCpsSpecial() != null && Objects.equals(req.getCpsSpecial(), 0)) {
             boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));

@@ -20,4 +20,6 @@ public class TopicStoreyContentRequest implements Serializable {
 
     private Integer storeyType;
 
+    //默认查商品
+    private Integer type=1;
 }

@@ -158,6 +158,11 @@ public class MetaBook implements Serializable {
      */     
     @Column(name = "language_id")
     private Integer languageId;
+    /**
+     * 评分
+     */
+    @Column(name = "score")
+    private Integer score;
 
 
     public Integer getId() {
@@ -390,6 +395,14 @@ public class MetaBook implements Serializable {
 
     public void setSizeFolio(String sizeFolio) {
         this.sizeFolio = sizeFolio;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 }
 

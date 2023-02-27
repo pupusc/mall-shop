@@ -1,5 +1,7 @@
 package com.wanmi.sbc.bookmeta.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -14,6 +16,7 @@ import javax.persistence.Table;
  * @since 2022-05-26 01:28:20
  */
 @Table(name = "meta_book_rcmmd")
+@Data
 public class MetaBookRcmmd implements Serializable {
     private static final long serialVersionUID = 286270472355180346L;
          
@@ -61,78 +64,10 @@ public class MetaBookRcmmd implements Serializable {
     @Column(name = "book_id")
     private Integer bookId;
 
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getBizId() {
-        return bizId;
-    }
-
-    public void setBizId(Integer bizId) {
-        this.bizId = bizId;
-    }
-
-    public Integer getBizType() {
-        return bizType;
-    }
-
-    public void setBizType(Integer bizType) {
-        this.bizType = bizType;
-    }
-
-    public Date getBizTime() {
-        return bizTime;
-    }
-
-    public void setBizTime(Date bizTime) {
-        this.bizTime = bizTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
-    public Integer getBookId() {
-        return bookId;
-    }
-
-    public void setBookId(Integer bookId) {
-        this.bookId = bookId;
-    }
-
+    /**
+     * 是否选中
+     */
+    @Column(name = "is_selected")
+    private Integer isSelected;
 }
 

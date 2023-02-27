@@ -548,4 +548,17 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         }
         return BaseResponse.success(response);
     }
+
+    @Override
+    public BaseResponse<GoodsInfoViewByIdsResponse> goodsInfoByIsbns(GoodsInfoViewByIdsRequest isbnList) {
+        GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse=new GoodsInfoViewByIdsResponse();
+        List<GoodsInfo> goodsInfos = goodsInfoService.listSimpleGoodsInfo(isbnList.getIsbnList()).getGoodsInfos();
+        if(null!=goodsInfos&&goodsInfos.size()!=0){
+            goodsInfoViewByIdsResponse.setGoodsInfos( KsBeanUtil.convertList(goodsInfos, GoodsInfoVO.class) );
+            return BaseResponse.success(goodsInfoViewByIdsResponse);
+        }
+        return BaseResponse.FAILED();
+    }
+
+
 }
