@@ -2957,4 +2957,17 @@ public class GoodsInfoService {
         responses.setGoodsInfos(goodsInfos);
        return responses;
     }
+
+    /**
+     * 根据isbnList获取goodsInfo信息
+     * @param isbnList
+     * @return
+     */
+    public GoodsInfoResponse listSimpleGoodsInfo(List<String> isbnList) {
+        //批量查询SKU信息列表
+        List<GoodsInfo> goodsInfos = goodsInfoRepository.findAllByIsbn(isbnList);
+        GoodsInfoResponse responses = new GoodsInfoResponse();
+        responses.setGoodsInfos(goodsInfos);
+        return responses;
+    }
 }

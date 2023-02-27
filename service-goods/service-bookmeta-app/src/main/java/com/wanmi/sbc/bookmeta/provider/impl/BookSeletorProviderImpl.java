@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.wanmi.sbc.bookmeta.bo.BookSeletorBo;
 import com.wanmi.sbc.bookmeta.bo.MetaAwardBO;
+import com.wanmi.sbc.bookmeta.bo.SeletorBookInfoBo;
 import com.wanmi.sbc.bookmeta.entity.BookSeletor;
 import com.wanmi.sbc.bookmeta.provider.BookSeletorProvider;
 import com.wanmi.sbc.bookmeta.service.BookSeletorService;
@@ -32,5 +33,10 @@ public class BookSeletorProviderImpl implements BookSeletorProvider {
     @Override
     public int update(BookSeletorBo bookSeletorBo) {
         return bookSeletorService.update(DO2BOUtils.objA2objB(bookSeletorBo,BookSeletor.class));
+    }
+
+    @Override
+    public List<SeletorBookInfoBo> getRecomment(String isbn) {
+        return bookSeletorService.getRecomment(isbn);
     }
 }

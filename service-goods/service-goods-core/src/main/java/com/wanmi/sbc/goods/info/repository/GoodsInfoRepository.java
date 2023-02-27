@@ -616,4 +616,10 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     @Query(value = "select * from goods_info where goods_id in ?1", nativeQuery = true)
     List<Map<String, Object>> collectSkuBySpuIds(List<String> goodsIds);
 
+    /**
+     * 根据isbnList查询(不包含已删除的)
+     */
+    @Query("from GoodsInfo w where w.delFlag = '0' and w.isbn_no in ?1")
+    List<GoodsInfo> findAllByIsbn(List<String> isbnList);
+
 }

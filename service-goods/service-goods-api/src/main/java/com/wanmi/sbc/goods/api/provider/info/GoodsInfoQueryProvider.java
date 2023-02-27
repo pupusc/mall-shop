@@ -171,4 +171,12 @@ public interface GoodsInfoQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/info/list-simple-view")
     BaseResponse<GoodsInfoViewByIdsResponse> listSimpleView(@RequestBody GoodsInfoViewByIdsRequest request);
+
+    /**
+     * 通过isbnList获取sku simple信息
+     * @param isbnList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/goods-info-by-isbns")
+    BaseResponse<GoodsInfoViewByIdsResponse> goodsInfoByIsbns(@RequestBody GoodsInfoViewByIdsRequest isbnList);
 }

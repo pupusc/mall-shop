@@ -44,4 +44,9 @@ public class BookSeletorBo implements Serializable {
 
 
     private String rank;
+
+    private String recommendation;
+
+
+    private String isbn;
 }
