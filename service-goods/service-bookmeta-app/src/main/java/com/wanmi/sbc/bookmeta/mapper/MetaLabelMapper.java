@@ -109,5 +109,9 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     List<MetaLabel> collectMetaLabel(@Param("parentIds") List<Integer> parentIds);
 
     List<Map> getAllLabel();
+
+    List<Map> getLabelCate(int parent_id);
+
+
 }
 

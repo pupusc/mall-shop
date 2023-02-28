@@ -159,4 +159,17 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public List<Map> queryAllLabel() {
         return metaLabelMapper.getAllLabel();
     }
+
+    @Override
+    public List<Map> getLabelCate(int parent_id) {
+        List list = metaLabelMapper.getLabelCate(parent_id);
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            String id = String.valueOf(map.get("id"));
+            int intId = Integer.parseInt(id);
+            List childList = metaLabelMapper.getLabelCate(intId);
+            map.put("childList",childList);
+        }
+        return list;
+    }
 }

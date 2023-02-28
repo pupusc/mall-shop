@@ -61,6 +61,20 @@ public class MetaLabelController {
     private org.springframework.core.io.Resource templateLabelFile;
 
     /**
+     * 标签-分类查询
+     *
+     * @param pageRequest 分类查询
+     * @return 查询结果
+     */
+    @PostMapping("queryCate")
+    public BusinessResponse<List<Map>> queryCate(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
+
+        List<Map> list = this.metaLabelProvider.getLabelCate(pageRequest.getParentId());
+
+        return BusinessResponse.success(list);
+    }
+
+    /**
      * 标签-分页查询
      *
      * @param pageRequest 分页对象
