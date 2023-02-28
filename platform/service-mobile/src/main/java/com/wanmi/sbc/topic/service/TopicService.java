@@ -1018,7 +1018,9 @@ public class TopicService {
             goodsDto.setRecommendName(column.getRecommendName());
             goodsDto.setReferrer(column.getReferrer());
             goodsDto.setReferrerTitle(column.getReferrerTitle());
-            goodsDto.setScore(String.valueOf(res.getBook().getScore()));
+            if(res.getSpuCategory().equals(1)) {
+                goodsDto.setScore(String.valueOf(res.getBook().getScore()));
+            }
             goodsDto.setRetailPrice(res.getSalesPrice());
             goodsDto.setTags(new ArrayList<>());
 //                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
