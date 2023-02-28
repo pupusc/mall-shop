@@ -87,6 +87,22 @@ public class JpaManager {
 
     }
 
+    public List queryForList(String sql) {
+
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
+        List<Map> resultList = query.getResultList();
+
+        if(entityManager != null){
+            entityManager.close();
+        }
+
+        return resultList;
+
+    }
+
     public Long count(String sql, Object[] obj) {
 
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
