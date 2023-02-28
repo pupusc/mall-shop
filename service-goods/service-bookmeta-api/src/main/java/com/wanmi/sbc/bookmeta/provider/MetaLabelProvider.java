@@ -62,6 +62,10 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/update")
     BusinessResponse<Boolean> update(@RequestBody @Valid MetaLabelBO metaLabel);
 
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/updateName")
+    BusinessResponse<Boolean> updateName(@RequestBody @Valid MetaLabelBO metaLabel);
+
     /**
      * 修改数据
      *
@@ -80,13 +84,9 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
 
-
-
     /**查询所有label
      */
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryLabel")
     List<Map> queryAllLabel();
-
-
 
 }
