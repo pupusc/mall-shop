@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
@@ -176,6 +177,21 @@ public class MetaLabelController {
         MetaLabelBO editReqVBO = new MetaLabelBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaLabelProvider.update(editReqVBO);
+        return BusinessResponse.success(true);
+    }
+
+    /**
+     * 标签-编辑数据
+     *
+     * @param editReqVO 实体
+     * @return 编辑结果
+     */
+    @PostMapping("editName")
+    public BusinessResponse<Boolean> editName(@RequestBody MetaLabelEditReqVO editReqVO) {
+        editReqVO.setPath(StringSplitUtil.join(editReqVO.getPathList(), PATH_SPLIT_SYMBOL));
+        MetaLabelBO editReqVBO = new MetaLabelBO();
+        BeanUtils.copyProperties(editReqVO, editReqVBO);
+        this.metaLabelProvider.updateName(editReqVBO);
         return BusinessResponse.success(true);
     }
 
