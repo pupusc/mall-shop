@@ -39,7 +39,6 @@ public class BookTags {
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
-        String book_clump_id = String.valueOf(goodMap.get("book_clump_id"));
 
         //spu_no = "P735546359";
         //isbn   = "ISBN_C_T003";
@@ -51,6 +50,8 @@ public class BookTags {
         }
 
         String book_id = String.valueOf(bookMap.get("id"));
+        String trade_id = String.valueOf(bookMap.get("trade_id"));
+
         List allList = new ArrayList();
 
         //10. 大促标签
@@ -110,6 +111,13 @@ public class BookTags {
         }
 
         //100. 行业类类目：（本次新加字段），显示图书所在行业类目，按类目树结构显示，一级名称>二级名称>三级名称
+        if(DitaUtil.isNotBlank(trade_id)){
+            List tradeList = getTradeList(trade_id);
+            if(tradeList!=null && tradeList.size() > 0){
+                allList.addAll(tradeList);
+            }
+        }
+
 
         //110. 图书被包含在某丛书，显示「丛书」名称
         List clumpList = getClumpList(book_id);
@@ -125,6 +133,17 @@ public class BookTags {
 
         setRedis(spu_no,map);
     }
+
+    private List getTradeList(String trade_id) {
+
+        String sql = " select id,name,name as show_name,100 as order_type from meta_trade where id = ? ";
+
+        Object[] obj = new Object[]{trade_id};
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
 
     private List getClumpList(String book_clump_id) {
 
@@ -322,15 +341,14 @@ public class BookTags {
 
         String sql = " select a.goods_no as spu,b.prop_value as isbn,c.id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
                      " left join meta_book c on b.prop_value = c.isbn " +
-                     " where b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0  ";
+                     " where b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0 ";
 
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql,obj);
+
         return list;
 
     }
-
-
 
 }
 
