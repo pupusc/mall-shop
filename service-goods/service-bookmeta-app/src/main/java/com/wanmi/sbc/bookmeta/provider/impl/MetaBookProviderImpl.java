@@ -36,6 +36,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -139,6 +140,12 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     @Override
     public List<Map> queryAllBook() {
         return metaBookMapper.getAllBook();
+    }
+
+    @Override
+    public List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,Integer pageNum,Integer pageSize) {
+        pageNum=(pageNum-1) * pageSize;
+        return metaBookLabelMapper.queryBookLableByPage(bookName,labelName,pageNum,pageSize);
     }
 
 

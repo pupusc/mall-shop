@@ -44,6 +44,28 @@
              ) as c left join meta_label as d on c.label_id=d.id
     </select>
 
+    <select id="queryBookLableByPage" resultType="java.util.HashMap">
+
+        select c.*,d.name as label_name
+        from (
+                 select a.book_id,
+                        a.label_id,
+                        b.name as book_name,
+                 from meta_book_label as a
+                          left join meta_book as b on a.book_id = b.id
+                 where a.del_flag = 0
+            <if test="bookName != null and bookName != ''">
+                 and b.name like %#{bookName}%
+            </if>
+             ) as c left join meta_label as d on c.label_id=d.id
+            <where>
+                <if test="labelName != null and labelName != ''">
+                    d.name like %#{labelName}%
+                </if>
+            </where>
+            limit #{pageNum} , #{pageSize}
+    </select>
+
     <!--查询指定行数据-->
     <select id="queryAllByLimit" resultMap="MetaBookLabelMap">
         select
