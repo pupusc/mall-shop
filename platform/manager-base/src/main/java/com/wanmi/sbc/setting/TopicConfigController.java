@@ -436,7 +436,7 @@ public class TopicConfigController {
      */
     @ApiOperation("视频指定内容投放数据添加")
     @PostMapping("/storey/v2/video/add")
-    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request){
+    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request ,@RequestParam(value="file") MultipartFile file){
         Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
         excelService.importExcel(file, id, request.getBookType());
         return BaseResponse.SUCCESSFUL();
