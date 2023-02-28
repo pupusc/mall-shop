@@ -120,6 +120,26 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         return BusinessResponse.success(true);
     }
 
+    /**
+     * 修改数据
+     *
+     * @param metaLabelBO 实例对象
+     * @return 实例对象
+     */
+    @Override
+    public BusinessResponse<Boolean> updateName(@Valid MetaLabelBO metaLabelBO) {
+        MetaLabel metaLabel = DO2BOUtils.objA2objB(metaLabelBO, MetaLabel.class);
+        validate(metaLabel, false);
+
+        MetaLabel entity = this.metaLabelMapper.selectByPrimaryKey(metaLabelBO.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaLabelBO.getName());
+        this.metaLabelMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
+    }
+
     @Override
     public BusinessResponse<Boolean> updateStatus(MetaLabelUpdateStatusReqBO metaLabel) {
         MetaLabel update = new MetaLabel();
