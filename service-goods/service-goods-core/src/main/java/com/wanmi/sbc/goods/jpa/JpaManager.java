@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-
 public class JpaManager {
 
     @Autowired
