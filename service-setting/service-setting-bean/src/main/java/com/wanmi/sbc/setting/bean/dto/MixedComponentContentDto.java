@@ -51,10 +51,6 @@ public class MixedComponentContentDto implements Serializable {
                 this.image = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("image").toString();
                 this.video = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("video").toString();
                 break;
-            case 4: //广告
-                this.image = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("image").toString();
-                this.url = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("url").toString();
-                break;
             case 5: //指定内容
                 this.titleImage = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("titleImage").toString();
                 this.image = JSON.parseObject(mixedComponentTabDto.getAttributeInfo()).get("image").toString();

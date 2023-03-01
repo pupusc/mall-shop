@@ -179,4 +179,11 @@ public interface GoodsInfoQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/info/goods-info-by-isbns")
     BaseResponse<GoodsInfoViewByIdsResponse> goodsInfoByIsbns(@RequestBody GoodsInfoViewByIdsRequest isbnList);
+
+    /**
+     * 通过isbnList获取sku simple信息
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/getRedis")
+    BaseResponse<String> getRedis(@RequestBody String spuNo);
 }

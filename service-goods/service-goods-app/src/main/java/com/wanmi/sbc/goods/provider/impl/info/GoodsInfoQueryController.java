@@ -42,6 +42,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.collect.GoodTags;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
 import com.wanmi.sbc.goods.goodslabel.model.root.GoodsLabel;
 import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
@@ -109,6 +110,9 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private GoodTags goodTags;
 
     /**
      * 分页查询商品sku视图列表
@@ -561,4 +565,8 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     }
 
 
+    @Override
+    public BaseResponse<String> getRedis(String spuNo) {
+        return BaseResponse.success(goodTags.getRedis(spuNo));
+    }
 }

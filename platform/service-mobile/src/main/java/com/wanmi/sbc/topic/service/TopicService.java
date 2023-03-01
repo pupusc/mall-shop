@@ -56,6 +56,7 @@ import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
+import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
@@ -926,28 +927,44 @@ public class TopicService {
             columnContentQueryRequest.setTopicStoreySearchId(id);
             columnContentQueryRequest.setDeleted(0);
             columnContentQueryRequest.setPageSize(10000);
-            List<Map<String, Object>> tabs = new ArrayList<>();
-            if (c.getLabelId() != null) {
-                for (String s : c.getLabelId().split(",")) {
-                    MetaLabelBO metaLabelBO = metaLabelProvider.queryById(Integer.valueOf(s)).getContext();
-                    HashMap<String, Object> map = new HashMap<>();
-                    map.put("name" , metaLabelBO.getName());
-                    map.put("showStatus" , metaLabelBO.getStatus());
-                    map.put("showImg", metaLabelBO.getShowImg());
-                    map.put("type", metaLabelBO.getType());
-                    tabs.add(map);
-                }
-            }
             List<ColumnContentDTO> columnContent = topicConfigProvider.listTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
-            if(c.getBookType() != null && MixedComponentLevel.TWO.toValue().equals(c.getBookType())) {
+            if(c.getBookType() != null && BookType.BOOK.toValue().equals(c.getBookType())) {
                 columnContent.forEach(column -> {
                     List<GoodsDto> goods = new ArrayList<>();
                     getGoods(finalKeyWord, column, goods, customer);
                     MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
-                    mixedComponentContentDto.setLabelId(tabs);
+//                    if(JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()) != null) {
+//                        Object tags = JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
+//
+//                    }
+                    //获取标签
+//                    mixedComponentContentDto.setLabelId(tabs);
+                    content.add(mixedComponentContentDto);
+                });
+            } else if(c.getBookType() != null && BookType.ADVERTISEMENT.toValue().equals(c.getBookType())) {
+                columnContent.forEach(column -> {
+                    List<GoodsDto> goods = new ArrayList<>();
+                    getGoods(finalKeyWord, column, goods, customer);
+                    MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
+                    mixedComponentContentDto.setImage(column.getImageUrl());
+                    mixedComponentContentDto.setUrl(goods == null ? column.getLinkUrl() : null);
+                    //获取标签
+//                    mixedComponentContentDto.setLabelId(tabs);
                     content.add(mixedComponentContentDto);
                 });
             } else {
+                List<Map<String, Object>> tabs = new ArrayList<>();
+                if (c.getLabelId() != null && !"".equals(c.getLabelId())) {
+                    for (String s : c.getLabelId().split(",")) {
+                        MetaLabelBO metaLabelBO = metaLabelProvider.queryById(Integer.valueOf(s)).getContext();
+                        HashMap<String, Object> map = new HashMap<>();
+                        map.put("name" , metaLabelBO.getName());
+                        map.put("showStatus" , metaLabelBO.getStatus());
+                        map.put("showImg", metaLabelBO.getShowImg());
+                        map.put("type", metaLabelBO.getType());
+                        tabs.add(map);
+                    }
+                }
                 List<GoodsDto> goods = new ArrayList<>();
                 columnContent.forEach(column -> {
                     getGoods(finalKeyWord, column, goods, customer);
@@ -978,14 +995,14 @@ public class TopicService {
     //获取商品详情
     private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
-        if (customer == null) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            customer =new CustomerGetByIdResponse();
-            Map customerMap = ( Map ) request.getAttribute("claims");
-            if(null!=customerMap && null!=customerMap.get("customerId")) {
-                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-            }
-        }
+//        if (customer == null) {
+//            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//            customer =new CustomerGetByIdResponse();
+//            Map customerMap = ( Map ) request.getAttribute("claims");
+//            if(null!=customerMap && null!=customerMap.get("customerId")) {
+//                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+//            }
+//        }
         List<EsSpuNewResp> esSpuNewResps = null;
         if (column.getSpuId() != null) {
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
@@ -1018,15 +1035,12 @@ public class TopicService {
             goodsDto.setRecommendName(column.getRecommendName());
             goodsDto.setReferrer(column.getReferrer());
             goodsDto.setReferrerTitle(column.getReferrerTitle());
-            if(res.getSpuCategory().equals(1)) {
-                goodsDto.setScore(String.valueOf(res.getBook().getScore()));
-            }
+            goodsDto.setScore(res.getBook() != null ? String.valueOf(res.getBook().getScore()) : null);
             goodsDto.setRetailPrice(res.getSalesPrice());
             goodsDto.setTags(new ArrayList<>());
-//                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+            //goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
             goods.add(goodsDto);
         });
-
     }
 
 

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.setting.bean.enums.BookType;
+import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
@@ -81,9 +83,11 @@ public class MixedComponentTabDto implements Serializable {
         this.attributeInfo = columnDTO.getAttributeInfo();
         this.color = JSON.parseObject(columnDTO.getColor(), SelectDto.class);
         this.image = JSON.parseObject(columnDTO.getImage(), SelectDto.class);
-        List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);
-        this.keywords = keyWordsDtos != null ? keyWordsDtos.stream().sorted(Comparator.comparing(KeyWordsDto::getSort))
-                .collect(Collectors.toList()) : null;
+        if (!MixedComponentLevel.FOUR.toValue().equals(level)) {
+            List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);
+            this.keywords = keyWordsDtos != null ? keyWordsDtos.stream().sorted(Comparator.comparing(KeyWordsDto::getSort))
+                    .collect(Collectors.toList()) : null;
+        }
     }
 
     public MixedComponentTabDto() {
