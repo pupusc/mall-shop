@@ -14,6 +14,16 @@
         <result property="bookId" column="book_id" jdbcType="INTEGER"/>
     </resultMap>
 
+    <resultMap type="com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO" id="MetaBookRcmmdFigureMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bizId" column="biz_id" jdbcType="INTEGER"/>
+        <result property="bizType" column="biz_type" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="jobTitle" column="job_title" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+    </resultMap>
+
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookRcmmdMap">
         select
@@ -176,6 +186,15 @@
         <foreach collection="bizIds" item="bizId" separator="," open="(" close=")">
             #{bizId}
         </foreach>
+    </select>
+
+
+    <select id="RcommdFigureByBookId" resultMap="MetaBookRcmmdFigureMap">
+        select a.*,b.name,b.job_title from meta_book_rcmmd as a left join meta_figure as b on a.biz_id = b.id where a.book_id=#{bookId} and a.is_selected=1 and a.del_flag=0
+    </select>
+
+    <select id="RcommdBookByFigureId" resultType="String">
+        select b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.biz_id=#{bizId} and a.book_id !=#{bookId} and a.is_selected=1 and a.del_flag=0 and b.del_flag=0
     </select>
 </mapper>
 

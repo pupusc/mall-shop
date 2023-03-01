@@ -2970,4 +2970,12 @@ public class GoodsInfoService {
         responses.setGoodsInfos(goodsInfos);
         return responses;
     }
+
+    /**
+     * 根据skuId获取isbn
+     * @return
+     */
+    public String isbnBySkuId(String skuId) {
+       return goodsInfoRepository.findByGoodsInfoIdAndDelFlag(skuId,DeleteFlag.NO).getIsbnNo();
+    }
 }

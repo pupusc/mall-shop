@@ -50,6 +50,12 @@ public class MetaBookFigure implements Serializable {
      */     
     @Column(name = "del_flag")
     private Integer delFlag;
+    /**
+     * 勾选标识
+     */
+    @Column(name = "selected")
+    private Boolean selected;
+
 
 
     public Integer getId() {
@@ -108,5 +114,12 @@ public class MetaBookFigure implements Serializable {
         this.delFlag = delFlag;
     }
 
+    public Boolean getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Boolean selected) {
+        this.selected = selected;
+    }
 }
 

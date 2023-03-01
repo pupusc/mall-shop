@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -89,5 +90,17 @@ public interface MetaBookRcmmdMapper extends Mapper<MetaBookRcmmd> {
      * @return
      */
     List<MetaBookRcmmd> collectMetaBookRcmmd(@Param("bizIds") List<Integer> bizIds, @Param("bizTypes") List<Integer> bizTypes);
+
+    /**
+     * 根据书籍id获取 推荐信息
+     * @return
+     */
+    List<MetaBookRcmmdFigureBO> RcommdFigureByBookId(@Param("bookId") Integer bookId);
+
+    /**
+     * 根据推荐人id获取 推荐列表
+     * @return
+     */
+    List<String> RcommdBookByFigureId(@Param("bizId") Integer bizId,@Param("bookId") Integer bookId);
 }
 

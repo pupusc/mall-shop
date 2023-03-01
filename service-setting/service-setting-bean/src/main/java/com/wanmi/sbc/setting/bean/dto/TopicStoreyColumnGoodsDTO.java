@@ -24,6 +24,10 @@ public class TopicStoreyColumnGoodsDTO implements Serializable {
 
     private String skuNo;
 
+    private String skuId;
+
+    private String spuId;
+
     @ApiModelProperty("专栏名称")
     private String goodsName;
 
