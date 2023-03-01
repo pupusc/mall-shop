@@ -79,6 +79,7 @@ import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -934,13 +935,21 @@ public class TopicService {
                         List<GoodsDto> goods = new ArrayList<>();
                         getGoods(finalKeyWord, column, goods, customer);
                         MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
+                        mixedComponentContentDto.setSorting(column.getSorting());
                         if(JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()) != null) {
-                            Object tags = JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
-
+                            List<TagsDto> tagsDtos = new ArrayList<>();
+                            List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
+                            tags.forEach(s -> {
+                                TagsDto tagsDto = new TagsDto();
+                                tagsDto.setName((String) JSON.parseObject(s.toString()).get("show_name"));
+                                tagsDtos.add(tagsDto);
+                            });
+                            //获取标签
+                            mixedComponentContentDto.setLabelId(tagsDtos);
                         }
-                        //获取标签
-//                    mixedComponentContentDto.setLabelId(tabs);
-                        content.add(mixedComponentContentDto);
+                        if (goods.size() != 0) {
+                            content.add(mixedComponentContentDto);
+                        }
                     });
                 } else if(c.getBookType() != null && BookType.ADVERTISEMENT.toValue().equals(c.getBookType())) {
                     columnContent.forEach(column -> {
@@ -948,22 +957,24 @@ public class TopicService {
                         getGoods(finalKeyWord, column, goods, customer);
                         MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
                         mixedComponentContentDto.setImage(column.getImageUrl());
-                        mixedComponentContentDto.setUrl(goods == null ? column.getLinkUrl() : null);
+                        mixedComponentContentDto.setUrl(goods.size() == 0 ? column.getLinkUrl() : null);
+                        mixedComponentContentDto.setSorting(column.getSorting());
                         //获取标签
-//                    mixedComponentContentDto.setLabelId(tabs);
-                        content.add(mixedComponentContentDto);
+                        if (goods.size() != 0 || column.getLinkUrl() != null) {
+                            content.add(mixedComponentContentDto);
+                        }
                     });
                 } else {
-                    List<Map<String, Object>> tabs = new ArrayList<>();
+                    List<TagsDto> tabs = new ArrayList<>();
                     if (c.getLabelId() != null && !"".equals(c.getLabelId())) {
                         for (String s : c.getLabelId().split(",")) {
                             MetaLabelBO metaLabelBO = metaLabelProvider.queryById(Integer.valueOf(s)).getContext();
-                            HashMap<String, Object> map = new HashMap<>();
-                            map.put("name" , metaLabelBO.getName());
-                            map.put("showStatus" , metaLabelBO.getStatus());
-                            map.put("showImg", metaLabelBO.getShowImg());
-                            map.put("type", metaLabelBO.getType());
-                            tabs.add(map);
+                            TagsDto tagsDto = new TagsDto();
+                            tagsDto.setName(metaLabelBO.getName());
+                            tagsDto.setShowStatus(metaLabelBO.getStatus());
+                            tagsDto.setShowImg(metaLabelBO.getShowImg());
+                            tagsDto.setType(metaLabelBO.getType());
+                            tabs.add(tagsDto);
                         }
                     }
                     List<GoodsDto> goods = new ArrayList<>();
@@ -971,19 +982,28 @@ public class TopicService {
                         getGoods(finalKeyWord, column, goods, customer);
                     });
                     MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
-                    content.add(mixedComponentContentDto);
+                    mixedComponentContentDto.setSorting(c.getSorting());
+                    //获取标签
+                    mixedComponentContentDto.setLabelId(tabs);
+                    if (goods.size() != 0) {
+                        content.add(mixedComponentContentDto);
+                    }
                 }
             });
+            //排序
+            List<MixedComponentContentDto> mixedComponentContentDtos = content.stream().sorted(Comparator.comparing(MixedComponentContentDto::getSorting)
+                            .thenComparing(Comparator.comparing(MixedComponentContentDto::getType).reversed()))
+                    .collect(Collectors.toList());
             // 每页显示的数据条数
             int number = pageNum + 1;
             // 数据总条数
-            int totalPageSize = content.size();
+            int totalPageSize = mixedComponentContentDtos.size();
             // 总页数
             int totalPage = (totalPageSize % pageSize) > 0 ? (totalPageSize / pageSize) + 1 : (totalPageSize / pageSize);
             // 一页一页读取数据
             Stream.iterate(1, i -> i + 1).limit(totalPage).forEach(pageIndex -> {
                 if (pageIndex == number) {
-                    List<MixedComponentContentDto> collect = content.stream().skip((pageIndex - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
+                    List<MixedComponentContentDto> collect = mixedComponentContentDtos.stream().skip((pageIndex - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
                     mixedComponentContentPage.setContent(collect);
                 }
             });
@@ -1009,7 +1029,7 @@ public class TopicService {
 //            }
 //        }
         List<EsSpuNewResp> esSpuNewResps = null;
-        if (column.getSpuId() != null) {
+        if (column.getSpuId() == null) {
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             es.setIsbn(column.getIsbn());
             es.setKeyword(finalKeyWord);
