@@ -83,6 +83,9 @@ public class GoodTags {
 
     public String getRedis(String spu_no){
         String value = redisService.getString(RedisTagsConstant.ELASTIC_TAGS_GOODS_KEY_SPU+":"+spu_no);
+        if(DitaUtil.isBlank(value)){
+            value = "{}";
+        }
         return value;
     }
 
