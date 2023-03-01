@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.service;
 
+import com.wanmi.sbc.bookmeta.bo.MetaBookRecommentKeyBo;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
@@ -8,13 +9,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaProducer;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaFigureMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaProducerMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper;
+import com.wanmi.sbc.bookmeta.mapper.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +43,11 @@ public class MetaBookService {
     private MetaPublisherMapper metaPublisherMapper;
     @Autowired
     private MetaProducerMapper metaProducerMapper;
+    @Autowired
+    private MetaBookRelationMapper metaBookRelationMapper;
+
+    @Autowired
+    private MetaBookRelationKeyMapper metaBookRelationKeyMapper;
 
     public List<Integer> listBookLabelId(Integer id) {
         if (id == null) {
@@ -134,5 +134,30 @@ public class MetaBookService {
             result.setProducer(this.metaProducerMapper.selectOne(queryProducer));
         }
         return result;
+    }
+
+    /**
+     * 查询图书的扩展信息
+     */
+    public MetaBookRecommentKeyBo getRecommentKey( String spuId) {
+        MetaBookRecommentKeyBo metaBookRecommentKeyBo=new MetaBookRecommentKeyBo();
+        //根据spuId获取bookId
+        List<Map> boooInfoBySpu = metaBookMapper.getBookInfoBySpu(spuId);
+        if(null!=boooInfoBySpu&&boooInfoBySpu.size()!=0){
+            //根据bookId获取主副标题
+            List<Map> title = metaBookRelationMapper.getTitleByBookId(boooInfoBySpu.get(0).get("book_id").toString());
+            if(null!=title&&title.size()!=0){
+                metaBookRecommentKeyBo.setName(title.get(0).get("name").toString());
+                metaBookRecommentKeyBo.setSubName(title.get(0).get("sub_name").toString());
+                metaBookRelationKeyMapper.getKeyById((Integer) title.get(0).get("id")).stream().forEach(key->
+                {
+                    MetaBookRecommentKeyBo.MetaBookRelationKeyBo metaBookRelationKeyBo=new MetaBookRecommentKeyBo.MetaBookRelationKeyBo();
+                    metaBookRelationKeyBo.setOrderNum(key.getOrderNum());
+                    metaBookRelationKeyBo.setName(key.getName());
+                    metaBookRecommentKeyBo.getKeyName().add(metaBookRelationKeyBo);
+                });
+            }
+        }
+        return metaBookRecommentKeyBo;
     }
 }
