@@ -10,6 +10,10 @@ public class ThreeGoodBookGoods {
 
     private String skuNo;
 
+    private String skuId;
+
+    private String spuId;
+
     private String goodsName;
 
     private String imageUrl;

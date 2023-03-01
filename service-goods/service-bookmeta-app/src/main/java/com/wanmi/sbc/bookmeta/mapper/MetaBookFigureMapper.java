@@ -1,7 +1,9 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
+import com.wanmi.sbc.bookmeta.entity.MetaFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -104,5 +106,18 @@ public interface MetaBookFigureMapper extends Mapper<MetaBookFigure> {
      * @return
      */
     List<MetaBookFigure> collectMetaBookFigureByIds(@Param("ids") List<Integer> figureIds);
+
+
+    /**
+     * 根据bookId获取书籍推荐人
+     * @return
+     */
+    List<MetaFigure> getBookFigureByBookId(@Param("bookId") Integer bookId);
+
+    /**
+     * 根据figureId获取isbn
+     * @return
+     */
+    List<String> getIsbnByFigure(@Param("figureId") Integer figureId,@Param("bookId") Integer bookId);
 }
 

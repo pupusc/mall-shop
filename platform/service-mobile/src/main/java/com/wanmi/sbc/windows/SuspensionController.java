@@ -1,6 +1,9 @@
 package com.wanmi.sbc.windows;
 
+import com.wanmi.sbc.bookmeta.bo.MetaBookFigureQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
+import com.wanmi.sbc.bookmeta.provider.MetaBookFigureProvider;
+import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -68,6 +71,9 @@ public class SuspensionController {
     @Autowired
     private BookListModelProvider bookListModelProvider;
 
+    @Autowired
+    private MetaFigureProvider metaFigureProvider;
+
     @Value("classpath:/download/avtivity_goods.xlsx")
     private org.springframework.core.io.Resource templateFile;
 
@@ -101,6 +107,11 @@ public class SuspensionController {
     @PostMapping("/test4")
     public BaseResponse getMarketingInfo(@RequestBody MarketingRequest marketingRequest)  {
         return marketingProvider.getMarketingInfo(marketingRequest.getMarketingIdList());
+    }
+
+    @PostMapping("/test6")
+    public BaseResponse getMarketingInfo(@RequestParam(value = "skuId") String skuId)  {
+        return metaFigureProvider.listFigureByskuId(skuId);
     }
 
     /**

@@ -48,6 +48,9 @@
             <if test="metaBookFigure.delFlag != null">
                 and del_flag = #{metaBookFigure.delFlag}
             </if>
+            <if test="metaBookFigure.selected != null">
+                and selected = #{selected}
+            </if>
             and del_flag = 0
         </where>
         ORDER BY create_time DESC
@@ -159,6 +162,15 @@
         <foreach collection="ids" item="model" open="(" close=")" separator=",">
             #{model}
         </foreach>
+    </select>
+
+
+    <select id="getBookFigureByBookId" resultType="com.wanmi.sbc.bookmeta.entity.MetaFigure">
+        select b.* from meta_book_figure as a left join meta_figure as b on a.figure_id = b.id where a.book_id=#{bookId} and a.selected=1 and a.del_flag=0 and b.del_flag=0
+    </select>
+
+    <select id="getIsbnByFigure" resultType="String">
+        select b.isbn from meta_book_figure as a left join meta_book as b on a.book_id = b.id where a.figure_id=#{figureId} and a.book_id !=#{bookId} and a.selected=1 and a.del_flag=0 and b.del_flag=0
     </select>
 </mapper>
 

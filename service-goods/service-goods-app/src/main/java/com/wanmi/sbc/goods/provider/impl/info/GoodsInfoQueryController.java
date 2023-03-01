@@ -564,7 +564,10 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         return BaseResponse.FAILED();
     }
 
-
+    @Override
+    public String isbnBySkuId(String skuId) {
+        return goodsInfoService.isbnBySkuId(skuId);
+    }
     @Override
     public BaseResponse<String> getRedis(String spuNo) {
         return BaseResponse.success(goodTags.getRedis(spuNo));

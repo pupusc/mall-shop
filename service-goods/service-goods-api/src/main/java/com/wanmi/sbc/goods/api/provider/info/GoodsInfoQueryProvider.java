@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.response.info.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -179,6 +180,13 @@ public interface GoodsInfoQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/info/goods-info-by-isbns")
     BaseResponse<GoodsInfoViewByIdsResponse> goodsInfoByIsbns(@RequestBody GoodsInfoViewByIdsRequest isbnList);
+
+    /**
+     * 通过isbnList获取sku simple信息
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/isbnBySkuId")
+    String isbnBySkuId(@RequestParam(value = "skuId") String skuId);
 
     /**
      * 通过isbnList获取sku simple信息

@@ -1,10 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
-import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.entity.MetaFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
@@ -214,6 +210,11 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
     public BusinessResponse<Boolean> deleteById(Integer id) {
         this.metaFigureService.deleteById(id);
         return BusinessResponse.success(true);
+    }
+
+    @Override
+    public BusinessResponse<List<MetaBookRcmmdFigureBO>> listFigureByskuId(String skuId) {
+        return BusinessResponse.success(metaFigureService.listFigureByskuId(skuId));
     }
 
     private void checkName(Boolean check, String figureName, Integer figureId) {

@@ -1,14 +1,11 @@
 package com.wanmi.sbc.bookmeta.provider;
 
-import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -66,4 +63,12 @@ public interface MetaFigureProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaFigure/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
+
+
+    /**
+     * 获取商品获取推荐列表
+     * @return 是否成功
+     */
+    @PostMapping("/goods/${application.goods.version}/metaFigure/skuId")
+    BusinessResponse<List<MetaBookRcmmdFigureBO>> listFigureByskuId(@RequestParam(value = "skuId") @NotNull String skuId);
 }
