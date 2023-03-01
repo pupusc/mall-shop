@@ -281,7 +281,7 @@ public class BookTags {
 
     private List getStaticList(String book_id) {
 
-        String sql = " select a.id,a.name,show_img,show_status,is_static,90 as order_type from meta_label a left join meta_book_label b on a.id = b.label_id " +
+        String sql = " select a.id,a.name,show_img,show_status,is_static,a.name as show_name,90 as order_type from meta_label a left join meta_book_label b on a.id = b.label_id " +
                 " where b.book_id = ? and a.del_flag = 0 and a.is_static = 2 order by seq asc ";
         Object[] obj = new Object[]{book_id};
         List list = jpaManager.queryForList(sql,obj);
