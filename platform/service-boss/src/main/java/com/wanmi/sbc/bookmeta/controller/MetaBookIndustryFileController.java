@@ -11,6 +11,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileQueryByPageResVO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookIndustryFileBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 

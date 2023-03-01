@@ -125,6 +125,8 @@ public class SpuNewBookListResp {
      */
     private List<GoodsInfoVO> skus = new ArrayList<>();
 
+    private Integer buyCount;
+
     /**
      * 书单或者榜单信息
      */

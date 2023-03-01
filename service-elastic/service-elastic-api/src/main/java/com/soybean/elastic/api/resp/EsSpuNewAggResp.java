@@ -72,6 +72,31 @@ public class EsSpuNewAggResp<S> implements Serializable {
      */
     private CommonPageResp<S> result;
 
+    /**
+     * 活动信息
+     */
+    private PromoteInfo promoteInfo;
+
+    @Data
+    public static class PromoteInfo {
+        /**
+         * 促销名称
+         */
+        private String name;
+        /**
+         * 开始时间
+         */
+        private String startTime;
+        /**
+         * 结束时间
+         */
+        private String endTime;
+        /**
+         * 提示文案
+         */
+        private String tipText;
+    }
+
 
     /**
      * 标签名

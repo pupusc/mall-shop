@@ -50,6 +50,10 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      */
     private List<Integer> labelCategorys;
 
+    /**
+     * 凑单活动id
+     */
+    private Integer marketingLabelId;
 
     /**
      * 聚合查询
