@@ -942,11 +942,13 @@ public class TopicService {
                         if(JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()) != null) {
                             List<TagsDto> tagsDtos = new ArrayList<>();
                             List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
-                            tags.forEach(s -> {
-                                TagsDto tagsDto = new TagsDto();
-                                tagsDto.setName((String) JSON.parseObject(s.toString()).get("show_name"));
-                                tagsDtos.add(tagsDto);
-                            });
+                            if (tags != null) {
+                                tags.forEach(s -> {
+                                    TagsDto tagsDto = new TagsDto();
+                                    tagsDto.setName((String) JSON.parseObject(s.toString()).get("show_name"));
+                                    tagsDtos.add(tagsDto);
+                                });
+                            }
                             //获取标签
                             mixedComponentContentDto.setLabelId(tagsDtos);
                         }
@@ -1065,8 +1067,14 @@ public class TopicService {
             goodsDto.setReferrerTitle(column.getReferrerTitle());
             goodsDto.setScore(res.getBook() != null ? String.valueOf(res.getBook().getScore()) : null);
             goodsDto.setRetailPrice(res.getSalesPrice());
-            goodsDto.setTags(new ArrayList<>());
-            goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+            goodsDto.setListMessage("英国《卫报》百佳小说23名");
+            List<String> tags = new ArrayList<>();
+            if (res.getLabels() != null) {res.getLabels().forEach(label -> tags.add(label.getLabelName()));}
+            goodsDto.setTags(tags);
+            if (goodsInfoVOList.size() != 0 && goodsInfoVOList.get(0).getPaidCardPrice() != null) {
+                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+                goodsDto.setDiscount(res.getSalesPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsInfoVOList.get(0).getPaidCardPrice().divide(res.getSalesPrice())).multiply(new BigDecimal(100))) : null);
+            }
             goods.add(goodsDto);
         });
     }
