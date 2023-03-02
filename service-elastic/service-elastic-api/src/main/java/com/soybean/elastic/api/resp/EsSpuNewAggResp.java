@@ -4,6 +4,7 @@ import com.soybean.common.resp.CommonPageResp;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -95,6 +96,27 @@ public class EsSpuNewAggResp<S> implements Serializable {
          * 提示文案
          */
         private String tipText;
+
+        /**
+         * 凑单活动详情
+         */
+        private List<MarkingDetail> markingDetails;
+
+        @Data
+        public static class MarkingDetail {
+            /**
+             * 优惠名称
+             */
+            private String reductionName;
+            /**
+             * 满足数量或件数
+             */
+            private BigDecimal fullAmount;
+            /**
+             * 减免金额或折扣
+             */
+            private BigDecimal reduction;
+        }
     }
 
 

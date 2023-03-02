@@ -77,6 +77,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -344,23 +345,59 @@ public class SearchController {
         promoteInfo.setEndTime(mkt.getEndTime().format(formatter));
         //促销文案
         String text = "限时促销：";
+        List<EsSpuNewAggResp.PromoteInfo.MarkingDetail> markingDetails=new ArrayList<>();
         if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())) {
             text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "减" + item.getReduction()).collect(Collectors.joining(","));
+            mkt.getFullReductionLevelList().forEach(item->{
+                EsSpuNewAggResp.PromoteInfo.MarkingDetail detail=new EsSpuNewAggResp.PromoteInfo.MarkingDetail();
+                detail.setFullAmount(item.getFullAmount());
+                detail.setReduction(item.getReduction());
+                detail.setReductionName("满" + item.getFullAmount() + "减" + item.getReduction());
+                markingDetails.add(detail);
+            });
         } else if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType())) {
             text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullCount() + "件减" + item.getReduction()).collect(Collectors.joining(","));
+            mkt.getFullReductionLevelList().forEach(item->{
+                EsSpuNewAggResp.PromoteInfo.MarkingDetail detail=new EsSpuNewAggResp.PromoteInfo.MarkingDetail();
+                detail.setFullAmount(BigDecimal.valueOf(item.getFullCount()));
+                detail.setReduction(item.getReduction());
+                detail.setReductionName("满" + item.getFullAmount() + "件减" + item.getReduction());
+                markingDetails.add(detail);
+            });
         } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())) {
             text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "打" + item.getReduction() + "折").collect(Collectors.joining(","));
+            mkt.getFullReductionLevelList().forEach(item->{
+                EsSpuNewAggResp.PromoteInfo.MarkingDetail detail=new EsSpuNewAggResp.PromoteInfo.MarkingDetail();
+                detail.setFullAmount(item.getFullAmount());
+                detail.setReduction(item.getReduction());
+                detail.setReductionName("满" + item.getFullAmount() + "打" + item.getReduction()+ "折");
+                markingDetails.add(detail);
+            });
         } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType())) {
             text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "件打" + item.getReduction() + "折").collect(Collectors.joining(","));
+            mkt.getFullReductionLevelList().forEach(item->{
+                EsSpuNewAggResp.PromoteInfo.MarkingDetail detail=new EsSpuNewAggResp.PromoteInfo.MarkingDetail();
+                detail.setFullAmount(item.getFullAmount());
+                detail.setReduction(item.getReduction());
+                detail.setReductionName("满" + item.getFullAmount() + "件打" + item.getReduction()+ "折");
+                markingDetails.add(detail);
+            });
         } else {
             text += "其他";
         }
         promoteInfo.setTipText(text);
         promoteInfo.setName(mkt.getMarketingName());
+        promoteInfo.setMarkingDetails(markingDetails);
         return promoteInfo;
     }
 
 
+    /**
+     * 获取凑单商品的spuid
+     * @param esGoodsInfoQueryRequest
+     * @param paramVO
+     * @return
+     */
     private List<String> getPromoteGoodsSpus(EsGoodsInfoQueryRequest esGoodsInfoQueryRequest, PromoteGoodsParamVO paramVO) {
 
         esGoodsInfoQueryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
