@@ -33,6 +33,14 @@ public class MetaBookLabelQueryByPageReqBO implements Serializable {
      */
     private Date updateTime;
     /**
+     * 书名
+     */
+    private String bookName;
+    /**
+     * 标签名
+     */
+    private String labelName;
+    /**
      * 删除标识
      */
     private Integer delFlag;

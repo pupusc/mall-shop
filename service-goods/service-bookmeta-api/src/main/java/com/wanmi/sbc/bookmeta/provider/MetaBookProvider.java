@@ -83,7 +83,7 @@ public interface MetaBookProvider {
     /**根据bookname或者labelname模糊分页查询bookLabel信息
      */
     @PostMapping("/goods/${application.goods.version}/metaBook/queryBookLabelBypage")
-    List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,@RequestParam("pageNum") Integer pageNum,@RequestParam("pageSize") Integer pageSize);
+    MetaBookQueryByPageBo queryBookLabelBypage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo);
 
     /**查询所有book
      */

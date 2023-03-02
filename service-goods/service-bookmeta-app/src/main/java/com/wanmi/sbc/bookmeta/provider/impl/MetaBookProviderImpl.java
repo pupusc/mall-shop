@@ -24,12 +24,14 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -137,9 +139,18 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     }
 
     @Override
-    public List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,Integer pageNum,Integer pageSize) {
-        pageNum=(pageNum-1) * pageSize;
-        return metaBookLabelMapper.queryBookLableByPage(bookName,labelName,pageNum,pageSize);
+    public MetaBookQueryByPageBo queryBookLabelBypage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo) {
+        int count = metaBookLabelMapper.countBookLable(metaBookQueryByPageBo);
+        if(count>0){
+            metaBookQueryByPageBo.setTotalCount(count);
+            Integer pageNum = (metaBookQueryByPageBo.getPageNum()-1)* metaBookQueryByPageBo.getPageSize();
+            List<MetaBookLabelQueryByPageReqBO> metaBookLabelQueryByPageReqBOS = metaBookLabelMapper.queryBookLableByPage(metaBookQueryByPageBo,pageNum, metaBookQueryByPageBo.getPageSize());
+            metaBookQueryByPageBo.setMetaBookQueryByPageVos(KsBeanUtil.convertList(metaBookLabelQueryByPageReqBOS,MetaBookQueryByPageBo.MetaBookQueryByPageVo.class));
+            return metaBookQueryByPageBo;
+        }else {
+            return null;
+        }
+
     }
 
     @Override

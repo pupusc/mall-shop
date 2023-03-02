@@ -1,8 +1,7 @@
 package com.wanmi.sbc.windows;
 
-import com.wanmi.sbc.bookmeta.bo.MetaBookFigureQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRecommentKeyBo;
+import com.wanmi.sbc.bookmeta.bo.*;
+import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaBookFigureProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
@@ -78,7 +77,8 @@ public class SuspensionController {
     private MetaFigureProvider metaFigureProvider;
     @Autowired
     private MetaBookProvider metaBookProvider;
-
+    @Autowired
+    private MetaAwardProvider metaAwardProvider;
 
     @Value("classpath:/download/avtivity_goods.xlsx")
     private org.springframework.core.io.Resource templateFile;
@@ -126,6 +126,15 @@ public class SuspensionController {
         return metaBookProvider.getRecommentKey(spuId);
     }
 
+    @PostMapping("/test8")
+    public MetaBookQueryByPageBo bookLabelQueryByPage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo) {
+        return metaBookProvider.queryBookLabelBypage(metaBookQueryByPageBo);
+    }
+
+    @PostMapping("/test9")
+    BusinessResponse<List<MetaAwardBO>> queryBySku(@RequestParam(value = "sku") String sku) {
+        return this.metaAwardProvider.queryBySku(sku);
+    }
     /**
      * 下载模板
      */
