@@ -1,13 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
@@ -146,6 +140,11 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     public List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,Integer pageNum,Integer pageSize) {
         pageNum=(pageNum-1) * pageSize;
         return metaBookLabelMapper.queryBookLableByPage(bookName,labelName,pageNum,pageSize);
+    }
+
+    @Override
+    public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(String spuId) {
+        return BusinessResponse.success(metaBookService.getRecommentKey(spuId));
     }
 
 

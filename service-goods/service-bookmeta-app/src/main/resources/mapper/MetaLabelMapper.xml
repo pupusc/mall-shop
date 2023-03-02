@@ -26,6 +26,32 @@
         <result property="isShow" column="is_show" jdbcType="INTEGER"/>
     </resultMap>
 
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.Authority" id="AuthorityMap">
+        <result property="authorityId" column="authority_id" jdbcType="VARCHAR"/>
+        <result property="systemTypeCd" column="system_type_cd" jdbcType="INTEGER"/>
+        <result property="functionId" column="function_id" jdbcType="VARCHAR"/>
+        <result property="authorityTitle" column="authority_title" jdbcType="VARCHAR"/>
+        <result property="authorityName" column="authority_name" jdbcType="VARCHAR"/>
+        <result property="authorityUrl" column="authority_url" jdbcType="VARCHAR"/>
+        <result property="requestType" column="request_type" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap id="MetaTradeMap" type="com.wanmi.sbc.bookmeta.entity.MetaTrade">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
     <!--查询单个-->
     <select id="queryById" resultMap="MetaLabelMap">
         select
@@ -326,6 +352,29 @@
 
     <select id="getLabelCate" resultType="Map">
         select id,name,parent_id from meta_label label where type = 1 and parent_id = #{parent_id} and del_flag = 0;
+    </select>
+
+    <select id="getAuthorityByUrl" resultMap="AuthorityMap" parameterType="java.lang.String">
+        select * from `sbc-setting`.authority
+        <where>
+            <if test="authorityUrl != null">
+                authority_url like concat('%',#{authorityUrl},'%')
+            </if>
+        </where>
+            limit #{limitIndex}, #{limitSize};
+    </select>
+
+    <select id="getAuthorityByUrlCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1) from `sbc-setting`.authority
+        <where>
+            <if test="authorityUrl != null">
+                authority_url like concat('%',#{authorityUrl},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getMetaTradeTree" resultMap="MetaTradeMap">
+        select * from meta_trade where parent_id = #{parentId}
     </select>
 
 </mapper>

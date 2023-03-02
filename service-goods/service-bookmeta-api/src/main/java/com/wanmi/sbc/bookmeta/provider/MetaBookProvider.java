@@ -1,12 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider;
 
-import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,4 +84,10 @@ public interface MetaBookProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaBook/queryBookLabelBypage")
     List<Map> queryBookLabelBypage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName,@RequestParam("pageNum") Integer pageNum,@RequestParam("pageSize") Integer pageSize);
+
+    /**查询所有book
+     */
+    @PostMapping("/goods/${application.goods.version}/metaBook/getRecommentKey")
+    BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId);
+
 }

@@ -31,7 +31,7 @@ public enum BookType {
 
     @JsonValue
     public Integer toValue() {
-        return this.ordinal();
+        return this.ordinal() + 1;
     }
 
 }

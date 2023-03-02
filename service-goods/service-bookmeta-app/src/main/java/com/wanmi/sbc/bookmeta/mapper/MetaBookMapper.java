@@ -155,5 +155,11 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      */
     List<Map> getAllBook();
 
+
+    /**
+     *通过spu获得图书信息
+     * @return
+     */
+    List<Map> getBookInfoBySpu(@Param("spuId") String spuId);
 }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookRelationKeyMapper">
+
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookRelationKey" id="MetaBookRelationKeyMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="relationId" column="relation_id" jdbcType="INTEGER"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+    <select id="getKeyById" resultMap="MetaBookRelationKeyMap">
+        select * from meta_book_relation_key where relation_id = #{id} order by order_num asc;
+    </select>
+</mapper>
+

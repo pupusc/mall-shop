@@ -1,11 +1,10 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
+import com.wanmi.sbc.bookmeta.entity.MetaTrade;
 import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
@@ -14,6 +13,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +21,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -191,5 +192,34 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
             map.put("childList",childList);
         }
         return list;
+    }
+
+    @Override
+    public BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(AuthorityQueryByPageReqBO pageReqBO) {
+        Page page = pageReqBO.getPage();
+        page.setTotalCount((int) metaLabelMapper.getAuthorityByUrlCount(pageReqBO.getAuthorityUrl()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<AuthorityBO> authorityByUrl = metaLabelMapper.getAuthorityByUrl(pageReqBO.getAuthorityUrl(), page.getOffset(),page.getPageSize());
+        System.out.println(authorityByUrl);
+        return BusinessResponse.success(authorityByUrl, page);
+    }
+
+    @Override
+    public List<MetaTradeBO> getMetaTadeTree(int parentId) {
+        List<MetaTrade> parents= metaLabelMapper.getMetaTradeTree(parentId);
+        List<MetaTradeBO> metaTradeBOList = KsBeanUtil.convertList(parents, MetaTradeBO.class);
+        for (MetaTradeBO trade:metaTradeBOList) {
+            List<MetaTrade> child = metaLabelMapper.getMetaTradeTree(trade.getId());
+            List<MetaTradeBO> metaTradeBOS = KsBeanUtil.convertList(child, MetaTradeBO.class);
+            for (MetaTradeBO son:metaTradeBOS) {
+                List<MetaTrade> sons = metaLabelMapper.getMetaTradeTree(son.getId());
+                List<MetaTradeBO> tradeBOS = KsBeanUtil.convertList(sons, MetaTradeBO.class);
+                son.setChildrenList(tradeBOS);
+            }
+            trade.setChildrenList(metaTradeBOS);
+        }
+        return metaTradeBOList;
     }
 }

@@ -2,10 +2,13 @@ package com.wanmi.sbc.windows;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookFigureQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRecommentKeyBo;
 import com.wanmi.sbc.bookmeta.provider.MetaBookFigureProvider;
+import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
@@ -73,6 +76,9 @@ public class SuspensionController {
 
     @Autowired
     private MetaFigureProvider metaFigureProvider;
+    @Autowired
+    private MetaBookProvider metaBookProvider;
+
 
     @Value("classpath:/download/avtivity_goods.xlsx")
     private org.springframework.core.io.Resource templateFile;
@@ -112,6 +118,12 @@ public class SuspensionController {
     @PostMapping("/test6")
     public BaseResponse getMarketingInfo(@RequestParam(value = "skuId") String skuId)  {
         return metaFigureProvider.listFigureByskuId(skuId);
+    }
+
+
+    @PostMapping("/test7")
+    public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId)  {
+        return metaBookProvider.getRecommentKey(spuId);
     }
 
     /**

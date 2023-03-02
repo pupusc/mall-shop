@@ -34,7 +34,9 @@ public class MixedComponentContentDto implements Serializable {
 
     private String url;
 
-    private List<Map<String, Object>> labelId;
+    private Integer sorting;
+
+    private List<TagsDto> labelId;
 
     private List<GoodsDto> goods;
     public MixedComponentContentDto() {
