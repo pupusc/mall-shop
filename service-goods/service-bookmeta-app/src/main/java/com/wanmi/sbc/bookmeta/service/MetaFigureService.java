@@ -133,6 +133,10 @@ public class MetaFigureService {
                 bs.setName(award.getName());
                 return bs;
             }
+            //如果是选书人，仅透出选书人信息
+            if(BookRcmmdTypeEnum.XUANSHUREN.getCode().equals(bs.getBizType())){
+                return bs;
+            }
             if(null==bs.getBizId() && null == bs.getDescr()){
                 return null;//没有推荐人和推荐语的跳过
             }

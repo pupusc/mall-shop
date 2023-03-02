@@ -107,7 +107,7 @@ public class MetaAwardController {
     /**
      * 奖项-商详通过sku获取
      */
-    @PostMapping("deleteById")
+    @PostMapping("queryBySku")
     BusinessResponse<List<MetaAwardBO>> queryBySku(@RequestParam(value = "sku") String sku) {
         return this.metaAwardProvider.queryBySku(sku);
     }

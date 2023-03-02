@@ -69,6 +69,6 @@ public interface MetaFigureProvider {
      * 获取商品获取推荐列表
      * @return 是否成功
      */
-    @PostMapping("/goods/${application.goods.version}/metaFigure/skuId")
+    @PostMapping("/goods/${application.goods.version}/metaFigure/listFigureByskuId")
     BusinessResponse<List<MetaBookRcmmdFigureBO>> listFigureByskuId(@RequestParam(value = "skuId") @NotNull String skuId);
 }

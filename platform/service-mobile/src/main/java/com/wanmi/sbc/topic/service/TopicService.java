@@ -525,45 +525,49 @@ public class TopicService {
      */
      public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest){
 
-         List<ThreeGoodBookResponse> threeGoodBookResponses=new ArrayList<>();
-         if(null == threeGoodBookRequest.getId()) {
-             //没有指定栏目id,添加所有栏目
-             TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
-             request.setState(1);
-             request.setPublishState(0);
-             request.setTopicStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
-             topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
-                 ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
-                 BeanUtils.copyProperties(t, threeGoodBookResponse);
-                 threeGoodBookResponses.add(threeGoodBookResponse);
-             });
-         }else {
-             //指定了特定栏目id
-             ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
-             threeGoodBookResponse.setId(threeGoodBookRequest.getId());
-             threeGoodBookResponses.add(threeGoodBookResponse);
-         }
-
-         if(null != threeGoodBookResponses && threeGoodBookResponses.size()!=0) {
-             TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
-             topicStoreyColumnGoodsQueryRequest.setPublishState(0);
-             topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponses.get(0).getId());
-             //设定指定的分页
-             topicStoreyColumnGoodsQueryRequest.setPageNum(threeGoodBookRequest.getPageNum());
-             topicStoreyColumnGoodsQueryRequest.setPageSize(threeGoodBookRequest.getPageSize());
-             List<TopicStoreyColumnGoodsDTO> content = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext().getContent();
-
-             if(null != content && content.size()!=0){
-                 List<ThreeGoodBookGoods> goodBookGoods=new ArrayList<>();
-                 content.stream().forEach(t-> {
-                     ThreeGoodBookGoods goodBookGoodsTemp=new ThreeGoodBookGoods();
-                     BeanUtils.copyProperties(t,goodBookGoodsTemp);
-                     goodBookGoods.add(goodBookGoodsTemp);
+         try {
+             List<ThreeGoodBookResponse> threeGoodBookResponses = new ArrayList<>();
+             if (null == threeGoodBookRequest.getId()) {
+                 //没有指定栏目id,添加所有栏目
+                 TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
+                 request.setState(1);
+                 request.setPublishState(0);
+                 request.setTopicStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+                 topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
+                     ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+                     BeanUtils.copyProperties(t, threeGoodBookResponse);
+                     threeGoodBookResponses.add(threeGoodBookResponse);
                  });
-                 threeGoodBookResponses.get(0).setGoodBookGoods(goodBookGoods);
+             } else {
+                 //指定了特定栏目id
+                 ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+                 threeGoodBookResponse.setId(threeGoodBookRequest.getId());
+                 threeGoodBookResponses.add(threeGoodBookResponse);
              }
+
+             if (null != threeGoodBookResponses && threeGoodBookResponses.size() != 0) {
+                 TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
+                 topicStoreyColumnGoodsQueryRequest.setPublishState(0);
+                 topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponses.get(0).getId());
+                 //设定指定的分页
+                 topicStoreyColumnGoodsQueryRequest.setPageNum(threeGoodBookRequest.getPageNum());
+                 topicStoreyColumnGoodsQueryRequest.setPageSize(threeGoodBookRequest.getPageSize());
+                 List<TopicStoreyColumnGoodsDTO> content = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext().getContent();
+
+                 if (null != content && content.size() != 0) {
+                     List<ThreeGoodBookGoods> goodBookGoods = new ArrayList<>();
+                     content.stream().forEach(t -> {
+                         ThreeGoodBookGoods goodBookGoodsTemp = new ThreeGoodBookGoods();
+                         BeanUtils.copyProperties(t, goodBookGoodsTemp);
+                         goodBookGoods.add(goodBookGoodsTemp);
+                     });
+                     threeGoodBookResponses.get(0).setGoodBookGoods(goodBookGoods);
+                 }
+             }
+             return threeGoodBookResponses;
+         }catch (Exception e){
+             return null;
          }
-         return threeGoodBookResponses;
      }
 
 
