@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.bo.AuthorityBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
+import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
 import com.wanmi.sbc.bookmeta.entity.MetaTrade;
@@ -120,6 +121,8 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     Integer getAuthorityByUrlCount(@Param("authorityUrl") String authorityUrl);
 
     List<MetaTrade> getMetaTradeTree(int parentId);
+
+    List<GoodSearchKey> getGoodsNameBySpuId(@Param("name") String name);
 
 
 }

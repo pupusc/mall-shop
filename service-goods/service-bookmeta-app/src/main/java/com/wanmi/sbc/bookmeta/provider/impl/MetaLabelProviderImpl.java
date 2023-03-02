@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.*;
+import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
 import com.wanmi.sbc.bookmeta.entity.MetaTrade;
@@ -221,5 +222,15 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
             trade.setChildrenList(metaTradeBOS);
         }
         return metaTradeBOList;
+    }
+
+    @Override
+    public List<GoodsNameBySpuIdBO> getGoodsNameBySpuId(String name) {
+        List<GoodSearchKey> goodsNameBySpuId = metaLabelMapper.getGoodsNameBySpuId(name);
+        List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
+        if (goodsNameBySpuId.size() > 0) {
+            goodsNameBySpuIdBOS = KsBeanUtil.convertList(goodsNameBySpuId, GoodsNameBySpuIdBO.class);
+        }
+        return goodsNameBySpuIdBOS;
     }
 }

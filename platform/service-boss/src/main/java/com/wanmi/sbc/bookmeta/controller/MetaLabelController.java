@@ -74,6 +74,13 @@ public class MetaLabelController {
         return BusinessResponse.success(metaTradeTreeRespVOS);
     }
 
+    @PostMapping("queryGoodsSearchKey")
+    public BusinessResponse<List<GoodsSearchBySpuIdRespVO>> getGoodsSearch(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
+        List<GoodsNameBySpuIdBO> goodsNameBySpuId = metaLabelProvider.getGoodsNameBySpuId(pageRequest.getName());
+        List<GoodsSearchBySpuIdRespVO> goodsSearchBySpuIdRespVOS = KsBeanUtil.convertList(goodsNameBySpuId, GoodsSearchBySpuIdRespVO.class);
+        return BusinessResponse.success(goodsSearchBySpuIdRespVOS);
+    }
+
 
     @PostMapping("queryAuthority")
     public BusinessResponse<List<AuthorityQueryByPageRespVO>> queryAuthority(@RequestBody AuthorityQueryByPageReqVO pageRequest) {

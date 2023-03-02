@@ -42,12 +42,16 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryCate")
     List<Map> getLabelCate(@RequestBody @NotNull int parent_id);
 
-    @PostMapping("/goods/${application.goods.version}/metaLabel/queryMetaCate")
+    @PostMapping("/goods/${application.goods.version}/metaLabel/queryAuthority")
     BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(@RequestBody @Valid AuthorityQueryByPageReqBO pageReqBO);
 
 
     @PostMapping("/goods/${application.goods.version}/metaTrade/tree")
     List<MetaTradeBO> getMetaTadeTree(@RequestBody @NotNull int parentId);
+
+
+    @PostMapping("/goods/${application.goods.version}/metaTrade/")
+    List<GoodsNameBySpuIdBO> getGoodsNameBySpuId(@RequestBody @NotNull String name);
     /**
      * 新增数据
      *

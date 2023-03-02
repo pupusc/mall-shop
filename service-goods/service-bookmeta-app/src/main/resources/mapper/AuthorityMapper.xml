@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.AuthorityMapper">
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.Authority" id="AuthorityMap">
+        <result property="authorityId" column="authority_id" jdbcType="VARCHAR"/>
+        <result property="systemTypeCd" column="system_type_cd" jdbcType="INTEGER"/>
+        <result property="functionId" column="function_id" jdbcType="VARCHAR"/>
+        <result property="authorityTitle" column="authority_title" jdbcType="VARCHAR"/>
+        <result property="authorityName" column="authority_name" jdbcType="VARCHAR"/>
+        <result property="authorityUrl" column="authority_url" jdbcType="VARCHAR"/>
+        <result property="requestType" column="request_type" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <insert id="insertAuthority" parameterType="com.wanmi.sbc.bookmeta.entity.Authority">
+        <selectKey keyProperty="authorityId" resultType="string" order="AFTER"
+                   statementType="PREPARED">
+            SELECT LAST_INSERT_ID() AS authorityId
+        </selectKey>
+        insert into authority
+        <if test="authorityId != null">
+            authority_id = #{authorityId}
+        </if>
+        <if test="systemTypeCd !=null">
+            system_type_cd = #{systemTypeCd}
+        </if>
+        <if test="functionId !=null">
+            function_id= #{functionId}
+        </if>
+        <if test="authorityTitle != null">
+            authority_title = #{authorityTitle}
+        </if>
+        <if test="authorityName != null">
+            authority_name = #{authorityName}
+        </if>
+        <if test="authorityUrl !=null">
+            authority_url = #{authorityUrl}
+        </if>
+        <if test="requestType != null">
+            request_type = #{requestType}
+        </if>
+        <if test="remark!= null">
+            remark=#{remark}
+        </if>
+        <if test="sort!= null ">
+            sort=#{sort}
+        </if>
+        <if test="createTime!= null">
+            create_time = #{createTime}
+        </if>
+      <!--  <if test="delFlag != null">
+            del_flag= = #{delFlag}
+        </if>-->
+    </insert>
+
+    <update id="updateAuthority"  parameterType="com.wanmi.sbc.bookmeta.entity.Authority">
+        update authority
+        <set>
+            <if test="authorityId != null">
+                authority_id = #{authorityId}
+            </if>
+            <if test="systemTypeCd !=null">
+                system_type_cd = #{systemTypeCd}
+            </if>
+            <if test="functionId !=null">
+                function_id= #{functionId}
+            </if>
+            <if test="authorityTitle != null">
+                authority_title = #{authorityTitle}
+            </if>
+            <if test="authorityName != null">
+                authority_name = #{authorityName}
+            </if>
+            <if test="authorityUrl !=null">
+                authority_url = #{authorityUrl}
+            </if>
+            <if test="requestType != null">
+                request_type = #{requestType}
+            </if>
+            <if test="remark!= null">
+                remark=#{remark}
+            </if>
+            <if test="sort!= null ">
+                sort=#{sort}
+            </if>
+            <if test="createTime!= null">
+                create_time = #{createTime}
+            </if>
+         <!--   <if test="delFlag != null">
+                del_flag= = #{delFlag}
+            </if>-->
+        </set>
+    </update>
+
+    <delete id="deleteAuthority" parameterType="java.lang.String">
+        update authority set del_flag= #{delFlag} where authority_id = #{authorityId}
+    </delete>
+</mapper>
