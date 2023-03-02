@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,6 +64,19 @@ public class MetaLabelController {
     public BusinessResponse<List<Map>> queryCate(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
 
         List<Map> list = this.metaLabelProvider.getLabelCate(pageRequest.getParentId());
+
+        return BusinessResponse.success(list);
+    }
+
+    /**
+     * 标签-分类查询2
+     *
+     * @return 查询结果
+     */
+    @PostMapping("queryCate2")
+    public BusinessResponse<List<Map>> queryCate2(@RequestBody @NotNull String parent_id) {
+
+        List<Map> list = this.metaLabelProvider.getLabelCate2(parent_id);
 
         return BusinessResponse.success(list);
     }

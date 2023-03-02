@@ -6,6 +6,7 @@ import com.wanmi.sbc.bookmeta.vo.AuthorityAddReqVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,14 +26,14 @@ public class AuthorityController {
     @Resource
     AuthorityProvider authorityProvider;
     @PostMapping("addAuthority")
-    public BusinessResponse<Integer> insert(AuthorityAddReqVO requestVO){
+    public BusinessResponse<Integer> insert(@RequestBody AuthorityAddReqVO requestVO){
         AuthorityAddReqBO authority = KsBeanUtil.convert(requestVO, AuthorityAddReqBO.class);
         BusinessResponse<Integer> integerBusinessResponse = this.authorityProvider.addAuthority(authority);
         return  integerBusinessResponse;
     }
 
     @PostMapping("updateAuthority")
-    public BusinessResponse<Integer> update(AuthorityAddReqVO requestVO){
+    public BusinessResponse<Integer> update(@RequestBody AuthorityAddReqVO requestVO){
         AuthorityAddReqBO authority = KsBeanUtil.convert(requestVO, AuthorityAddReqBO.class);
         BusinessResponse<Integer> integerBusinessResponse = authorityProvider.updateAuthority(authority);
         return  integerBusinessResponse;

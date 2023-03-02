@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 
 import javax.persistence.Column;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Date;
  * @Description:
  */
 @Data
-public class AuthorityAddReqVO {
+public class AuthorityAddReqVO implements Serializable {
 
     private String authorityId;
     private int systemTypeCd;
