@@ -1079,15 +1079,23 @@ public class PurchaseService {
         if (CollectionUtils.isNotEmpty(purchaseList)) {
             Purchase purchase = purchaseList.get(0);
             //更新标识：收藏->all
-            if (request.getVerifyStock() && goodsInfo.getStock() < request.getGoodsNum() && purchase.getGoodsNum() < request.getGoodsNum()) {
-                throw new SbcRuntimeException("K-030302", new Object[]{goodsInfo.getStock()});
-            }
+            if(null==request.getGoodsNum()){
+                if (request.getVerifyStock() && goodsInfo.getStock() <( purchase.getGoodsNum()+1) && purchase.getGoodsNum() < (purchase.getGoodsNum()+1)) {
+                    throw new SbcRuntimeException("K-030302", new Object[]{goodsInfo.getStock()});
+                }
+                purchase.setGoodsNum(purchase.getGoodsNum()+1);
+                purchaseRepository$save(purchase);
+            }else {
+                if (request.getVerifyStock() && goodsInfo.getStock() < request.getGoodsNum() && purchase.getGoodsNum() < request.getGoodsNum()) {
+                    throw new SbcRuntimeException("K-030302", new Object[]{goodsInfo.getStock()});
+                }
 
-            if (BoolFlag.YES.equals(request.getUpdateTimeFlag())) {
-                purchase.setUpdateTime(LocalDateTime.now());
+                if (BoolFlag.YES.equals(request.getUpdateTimeFlag())) {
+                    purchase.setUpdateTime(LocalDateTime.now());
+                }
+                purchase.setGoodsNum(request.getGoodsNum());
+                purchaseRepository$save(purchase);
             }
-            purchase.setGoodsNum(request.getGoodsNum());
-            purchaseRepository$save(purchase);
         } else {
             if (countNum >= Constants.PURCHASE_MAX_SIZE) {
                 throw new SbcRuntimeException(SiteResultCode.ERROR_050121, new Object[]{Constants.PURCHASE_MAX_SIZE});
