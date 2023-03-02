@@ -36,11 +36,11 @@ public class BookTags {
     }
 
     private void doData(Map map) {
-        doGoods(map);           //卖点标签
-        //doBook(map);            //图书tab
+        //doGoods(map);           //卖点标签
+        doBook(map);            //图书tab
     }
 
-
+    //单条记录
     public void doGoods(String isbn){
 
         List goodList = bookJpa.findSpuByV2(isbn);

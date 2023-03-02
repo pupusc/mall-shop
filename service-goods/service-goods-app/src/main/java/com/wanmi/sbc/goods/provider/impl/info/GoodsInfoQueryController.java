@@ -570,6 +570,6 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     }
     @Override
     public BaseResponse<String> getRedis(String spuNo) {
-        return BaseResponse.success(goodTags.getRedis(spuNo));
+        return BaseResponse.success(goodTags.getRedis_Tags(spuNo));
     }
 }
