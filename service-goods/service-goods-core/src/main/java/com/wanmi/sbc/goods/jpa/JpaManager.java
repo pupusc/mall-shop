@@ -21,12 +21,14 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +45,8 @@ import java.util.stream.Collectors;
 
 /**
  * Description:
- * Company    : 上海黄豆网络科技有限公司
- * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/5 8:23 下午
- * Modify     : 修改日期          修改人员        修改说明          JIRA编号
+ * Author     : chenzhen
+ * Date       : 2023/03/03 8:23 下午
  ********************************************************************/
 @Service
 public class JpaManager {
@@ -145,6 +145,49 @@ public class JpaManager {
 
 
         return pr;
+
+    }
+
+    /**
+     * 动态更新，成功返回true，失败返回false
+     * @param sql
+     * @param obj
+     * @return
+     */
+    public boolean update(String sql,Object[] obj) {
+
+        boolean boo = false;
+
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+
+        //必须先获取事务实例
+        EntityTransaction transaction = entityManager.getTransaction();
+        //开启事务
+        transaction.begin();
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.unwrap(NativeQueryImpl.class);
+
+        for(int i=0;i<obj.length;i++){
+            int num = i+1;
+            Object value =  obj[i];
+            query.setParameter(num,value);
+
+        }
+        int ret = query.executeUpdate();
+
+        if(ret >= 1){
+            boo = true;
+        }
+
+        transaction.commit();
+
+        if(entityManager != null){
+            entityManager.close();
+        }
+
+        return boo;
+
 
     }
 
