@@ -8,6 +8,7 @@ import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
+import com.wanmi.sbc.util.DitaUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,9 @@ public class TopicController {
     @ApiOperation(value = "根据专题id返回页面数据，")
     @PostMapping(value = "/v2/detail")
     public BaseResponse<TopicResponse> detailV2(@RequestBody TopicQueryRequest request) {
+        System.out.println("detailV2~begin:" + DitaUtil.getCurrentAllDate());
         BaseResponse<TopicResponse> response = topicService.detailV2(request,true);
+        System.out.println("detailV2~  end:" + DitaUtil.getCurrentAllDate());
         return response;
     }
 

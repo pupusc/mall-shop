@@ -74,6 +74,7 @@ import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
@@ -240,6 +241,7 @@ public class TopicService {
 
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
 
+
 //        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 //        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
 //        Map customerMap = ( Map ) httpRequest.getAttribute("claims");
@@ -260,6 +262,9 @@ public class TopicService {
         List<TopicStoreyResponse> storeyList = response.getStoreyList();
         for(TopicStoreyResponse topicResponse:storeyList){
             Integer storeyType = topicResponse.getStoreyType();
+
+            System.out.println("storeyType:" + storeyType + "~ begin:" + DitaUtil.getCurrentAllDate());
+
             if(storeyType == TopicStoreyTypeV2.ROLLINGMESSAGE.getId()){//滚动消息
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
@@ -291,6 +296,8 @@ public class TopicService {
                 suspensionByTypeRequest.setType(2L);
                 topicResponse.setSuspensionDTOList(suspensionProvider.getByType(suspensionByTypeRequest).getContext().getSuspensionDTOList());
             }
+
+            System.out.println("storeyType:" + storeyType + "~  end:" + DitaUtil.getCurrentAllDate());
         }
         return BaseResponse.success(response);
     }
