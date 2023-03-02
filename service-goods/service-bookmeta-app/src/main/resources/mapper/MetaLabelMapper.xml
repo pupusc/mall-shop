@@ -51,6 +51,15 @@
         <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
     </resultMap>
+    
+    <resultMap id="GoodSearchKeyMap" type="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="INTEGER"/>
+        <result property="spuId" column="spu_id" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
+    </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaLabelMap">
@@ -357,8 +366,9 @@
     <select id="getAuthorityByUrl" resultMap="AuthorityMap" parameterType="java.lang.String">
         select * from `sbc-setting`.authority
         <where>
+           del_flag = 0
             <if test="authorityUrl != null">
-                authority_url like concat('%',#{authorityUrl},'%')
+               and authority_url like concat('%',#{authorityUrl},'%')
             </if>
         </where>
             limit #{limitIndex}, #{limitSize};
@@ -367,14 +377,30 @@
     <select id="getAuthorityByUrlCount" resultType="java.lang.Integer" parameterType="java.lang.String">
         select count(1) from `sbc-setting`.authority
         <where>
+             del_flag = 0
             <if test="authorityUrl != null">
-                authority_url like concat('%',#{authorityUrl},'%')
+             and  authority_url like concat('%',#{authorityUrl},'%')
             </if>
         </where>
     </select>
 
     <select id="getMetaTradeTree" resultMap="MetaTradeMap">
-        select * from meta_trade where parent_id = #{parentId}
+        select * from meta_trade where parent_id = #{parentId} and del_flag = 0
+    </select>
+    
+    <select id="getGoodsNameBySpuId" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
+        select
+            gsk.id,g.goods_name as name,g.goods_id as spu_id
+        from goods_search_key gsk
+            left join
+            goods g on g.goods_id = gsk.spu_id
+            <where>
+                gsk.del_flag = 0 and gsk.del_flag = 0
+                <if test="name != null">
+                    and  gsk.name = #{name}
+                </if>
+            </where>
+                limit 10
     </select>
 
 </mapper>
