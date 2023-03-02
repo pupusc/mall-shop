@@ -42,6 +42,11 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryCate")
     List<Map> getLabelCate(@RequestBody @NotNull int parent_id);
 
+    /**查询所有label分类
+     */
+    @PostMapping("/goods/${application.goods.version}/metaLabel/queryCate2")
+    List<Map> getLabelCate2(@RequestBody @NotNull String parent_id);
+
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryAuthority")
     BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(@RequestBody @Valid AuthorityQueryByPageReqBO pageReqBO);
 

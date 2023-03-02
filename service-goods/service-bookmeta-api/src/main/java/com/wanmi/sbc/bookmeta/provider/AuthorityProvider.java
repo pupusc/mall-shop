@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 import java.util.List;
 
+
 /**
  * Created with IntelliJ IDEA.
  *
@@ -21,6 +22,7 @@ public interface AuthorityProvider {
 
     @PostMapping("/goods/${application.goods.version}/authority/addAuthority")
     BusinessResponse<Integer> addAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
+
     @PostMapping("/goods/${application.goods.version}/authority/updateAuthority")
     BusinessResponse<Integer> updateAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
 

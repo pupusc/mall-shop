@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.provider.AuthorityProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -19,9 +21,12 @@ import java.util.List;
  * @Date: 2023/03/02/14:27
  * @Description:
  */
+@Validated
+@RestController
 public class AuthorityProviderImpl implements AuthorityProvider {
     @Resource
     AuthorityMapper authorityMapper;
+
     @Override
     public BusinessResponse<Integer> addAuthority(AuthorityAddReqBO pageReqBO) {
         Authority authority = KsBeanUtil.convert(pageReqBO, Authority.class);

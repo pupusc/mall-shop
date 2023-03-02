@@ -195,6 +195,19 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         return list;
     }
 
+    public List<Map> getLabelCate2(String parent_id) {
+        int int_id = Integer.parseInt(parent_id);
+        List list = metaLabelMapper.getLabelCate(int_id);
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            String id = String.valueOf(map.get("id"));
+            int intId = Integer.parseInt(id);
+            List childList = metaLabelMapper.getLabelCate(intId);
+            map.put("childList",childList);
+        }
+        return list;
+    }
+
     @Override
     public BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(AuthorityQueryByPageReqBO pageReqBO) {
         Page page = pageReqBO.getPage();
