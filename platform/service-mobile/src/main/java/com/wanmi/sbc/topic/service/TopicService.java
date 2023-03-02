@@ -162,6 +162,9 @@ public class TopicService {
             return BaseResponse.success(null);
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
+        if(!allLoad){
+            response.setStoreyList(response.getStoreyList().subList(0,2));
+        }
         //如果配置有一行两个商品的配置信息，查询商品
         List<String> skuIds = new ArrayList<>();
         //图片+链接解析spuId

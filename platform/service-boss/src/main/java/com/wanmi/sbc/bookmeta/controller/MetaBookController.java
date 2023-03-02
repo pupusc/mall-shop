@@ -277,9 +277,18 @@ public class MetaBookController {
      *书名和标签名的分页模糊查询
      * @return
      */
-    @GetMapping("bookLabelQuery")
+    @PostMapping("/bookLabelQuery")
     public List<Map> bookLabelQueryByPage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) {
         return metaBookProvider.queryBookLabelBypage(bookName,labelName,pageNum,pageSize);
+    }
+
+    /**
+     *商详推荐内容
+     * @return
+     */
+    @PostMapping("/getRecommentKey")
+    public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId) {
+        return metaBookProvider.getRecommentKey(spuId);
     }
 
     /**
