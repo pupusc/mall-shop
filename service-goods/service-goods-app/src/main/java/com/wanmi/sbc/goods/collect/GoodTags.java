@@ -3,6 +3,8 @@ package com.wanmi.sbc.goods.collect;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.goods.collect.respository.BookRepository;
+import com.wanmi.sbc.goods.collect.respository.GoodRepository;
 import com.wanmi.sbc.goods.jpa.JpaManager;
 import com.wanmi.sbc.goods.redis.RedisService;
 import jodd.util.StringUtil;
@@ -19,7 +21,9 @@ import java.util.*;
 public class GoodTags {
 
     @Autowired
-    JpaManager jpaManager;
+    GoodRepository goodJpa;
+    @Autowired
+    BookRepository bookJpa;
 
     @Autowired
     RedisService redisService;
@@ -29,7 +33,7 @@ public class GoodTags {
 
     public void doGoods(){
 
-        List list = getGoodsList();
+        List list = goodJpa.getGoodsList();
 
         for(int i=0;i<list.size();i++){
             Map map = (Map)list.get(i);
@@ -47,21 +51,21 @@ public class GoodTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        List tagList = getTagList(spu_no);
+        List tagList = goodJpa.getTagList(spu_no);
         if(tagList !=null && tagList.size() > 0){
             allList.addAll(tagList);
         }
 
         //20. 榜单标签
         if(StringUtil.isNotBlank(spu_no)) {
-            List topList = bookTags.getTopList(spu_no);
+            List topList = bookJpa.getTopList(spu_no);
             if(topList!=null && topList.size() > 0){
                 allList.addAll(topList);
             }
         }
 
         //90. 取商品上关联的静态标签，按标签优先级依次呈现
-        List staticList = getStaticList(spu_no);
+        List staticList = goodJpa.getStaticList(spu_no);
         if(staticList!=null && staticList.size() > 0){
             allList.addAll(staticList);
         }
@@ -70,10 +74,10 @@ public class GoodTags {
         map.put("isBook","no");
         map.put("tags",allList);
 
-        setRedis(spu_no,map);
+        setRedis_Tags(spu_no,map);
     }
 
-    public void setRedis(String spu_no,Map map){
+    public void setRedis_Tags(String spu_no,Map map){
 
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
@@ -82,7 +86,7 @@ public class GoodTags {
 
     }
 
-    public String getRedis(String spu_no){
+    public String getRedis_Tags(String spu_no){
         String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":"+spu_no);
         if(DitaUtil.isBlank(value)){
             value = "{}";
@@ -90,42 +94,13 @@ public class GoodTags {
         return value;
     }
 
-    //非书商品
-    private List getGoodsList(){
-
-        String sql = " select * from ( " +
-                     " select a.goods_id,a.goods_no as spu,concat (b.cate_path, b.cate_id) as cate_path  from goods a left join goods_cate b on a.cate_id = b.cate_id " +
-                     " where a.del_flag = 0 and b.del_flag = 0 and a.added_flag in (1,2) " +
-                     " )c where cate_path not like '%1190%' ";
-
-        Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql,obj);
-        return list;
-
+    public String getRedis_Book(String spu_no){
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":"+spu_no);
+        if(DitaUtil.isBlank(value)){
+            value = "{}";
+        }
+        return value;
     }
-
-    //10. 大促标签
-    private List getTagList(String spu_no) {
-
-        String sql = " select a.id,a.name,show_img,show_status,is_static,10 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
-                     " where a.del_flag = 0 and a.is_static = 1 and b.goods_no = ? order by order_num ASC ";
-        Object[] obj = new Object[]{spu_no};
-
-        List list = jpaManager.queryForList(sql,obj);
-        return list;
-    }
-
-    private List getStaticList(String spu_no) {
-
-        String sql = " select a.id,a.name,show_img,show_status,is_static,90 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
-                     " where a.del_flag = 0 and a.is_static = 2 and b.goods_no = ? order by order_num ASC ";
-        Object[] obj = new Object[]{spu_no};
-
-        List list = jpaManager.queryForList(sql,obj);
-        return list;
-    }
-
-
 
 }
 

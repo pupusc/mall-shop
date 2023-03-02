@@ -36,7 +36,7 @@ public class RedisTagsConstant {
 
     public static final String ELASTIC_SAVE_GOODS_TAGS_SPU_NO   = "ELASTIC_SAVE:GOODS_TAGS_SPU_NO";     //spu_no
 
-    public static final String ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID = "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID";   //spu_id
+    public static final String ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID = "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID";   //spu_id && isbn
 
 
 }
