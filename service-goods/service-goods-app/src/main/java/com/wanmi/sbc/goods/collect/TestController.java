@@ -22,7 +22,7 @@ public class TestController {
     @GetMapping("/test")
     public BaseResponse test(){
 
-        //goodTags.getRedis("P735546359");        //图书
+        //goodTags.getRedis("P735546359");        //图书(spu_no)
         //goodTags.getRedis("P989359460");        //非书
 
         System.out.println("begin:" + DitaUtil.getCurrentAllDate());

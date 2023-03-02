@@ -25,7 +25,6 @@ public class RedisTagsConstant {
      * 110. 图书被包含在某丛书，显示「丛书」名称
      * 120. 标签：一级分类=？？下显示3个图书库中关联优先级最高的标签
      */
-    public static final String ELASTIC_TAGS_GOODS_KEY_SPU = "ELASTIC_TAGS:GOODS_KEY_SPU";
 
     /**
      * 非书只有spu
@@ -34,6 +33,10 @@ public class RedisTagsConstant {
      * 2. 榜单：显示最新更新的榜单名称+第X名-点击进入榜单聚合页
      * 3. 取商品上关联的静态标签，按标签优先级依次呈现
      */
-    public static final String ELASTIC_TAGS_GOODS_KEY_SPU_ONLY = "ELASTIC_TAGS:GOODS_KEY_SPU_ONLY";
+
+    public static final String ELASTIC_SAVE_GOODS_TAGS_SPU_NO   = "ELASTIC_SAVE:GOODS_TAGS_SPU_NO";     //spu_no
+
+    public static final String ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID = "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID";   //spu_id
+
 
 }

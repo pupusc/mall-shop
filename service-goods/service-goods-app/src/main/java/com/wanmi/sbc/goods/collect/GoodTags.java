@@ -14,6 +14,7 @@ import java.util.*;
 
 @Slf4j
 @Service
+
 //非书商品
 public class GoodTags {
 
@@ -77,12 +78,12 @@ public class GoodTags {
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
 
-        redisService.setString(RedisTagsConstant.ELASTIC_TAGS_GOODS_KEY_SPU+":"+spu_no, json );
+        redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":"+spu_no, json );
 
     }
 
     public String getRedis(String spu_no){
-        String value = redisService.getString(RedisTagsConstant.ELASTIC_TAGS_GOODS_KEY_SPU+":"+spu_no);
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":"+spu_no);
         if(DitaUtil.isBlank(value)){
             value = "{}";
         }
