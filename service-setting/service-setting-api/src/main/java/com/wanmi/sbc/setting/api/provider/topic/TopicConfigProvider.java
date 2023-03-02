@@ -66,6 +66,9 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
     RankRequestListResponse rank(@RequestBody RankStoreyRequest storeyRequest);
 
+    @PostMapping("/setting/${application.setting.version}/topic/storey/rank2")
+    RankRequestListResponse rank2();
+
     @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage")
     RankPageResponse rankPage(@RequestBody RankStoreyRequest storeyRequest);
 

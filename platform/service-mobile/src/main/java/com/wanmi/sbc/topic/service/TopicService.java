@@ -271,7 +271,7 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
-                List<RankRequest> rank = rank(topicResponse);
+                List<RankRequest> rank = rank2();
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单更多
                 RankPageRequest rankPage = rankPage2(topicResponse);
@@ -314,6 +314,53 @@ public class TopicService {
                         Map map= (Map) t;
                         if(map.get("spuId").equals(g.getGoodsId())){
                             map.put("label",label);
+                            map.put("goodsInfoId",g.getGoodsInfoId());
+                            map.put("subName",g.getGoodsSubName());
+                            map.put("showPrice",g.getShowPrice());
+                            map.put("linePrice",g.getLinePrice());
+                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+                            map.put("stock",g.getStock());
+                            map.put("author",g.getGoodsExtProperties().getAuthor());
+                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
+                        }
+                    });
+                }
+            });
+        });
+        return response.getRankRequestList();
+    }
+
+    public List<RankRequest> rank2(){
+        RankRequestListResponse response = topicConfigProvider.rank2();
+        List<Integer> idList = response.getRankIds();
+        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
+        idsRequest.setIds(idList);
+        List<String> goods=new ArrayList<>();
+        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
+        if(CollectionUtils.isEmpty(baseResponse)){
+            return null;
+        }
+        idList.forEach(id->{
+            List<String> goodIds=new ArrayList<>();
+            List<Map> maps=new ArrayList<>();
+            baseResponse.stream().filter(item->item.getBookListId().equals(id)&&goodIds.size()<3).forEach(item->{
+                goodIds.add(item.getSkuId());
+                Map map=new HashMap();
+                map.put("spuId",item.getSpuId());
+                maps.add(map);
+            });
+            goods.addAll(goodIds);
+            response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
+        });
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
+        goodsCustomResponses.forEach(g->{
+//            String label = g.getGoodsLabelList().get(0);
+            response.getRankRequestList().forEach(r->{
+                if(null!=r.getRankList()&&r.getRankList().size()>0){
+                    r.getRankList().forEach(t->{
+                        Map map= (Map) t;
+                        if(map.get("spuId").equals(g.getGoodsId())){
+                            map.put("label","");
                             map.put("goodsInfoId",g.getGoodsInfoId());
                             map.put("subName",g.getGoodsSubName());
                             map.put("showPrice",g.getShowPrice());
@@ -400,40 +447,40 @@ public class TopicService {
         return goodsOrBookResponse;
     }
 
-    public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
-        RankPageResponse pageResponse = topicConfigProvider.rankPage(request);
-        List<String> idList = pageResponse.getIdList();
-        if(CollectionUtils.isEmpty(idList)){
-            return BaseResponse.success(null);
-        }
-        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
-        Iterator<RankRequest> iterator=contentList.iterator();
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
-        goodsCustomResponses.forEach(g-> {
-            String label = g.getGoodsLabelList().get(0);
-            pageResponse.getPageRequest().getContentList().forEach(r->{
-                r.getRankList().forEach(t->{
-                    Map tMap= (Map) t;
-                    List<Map> list=(List<Map>) tMap.get("rankList");
-                    list.forEach(m->{
-                            if(m.get("spuId").equals(g.getGoodsId())) {
-                                m.put("label", label);
-                                m.put("subName", g.getGoodsSubName());
-                                m.put("goodsInfoId",g.getGoodsInfoId());
-                                m.put("showPrice",g.getShowPrice());
-                                m.put("linePrice",g.getLinePrice());
-                                m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-                                m.put("stock",g.getStock());
-                                m.put("author",g.getGoodsExtProperties().getAuthor());
-                                m.put("publisher",g.getGoodsExtProperties().getPublisher());
-                            }
-
-                    });
-                });
-                });
-            });
-        return BaseResponse.success(pageResponse.getPageRequest());
-    }
+//    public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
+//        RankPageResponse pageResponse = topicConfigProvider.rankPage(request);
+//        List<String> idList = pageResponse.getIdList();
+//        if(CollectionUtils.isEmpty(idList)){
+//            return BaseResponse.success(null);
+//        }
+//        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
+//        Iterator<RankRequest> iterator=contentList.iterator();
+//        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
+//        goodsCustomResponses.forEach(g-> {
+//            String label = g.getGoodsLabelList().get(0);
+//            pageResponse.getPageRequest().getContentList().forEach(r->{
+//                r.getRankList().forEach(t->{
+//                    Map tMap= (Map) t;
+//                    List<Map> list=(List<Map>) tMap.get("rankList");
+//                    list.forEach(m->{
+//                            if(m.get("spuId").equals(g.getGoodsId())) {
+//                                m.put("label", label);
+//                                m.put("subName", g.getGoodsSubName());
+//                                m.put("goodsInfoId",g.getGoodsInfoId());
+//                                m.put("showPrice",g.getShowPrice());
+//                                m.put("linePrice",g.getLinePrice());
+//                                m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+//                                m.put("stock",g.getStock());
+//                                m.put("author",g.getGoodsExtProperties().getAuthor());
+//                                m.put("publisher",g.getGoodsExtProperties().getPublisher());
+//                            }
+//
+//                    });
+//                });
+//                });
+//            });
+//        return BaseResponse.success(pageResponse.getPageRequest());
+//    }
 
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
         RankPageResponse pageResponse = topicConfigProvider.rankPageByBookList(request);

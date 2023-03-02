@@ -90,6 +90,10 @@ public class TopicConfigController implements TopicConfigProvider {
         return topicConfigService.rank(storeyRequest);
     }
 
+    public RankRequestListResponse rank2() {
+        return topicConfigService.rank2();
+    }
+
     public RankPageResponse rankPage(RankStoreyRequest storeyRequest){
         return topicConfigService.rankPage2(storeyRequest);
     }

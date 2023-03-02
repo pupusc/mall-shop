@@ -12,4 +12,6 @@ public class RankRequestListResponse implements Serializable {
     private List<RankRequest> rankRequestList;
 
     private List<String> idList;
+
+    private List<Integer> rankIds;
 }

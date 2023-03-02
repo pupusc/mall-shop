@@ -248,6 +248,23 @@ public class TopicConfigService {
         return response;
     }
 
+    public RankRequestListResponse rank2() {
+        RankRequestListResponse response=new RankRequestListResponse();
+        List<Integer> ids=new ArrayList<>();
+        List<RankRequest> rankRequestList=new ArrayList<>();
+        relationRepository.collectOrderByTopicRankSortingAsc().forEach(item->{
+            RankRequest request=new RankRequest();
+            request.setId(item.getCRankId());
+            request.setRankName(item.getCRankName());
+            rankRequestList.add(request);
+            ids.add(item.getCRankId());
+
+        });
+        response.setRankIds(ids);
+        response.setRankRequestList(rankRequestList);
+        return response;
+    }
+
     /**
      * 榜单详情页分页
      * @param storeyRequest

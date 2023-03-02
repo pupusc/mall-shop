@@ -29,4 +29,7 @@ public class TopicRankRelation {
 
     @Column(name = "c_rank_sorting")
     private Integer CRankSorting;
+
+    @Column(name = "topic_rank_sorting")
+    private Integer topicRankSorting;
 }

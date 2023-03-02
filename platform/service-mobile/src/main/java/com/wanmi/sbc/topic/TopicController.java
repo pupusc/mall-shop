@@ -74,12 +74,12 @@ public class TopicController {
         return response;
     }
 
-    @ApiOperation(value = "榜单聚合页")
-    @PostMapping(value = "/v2/rankPage")
-    public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) {
-        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
-        return response;
-    }
+//    @ApiOperation(value = "榜单聚合页")
+//    @PostMapping(value = "/v2/rankPage")
+//    public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) {
+//        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
+//        return response;
+//    }
 
 
     @PostMapping(value = "/v2/getMixedComponentContent")
