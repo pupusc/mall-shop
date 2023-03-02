@@ -46,5 +46,7 @@ public class GoodsDto implements Serializable {
 
     private String discount;
 
+    private String listMessage;
+
     private List<String> tags;
 }
