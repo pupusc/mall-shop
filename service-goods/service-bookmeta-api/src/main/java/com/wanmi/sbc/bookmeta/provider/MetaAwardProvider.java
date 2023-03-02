@@ -62,4 +62,13 @@ public interface MetaAwardProvider {
     @PostMapping("/goods/${application.goods.version}/metaAward/deleteById")
     BusinessResponse<Boolean> deleteById(@RequestBody @NotNull Integer id);
 
+
+    /**
+     * 通过sku查询单条数据
+     *
+     * @param sku
+     * @return 实例对象
+     */
+    @PostMapping("/goods/${application.goods.version}/metaAward/queryBySku")
+    BusinessResponse<List<MetaAwardBO>> queryBySku(@RequestParam(value = "sku") @NotNull String sku);
 }

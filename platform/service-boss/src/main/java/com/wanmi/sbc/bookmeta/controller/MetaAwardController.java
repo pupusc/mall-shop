@@ -12,10 +12,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaAwardQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaAwardQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -107,5 +104,12 @@ public class MetaAwardController {
         return this.metaAwardProvider.deleteById(id.getId());
     }
 
+    /**
+     * 奖项-商详通过sku获取
+     */
+    @PostMapping("deleteById")
+    BusinessResponse<List<MetaAwardBO>> queryBySku(@RequestParam(value = "sku") String sku) {
+        return this.metaAwardProvider.queryBySku(sku);
+    }
 }
 

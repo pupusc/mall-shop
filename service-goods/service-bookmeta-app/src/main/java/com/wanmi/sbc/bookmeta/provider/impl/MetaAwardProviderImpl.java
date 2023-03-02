@@ -121,4 +121,9 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
         this.metaAwardService.deleteById(id);
         return BusinessResponse.success(true);
     }
+
+    @Override
+    public BusinessResponse<List<MetaAwardBO>> queryBySku(String sku) {
+        return metaAwardService.queryBySku(sku);
+    }
 }

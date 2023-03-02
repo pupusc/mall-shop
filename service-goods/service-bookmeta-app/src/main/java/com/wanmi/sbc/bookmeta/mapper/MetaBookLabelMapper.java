@@ -1,5 +1,7 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageBo;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import org.apache.ibatis.annotations.Param;
@@ -111,7 +113,9 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
     List<Map> queryBookLable();
 
 
-    List<Map> queryBookLableByPage(@Param("book_id") String bookId,@Param("label_id") String labelId,@Param("pageNum") Integer pageNum,@Param("pageSize") Integer pageSize);
+    List<MetaBookLabelQueryByPageReqBO> queryBookLableByPage(@Param("nameQuery") MetaBookQueryByPageBo nameQuery, @Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize);
+    int countBookLable(@Param("nameQuery") MetaBookQueryByPageBo nameQuery);
+
     /**
      * 查询图书标签关系是否存在
      * @return

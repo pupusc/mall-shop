@@ -278,8 +278,8 @@ public class MetaBookController {
      * @return
      */
     @PostMapping("/bookLabelQuery")
-    public List<Map> bookLabelQueryByPage(@RequestParam(value = "bookName") String bookName , @RequestParam(value = "labelName") String labelName, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) {
-        return metaBookProvider.queryBookLabelBypage(bookName,labelName,pageNum,pageSize);
+    public MetaBookQueryByPageBo bookLabelQueryByPage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo) {
+        return metaBookProvider.queryBookLabelBypage(metaBookQueryByPageBo);
     }
 
     /**

@@ -11,6 +11,14 @@
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
     </resultMap>
 
+    <resultMap type="com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO" id="MetaBookQueryByPageVoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="labelId" column="label_id" jdbcType="INTEGER"/>
+        <result property="bookName" column="book_name" jdbcType="VARCHAR"/>
+        <result property="labelName" column="label_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookLabelMap">
         select
@@ -44,26 +52,51 @@
              ) as c left join meta_label as d on c.label_id=d.id
     </select>
 
-    <select id="queryBookLableByPage" resultType="java.util.HashMap">
+    <select id="queryBookLableByPage" resultMap="MetaBookQueryByPageVoMap">
 
         select c.*,d.name as label_name
         from (
                  select a.book_id,
                         a.label_id,
-                        b.name as book_name,
+                        b.`name` as book_name
                  from meta_book_label as a
                           left join meta_book as b on a.book_id = b.id
-                 where a.del_flag = 0
-            <if test="bookName != null and bookName != ''">
-                 and b.name like %#{bookName}%
-            </if>
+                 <where>
+                  a.del_flag = 0
+                    <if test="nameQuery.queryBookName != null and nameQuery.queryBookName != ''">
+                         and b.name like  concat('%',#{nameQuery.queryBookName},'%')
+                    </if>
+                 </where>
              ) as c left join meta_label as d on c.label_id=d.id
             <where>
-                <if test="labelName != null and labelName != ''">
-                    d.name like %#{labelName}%
+                <if test="nameQuery.queryLabelName != null and nameQuery.queryLabelName != ''">
+                    d.name like  concat('%',#{nameQuery.queryLabelName},'%')
                 </if>
             </where>
             limit #{pageNum} , #{pageSize}
+    </select>
+
+    <select id="countBookLable" resultType="int">
+
+        select count(*)
+        from (
+        select a.book_id,
+        a.label_id,
+        b.`name` as book_name
+        from meta_book_label as a
+        left join meta_book as b on a.book_id = b.id
+        <where>
+            a.del_flag = 0
+            <if test="nameQuery.queryBookName != null and nameQuery.queryBookName != ''">
+                and b.name like  concat('%',#{nameQuery.queryBookName},'%')
+            </if>
+        </where>
+        ) as c left join meta_label as d on c.label_id=d.id
+        <where>
+            <if test="nameQuery.queryLabelName != null and nameQuery.queryLabelName != ''">
+                d.name like  concat('%',#{nameQuery.queryLabelName},'%')
+            </if>
+        </where>
     </select>
 
     <!--查询指定行数据-->
