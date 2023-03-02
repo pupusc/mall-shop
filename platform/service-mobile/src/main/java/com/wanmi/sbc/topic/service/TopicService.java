@@ -914,7 +914,7 @@ public class TopicService {
                 mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
                         .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
                         .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getName()));});});
-                keyWord = mixedComponentDtos != null ? keywords.get(0).getName() : null;
+                keyWord = mixedComponentDtos.size() != 0 && keywords.size() != 0 ? keywords.get(0).getName() : null;
             } else {
                 keywords.add(new KeyWordDto(keyWord));
             }
@@ -1008,8 +1008,8 @@ public class TopicService {
                 }
             });
             mixedComponentContentPage.setTotal(totalPage);
-            keywords.get(0).setMixedComponentContentPage(mixedComponentContentPage);
-            mixedComponentDtos.get(0).setKeywords(keywords);
+            if(keywords.size() != 0) {keywords.get(0).setMixedComponentContentPage(mixedComponentContentPage);}
+            if(mixedComponentDtos.size() != 0) {mixedComponentDtos.get(0).setKeywords(keywords);}
             return mixedComponentDtos;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -1020,14 +1020,14 @@ public class TopicService {
     //获取商品详情
     private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
-//        if (customer == null) {
-//            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-//            customer =new CustomerGetByIdResponse();
-//            Map customerMap = ( Map ) request.getAttribute("claims");
-//            if(null!=customerMap && null!=customerMap.get("customerId")) {
-//                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-//            }
-//        }
+        if (customer == null) {
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            customer =new CustomerGetByIdResponse();
+            Map customerMap = ( Map ) request.getAttribute("claims");
+            if(null!=customerMap && null!=customerMap.get("customerId")) {
+                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+            }
+        }
         List<EsSpuNewResp> esSpuNewResps = null;
         if (column.getSpuId() == null) {
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
@@ -1051,7 +1051,7 @@ public class TopicService {
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(convert);
-            //List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
             GoodsDto goodsDto = new GoodsDto();
             goodsDto.setSpuId(res.getSpuId());
             goodsDto.setGoodsName(res.getSpuName());
@@ -1063,7 +1063,7 @@ public class TopicService {
             goodsDto.setScore(res.getBook() != null ? String.valueOf(res.getBook().getScore()) : null);
             goodsDto.setRetailPrice(res.getSalesPrice());
             goodsDto.setTags(new ArrayList<>());
-            //goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+            goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
             goods.add(goodsDto);
         });
     }
