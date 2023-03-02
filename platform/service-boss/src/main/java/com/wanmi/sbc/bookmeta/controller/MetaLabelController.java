@@ -1,23 +1,15 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
-import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelAddReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelEditReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelEditStatusReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByIdResVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageResVO;
+import com.wanmi.sbc.bookmeta.vo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -73,6 +65,25 @@ public class MetaLabelController {
         List<Map> list = this.metaLabelProvider.getLabelCate(pageRequest.getParentId());
 
         return BusinessResponse.success(list);
+    }
+
+    @PostMapping("queryMetaTradeTree")
+    public BusinessResponse<List<MetaTradeTreeRespVO>> getMetaTradeTree(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
+        List<MetaTradeBO> list = this.metaLabelProvider.getMetaTadeTree(pageRequest.getParentId());
+        List<MetaTradeTreeRespVO> metaTradeTreeRespVOS = KsBeanUtil.convertList(list, MetaTradeTreeRespVO.class);
+        return BusinessResponse.success(metaTradeTreeRespVOS);
+    }
+
+
+    @PostMapping("queryAuthority")
+    public BusinessResponse<List<AuthorityQueryByPageRespVO>> queryAuthority(@RequestBody AuthorityQueryByPageReqVO pageRequest) {
+        AuthorityQueryByPageReqBO pageReqBO = KsBeanUtil.convert(pageRequest,AuthorityQueryByPageReqBO.class);
+        BusinessResponse<List<AuthorityBO>> boResult = metaLabelProvider.getAuthorityByUrl(pageReqBO);
+        if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {
+            return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
+        }
+        List<AuthorityQueryByPageRespVO> authorityQueryByPageRespVOS = KsBeanUtil.convertList(boResult.getContext(), AuthorityQueryByPageRespVO.class);
+        return BusinessResponse.success(authorityQueryByPageRespVOS,boResult.getPage());
     }
 
     /**

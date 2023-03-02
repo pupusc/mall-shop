@@ -1,8 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider;
 
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +42,12 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryCate")
     List<Map> getLabelCate(@RequestBody @NotNull int parent_id);
 
+    @PostMapping("/goods/${application.goods.version}/metaLabel/queryMetaCate")
+    BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(@RequestBody @Valid AuthorityQueryByPageReqBO pageReqBO);
+
+
+    @PostMapping("/goods/${application.goods.version}/metaTrade/tree")
+    List<MetaTradeBO> getMetaTadeTree(@RequestBody @NotNull int parentId);
     /**
      * 新增数据
      *

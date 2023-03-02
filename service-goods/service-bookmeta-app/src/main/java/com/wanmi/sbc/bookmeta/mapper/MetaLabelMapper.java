@@ -1,7 +1,10 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.bo.AuthorityBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
+import com.wanmi.sbc.bookmeta.entity.MetaTrade;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -111,6 +114,12 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     List<Map> getAllLabel();
 
     List<Map> getLabelCate(int parent_id);
+
+    List<AuthorityBO> getAuthorityByUrl(@Param("authorityUrl") String authorityUrl, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    Integer getAuthorityByUrlCount(@Param("authorityUrl") String authorityUrl);
+
+    List<MetaTrade> getMetaTradeTree(int parentId);
 
 
 }
