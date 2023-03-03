@@ -18,6 +18,7 @@ import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -46,6 +47,10 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
+import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
+import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
+import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
@@ -84,6 +89,7 @@ import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormat
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -155,6 +161,9 @@ public class TopicService {
 
     @Autowired
     private BookListModelProvider bookListModelProvider;
+
+    @Autowired
+    private StockAppointmentProvider stockAppointmentProvider;
 
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
@@ -1165,6 +1174,24 @@ public class TopicService {
             log.warn("获取url参数失败,url:{}", url, e);
         }
         return map;
+    }
+
+    @Transactional
+    public BaseResponse addAppointment(AppointmentStockRequest request) {
+        List<StockAppointmentRequest> list=new ArrayList<>();
+        Operator operator = commonUtil.getOperator();
+        request.setAccount(operator.getAccount());
+        request.setCustomer(operator.getUserId());
+        AppointmentRequest appointmentRequest=new AppointmentRequest();
+        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
+        appointmentRequest.setAppointmentList(list);
+        try {
+            stockAppointmentProvider.add(appointmentRequest);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseResponse.error("预约失败！");
+        }
+        return BaseResponse.success("预约成功！");
     }
 
 }
