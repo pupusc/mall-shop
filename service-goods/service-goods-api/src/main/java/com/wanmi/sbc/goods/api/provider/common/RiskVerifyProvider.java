@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.api.provider.common;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.SuspensionV2.SpuRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,5 +21,8 @@ public interface RiskVerifyProvider {
 
     @PostMapping("/goods/${application.goods.version}/image-verify")
     BaseResponse verifyImage();
+
+    @PostMapping("/goods/${application.goods.version}/refreshBook")
+    BaseResponse refreshBook(@RequestBody @Valid SpuRequest spuRequest);
 
 }
