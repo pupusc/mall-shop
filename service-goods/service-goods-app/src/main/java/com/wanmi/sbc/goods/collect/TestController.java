@@ -27,7 +27,7 @@ public class TestController {
 
         System.out.println("begin:" + DitaUtil.getCurrentAllDate());
 
-        //bookTags.doGoods();         //图书商品
+        bookTags.doGoods();         //图书商品
 
         goodTags.doGoods();         //非书商品
 
