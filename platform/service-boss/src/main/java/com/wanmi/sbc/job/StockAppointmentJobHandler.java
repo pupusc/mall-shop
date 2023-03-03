@@ -12,6 +12,11 @@ import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoListResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.AppointmentRecordVO;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsInfoVO;
+import com.wanmi.sbc.message.api.request.messagesend.MessageSendAddRequest;
+import com.wanmi.sbc.message.bean.enums.MessageSendType;
+import com.wanmi.sbc.message.bean.enums.MessageType;
+import com.wanmi.sbc.message.bean.enums.SendType;
+import com.wanmi.sbc.message.service.MessageService;
 import com.wanmi.sbc.mq.MessageSendProducer;
 import com.wanmi.sbc.order.api.provider.appointmentrecord.AppointmentRecordQueryProvider;
 import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
@@ -20,15 +25,18 @@ import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
 import com.wanmi.sbc.order.api.response.appointmentrecord.AppointmentRecordListResponse;
 import com.wanmi.sbc.order.bean.dto.AppointmentQueryDTO;
+import com.wanmi.sbc.util.OperateLogMQUtil;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -50,6 +58,13 @@ public class StockAppointmentJobHandler extends IJobHandler {
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
 
+    @Autowired
+    private OperateLogMQUtil operateLogMQUtil;
+
+    @Autowired
+    private MessageService messageService;
+
+
 
     @Override
     public ReturnT<String> execute(String s) throws Exception {
@@ -66,6 +81,17 @@ public class StockAppointmentJobHandler extends IJobHandler {
         esGoodsInfoVOS.stream().filter(item->item.getGoodsInfo().getStock()>0).forEach(item->{
             appointmentList.stream().filter(app->app.getGoodsInfo().equals(item.getGoodsInfo().getGoodsInfoId())).forEach(app->{
                 try {
+//                    MessageSendAddRequest request=new MessageSendAddRequest();
+//                    List<String> cutId=new ArrayList<>();
+//                    cutId.add(app.getCustomer());
+//                    request.setName("到货提醒");
+//                    request.setContent("您订阅的："+item.getGoodsInfo().getGoodsInfoName()+"到货啦！快去选购吧！喵~");
+//                    request.setJoinIds(cutId);
+//                    request.setMessageType(MessageType.Preferential);
+//                    request.setSendType(MessageSendType.CUSTOMER);
+//                    request.setSendTime(LocalDateTime.now());
+//                    request.setSendTimeType(SendType.NOW);
+//                    this.sendMessage2(request);
                     Map<String, Object> map = new HashMap<>(4);
                     map.put("type", NodeType.ORDER_PROGRESS_RATE.toValue());
                     map.put("node", OrderProcessType.APPOINTMENT_SALE.toValue());
@@ -113,5 +139,11 @@ public class StockAppointmentJobHandler extends IJobHandler {
         messageMQRequest.setCustomerId(customerId);
         messageMQRequest.setMobile(mobile);
         messageSendProducer.sendMessage(messageMQRequest);
+    }
+
+
+    private void sendMessage2(MessageSendAddRequest request){
+//        operateLogMQUtil.convertAndSend("消息", "创建站内信任务", "站内信活动：" + request.getName());
+        messageService.addMessage(request);
     }
 }
