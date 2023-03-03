@@ -86,6 +86,33 @@ public class JpaManager {
 
     }
 
+    public Map queryForMap(String sql, Object[] obj) {
+
+        Map map = new HashMap();
+
+        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query query = entityManager.createNativeQuery(sql);
+        query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+
+        for(int i=0;i<obj.length;i++){
+            int num = i+1;
+            Object value =  obj[i];
+            query.setParameter(num,value);
+
+        }
+        List<Map> resultList = query.getResultList();
+        if(resultList !=null && resultList.size() >0){
+            map = (Map)resultList.get(0);
+        }
+
+        if(entityManager != null){
+            entityManager.close();
+        }
+
+        return map;
+
+    }
+
     public List queryForList(String sql) {
 
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
