@@ -9,7 +9,6 @@ import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
@@ -307,21 +306,6 @@ public class Goods {
      */
     @Column(name = "goods_detail")
     private String goodsDetail;
-    /**
-     * 商品展示类型 1完整展示 2展示一半高度 3是不展示
-     */
-    @Column(name = "goods_show_type")
-    private String goodsShowType;
-    /**
-     * 订购须知
-     */
-    @Column(name = "order_detail")
-    private String orderDetail;
-    /**
-     * 订购须知展示类型 1完整展示，2是不展示
-     */
-    @Column(name = "order_show_type")
-    private String orderShowType;
 
     /**
      * 商品移动端详情
