@@ -47,9 +47,9 @@ public class BookTags {
 
     private void doData(Map map) {
 
-        //doGoods(map);               //卖点标签&&营销标签
+        doGoods(map);               //卖点标签&&营销标签
 
-        bookDetailTab.doBook(map);                //图书tab
+        //bookDetailTab.doBook(map);                //图书tab
 
     }
 

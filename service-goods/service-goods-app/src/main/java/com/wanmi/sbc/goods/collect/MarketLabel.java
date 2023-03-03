@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-
+//营销标签
 public class MarketLabel {
 
     @Autowired
