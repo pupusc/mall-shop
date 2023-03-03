@@ -151,7 +151,7 @@ public class BookRepository {
     public List findSpuByV2(String isbn) {
         String spu_no = null;
 
-        String sql = " select a.goods_no as spu,b.prop_value as isbn from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
+        String sql = " select a.goods_no as spu,b.prop_value as isbn,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
                      " where b.prop_id = 5 " +
                      "   and b.prop_value = ? ";
         Object[] obj = new Object[]{isbn};
@@ -163,7 +163,7 @@ public class BookRepository {
     public Map findSpuByV3(String isbn) {
         Map goodsMap = null;
 
-        String sql = " select a.goods_no as spu_no,b.prop_value as isbn,a.goods_name from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
+        String sql = " select a.goods_no as spu_no,b.prop_value as isbn,a.goods_name,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
                 " where b.prop_id = 5 " +
                 "   and b.prop_value = ? limit 0,1 ";
         Object[] obj = new Object[]{isbn};
@@ -255,7 +255,7 @@ public class BookRepository {
     //所有商品,spu和isbn关联并且不为空
     public List getGoodsList(){
 
-        String sql = " select a.goods_no as spu,b.prop_value as isbn,c.id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
+        String sql = " select a.goods_no as spu,b.prop_value as isbn,c.id,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
                      " left join meta_book c on b.prop_value = c.isbn " +
                      " where b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0 and c.id = 7838 ";
 
@@ -266,9 +266,17 @@ public class BookRepository {
 
     }
 
-    public void updateGoodTime(String updateTime,String spu_no) {
+    //通过spu_no更新
+    public void updateGoodTimeByNo(String updateTime,String spu_no) {
         String sql = "update goods set update_time = ? where goods_no = ?";
         Object[] obj = new Object[]{updateTime,spu_no};
+        jpaManager.update(sql,obj);
+    }
+
+    //通过spu_id更新
+    public void updateGoodTime(String updateTime,String spu_id) {
+        String sql = "update goods set update_time = ? where goods_id = ?";
+        Object[] obj = new Object[]{updateTime,spu_id};
         jpaManager.update(sql,obj);
     }
 

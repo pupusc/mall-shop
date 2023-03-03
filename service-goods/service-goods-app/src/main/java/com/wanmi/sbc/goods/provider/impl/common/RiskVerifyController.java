@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.provider.impl.common;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.provider.common.RiskVerifyProvider;
+import com.wanmi.sbc.goods.api.request.SuspensionV2.SpuRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.common.RiskVerifyService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ public class RiskVerifyController implements RiskVerifyProvider {
 
     @Autowired
     private RiskVerifyService riskVerifyService;
+
 
     @Override
     public BaseResponse verifyImageCallBack(ImageVerifyRequest imageVerifyRequest) {
@@ -31,4 +33,14 @@ public class RiskVerifyController implements RiskVerifyProvider {
         riskVerifyService.verifyImage();
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse refreshBook(SpuRequest spuRequest) {
+
+        String isbn = spuRequest.getIsbn();
+        System.out.println("isbn:" + isbn);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
 }
