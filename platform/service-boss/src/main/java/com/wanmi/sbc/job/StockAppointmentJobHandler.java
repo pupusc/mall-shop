@@ -101,7 +101,7 @@ public class StockAppointmentJobHandler extends IJobHandler {
                     String customerId = app.getCustomer();
                     this.sendMessage(NodeType.ORDER_PROGRESS_RATE, OrderProcessType.APPOINTMENT_SALE,
                             params, map, customerId, app.getAccount());
-                    appointmentProvider.delete(app.getId());
+                    appointmentProvider.deleteById(app.getId());
                 } catch (Exception e) {
                     log.error("消息处理失败:" + JSON.toJSONString(item), e);
                 }

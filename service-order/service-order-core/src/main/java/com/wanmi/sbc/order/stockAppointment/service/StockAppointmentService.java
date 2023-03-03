@@ -64,4 +64,15 @@ public class StockAppointmentService {
         }
         return BaseResponse.success("取消预约成功！");
     }
+
+    @Transactional
+    public BaseResponse deleteById(Integer id) {
+        try {
+            repository.deleteById(id);
+            return BaseResponse.success("删除成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseResponse.error("删除失败");
+        }
+    }
 }

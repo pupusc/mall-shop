@@ -9,6 +9,7 @@ import com.wanmi.sbc.order.stockAppointment.service.StockAppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -37,5 +38,10 @@ public class StockAppointmentController implements StockAppointmentProvider {
     @Override
     public BaseResponse delete(AppointmentRequest request) {
         return appointmentService.delete(request);
+    }
+
+    @Override
+    public BaseResponse deleteById(@RequestParam("id") Integer id){
+        return appointmentService.deleteById(id);
     }
 }
