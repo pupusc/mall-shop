@@ -952,16 +952,18 @@ public class TopicService {
             List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext().getContent();
             List<MixedComponentDto> mixedComponentDtos = new ArrayList<MixedComponentDto>();
             // tab
-            if (tabId == null) {
+            if (tabId == null && "".equals(tabId)) {
                 mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
                     return new MixedComponentDto(c);
                 }).collect(Collectors.toList());
                 tabId = mixedComponentDtos != null ? mixedComponentDtos.get(0).getId() : null;
             } else {
-                Integer finalTabId = tabId;
-                mixedComponentDtos = mixedComponentTab.stream().filter(c -> finalTabId.equals(c.getId())).map(c -> {
+                mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
                     return new MixedComponentDto(c);
                 }).collect(Collectors.toList());
+//                mixedComponentDtos = mixedComponentTab.stream().filter(c -> finalTabId.equals(c.getId())).map(c -> {
+//                    return new MixedComponentDto(c);
+//                }).collect(Collectors.toList());
             }
             // 获取规则
             Integer finalTabId = tabId;
@@ -970,14 +972,17 @@ public class TopicService {
                     .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
                     .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
             List<KeyWordDto> keywords = new ArrayList<>();
-            if (keyWord == null) {
+            if (keyWord == null && "".equals(keyWord)) {
                 // 获取关键字
                 mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
                         .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
                         .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getName()));});});
                 keyWord = mixedComponentDtos.size() != 0 && keywords.size() != 0 ? keywords.get(0).getName() : null;
             } else {
-                keywords.add(new KeyWordDto(keyWord));
+                mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
+                        .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                        .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getName()));});});
+//                //keywords.add(new KeyWordDto(keyWord));
             }
             //根据规则获取商品池信息
             List<MixedComponentTabDto> goodsCollect = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
@@ -1071,8 +1076,8 @@ public class TopicService {
                 }
             });
             mixedComponentContentPage.setTotal(totalPage);
-            if(keywords.size() != 0) {keywords.get(0).setMixedComponentContentPage(mixedComponentContentPage);}
-            if(mixedComponentDtos.size() != 0) {mixedComponentDtos.get(0).setKeywords(keywords);}
+            if(keywords.size() != 0) {keywords.forEach(s -> {if(finalKeyWord.equals(s.getName())) {s.setMixedComponentContentPage(mixedComponentContentPage);}});}
+            if(mixedComponentDtos.size() != 0) {mixedComponentDtos.forEach(s -> {if(finalTabId.equals(s.getId())) {s.setKeywords(keywords);}});}
             return mixedComponentDtos;
         } catch (Exception e) {
             System.out.println(e.getMessage());
