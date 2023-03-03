@@ -27,6 +27,12 @@ public class BookTags {
     @Autowired
     GoodRepository goodJpa;
 
+    @Autowired
+    MarketLabel marketLabel;
+
+    @Autowired
+    BookDetailTab bookDetailTab;
+
     public void doGoods(){
 
         List list = bookJpa.getGoodsList();
@@ -40,8 +46,11 @@ public class BookTags {
     }
 
     private void doData(Map map) {
-        //doGoods(map);           //卖点标签
-        doBook(map);            //图书tab
+
+        //doGoods(map);               //卖点标签&&营销标签
+
+        bookDetailTab.doBook(map);                //图书tab
+
     }
 
     //单条记录
@@ -365,6 +374,10 @@ public class BookTags {
         Map map = new LinkedHashMap();
         map.put("isBook","yes");
         map.put("tags",allList);
+
+        List marketList = marketLabel.doMarket(goodMap);    //营销标签
+
+        map.put("marketLabel",marketList);
 
         setRedis_Tags(spu_no,map);
     }
