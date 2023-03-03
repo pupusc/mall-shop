@@ -136,6 +136,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/metaBook")
                     || requestURI.startsWith("/metaLabel")
                     || requestURI.startsWith("/authority")
+                    || requestURI.startsWith("/appointment")
             ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);

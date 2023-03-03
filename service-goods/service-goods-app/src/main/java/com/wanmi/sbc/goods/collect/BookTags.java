@@ -62,6 +62,7 @@ public class BookTags {
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
+        String spu_id = String.valueOf(goodMap.get("spu_id"));
 
         Map bookMap = bookJpa.getBookMap(isbn);
 
@@ -86,7 +87,7 @@ public class BookTags {
         redisMap.put("salenum","销量");
         redisMap.put("bookDetail",allList);
 
-        setRedis_Books(spu_no,redisMap);
+        setRedis_Books(spu_id,redisMap);
 
     }
 
@@ -396,21 +397,21 @@ public class BookTags {
         if(!json.equals(old_json)){
             redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":" + spu_no, json );
             String updateTime = DitaUtil.getCurrentAllDate();
-            bookJpa.updateGoodTime(updateTime,spu_no);
+            bookJpa.updateGoodTimeByNo(updateTime,spu_no);
         }
 
     }
 
-    public void setRedis_Books(String spu_no,Map map){
+    public void setRedis_Books(String spu_id,Map map){
 
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
 
-        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_NO + ":" + spu_no);
+        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + ":" + spu_id);
         if(!json.equals(old_json)){
-            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_NO+":" + spu_no, json );
+            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":" + spu_id, json );
             String updateTime = DitaUtil.getCurrentAllDate();
-            bookJpa.updateGoodTime(updateTime,spu_no);
+            bookJpa.updateGoodTime(updateTime,spu_id);
         }
 
     }

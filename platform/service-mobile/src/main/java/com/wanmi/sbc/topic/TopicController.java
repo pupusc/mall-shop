@@ -1,6 +1,7 @@
 package com.wanmi.sbc.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
@@ -94,6 +95,11 @@ public class TopicController {
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {
         BaseResponse<RankPageRequest> response = BaseResponse.success(topicService.rankPageByBookList(request));
         return response;
+    }
+
+    @PostMapping(value = "/addAppointment")
+    public BaseResponse addAppointment(@RequestBody AppointmentStockRequest request){
+        return topicService.addAppointment(request);
     }
 
 
