@@ -54,6 +54,14 @@ public class GoodRepository {
         return list;
     }
 
+    //图文详情
+    public List getGoodsDetail(String spu_no) {
+        String sql = " select goods_detail from goods where goods_no = ? ";
+        Object[] obj = new Object[]{spu_no};
+
+        List list = jpaManager.queryForList(sql,obj);
+        return list;
+    }
 
 }
 

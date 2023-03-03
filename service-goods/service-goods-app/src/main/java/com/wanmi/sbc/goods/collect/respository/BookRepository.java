@@ -320,6 +320,17 @@ public class BookRepository {
         return list;
     }
 
+    //简介目录原文摘要
+    public List getContent(String bookId) {
+
+        String sql = " select content,type from meta_book_content where book_id = ? and type in (1,2,3) ";
+        Object[] obj = new Object[]{bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
     //书中提到人物显示
     public List getCharacters(String bookId) {
 
@@ -332,7 +343,79 @@ public class BookRepository {
         return list;
     }
 
-    //
+    //通过book_id得到丛书名称
+    public List getLibraryName(String bookId) {
+
+        String sql = " select a.id,a.name from meta_book_clump a left join meta_book b on a.id = b.book_clump_id " +
+                " where b.id = ? ";
+        Object[] obj = new Object[]{bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过book_id得到丛书名称得到总数
+    public List getLibraryNum(String libraryId) {
+
+        String sql = " select count(*) as num from meta_book where book_clump_id = ? ";
+
+        Object[] obj = new Object[]{libraryId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过book_id得到丛书名称,且不包含这本书
+    public List getLibrary(String bookId, String libraryId) {
+
+        String sql = " select a.id,a.name,a.isbn from meta_book a left join meta_book_rcmmd b on a.book_clump_id = b.id " +
+                " where a.book_clump_id = ? and a.id !=? ";
+
+        Object[] obj = new Object[]{libraryId, bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过book_id得到出品方名称
+    public List getProducerName(String bookId) {
+
+        String sql = " select a.id,a.name from meta_producer a left join meta_book b on a.id = b.producer_id " +
+                " where b.id = ? ";
+        Object[] obj = new Object[]{bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过book_id得到出品方名称得到总数
+    public List getProducerNum(String producerId) {
+
+        String sql = " select count(*) as num from meta_book where producer_id = ? ";
+
+        Object[] obj = new Object[]{producerId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过book_id得到出品方名称,且不包含这本书
+    public List getProducer(String bookId, String producerId) {
+
+        String sql = " select a.id,a.name,a.isbn from meta_book a left join meta_producer b on a.producer_id = b.id " +
+                " where a.producer_id = ? and a.id != ? ";
+
+        Object[] obj = new Object[]{producerId, bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
 
 }
 
