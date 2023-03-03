@@ -24,6 +24,9 @@ public class BookTags {
     @Autowired
     BookRepository bookJpa;
 
+    @Autowired
+    GoodRepository goodJpa;
+
     public void doGoods(){
 
         List list = bookJpa.getGoodsList();
@@ -76,7 +79,7 @@ public class BookTags {
 
         List allList = new ArrayList();
         doTab1(allList);
-        doTab2(allList,book_id);
+        doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);
 
@@ -125,26 +128,46 @@ public class BookTags {
 
     }
 
-    private void doTab2(List allList,String bookId) {
+    private void doTab2(List allList,String bookId,String spuNo) {
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> contentMap = new HashMap<>();
         //作家
-        Map FirstWriter = getFigure(allList, bookId, FigureType.WRITER.toValue());
+        Map FirstWriter = getFigure(bookId, FigureType.WRITER.toValue());
         contentMap.put("firstWriter",FirstWriter);
 
         //翻译家
-        Map FirstTranslator = getFigure(allList, bookId, FigureType.TRANSLATOR.toValue());
+        Map FirstTranslator = getFigure(bookId, FigureType.TRANSLATOR.toValue());
         contentMap.put("firstTranslator",FirstTranslator);
+
+        //简介目录原文摘要
+        List content = bookJpa.getContent(bookId);
+        Map contents = content.size() != 0 ? (Map)content.get(0) : null;
+        contentMap.put("content", contents);
+
+        //图文详情
+        List goodsDetail = goodJpa.getGoodsDetail(spuNo);
+        Map goodsDetailMap = goodsDetail.size() != 0 ? (Map)goodsDetail.get(0) : null;
+        contentMap.put("goodsDetail", goodsDetailMap.get("goods_detail"));
 
         //书中提到人物显示
         List characters = bookJpa.getCharacters(bookId);
+        Map charactersMap = characters.size() != 0 ? (Map)characters.get(0) : null;
+        contentMap.put("character", charactersMap);
 
+        //丛书
+        Map libraryMap = getLibrary(bookId);
+        contentMap.put("library", libraryMap);
+
+        //出版方
+        Map producerMap = getProducer(bookId);
+        contentMap.put("producer", producerMap);
 
         map.put("tab2", contentMap);
         allList.add(map);
     }
 
-    private Map getFigure(List allList, String bookId, String figureType) {
+    //1.作家 2.翻译家
+    private Map getFigure(String bookId, String figureType) {
         //1.作家 2.翻译家
         List firstWriter = bookJpa.getFirstWriter(bookId, figureType);
         Map map = new HashMap();
@@ -168,6 +191,68 @@ public class BookTags {
                     writerBookMap.put("spu_no",spu_no);
                     writerBookMap.put("goods_name",goods_name);
                     ret.add(writerBookMap);
+                }
+            }
+            map.put("Books", ret);
+        }
+        return map;
+    }
+
+    //获取丛书信息
+    private Map getLibrary(String bookId) {
+        List libraryName = bookJpa.getLibraryName(bookId);
+        Map map = new HashMap();
+        for(int i=0;i<libraryName.size();i++){
+            //丛书名称
+            map = (Map)libraryName.get(0);
+            String libraryId = String.valueOf(map.get("id"));
+            //获得的奖项
+            List libraryNum = bookJpa.getLibraryNum(libraryId);
+            map.put("libraryNum", libraryNum);
+            //查询作家其它的书
+            List library = bookJpa.getLibrary(bookId, libraryId);
+            List ret = new ArrayList();
+            for(int j=0;j<library.size();j++){
+                Map libraryMap = (Map)library.get(j);
+                String isbn = String.valueOf(libraryMap.get("isbn"));
+                Map goodMap = bookJpa.findSpuByV3(isbn);
+                if(goodMap != null && goodMap.size() >0){
+                    String spu_no = String.valueOf(goodMap.get("spu_no"));
+                    String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    libraryMap.put("spu_no",spu_no);
+                    libraryMap.put("goods_name",goods_name);
+                    ret.add(libraryMap);
+                }
+            }
+            map.put("Books", ret);
+        }
+        return map;
+    }
+
+    //获取出版方信息
+    private Map getProducer(String bookId) {
+        List producerName = bookJpa.getProducerName(bookId);
+        Map map = new HashMap();
+        for(int i=0;i<producerName.size();i++){
+            //丛书名称
+            map = (Map)producerName.get(0);
+            String producerId = String.valueOf(map.get("id"));
+            //获得的奖项
+            List producerNum = bookJpa.getProducerNum(producerId);
+            map.put("producerNum", producerNum);
+            //查询作家其它的书
+            List producer = bookJpa.getProducer(bookId, producerId);
+            List ret = new ArrayList();
+            for(int j=0;j<producer.size();j++){
+                Map producerMap = (Map)producer.get(j);
+                String isbn = String.valueOf(producerMap.get("isbn"));
+                Map goodMap = bookJpa.findSpuByV3(isbn);
+                if(goodMap != null && goodMap.size() >0){
+                    String spu_no = String.valueOf(goodMap.get("spu_no"));
+                    String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    producerMap.put("spu_no",spu_no);
+                    producerMap.put("goods_name",goods_name);
+                    ret.add(producerMap);
                 }
             }
             map.put("Books", ret);

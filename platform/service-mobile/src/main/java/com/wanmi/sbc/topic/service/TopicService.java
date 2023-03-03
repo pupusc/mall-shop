@@ -1084,7 +1084,7 @@ public class TopicService {
                     mixedComponentContentPage.setContent(collect);
                 }
             });
-            mixedComponentContentPage.setTotal(totalPage);
+            mixedComponentContentPage.setTotal(totalPageSize);
             if(keywords.size() != 0) {keywords.forEach(s -> {if(finalKeyWord.equals(s.getName())) {s.setMixedComponentContentPage(mixedComponentContentPage);}});}
             if(mixedComponentDtos.size() != 0) {mixedComponentDtos.forEach(s -> {if(finalTabId.equals(s.getId())) {s.setKeywords(keywords);}});}
             return mixedComponentDtos;
