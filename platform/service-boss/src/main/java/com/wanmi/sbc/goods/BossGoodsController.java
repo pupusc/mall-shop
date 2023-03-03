@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.standard.StandardGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.standard.StandardImportProvider;
+import com.wanmi.sbc.goods.api.request.SuspensionV2.SpuRequest;
 import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
@@ -291,5 +292,11 @@ public class BossGoodsController {
     public BaseResponse verifyCallBack(@RequestBody  ImageVerifyRequest imageVerifyRequest){
         return  riskVerifyProvider.verifyImageCallBack(imageVerifyRequest);
     }
+
+    @RequestMapping(value = "/refreshBook", method = RequestMethod.POST)
+    public BaseResponse refreshBook(@RequestBody SpuRequest spuRequest){
+        return riskVerifyProvider.refreshBook(spuRequest);
+    }
+
 
 }
