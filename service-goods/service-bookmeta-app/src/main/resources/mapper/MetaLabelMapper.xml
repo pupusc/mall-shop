@@ -342,6 +342,7 @@
             <if test="name != null">
                and b.name like concat('%',#{name},'%')
             </if>
+        limit #{limitIndex}, #{limitSize}
     </select>
 
     <select id="getLabelsCount" parameterType="java.lang.String" resultType="java.lang.Integer">

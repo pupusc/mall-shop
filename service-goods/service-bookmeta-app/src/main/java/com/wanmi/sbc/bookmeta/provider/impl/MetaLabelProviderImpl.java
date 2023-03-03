@@ -186,7 +186,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        List<MetaLabel> labels = metaLabelMapper.getLabels(pageReqBO.getName());
+        List<MetaLabel> labels = metaLabelMapper.getLabels(pageReqBO.getName(), page.getOffset(), page.getPageSize());
         List<MetaLabelBO> metaLabelBOS = KsBeanUtil.convertList(labels, MetaLabelBO.class);
         return BusinessResponse.success(metaLabelBOS);
     }
