@@ -277,9 +277,9 @@ public class BookTags {
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
 
-        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + ":" + spu_no);
+        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_NO + ":" + spu_no);
         if(!json.equals(old_json)){
-            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":" + spu_no, json );
+            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_NO+":" + spu_no, json );
             String updateTime = DitaUtil.getCurrentAllDate();
             bookJpa.updateGoodTime(updateTime,spu_no);
         }
