@@ -1185,13 +1185,29 @@ public class TopicService {
         AppointmentRequest appointmentRequest=new AppointmentRequest();
         list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
         appointmentRequest.setAppointmentList(list);
-        try {
-            stockAppointmentProvider.add(appointmentRequest);
-        }catch (Exception e){
-            e.printStackTrace();
-            return BaseResponse.error("预约失败！");
-        }
-        return BaseResponse.success("预约成功！");
+        return stockAppointmentProvider.add(appointmentRequest);
     }
 
+    @Transactional
+    public BaseResponse deleteAppointment(AppointmentStockRequest request) {
+        List<StockAppointmentRequest> list=new ArrayList<>();
+        Operator operator = commonUtil.getOperator();
+        request.setAccount(operator.getAccount());
+        request.setCustomer(operator.getUserId());
+        AppointmentRequest appointmentRequest=new AppointmentRequest();
+        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
+        appointmentRequest.setAppointmentList(list);
+        return stockAppointmentProvider.delete(appointmentRequest);
+    }
+
+    public BaseResponse<AppointmentRequest> findAppointment(AppointmentStockRequest request) {
+        List<StockAppointmentRequest> list=new ArrayList<>();
+        AppointmentRequest appointmentRequest=new AppointmentRequest();
+        Operator operator = commonUtil.getOperator();
+        request.setAccount(operator.getAccount());
+        request.setCustomer(operator.getUserId());
+        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
+        appointmentRequest.setAppointmentList(list);
+        return stockAppointmentProvider.findCustomerAppointment(appointmentRequest);
+    }
 }

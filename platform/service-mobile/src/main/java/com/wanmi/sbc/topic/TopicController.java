@@ -1,6 +1,7 @@
 package com.wanmi.sbc.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
@@ -103,5 +104,14 @@ public class TopicController {
         return topicService.addAppointment(request);
     }
 
+    @PostMapping(value = "/deleteAppointment")
+    public BaseResponse deleteAppointment(@RequestBody AppointmentStockRequest request){
+        return topicService.deleteAppointment(request);
+    }
+
+    @PostMapping(value = "/findAppointment")
+    public BaseResponse<AppointmentRequest> findAppointment(@RequestBody AppointmentStockRequest request){
+        return topicService.findAppointment(request);
+    }
 
 }

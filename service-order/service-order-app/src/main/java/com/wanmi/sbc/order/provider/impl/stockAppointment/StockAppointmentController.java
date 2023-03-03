@@ -22,12 +22,11 @@ public class StockAppointmentController implements StockAppointmentProvider {
 
     @Override
     public BaseResponse add(@RequestBody @Valid AppointmentRequest request) {
-        Integer integer = appointmentService.saveAppointment(request.getAppointmentList());
-        if(null!=integer&&integer>0) {
-            return BaseResponse.SUCCESSFUL();
-        }else {
-            return BaseResponse.FAILED();
-        }
+        return appointmentService.saveAppointment(request.getAppointmentList());
+    }
+    @Override
+    public BaseResponse<AppointmentRequest> findCustomerAppointment(AppointmentRequest request){
+        return appointmentService.findCustomerAppointment(request);
     }
 
     @Override
@@ -36,7 +35,7 @@ public class StockAppointmentController implements StockAppointmentProvider {
     }
 
     @Override
-    public void delete(Integer id) {
-        appointmentService.delete(id);
+    public BaseResponse delete(AppointmentRequest request) {
+        return appointmentService.delete(request);
     }
 }
