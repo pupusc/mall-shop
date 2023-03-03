@@ -24,42 +24,11 @@
         <result property="showText" column="show_text" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="isShow" column="is_show" jdbcType="INTEGER"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <resultMap type="com.wanmi.sbc.bookmeta.entity.Authority" id="AuthorityMap">
-        <result property="authorityId" column="authority_id" jdbcType="VARCHAR"/>
-        <result property="systemTypeCd" column="system_type_cd" jdbcType="INTEGER"/>
-        <result property="functionId" column="function_id" jdbcType="VARCHAR"/>
-        <result property="authorityTitle" column="authority_title" jdbcType="VARCHAR"/>
-        <result property="authorityName" column="authority_name" jdbcType="VARCHAR"/>
-        <result property="authorityUrl" column="authority_url" jdbcType="VARCHAR"/>
-        <result property="requestType" column="request_type" jdbcType="VARCHAR"/>
-        <result property="remark" column="remark" jdbcType="VARCHAR"/>
-        <result property="sort" column="sort" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
-        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
-    </resultMap>
 
-    <resultMap id="MetaTradeMap" type="com.wanmi.sbc.bookmeta.entity.MetaTrade">
-        <result property="id" column="id" jdbcType="INTEGER"/>
-        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
-        <result property="name" column="name" jdbcType="VARCHAR"/>
-        <result property="descr" column="descr" jdbcType="VARCHAR"/>
-        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
-        <result property="path" column="path" jdbcType="VARCHAR"/>
-        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
-        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
-        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
-    </resultMap>
-    
-    <resultMap id="GoodSearchKeyMap" type="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
-        <result property="id" column="id" jdbcType="INTEGER"/>
-        <result property="name" column="name" jdbcType="INTEGER"/>
-        <result property="spuId" column="spu_id" jdbcType="VARCHAR"/>
-        <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
-        <result property="createTime" column="create_time" jdbcType="INTEGER"/>
-        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
-    </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaLabelMap">
@@ -363,44 +332,29 @@
         select id,name,parent_id from meta_label label where type = 1 and parent_id = #{parent_id} and del_flag = 0;
     </select>
 
-    <select id="getAuthorityByUrl" resultMap="AuthorityMap" parameterType="java.lang.String">
-        select * from `sbc-setting`.authority
-        <where>
-           del_flag = 0
-            <if test="authorityUrl != null">
-               and authority_url like concat('%',#{authorityUrl},'%')
+    <select id="getLabels" parameterType="java.lang.String" resultMap="MetaLabelMap">
+        select a.label_id as id, b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
+        from meta_label_spu a
+                 left join meta_label b on a.label_id = b.id
+                 left join goods c on a.goods_id = c.goods_id
+        where
+           c.del_flag = 0 and b.del_flag = 0
+            <if test="name != null">
+               and b.name like concat('%',#{name},'%')
             </if>
-        </where>
-            limit #{limitIndex}, #{limitSize};
+        limit #{limitIndex}, #{limitSize}
     </select>
 
-    <select id="getAuthorityByUrlCount" resultType="java.lang.Integer" parameterType="java.lang.String">
-        select count(1) from `sbc-setting`.authority
-        <where>
-             del_flag = 0
-            <if test="authorityUrl != null">
-             and  authority_url like concat('%',#{authorityUrl},'%')
-            </if>
-        </where>
-    </select>
-
-    <select id="getMetaTradeTree" resultMap="MetaTradeMap">
-        select * from meta_trade where parent_id = #{parentId} and del_flag = 0
-    </select>
-    
-    <select id="getGoodsNameBySpuId" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
-        select
-            gsk.id,g.goods_name as name,g.goods_id as spu_id
-        from goods_search_key gsk
-            left join
-            goods g on g.goods_id = gsk.spu_id
-            <where>
-                gsk.del_flag = 0 and gsk.del_flag = 0
-                <if test="name != null">
-                    and  gsk.name = #{name}
-                </if>
-            </where>
-                limit 10
+    <select id="getLabelsCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1)
+        from meta_label_spu a
+        left join meta_label b on a.label_id = b.id
+        left join goods c on a.goods_id = c.goods_id
+        where
+        c.del_flag = 0 and b.del_flag = 0
+        <if test="name != null">
+            and b.name like concat('%',#{name},'%')
+        </if>
     </select>
 
 </mapper>

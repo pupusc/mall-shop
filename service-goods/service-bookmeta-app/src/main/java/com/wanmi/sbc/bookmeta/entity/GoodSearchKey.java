@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,8 +25,10 @@ public class GoodSearchKey {
     @Column(name = "del_flag")
     private int delFlag;
     @Column(name = "create_time")
-    private String createTime;
+    private Date createTime;
     @Column(name = "update_time")
-    private String updateTime;
+    private Date updateTime;
+    @Column(name = "status")
+    private int status;
 
 }

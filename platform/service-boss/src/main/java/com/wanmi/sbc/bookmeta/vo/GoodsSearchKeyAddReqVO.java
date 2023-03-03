@@ -1,17 +1,19 @@
-package com.wanmi.sbc.bookmeta.bo;
+package com.wanmi.sbc.bookmeta.vo;
 
-import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * Created with IntelliJ IDEA.
  *
  * @Author: pushicheng
- * @Date: 2023/03/02/13:11
+ * @Date: 2023/03/03/15:32
  * @Description:
  */
 @Data
-public class GoodsNameBySpuIdBO {
+public class GoodsSearchKeyAddReqVO implements Serializable {
+
     private int id;
     private String name;
     private String spuId;
@@ -19,5 +21,4 @@ public class GoodsNameBySpuIdBO {
     private Integer status;
     private String createTime;
     private String updateTime;
-    private Page page = new Page(1, 10);
 }

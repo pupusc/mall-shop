@@ -2,16 +2,20 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.wanmi.sbc.bookmeta.bo.AuthorityAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.AuthorityBO;
+import com.wanmi.sbc.bookmeta.bo.AuthorityQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.Authority;
 import com.wanmi.sbc.bookmeta.mapper.AuthorityMapper;
 import com.wanmi.sbc.bookmeta.provider.AuthorityProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,6 +34,7 @@ public class AuthorityProviderImpl implements AuthorityProvider {
     @Override
     public BusinessResponse<Integer> addAuthority(AuthorityAddReqBO pageReqBO) {
         Authority authority = KsBeanUtil.convert(pageReqBO, Authority.class);
+        authority.setCreateTime(new Date());
         int i = authorityMapper.insertAuthority(authority);
         if (i < 0) {
             return BusinessResponse.error("Invalid entity");
@@ -46,4 +51,22 @@ public class AuthorityProviderImpl implements AuthorityProvider {
         }
         return BusinessResponse.success(Integer.parseInt(authority.getAuthorityId()));
     }
+
+    @Override
+    public BusinessResponse<Integer> deleteAuthority(String authorityId) {
+        return BusinessResponse.success(authorityMapper.deleteAuthority(authorityId));
+    }
+
+    @Override
+    public BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(AuthorityQueryByPageReqBO pageReqBO) {
+        Page page = pageReqBO.getPage();
+        page.setTotalCount((int) authorityMapper.getAuthorityByUrlCount(pageReqBO.getAuthorityUrl()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<AuthorityBO> authorityByUrl = authorityMapper.getAuthorityByUrl(pageReqBO.getAuthorityUrl(), page.getOffset(),page.getPageSize());
+        System.out.println(authorityByUrl);
+        return BusinessResponse.success(authorityByUrl, page);
+    }
+
 }

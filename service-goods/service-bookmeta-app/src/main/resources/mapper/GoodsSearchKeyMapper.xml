@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.GoodsSearchKeyMapper">
+
+    <resultMap id="GoodSearchKeyMap" type="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="INTEGER"/>
+        <result property="spuId" column="spu_id" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getGoodsNameBySpuId" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
+        select
+        gsk.id,g.goods_name as name,g.goods_id as spu_id
+        from goods_search_key gsk
+        left join
+        goods g on g.goods_id = gsk.spu_id
+        <where>
+            gsk.del_flag = 0 and gsk.del_flag = 0
+            <if test="name != null">
+                and  gsk.name like  concat('%,',#{name},'%,')
+            </if>
+        </where>
+        limit 10
+    </select>
+
+    <select id="getAllGoodsSearchKey" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
+        select id,
+        name,
+        spu_id,
+        del_flag,
+        create_time,
+        update_time,
+        del_flag as status
+        from goods_search_key
+        where
+        del_flag = 0
+        <if test="spuId != null">
+            and spu_id = #{spuId}
+        </if>
+        limit #{limitIndex}, #{limitSize};
+    </select>
+
+    <select id="getAllGoodsSearchKeyCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1)
+        from goods_search_key
+        where
+        del_flag = 0
+        <if test="spuId != null">
+            and spu_id = #{spuId}
+        </if>
+    </select>
+
+
+    <insert id="insertGoodsSearchKey" parameterType="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
+        insert into goods_search_key
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="spuId !=null">
+                `spu_id`,
+            </if>
+            <if test="createTime !=null">
+                `create_time`
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name !=null">
+                #{name},
+            </if>
+            <if test="spuId !=null">
+                #{spuId},
+            </if>
+            <if test="createTime !=null">
+                #{createTime}
+            </if>
+        </trim>
+    </insert>
+    <update id="updateGoodsSearchKey" parameterType="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
+        update goods_search_key
+        <set>
+            <if test="name !=null">
+                `name` = #{name},
+            </if>
+            <if test="spuId !=null">
+                `spu_id` = #{spuId},
+            </if>
+            <if test="createTime !=null">
+                `create_time` = #{createTime}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteGoodsSearchKey" parameterType="java.lang.Integer">
+        update goods_search_key set del_flag = 1 where id = #{id}
+    </update>
+</mapper>
