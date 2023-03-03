@@ -22,10 +22,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 标签(MetaLabel)表服务实现类
@@ -183,6 +180,18 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
+    public BusinessResponse<List<MetaLabelBO>> getLabels(MetaLabelQueryByPageReqBO pageReqBO) {
+        Page page = pageReqBO.getPage();
+        page.setTotalCount((int) metaLabelMapper.getLabelsCount(pageReqBO.getName()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<MetaLabel> labels = metaLabelMapper.getLabels(pageReqBO.getName());
+        List<MetaLabelBO> metaLabelBOS = KsBeanUtil.convertList(labels, MetaLabelBO.class);
+        return BusinessResponse.success(metaLabelBOS);
+    }
+
+    @Override
     public List<Map> getLabelCate(int parent_id) {
         List list = metaLabelMapper.getLabelCate(parent_id);
         for(int i=0;i<list.size();i++){
@@ -208,42 +217,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         return list;
     }
 
-    @Override
-    public BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(AuthorityQueryByPageReqBO pageReqBO) {
-        Page page = pageReqBO.getPage();
-        page.setTotalCount((int) metaLabelMapper.getAuthorityByUrlCount(pageReqBO.getAuthorityUrl()));
-        if (page.getTotalCount() <= 0) {
-            return BusinessResponse.success(Collections.EMPTY_LIST, page);
-        }
-        List<AuthorityBO> authorityByUrl = metaLabelMapper.getAuthorityByUrl(pageReqBO.getAuthorityUrl(), page.getOffset(),page.getPageSize());
-        System.out.println(authorityByUrl);
-        return BusinessResponse.success(authorityByUrl, page);
-    }
 
-    @Override
-    public List<MetaTradeBO> getMetaTadeTree(int parentId) {
-        List<MetaTrade> parents= metaLabelMapper.getMetaTradeTree(parentId);
-        List<MetaTradeBO> metaTradeBOList = KsBeanUtil.convertList(parents, MetaTradeBO.class);
-        for (MetaTradeBO trade:metaTradeBOList) {
-            List<MetaTrade> child = metaLabelMapper.getMetaTradeTree(trade.getId());
-            List<MetaTradeBO> metaTradeBOS = KsBeanUtil.convertList(child, MetaTradeBO.class);
-            for (MetaTradeBO son:metaTradeBOS) {
-                List<MetaTrade> sons = metaLabelMapper.getMetaTradeTree(son.getId());
-                List<MetaTradeBO> tradeBOS = KsBeanUtil.convertList(sons, MetaTradeBO.class);
-                son.setChildrenList(tradeBOS);
-            }
-            trade.setChildrenList(metaTradeBOS);
-        }
-        return metaTradeBOList;
-    }
 
-    @Override
-    public List<GoodsNameBySpuIdBO> getGoodsNameBySpuId(String name) {
-        List<GoodSearchKey> goodsNameBySpuId = metaLabelMapper.getGoodsNameBySpuId(name);
-        List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
-        if (goodsNameBySpuId.size() > 0) {
-            goodsNameBySpuIdBOS = KsBeanUtil.convertList(goodsNameBySpuId, GoodsNameBySpuIdBO.class);
-        }
-        return goodsNameBySpuIdBOS;
-    }
+
 }

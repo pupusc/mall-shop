@@ -70,5 +70,10 @@ public class MetaLabelBO implements Serializable {
     private String remark;
 
     private Integer isShow;
+
+    private String goodsId;
+
+    private String goodsName;
+
 }
 

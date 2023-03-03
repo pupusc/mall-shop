@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaTradeMapper">
+    <resultMap id="MetaTradeMap" type="com.wanmi.sbc.bookmeta.entity.MetaTrade">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+    <select id="getMetaTradeTree" resultMap="MetaTradeMap">
+        select *
+        from meta_trade
+        where parent_id = #{parentId}
+          and del_flag = 0
+    </select>
+
+    <insert id="insertMetaTrade" parameterType="com.wanmi.sbc.bookmeta.entity.MetaTrade">
+        insert into meta_trade
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--   <if test="id !=null">
+                   `id`,
+               </if>-->
+            <if test="parentId !=null">
+                `parent_id`,
+            </if>
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="descr !=null">
+                `descr`,
+            </if>
+            <if test="orderNum !=null">
+                `order_num`,
+            </if>
+            <if test="path != null">
+                `path`,
+            </if>
+            <if test="createTime !=null">
+                `create_time`
+            </if>
+
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <!--    <if test="id !=null">
+                    #{id},
+                </if>-->
+            <if test="parentId !=null">
+                #{parentId},
+            </if>
+            <if test="name !=null">
+                #{name},
+            </if>
+            <if test="descr !=null">
+                #{descr},
+            </if>
+            <if test="orderNum !=null">
+                #{orderNum},
+            </if>
+            <if test="path != null">
+                #{path},
+            </if>
+            <if test="createTime !=null">
+                #{createTime}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateMetaTrade" parameterType="com.wanmi.sbc.bookmeta.entity.MetaTrade">
+        update meta_trade
+        <set>
+            <if test="parentId !=null">
+                parent_id=#{parentId},
+            </if>
+            <if test="name !=null">
+                name=#{name},
+            </if>
+            <if test="descr !=null">
+                descr=#{descr},
+            </if>
+            <if test="orderNum !=null">
+                order_num=#{orderNum},
+            </if>
+            <if test="path != null">
+                path = #{path}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteMetaTrade" parameterType="java.lang.Integer">
+        update meta_trade
+        set del_flag = 1
+        where id = #{id}
+    </delete>
+</mapper>

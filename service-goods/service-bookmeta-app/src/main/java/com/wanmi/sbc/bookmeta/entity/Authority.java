@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import javax.persistence.Column;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -39,7 +40,7 @@ public class Authority  implements Serializable {
     @Column(name = "sort")
     private int sort;
     @Column(name = "create_time")
-    private String createTime;
+    private Date createTime;
     @Column(name = "del_flag")
     private int delFlag;
 }

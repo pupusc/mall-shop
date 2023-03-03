@@ -106,5 +106,11 @@ public class MetaLabel implements Serializable {
     @Column(name = "is_show")
     private Integer isShow;
 
+    @Column(name = "goods_id")
+    private String goodsId;
+
+    @Column(name = "goods_name")
+    private String goodsName;
+
 }
 

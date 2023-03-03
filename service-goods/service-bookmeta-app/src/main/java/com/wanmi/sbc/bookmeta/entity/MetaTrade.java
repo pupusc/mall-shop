@@ -1,10 +1,13 @@
 package com.wanmi.sbc.bookmeta.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +18,7 @@ import javax.persistence.Table;
  */
 @Data
 @Table(name = "meta_trade")
-public class MetaTrade {
+public class MetaTrade implements Serializable {
     @Id
     @Column(name = "id")
     private int id;
@@ -29,10 +32,12 @@ public class MetaTrade {
     private int orderNum;
     @Column(name = "path")
     private String  path;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss" ,timezone = "GMT+8")
     @Column(name = "create_time")
-    private String createTime;
+    private Date createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss" ,timezone = "GMT+8")
     @Column(name = "update_time")
-    private String updateTime;
+    private Date updateTime;
     @Column(name = "del_flag")
     private int delFlag;
 

@@ -47,16 +47,7 @@ public interface MetaLabelProvider {
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryCate2")
     List<Map> getLabelCate2(@RequestBody @NotNull String parent_id);
 
-    @PostMapping("/goods/${application.goods.version}/metaLabel/queryAuthority")
-    BusinessResponse<List<AuthorityBO>> getAuthorityByUrl(@RequestBody @Valid AuthorityQueryByPageReqBO pageReqBO);
 
-
-    @PostMapping("/goods/${application.goods.version}/metaTrade/tree")
-    List<MetaTradeBO> getMetaTadeTree(@RequestBody @NotNull int parentId);
-
-
-    @PostMapping("/goods/${application.goods.version}/metaTrade/")
-    List<GoodsNameBySpuIdBO> getGoodsNameBySpuId(@RequestBody @NotNull String name);
     /**
      * 新增数据
      *
@@ -101,5 +92,9 @@ public interface MetaLabelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaLabel/queryLabel")
     List<Map> queryAllLabel();
+
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/getAllLabel")
+    BusinessResponse<List<MetaLabelBO>> getLabels(@RequestBody @NotNull MetaLabelQueryByPageReqBO metaLabelQueryByPageReqBO);
 
 }

@@ -1,23 +1,23 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
  *
  * @Author: pushicheng
- * @Date: 2023/03/02/13:11
+ * @Date: 2023/03/03/15:43
  * @Description:
  */
 @Data
-public class GoodsNameBySpuIdBO {
+public class GoodsSearchKeyAddBo {
     private int id;
     private String name;
     private String spuId;
     private int delFlag;
     private Integer status;
-    private String createTime;
-    private String updateTime;
-    private Page page = new Page(1, 10);
+    private Date createTime;
+    private Date updateTime;
 }
