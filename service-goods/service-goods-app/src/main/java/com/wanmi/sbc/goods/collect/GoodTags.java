@@ -95,7 +95,7 @@ public class GoodTags {
     }
 
     public String getRedis_Book(String spu_no){
-        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":"+spu_no);
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_NO+":"+spu_no);
         if(DitaUtil.isBlank(value)){
             value = "{}";
         }
