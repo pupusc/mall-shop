@@ -295,21 +295,6 @@ public class GoodsVO  implements Serializable {
      */
     @ApiModelProperty(value = "商品详情")
     private String goodsDetail;
-    /**
-     * 商品展示类型 1完整展示 2展示一半高度 3是不展示
-     */
-    @ApiModelProperty(value = "商品展示类型")
-    private String goodsShowType;
-    /**
-     * 订购须知
-     */
-    @ApiModelProperty(value = "订购须知")
-    private String orderDetail;
-    /**
-     * 订购须知展示类型 1完整展示，2是不展示
-     */
-    @ApiModelProperty(value = "订购须知展示类型")
-    private String orderShowType;
 
     /**
      * 商品移动端详情
