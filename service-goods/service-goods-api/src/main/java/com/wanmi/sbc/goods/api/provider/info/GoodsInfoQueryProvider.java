@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageR
 import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterpriseGoodsInfoPageResponse;
 import com.wanmi.sbc.goods.api.response.info.*;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -189,9 +190,18 @@ public interface GoodsInfoQueryProvider {
     String isbnBySkuId(@RequestParam(value = "skuId") String skuId);
 
     /**
-     * 通过isbnList获取sku simple信息
+     * 根据spu获取标签
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/info/getRedis")
-    BaseResponse<String> getRedis(@RequestBody String spuNo);
+    BaseResponse<String> getRedis(@RequestParam(value = "spuId") String spuId);
+
+    /**
+     * 根据spu获取标签
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/getTabsBySpu")
+    BaseResponse<TagsDto> getTabsBySpu(@RequestParam(value = "spuId") String spuId);
+
+
 }

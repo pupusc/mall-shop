@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.info;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -36,6 +37,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewPageResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMarketingPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
@@ -571,5 +573,11 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     @Override
     public BaseResponse<String> getRedis(String spuNo) {
         return BaseResponse.success(goodTags.getRedis_Tags(spuNo));
+    }
+
+    @Override
+    public BaseResponse<TagsDto> getTabsBySpu(String spuId) {
+        TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spuId), TagsDto.class);
+        return BaseResponse.success(tagsDto);
     }
 }

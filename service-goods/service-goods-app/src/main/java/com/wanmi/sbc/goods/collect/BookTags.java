@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.collect;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.goods.bean.enums.FigureType;
 import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import com.wanmi.sbc.goods.collect.respository.GoodRepository;
 import com.wanmi.sbc.goods.redis.RedisService;
@@ -124,11 +125,54 @@ public class BookTags {
 
     }
 
-    private void doTab2(List allList,String book_id) {
-
+    private void doTab2(List allList,String bookId) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> contentMap = new HashMap<>();
         //作家
+        Map FirstWriter = getFigure(allList, bookId, FigureType.WRITER.toValue());
+        contentMap.put("firstWriter",FirstWriter);
+
+        //翻译家
+        Map FirstTranslator = getFigure(allList, bookId, FigureType.TRANSLATOR.toValue());
+        contentMap.put("firstTranslator",FirstTranslator);
+
+        //书中提到人物显示
+        List characters = bookJpa.getCharacters(bookId);
 
 
+        map.put("tab2", contentMap);
+        allList.add(map);
+    }
+
+    private Map getFigure(List allList, String bookId, String figureType) {
+        //1.作家 2.翻译家
+        List firstWriter = bookJpa.getFirstWriter(bookId, figureType);
+        Map map = new HashMap();
+        for(int i=0;i<firstWriter.size();i++){
+            //作家
+            map = (Map)firstWriter.get(0);
+            String writerId = String.valueOf(map.get("id"));
+            //获得的奖项
+            List writerAwards = bookJpa.getWriterAwards(writerId);
+            map.put("Awards", writerAwards);
+            //查询作家其它的书
+            List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
+            List ret = new ArrayList();
+            for(int j=0;j<writerBooks.size();j++){
+                Map writerBookMap = (Map)writerBooks.get(j);
+                String isbn = String.valueOf(writerBookMap.get("isbn"));
+                Map goodMap = bookJpa.findSpuByV3(isbn);
+                if(goodMap != null && goodMap.size() >0){
+                    String spu_no = String.valueOf(goodMap.get("spu_no"));
+                    String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    writerBookMap.put("spu_no",spu_no);
+                    writerBookMap.put("goods_name",goods_name);
+                    ret.add(writerBookMap);
+                }
+            }
+            map.put("Books", ret);
+        }
+        return map;
     }
 
     private void doTab3(List allList) {
@@ -246,7 +290,7 @@ public class BookTags {
         String fit_age_min = String.valueOf(goodMap.get("fit_age_min"));        //'最小阅读年龄'
         String fit_age_max = String.valueOf(goodMap.get("fit_age_max"));        //'最大阅读年龄'
 
-        if(DitaUtil.isNotBlank(fit_age_min) && DitaUtil.isNotBlank(fit_age_max)){
+        if(com.wanmi.sbc.goods.collect.DitaUtil.isNotBlank(fit_age_min) && com.wanmi.sbc.goods.collect.DitaUtil.isNotBlank(fit_age_max)){
             Map map = new HashMap();
             String name = fit_age_min + "~" + fit_age_max + "岁";
             map.put("name",name);

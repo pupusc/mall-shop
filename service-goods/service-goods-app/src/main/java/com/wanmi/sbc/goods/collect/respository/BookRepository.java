@@ -284,5 +284,55 @@ public class BookRepository {
         return list;
     }
 
+    //图书简介的第一位作家
+    public List getFirstWriter(String bookId, String figureType) {
+
+        String sql = " SELECT id,type,name,introduce from meta_figure where ((del_flag = 0 " +
+                "and id in (select c.figure_id from meta_book_figure c where  c.book_id = ? and c.del_flag = 0 and c.figure_type = ?))) limit 0,1";
+        Object[] obj = new Object[]{bookId, figureType};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //获得的奖项
+    public List getWriterAwards(String writerId) {
+
+        String sql = " select a.id,a.name from meta_award a left join meta_figure_award b on a.id = b.award_id " +
+                " where b.figure_id = ? ";
+        Object[] obj = new Object[]{writerId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //查询作家其它的书
+    public List getWriterBooks(String bookId, String writerId) {
+
+        String sql = " select b.book_id,a.isbn from meta_book a left join meta_book_figure b on a.id = b.book_id " +
+                " where b.figure_id = ? and book_id != ? ";
+        Object[] obj = new Object[]{writerId, bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //书中提到人物显示
+    public List getCharacters(String bookId) {
+
+        String sql = " SELECT id,type,name,introduce from meta_figure where del_flag = 0 " +
+                " and id in ( select id from meta_figure where id in (select biz_id from meta_book_rcmmd where book_id = ? and biz_type = 8)) ";
+        Object[] obj = new Object[]{bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //
+
 }
 
