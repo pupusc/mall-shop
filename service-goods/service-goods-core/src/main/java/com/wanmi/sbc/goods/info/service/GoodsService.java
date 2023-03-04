@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.soybean.common.util.WebConstantUtil;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -3781,5 +3782,35 @@ public class GoodsService {
         }
 
         goodsRepository.saveAll(saveGoods);
+    }
+
+    /**
+     * 通过spu或者sku取redis获取商详信息
+     * @param spuId、skuId
+     * @return
+     */
+    public BaseResponse getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
+
+        String old_json=null;
+        //优先用spuId去取
+        if(null!=spuId && spuId.isEmpty()==false){
+            old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+        } else{
+            //spuId为空则通过skuId获取spuId
+            if(null == skuId || skuId.isEmpty()){
+                return null;
+            }else {
+                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
+                spuId=goodsInfoMap.get("spuId");
+                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+            }
+        }
+
+        if(null==old_json || old_json.isEmpty()){
+            return null;//不去数据库再找了
+        }else {
+            Map map=JSONObject.parseObject(old_json,Map.class);
+            return BaseResponse.success(old_json);
+        }
     }
 }

@@ -2,6 +2,9 @@ package com.wanmi.sbc.goods.collect;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
+import com.wanmi.sbc.bookmeta.mapper.MetaZoneBookMapper;
+import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.goods.bean.enums.FigureType;
 import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import com.wanmi.sbc.goods.collect.respository.GoodRepository;
@@ -33,6 +36,10 @@ public class BookTags {
     @Autowired
     BookDetailTab bookDetailTab;
 
+    @Autowired
+    private MetaFigureService metaFigureService;
+
+
     public void doGoods(){
 
         List list = bookJpa.getGoodsList();
@@ -47,9 +54,8 @@ public class BookTags {
 
     private void doData(Map map) {
 
-        doGoods(map);               //卖点标签&&营销标签
-
-        //bookDetailTab.doBook(map);                //图书tab
+        //doGoods(map);               //卖点标签&&营销标签
+        doBook(map);                //图书tab
 
     }
 
@@ -88,7 +94,7 @@ public class BookTags {
         doOtherBooks(redisMap,book_id);
 
         List allList = new ArrayList();
-        doTab1(allList);
+        doTab1(allList,book_id);
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);
@@ -134,8 +140,11 @@ public class BookTags {
         redisMap.put("search",list);
     }
 
-    private void doTab1(List allList) {
-
+    private void doTab1(List allList,String book_id) {
+        Map map=new HashMap<>();
+        List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS = metaFigureService.getMetaBookRcmmdFigureBOS(Integer.parseInt(book_id));
+        map.put("medioRecomd",metaBookRcmmdFigureBOS);
+        allList.add(map);
     }
 
     private void doTab2(List allList,String bookId,String spuNo) {

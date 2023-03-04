@@ -14,4 +14,5 @@ public class GoodsSearchBySpuIdRespVO {
     private int id;
     private String name;
     private String spuId;
+    private int status;
 }

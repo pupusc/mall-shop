@@ -9,6 +9,7 @@ import com.wanmi.sbc.order.stockAppointment.service.StockAppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -22,12 +23,11 @@ public class StockAppointmentController implements StockAppointmentProvider {
 
     @Override
     public BaseResponse add(@RequestBody @Valid AppointmentRequest request) {
-        Integer integer = appointmentService.saveAppointment(request.getAppointmentList());
-        if(null!=integer&&integer>0) {
-            return BaseResponse.SUCCESSFUL();
-        }else {
-            return BaseResponse.FAILED();
-        }
+        return appointmentService.saveAppointment(request.getAppointmentList());
+    }
+    @Override
+    public BaseResponse<AppointmentRequest> findCustomerAppointment(AppointmentRequest request){
+        return appointmentService.findCustomerAppointment(request);
     }
 
     @Override
@@ -36,7 +36,12 @@ public class StockAppointmentController implements StockAppointmentProvider {
     }
 
     @Override
-    public void delete(Integer id) {
-        appointmentService.delete(id);
+    public BaseResponse delete(AppointmentRequest request) {
+        return appointmentService.delete(request);
+    }
+
+    @Override
+    public BaseResponse deleteById(@RequestParam("id") Integer id){
+        return appointmentService.deleteById(id);
     }
 }

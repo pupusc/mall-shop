@@ -8,15 +8,19 @@ import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
 import com.soybean.elastic.spu.model.sub.SubLabelNew;
+import com.soybean.elastic.spu.model.sub.SubSpuLabelNew;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuPropProvider;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.nacos.GoodsNacosConfigProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuPropProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuPropResp;
 import com.wanmi.sbc.goods.api.response.nacos.GoodsNacosConfigResp;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
@@ -55,6 +59,9 @@ public class SpuCollect extends AbstractSpuCollect {
 //    private CollectSpuPropProvider collectSpuPropProvider;
     @Autowired
     private GoodsNacosConfigProvider goodsNacosConfigProvider;
+
+    @Autowired
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     /**
      * 获取商品对象信息
@@ -173,6 +180,10 @@ public class SpuCollect extends AbstractSpuCollect {
                 esSpuNew.setAnchorRecoms(subAnchorRecomNewList);
             }
 
+            TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(esSpuNew.getSpuId()).getContext();
+            List<TagsDto.Tags> tags = tagsDto.getTags();
+            List<SubSpuLabelNew> subSpuLabelNews = KsBeanUtil.convertList(tags, SubSpuLabelNew.class);
+            esSpuNew.setSpuLabels(subSpuLabelNews);
             //49包邮标签信息
             log.info("SpuCollect collect spuId:{} freightTempId is {}", collectSpuVO.getGoodsId(), collectSpuVO.getFreightTempId());
             if (goodsNacosConfigResp != null && collectSpuVO.getFreightTempId() != null && Objects.equals(collectSpuVO.getFreightTempId().toString(), goodsNacosConfigResp.getFreeDelivery49())) {

@@ -31,8 +31,14 @@ public interface StockAppointmentProvider {
 	@PostMapping("/order/${application.order.version}/stockappointment/findAll")
 	BaseResponse<AppointmentRequest> finAll();
 
+	@PostMapping("/order/${application.order.version}/stockappointment/findCustomerAppointment")
+	BaseResponse<AppointmentRequest> findCustomerAppointment(@RequestBody AppointmentRequest request);
+
 	@PostMapping("/order/${application.order.version}/stockappointment/delete")
-	void delete(@RequestParam("id")Integer id);
+	BaseResponse delete(@RequestBody AppointmentRequest request);
+
+	@PostMapping("/order/${application.order.version}/stockappointment/deleteById")
+	BaseResponse deleteById(@RequestParam("id") Integer id);
 
 }
 

@@ -72,7 +72,7 @@ public class MetaAwardService {
 
     public BusinessResponse<List<MetaAwardBO>> queryBySku(String sku) {
         //通过skuId获取bookId
-        String isbn = goodsInfoQueryProvider.isbnBySkuId(sku);
+        String isbn = goodsInfoQueryProvider.goodsInfoBySkuId(sku).get("isbnNo");
         MetaBook metaBook=new MetaBook();
         metaBook.setIsbn(isbn);
         Integer bookId = metaBookMapper.queryAllByLimit(metaBook, 0, 10).get(0).getId();

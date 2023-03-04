@@ -4,11 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.elastic.collect.constant.ConstantUtil;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
-import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
-import com.soybean.elastic.spu.model.sub.SubBookNew;
-import com.soybean.elastic.spu.model.sub.SubClassifyNew;
-import com.soybean.elastic.spu.model.sub.SubCommentNew;
-import com.soybean.elastic.spu.model.sub.SubLabelNew;
+import com.soybean.elastic.spu.model.sub.*;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -174,4 +170,11 @@ public class EsSpuNew {
      */
     @Field(type = FieldType.Nested)
     private List<SubLabelNew> labels;
+
+    /**
+     * 商品标签
+     */
+    @Field(type = FieldType.Nested)
+    private List<SubSpuLabelNew> spuLabels;
+
 }

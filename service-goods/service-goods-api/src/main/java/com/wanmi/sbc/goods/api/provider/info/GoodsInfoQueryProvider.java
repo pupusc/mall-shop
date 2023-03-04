@@ -187,7 +187,7 @@ public interface GoodsInfoQueryProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/info/isbnBySkuId")
-    String isbnBySkuId(@RequestParam(value = "skuId") String skuId);
+    Map<String,String> goodsInfoBySkuId(@RequestParam(value = "skuId") String skuId);
 
     /**
      * 根据spu获取标签

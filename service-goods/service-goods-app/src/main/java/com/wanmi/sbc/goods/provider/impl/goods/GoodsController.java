@@ -38,6 +38,7 @@ import com.wanmi.sbc.goods.bean.dto.LinkedMallItemDelDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
+import com.wanmi.sbc.goods.collect.RedisTagsConstant;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
@@ -771,5 +772,10 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse updateGoodsByCondition(List<GoodsDataUpdateRequest> goodsDetas) {
         goodsService.updateGoodsByCondition(goodsDetas);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse getGoodsDetialById(String spuId, String skuId) {
+       return goodsService.getGoodsDetialById(spuId,skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
     }
 }

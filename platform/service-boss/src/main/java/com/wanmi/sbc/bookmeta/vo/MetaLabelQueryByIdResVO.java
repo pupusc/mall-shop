@@ -1,7 +1,9 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -84,5 +86,12 @@ public class MetaLabelQueryByIdResVO implements Serializable {
     private String remark;
 
     private Integer isShow;
+
+    private String goodsId;
+
+    private String goodsName;
+
+    private Page page = new Page(1, 10);
+
 }
 

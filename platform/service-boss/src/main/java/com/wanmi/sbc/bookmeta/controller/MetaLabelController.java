@@ -81,31 +81,8 @@ public class MetaLabelController {
         return BusinessResponse.success(list);
     }
 
-    @PostMapping("queryMetaTradeTree")
-    public BusinessResponse<List<MetaTradeTreeRespVO>> getMetaTradeTree(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
-        List<MetaTradeBO> list = this.metaLabelProvider.getMetaTadeTree(pageRequest.getParentId());
-        List<MetaTradeTreeRespVO> metaTradeTreeRespVOS = KsBeanUtil.convertList(list, MetaTradeTreeRespVO.class);
-        return BusinessResponse.success(metaTradeTreeRespVOS);
-    }
-
-    @PostMapping("queryGoodsSearchKey")
-    public BusinessResponse<List<GoodsSearchBySpuIdRespVO>> getGoodsSearch(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
-        List<GoodsNameBySpuIdBO> goodsNameBySpuId = metaLabelProvider.getGoodsNameBySpuId(pageRequest.getName());
-        List<GoodsSearchBySpuIdRespVO> goodsSearchBySpuIdRespVOS = KsBeanUtil.convertList(goodsNameBySpuId, GoodsSearchBySpuIdRespVO.class);
-        return BusinessResponse.success(goodsSearchBySpuIdRespVOS);
-    }
 
 
-    @PostMapping("queryAuthority")
-    public BusinessResponse<List<AuthorityQueryByPageRespVO>> queryAuthority(@RequestBody AuthorityQueryByPageReqVO pageRequest) {
-        AuthorityQueryByPageReqBO pageReqBO = KsBeanUtil.convert(pageRequest,AuthorityQueryByPageReqBO.class);
-        BusinessResponse<List<AuthorityBO>> boResult = metaLabelProvider.getAuthorityByUrl(pageReqBO);
-        if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {
-            return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
-        }
-        List<AuthorityQueryByPageRespVO> authorityQueryByPageRespVOS = KsBeanUtil.convertList(boResult.getContext(), AuthorityQueryByPageRespVO.class);
-        return BusinessResponse.success(authorityQueryByPageRespVOS,boResult.getPage());
-    }
 
     /**
      * 标签-分页查询
@@ -183,12 +160,20 @@ public class MetaLabelController {
         return result;
     }
 
-    /**
-     * 标签-新增数据
-     *
-     * @param addReqVO 实体
-     * @return 新增结果
-     */
+    @PostMapping("getLabelsByName")
+    public BusinessResponse<List<MetaLabelGetAllByNameRespVO>> getLabels(@RequestBody MetaLabelQueryByIdResVO resVO) {
+        MetaLabelQueryByPageReqBO convert = KsBeanUtil.convert(resVO, MetaLabelQueryByPageReqBO.class);
+        BusinessResponse<List<MetaLabelBO>> labels = this.metaLabelProvider.getLabels(convert);
+        List<MetaLabelGetAllByNameRespVO> metaLabelQueryByIdResVOS = KsBeanUtil.convertList(labels.getContext(), MetaLabelGetAllByNameRespVO.class);
+        return BusinessResponse.success(metaLabelQueryByIdResVOS);
+    }
+
+        /**
+         * 标签-新增数据
+         *
+         * @param addReqVO 实体
+         * @return 新增结果
+         */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaLabelAddReqVO addReqVO) {
         addReqVO.setPath(StringSplitUtil.join(addReqVO.getPathList(), PATH_SPLIT_SYMBOL));

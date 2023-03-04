@@ -405,11 +405,12 @@ public class TopicService {
      */
     public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest,CustomerGetByIdResponse customer){
 
-        List<GoodsOrBookResponse> goodsOrBookResponse=new ArrayList<>();
-        //获得主题id
-        topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
-        //获得主题下商品skuList
-        List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+        try {
+            List<GoodsOrBookResponse> goodsOrBookResponse = new ArrayList<>();
+            //获得主题id
+            topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
+            //获得主题下商品skuList
+            List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
 //        if(null==contentByStoreyId || contentByStoreyId.size()==0){
 //            return null;
 //        }
@@ -422,17 +423,17 @@ public class TopicService {
 //            }
 //        }).collect(Collectors.toList());
 
-        if(null==collectTemp || collectTemp.size()==0){
-            return null;
-        }
-        List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
+            if (null == collectTemp || collectTemp.size() == 0) {
+                return null;
+            }
+            List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
 
-        //获取商品信息
-        GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
-        goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
-        goodsInfoByIdRequest.setGoodsInfoIds(skuList);
-        goodsInfoByIdRequest.setIsHavSpecText(1);
-        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+            //获取商品信息
+            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+            goodsInfoByIdRequest.setGoodsInfoIds(skuList);
+            goodsInfoByIdRequest.setIsHavSpecText(1);
+            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
 
 //        //获取会员价
 //        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -442,25 +443,28 @@ public class TopicService {
 //            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
 //
 //        }
-        //获取会员
-        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            //获取会员
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+            filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
 
-        Map<String, GoodsInfoVO> salePriceMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+            Map<String, GoodsInfoVO> salePriceMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
-        collectTemp.stream().forEach(g->{
-            GoodsOrBookResponse goodsOrBookResponseTemp=new GoodsOrBookResponse();
-            BeanUtils.copyProperties(g,goodsOrBookResponseTemp);
-            goodsOrBookResponseTemp.setMarketPrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketPrice());
-            goodsOrBookResponseTemp.setSalePrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getSalePrice());
-            goodsOrBookResponseTemp.getMarketingLabels().addAll(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketingLabels());
-            goodsOrBookResponse.add(goodsOrBookResponseTemp);
-        });
-
-
-        return goodsOrBookResponse;
+            collectTemp.stream().forEach(g -> {
+                if (null != salePriceMap.get(g.getSkuId())) {
+                    GoodsOrBookResponse goodsOrBookResponseTemp = new GoodsOrBookResponse();
+                    BeanUtils.copyProperties(g, goodsOrBookResponseTemp);
+                    goodsOrBookResponseTemp.setMarketPrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketPrice());
+                    goodsOrBookResponseTemp.setSalePrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getSalePrice());
+                    goodsOrBookResponseTemp.getMarketingLabels().addAll(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketingLabels());
+                    goodsOrBookResponse.add(goodsOrBookResponseTemp);
+                }
+            });
+            return goodsOrBookResponse;
+        }catch (Exception e){
+            return null;
+        }
     }
 
 //    public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
@@ -640,46 +644,49 @@ public class TopicService {
      */
     public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest,CustomerGetByIdResponse customer) {
 
+        try {
+            List<NewBookPointResponse> newBookPointResponseList = new ArrayList<>();
 
-        List<NewBookPointResponse> newBookPointResponseList= new ArrayList<>();
+
+            List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods(baseQueryRequest).getContext();
+
+            List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
+
+            Map<String, NormalActivitySkuResp> goodsPointMap = ponitByActivity.stream()
+                    .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
+                    .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
+
+            //获取商品积分
+            List<String> skuIdList = new ArrayList<>();
+            context.stream().forEach(normalModuleSkuResp -> {
+                NewBookPointResponse newBookPointResponse = new NewBookPointResponse();
+                BeanUtils.copyProperties(normalModuleSkuResp, newBookPointResponse);
+                if (null != goodsPointMap.get(normalModuleSkuResp.getSkuId()) && null != goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum()) {
+                    newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
+                }
+                skuIdList.add(newBookPointResponse.getSkuId());
+                newBookPointResponseList.add(newBookPointResponse);
+            });
+
+            //获取商品信息
+            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+            goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
+            goodsInfoByIdRequest.setIsHavSpecText(1);
+            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+
+            Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
+                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
 
-        List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods(baseQueryRequest).getContext();
-
-        List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
-
-        Map<String, NormalActivitySkuResp> goodsPointMap = ponitByActivity.stream()
-                .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
-                .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
-
-        //获取商品积分
-        List<String> skuIdList=new ArrayList<>();
-        context.stream().forEach(normalModuleSkuResp -> {
-            NewBookPointResponse newBookPointResponse=new NewBookPointResponse();
-            BeanUtils.copyProperties(normalModuleSkuResp,newBookPointResponse);
-            if(null != goodsPointMap.get(normalModuleSkuResp.getSkuId()) && null!= goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum()){
-                newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
+            for (int i = 0; i < newBookPointResponseList.size(); i++) {
+                if(null==goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId())){
+                    continue;
+                }
+                newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
+                newBookPointResponseList.get(i).setGoodsInfoName(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoName());
+                newBookPointResponseList.get(i).setGoodsInfoImg(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
             }
-            skuIdList.add(newBookPointResponse.getSkuId());
-            newBookPointResponseList.add(newBookPointResponse);
-        });
-
-        //获取商品信息
-        GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
-        goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
-        goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
-        goodsInfoByIdRequest.setIsHavSpecText(1);
-        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
-
-        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
-                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
-
-
-        for(int i=0; i<newBookPointResponseList.size();i++ ){
-            newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
-            newBookPointResponseList.get(i).setGoodsInfoName(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoName());
-            newBookPointResponseList.get(i).setGoodsInfoImg(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
-        }
 
 
 //        //获取会员价
@@ -697,12 +704,18 @@ public class TopicService {
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
-            for(int i=0; i<newBookPointResponseList.size();i++ ){
+            for (int i = 0; i < newBookPointResponseList.size(); i++) {
+                if(null==goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId())){
+                    continue;
+                }
                 newBookPointResponseList.get(i).setSalePrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getSalePrice());
                 newBookPointResponseList.get(i).setGoodsInfoImg(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
             }
 
-        return newBookPointResponseList;
+            return newBookPointResponseList;
+        }catch (Exception e){
+            return null;
+        }
     }
 
 
@@ -1185,13 +1198,29 @@ public class TopicService {
         AppointmentRequest appointmentRequest=new AppointmentRequest();
         list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
         appointmentRequest.setAppointmentList(list);
-        try {
-            stockAppointmentProvider.add(appointmentRequest);
-        }catch (Exception e){
-            e.printStackTrace();
-            return BaseResponse.error("预约失败！");
-        }
-        return BaseResponse.success("预约成功！");
+        return stockAppointmentProvider.add(appointmentRequest);
     }
 
+    @Transactional
+    public BaseResponse deleteAppointment(AppointmentStockRequest request) {
+        List<StockAppointmentRequest> list=new ArrayList<>();
+        Operator operator = commonUtil.getOperator();
+        request.setAccount(operator.getAccount());
+        request.setCustomer(operator.getUserId());
+        AppointmentRequest appointmentRequest=new AppointmentRequest();
+        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
+        appointmentRequest.setAppointmentList(list);
+        return stockAppointmentProvider.delete(appointmentRequest);
+    }
+
+    public BaseResponse<AppointmentRequest> findAppointment(AppointmentStockRequest request) {
+        List<StockAppointmentRequest> list=new ArrayList<>();
+        AppointmentRequest appointmentRequest=new AppointmentRequest();
+        Operator operator = commonUtil.getOperator();
+        request.setAccount(operator.getAccount());
+        request.setCustomer(operator.getUserId());
+        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
+        appointmentRequest.setAppointmentList(list);
+        return stockAppointmentProvider.findCustomerAppointment(appointmentRequest);
+    }
 }

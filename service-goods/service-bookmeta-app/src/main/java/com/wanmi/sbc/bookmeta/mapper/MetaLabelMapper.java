@@ -116,13 +116,9 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     List<Map> getLabelCate(int parent_id);
 
-    List<AuthorityBO> getAuthorityByUrl(@Param("authorityUrl") String authorityUrl, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+    List<MetaLabel> getLabels(@Param("name")String name,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
-    Integer getAuthorityByUrlCount(@Param("authorityUrl") String authorityUrl);
-
-    List<MetaTrade> getMetaTradeTree(int parentId);
-
-    List<GoodSearchKey> getGoodsNameBySpuId(@Param("name") String name);
+    int getLabelsCount(@Param("name")String name);
 
 
 }

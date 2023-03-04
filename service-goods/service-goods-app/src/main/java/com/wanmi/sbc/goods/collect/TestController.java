@@ -19,23 +19,17 @@ public class TestController {
     @Autowired
     GoodTags goodTags;
 
-    @Autowired
-    MarketLabel marketLabel;
-
     @GetMapping("/test")
     public BaseResponse test(){
 
-        //启动setting,goods服务
         //goodTags.getRedis("P735546359");        //图书
         //goodTags.getRedis("P989359460");        //非书
 
         System.out.println("begin:" + DitaUtil.getCurrentAllDate());
 
-        //bookTags.doGoods();         //图书商品
+        bookTags.doGoods();         //图书商品
 
         //goodTags.doGoods();         //非书商品
-
-        marketLabel.doMarket();       //营销标签
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());
 
