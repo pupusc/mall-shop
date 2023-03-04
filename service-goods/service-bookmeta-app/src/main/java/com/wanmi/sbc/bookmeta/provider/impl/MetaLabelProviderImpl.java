@@ -189,6 +189,38 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
+    public BusinessResponse<Integer> insertGoodsLabel(GoodsLabelSpuReqBO bo) {
+        GoodsLabelSpu convert = KsBeanUtil.convert(bo, GoodsLabelSpu.class);
+        if (!metaLabelMapper.existsWithPrimaryKey(convert.getLabelId())){
+            return BusinessResponse.error("Invalidate Label");
+        }
+        if (metaLabelMapper.isExistGoods(convert.getGoodsId()) < 1) {
+            return BusinessResponse.error("Invalidate Goods");
+        }
+        convert.setCreateTime(new Date());
+            int i = metaLabelMapper.addGoodsLabelSpu(convert);
+            return BusinessResponse.success(i);
+    }
+
+    @Override
+    public BusinessResponse<Integer> updateGoodsLabel(GoodsLabelSpuReqBO bo) {
+        GoodsLabelSpu convert = KsBeanUtil.convert(bo, GoodsLabelSpu.class);
+        if (!metaLabelMapper.existsWithPrimaryKey(convert.getLabelId())){
+            return BusinessResponse.error("Invalidate Label");
+        }
+        if (metaLabelMapper.isExistGoods(convert.getGoodsId()) < 1) {
+            return BusinessResponse.error("Invalidate Goods");
+        }
+        int i = metaLabelMapper.updateGoodsLabelSpu(convert);
+        return BusinessResponse.success(i);
+    }
+
+    @Override
+    public Integer deleteGoodsLabel(GoodsLabelSpuReqBO bo) {
+        return metaLabelMapper.deleteGoodsLabel(bo.getId());
+    }
+
+    @Override
     public List<Map> getLabelCate(int parent_id) {
         List list = metaLabelMapper.getLabelCate(parent_id);
         for(int i=0;i<list.size();i++){

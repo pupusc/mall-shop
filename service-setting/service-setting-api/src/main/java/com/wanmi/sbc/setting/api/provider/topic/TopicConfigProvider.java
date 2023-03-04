@@ -139,6 +139,30 @@ public interface TopicConfigProvider {
     BaseResponse addRankLevel(@RequestBody RankLevelAddRequest request);
 
     /**
+     * @Description 二级榜单添加
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/add")
+    BaseResponse addRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
+     * @Description 二级榜单更新
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/update")
+    BaseResponse updateRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
+     * @Description 二级榜单删除
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/delete")
+    BaseResponse deleteRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
      * @Description 榜单分类添加
      * @Author
      * @Date  2023/2/18 11:50
