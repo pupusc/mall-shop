@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.collect;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import com.wanmi.sbc.goods.collect.respository.GoodRepository;
 import com.wanmi.sbc.goods.collect.respository.MarketRepository;
@@ -104,8 +105,8 @@ public class MarketLabel {
 
     public void setRedis_Label(String spu_id,String sku_id,Map map){
 
-        //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
-        String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        //String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
 
         String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_MARKING_SKU_ID + ":" + sku_id);
         if(!json.equals(old_json)){

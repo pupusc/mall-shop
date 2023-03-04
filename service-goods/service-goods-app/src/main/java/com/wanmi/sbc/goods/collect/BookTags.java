@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.collect;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
 import com.wanmi.sbc.bookmeta.mapper.MetaZoneBookMapper;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
@@ -417,8 +418,8 @@ public class BookTags {
 
     public void setRedis_Tags(String spu_id,Map map){
 
-        //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
-        String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        //String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
 
         String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID + ":" + spu_id);
         if(!json.equals(old_json)){
@@ -431,8 +432,8 @@ public class BookTags {
 
     public void setRedis_Books(String spu_id,Map map){
 
-        //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
-        String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        //String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
 
         String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + ":" + spu_id);
         if(!json.equals(old_json)){
@@ -443,6 +444,13 @@ public class BookTags {
 
     }
 
+    public static void main(String[] args) {
+        Map map = new HashMap();
+        map.put("name","xxx");
+        map.put("id",null);
+        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
+        System.out.println(json);
+    }
 
 }
 
