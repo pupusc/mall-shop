@@ -252,6 +252,12 @@ public class TopicService {
 
     }
 
+    /**
+     * 新版首页入口
+     * @param request
+     * @param allLoad
+     * @return
+     */
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
 
 
@@ -264,6 +270,7 @@ public class TopicService {
 //        }
         String c="{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
         CustomerGetByIdResponse customer= JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //调用老版首页入口加载老版组件
         BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
         if(null==detail||null==detail.getContext()){
             return BaseResponse.success(null);
@@ -330,6 +337,7 @@ public class TopicService {
         if(CollectionUtils.isEmpty(baseResponse)){
             return null;
         }
+        //初始化榜单商品树形结构
         idList.forEach(id->{
             List<String> goodIds=new ArrayList<>();
             List<Map> maps=new ArrayList<>();
@@ -342,6 +350,7 @@ public class TopicService {
             goods.addAll(goodIds);
             response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
         });
+        //初始化榜单商品
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
         goodsCustomResponses.forEach(g->{
 //            String label = g.getGoodsLabelList().get(0);
@@ -489,6 +498,7 @@ public class TopicService {
         if(CollectionUtils.isEmpty(baseResponse)){
             return null;
         }
+        //瀑布流分页
         Integer total=baseResponse.size();
         Integer pageSize= request.getPageSize();
         long totalPages=(long)Math.ceil(total/ pageSize);
@@ -508,6 +518,7 @@ public class TopicService {
                 skus.add(b.getSkuId());
             }
         });
+        //初始化榜单树形结构，获取商品详情
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(skus);
             pageResponse.getPageRequest().getContentList().forEach(r->{
                 r.getRankList().forEach(t->{
@@ -560,6 +571,7 @@ public class TopicService {
         request.setTopicStoreyId(storeyResponse.getId());
         request.setPageNum(0);
         request.setPageSize(10);
+        //首页跳转榜单聚合页
         RankPageRequest rankPageRequest = rankPageByBookList(request);
         return rankPageRequest;
     }
@@ -838,6 +850,11 @@ public class TopicService {
         });
     }
 
+    /**
+     * 初始化商品详情
+     * @param goodsInfoIds
+     * @return
+     */
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息

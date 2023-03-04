@@ -103,16 +103,31 @@ public class TopicController {
         return response;
     }
 
+    /**
+     * 添加到货提醒
+     * @param request
+     * @return
+     */
     @PostMapping(value = "/addAppointment")
     public BaseResponse addAppointment(@RequestBody AppointmentStockRequest request){
         return topicService.addAppointment(request);
     }
 
+    /**
+     * 取消到货提醒
+     * @param request
+     * @return
+     */
     @PostMapping(value = "/deleteAppointment")
     public BaseResponse deleteAppointment(@RequestBody AppointmentStockRequest request){
         return topicService.deleteAppointment(request);
     }
 
+    /**
+     * 获取用户所有到货提醒
+     * @param request
+     * @return
+     */
     @PostMapping(value = "/findAppointment")
     public BaseResponse<AppointmentRequest> findAppointment(@RequestBody AppointmentStockRequest request){
         return topicService.findAppointment(request);
