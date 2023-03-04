@@ -34,7 +34,7 @@ public class RedisTagsConstant {
      * 3. 取商品上关联的静态标签，按标签优先级依次呈现
      */
 
-    public static final String ELASTIC_SAVE_GOODS_TAGS_SPU_NO   = "ELASTIC_SAVE:GOODS_TAGS_SPU_ID";     //spu_no
+    public static final String ELASTIC_SAVE_GOODS_TAGS_SPU_ID   = "ELASTIC_SAVE:GOODS_TAGS_SPU_ID";     //spu_no
 
     //图书详情
     public static final String ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID = "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID";   //spu_id && isbn
