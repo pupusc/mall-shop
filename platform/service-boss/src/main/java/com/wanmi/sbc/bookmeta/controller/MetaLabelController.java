@@ -273,5 +273,27 @@ public class MetaLabelController {
             }
         }
     }
+
+    @PostMapping("addGoodsLabel")
+    public BusinessResponse<Integer> addGoodsLabel(@RequestBody GoodsLabelAddReqVO reqVO) {
+        GoodsLabelSpuReqBO convert = KsBeanUtil.convert(reqVO, GoodsLabelSpuReqBO.class);
+        BusinessResponse<Integer> integerBusinessResponse = metaLabelProvider.insertGoodsLabel(convert);
+        return integerBusinessResponse;
+    }
+
+    @PostMapping("updateGoodsLabel")
+    public BusinessResponse<Integer> updateGoodsLabel(@RequestBody GoodsLabelAddReqVO reqVO) {
+        GoodsLabelSpuReqBO convert = KsBeanUtil.convert(reqVO, GoodsLabelSpuReqBO.class);
+        BusinessResponse<Integer> integerBusinessResponse = metaLabelProvider.updateGoodsLabel(convert);
+        return integerBusinessResponse;
+    }
+
+    @PostMapping("deleteGoodsLabel")
+    public BusinessResponse<Integer> deleteGoodsLabel(@RequestBody GoodsLabelAddReqVO reqVO) {
+        GoodsLabelSpuReqBO convert = KsBeanUtil.convert(reqVO, GoodsLabelSpuReqBO.class);
+        return BusinessResponse.success(metaLabelProvider.deleteGoodsLabel(convert));
+    }
+
+
 }
 

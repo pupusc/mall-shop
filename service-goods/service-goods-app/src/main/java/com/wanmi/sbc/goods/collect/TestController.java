@@ -6,6 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 测试redis同步类
  */
@@ -33,13 +39,14 @@ public class TestController {
 
         bookTags.doGoods();         //图书商品
 
-        //goodTags.doGoods();         //非书商品
+        goodTags.doGoods();         //非书商品
 
-        marketLabel.doMarket();       //营销标签
+        marketLabel.doMarket();     //营销标签
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());
 
         return BaseResponse.SUCCESSFUL();
     }
+
 
 }
