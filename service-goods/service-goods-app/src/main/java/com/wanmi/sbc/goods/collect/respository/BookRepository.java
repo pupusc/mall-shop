@@ -320,7 +320,7 @@ public class BookRepository {
     public List getWriterBooks(String bookId, String writerId) {
 
         String sql = " select b.book_id,a.isbn from meta_book a left join meta_book_figure b on a.id = b.book_id " +
-                " where b.figure_id = ? and book_id != ? ";
+                " where b.figure_id = ? and book_id != ? limit 0,5 ";
         Object[] obj = new Object[]{writerId, bookId};
 
         List list = jpaManager.queryForList(sql,obj);
@@ -379,7 +379,7 @@ public class BookRepository {
     public List getLibrary(String bookId, String libraryId) {
 
         String sql = " select a.id,a.name,a.isbn from meta_book a left join meta_book_rcmmd b on a.book_clump_id = b.id " +
-                " where a.book_clump_id = ? and a.id !=? ";
+                " where a.book_clump_id = ? and a.id !=? limit 0,5 ";
 
         Object[] obj = new Object[]{libraryId, bookId};
 
@@ -416,7 +416,7 @@ public class BookRepository {
     public List getProducer(String bookId, String producerId) {
 
         String sql = " select a.id,a.name,a.isbn from meta_book a left join meta_producer b on a.producer_id = b.id " +
-                " where a.producer_id = ? and a.id != ? ";
+                " where a.producer_id = ? and a.id != ? limit 0,5 ";
 
         Object[] obj = new Object[]{producerId, bookId};
 
