@@ -285,10 +285,10 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
-                List<RankRequest> rank = rank2();
+                List<RankRequest> rank = rank();
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单更多
-                RankPageRequest rankPage = rankPage2(topicResponse);
+                RankPageRequest rankPage = rankPage(topicResponse);
                 topicResponse.setRankPageRequest(rankPage);
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
@@ -313,40 +313,10 @@ public class TopicService {
 
     /**
      * 首页榜单
-     * @param topicResponse
+     * @param
      * @return
      */
-    public List<RankRequest> rank(TopicStoreyResponse topicResponse){
-        RankStoreyRequest rankStoreyRequest = new RankStoreyRequest();
-        rankStoreyRequest.setTopicStoreyId(topicResponse.getId());
-        rankStoreyRequest.setIsRankDetail(false);
-        RankRequestListResponse response = topicConfigProvider.rank(rankStoreyRequest);
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(response.getIdList());
-        goodsCustomResponses.forEach(g->{
-            String label = g.getGoodsLabelList().get(0);
-            response.getRankRequestList().forEach(r->{
-                if(null!=r.getRankList()&&r.getRankList().size()>0){
-                    r.getRankList().forEach(t->{
-                        Map map= (Map) t;
-                        if(map.get("spuId").equals(g.getGoodsId())){
-                            map.put("label",label);
-                            map.put("goodsInfoId",g.getGoodsInfoId());
-                            map.put("subName",g.getGoodsSubName());
-                            map.put("showPrice",g.getShowPrice());
-                            map.put("linePrice",g.getLinePrice());
-                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-                            map.put("stock",g.getStock());
-                            map.put("author",g.getGoodsExtProperties().getAuthor());
-                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
-                        }
-                    });
-                }
-            });
-        });
-        return response.getRankRequestList();
-    }
-
-    public List<RankRequest> rank2(){
+    public List<RankRequest> rank(){
         RankRequestListResponse response = topicConfigProvider.rank2();
         List<Integer> idList = response.getRankIds();
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
@@ -391,13 +361,6 @@ public class TopicService {
             });
         });
         return response.getRankRequestList();
-    }
-
-    /**
-     * 获取广告
-     */
-    public void getADV(){
-
     }
 
     /**
@@ -502,6 +465,11 @@ public class TopicService {
 //        return BaseResponse.success(pageResponse.getPageRequest());
 //    }
 
+    /**
+     * 榜单聚合页
+     * @param request
+     * @return
+     */
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
         RankPageResponse pageResponse = topicConfigProvider.rankPageByBookList(request);
         if(null==pageResponse){
@@ -578,7 +546,12 @@ public class TopicService {
         return pageRequest;
     }
 
-    public RankPageRequest rankPage2(TopicStoreyResponse storeyResponse){
+    /**
+     * 榜单更多
+     * @param storeyResponse
+     * @return
+     */
+    public RankPageRequest rankPage(TopicStoreyResponse storeyResponse){
         RankStoreyRequest request=new RankStoreyRequest();
         request.setTopicStoreyId(storeyResponse.getId());
         request.setPageNum(0);
@@ -1189,6 +1162,11 @@ public class TopicService {
         return map;
     }
 
+    /**
+     * 预约商品
+     * @param request
+     * @return
+     */
     @Transactional
     public BaseResponse addAppointment(AppointmentStockRequest request) {
         List<StockAppointmentRequest> list=new ArrayList<>();
@@ -1201,6 +1179,11 @@ public class TopicService {
         return stockAppointmentProvider.add(appointmentRequest);
     }
 
+    /**
+     * 取消预约
+     * @param request
+     * @return
+     */
     @Transactional
     public BaseResponse deleteAppointment(AppointmentStockRequest request) {
         List<StockAppointmentRequest> list=new ArrayList<>();
@@ -1213,6 +1196,11 @@ public class TopicService {
         return stockAppointmentProvider.delete(appointmentRequest);
     }
 
+    /**
+     * 获取用户所有预约
+     * @param request
+     * @return
+     */
     public BaseResponse<AppointmentRequest> findAppointment(AppointmentStockRequest request) {
         List<StockAppointmentRequest> list=new ArrayList<>();
         AppointmentRequest appointmentRequest=new AppointmentRequest();
