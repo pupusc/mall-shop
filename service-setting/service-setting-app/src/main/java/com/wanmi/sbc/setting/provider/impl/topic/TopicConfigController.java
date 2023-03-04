@@ -163,6 +163,24 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public BaseResponse addRankrelation(TopicRalationRequest request) {
+        topicConfigService.addRankrelation(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse updateRankrelation(TopicRalationRequest request) {
+        topicConfigService.updateRankrelation(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse deleteRankrelation(TopicRalationRequest request) {
+        topicConfigService.deleteRankrelation(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse updateRankLevel(RankLevelUpdateRequest request) {
         topicConfigService.updateRankLevel(request);
         return BaseResponse.SUCCESSFUL();

@@ -276,6 +276,42 @@ public class TopicConfigController {
     }
 
     /**
+     * @description 榜单二级添加
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("榜单分类添加")
+    @PostMapping("/storey/v2/rank/relation/add")
+    public BaseResponse addRankrelation(@RequestBody TopicRalationRequest request){
+        return topicConfigProvider.addRankrelation(request);
+    }
+
+    /**
+     * @description 榜单二级修改
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("榜单分类添加")
+    @PostMapping("/storey/v2/rank/relation/update")
+    public BaseResponse updateRankrelation(@RequestBody TopicRalationRequest request){
+        return topicConfigProvider.updateRankrelation(request);
+    }
+
+    /**
+     * @description 榜单二级删除
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("榜单分类添加")
+    @PostMapping("/storey/v2/rank/relation/delete")
+    public BaseResponse deleteRankrelation(@RequestBody TopicRalationRequest request){
+        return topicConfigProvider.deleteRankrelation(request);
+    }
+
+    /**
      * @description 楼层栏目修改
      * @menu 专题
      * @param request

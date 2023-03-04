@@ -1,6 +1,7 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,13 +12,21 @@ public class TopicRalationRequest implements Serializable {
 
     private Integer id;
 
-    private Integer PRankColumId;
+    @JsonProperty(value = "pRankColumId")
+    private Integer pRankColumId;
 
-    private Integer PRankId;
+    @JsonProperty(value = "pRankId")
+    private Integer pRankId;
 
-    private Integer CRankId;
+    @JsonProperty(value = "cRankId")
+    private Integer cRankId;
 
-    private String CRankName;
+    @JsonProperty(value = "cRankName")
+    private String cRankName;
 
-    private Integer CRankSorting;
+    @JsonProperty(value = "cRankSorting")
+    private Integer cRankSorting;
+
+    @JsonProperty(value = "topicRankSorting")
+    private Integer topicRankSorting;
 }

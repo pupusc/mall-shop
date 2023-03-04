@@ -819,6 +819,16 @@ public class TopicConfigService {
     }
 
     /**
+     * 删除二级榜单列表
+     * @param request
+     */
+    @SneakyThrows
+    public void deleteRankrelation(TopicRalationRequest request) {
+        TopicRankRelation rankRelation =KsBeanUtil.convert(request, TopicRankRelation.class);
+        relationRepository.deleteById(rankRelation.getId());
+    }
+
+    /**
      * 修改栏目
      * @param request
      */
