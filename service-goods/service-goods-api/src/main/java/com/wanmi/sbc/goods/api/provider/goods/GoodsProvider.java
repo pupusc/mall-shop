@@ -342,4 +342,12 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/update-goods-by-condition")
     BaseResponse updateGoodsByCondition(@RequestBody List<GoodsDataUpdateRequest> goodsDetas);
+
+    /**
+     * 通过spu或者sku取redis获取商详媒体推荐信息
+     * @param spuId、skuId
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/get_goods-detial-by-id")
+    BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId") String skuId);
 }

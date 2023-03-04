@@ -213,8 +213,8 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
     }
 
     @Override
-    public BusinessResponse<List<MetaBookRcmmdFigureBO>> listFigureByskuId(String skuId) {
-        return BusinessResponse.success(metaFigureService.listFigureByskuId(skuId));
+    public BusinessResponse<List<MetaBookRcmmdFigureBO>> listFigureRecomdById(String spuId,String skuId) {
+        return BusinessResponse.success(metaFigureService.listFigureRecomdById(spuId,skuId));
     }
 
     private void checkName(Boolean check, String figureName, Integer figureId) {

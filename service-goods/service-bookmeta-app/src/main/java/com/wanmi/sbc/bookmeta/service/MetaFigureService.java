@@ -30,10 +30,7 @@ import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -108,13 +105,25 @@ public class MetaFigureService {
         metaBookContent.setType(BookContentTypeEnum.PRELUDE.getCode());
         this.metaBookContentMapper.delete(metaBookContent);
     }
-
-    public List<MetaBookRcmmdFigureBO> listFigureByskuId(String skuId) {
+    /**
+     * 通过skuId,spuId获得获得商详媒体推荐
+     */
+    public List<MetaBookRcmmdFigureBO> listFigureRecomdById(String spuId,String skuId) {
         //通过skuId获取bookId
-        String isbn = goodsInfoQueryProvider.isbnBySkuId(skuId);
+        Map<String, String> goodsInfoMap = goodsInfoQueryProvider.goodsInfoBySkuId(skuId);
+        if(null==goodsInfoMap){
+            return null;
+        }
+        String isbn = goodsInfoMap.get("isbnNo");
         MetaBook metaBook=new MetaBook();
         metaBook.setIsbn(isbn);
         Integer bookId = metaBookMapper.queryAllByLimit(metaBook, 0, 10).get(0).getId();
+        return getMetaBookRcmmdFigureBOS(bookId);
+    }
+    /**
+     * 通过bookId获得商详媒体推荐
+     */
+    public List<MetaBookRcmmdFigureBO> getMetaBookRcmmdFigureBOS(Integer bookId) {
         //找到所有推荐人
         List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureList = metaBookRcmmdMapper.RcommdFigureByBookId(bookId);
 

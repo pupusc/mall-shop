@@ -2975,7 +2975,14 @@ public class GoodsInfoService {
      * 根据skuId获取isbn
      * @return
      */
-    public String isbnBySkuId(String skuId) {
-       return goodsInfoRepository.findByGoodsInfoIdAndDelFlag(skuId,DeleteFlag.NO).getIsbnNo();
+    public Map<String,String> goodsInfoBySkuId(String skuId) {
+        Map map=new HashMap<>();
+        GoodsInfo goodsInfo = goodsInfoRepository.findByGoodsInfoIdAndDelFlag(skuId, DeleteFlag.NO);
+        if(null==goodsInfo){
+            return  null;
+        }
+        map.put("isbnNo",goodsInfo.getIsbnNo());
+        map.put("spuId",goodsInfo.getGoodsId());
+        return map;
     }
 }

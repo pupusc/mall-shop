@@ -137,7 +137,7 @@ public class MetaBookService {
     }
 
     /**
-     * 查询图书的扩展信息
+     * 查商详推荐内容
      */
     public MetaBookRecommentKeyBo getRecommentKey( String spuId) {
         MetaBookRecommentKeyBo metaBookRecommentKeyBo=new MetaBookRecommentKeyBo();

@@ -567,8 +567,8 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     }
 
     @Override
-    public String isbnBySkuId(String skuId) {
-        return goodsInfoService.isbnBySkuId(skuId);
+    public Map<String,String> goodsInfoBySkuId(String skuId) {
+        return goodsInfoService.goodsInfoBySkuId(skuId);
     }
     @Override
     public BaseResponse<String> getRedis(String spuNo) {

@@ -29,7 +29,7 @@ public class TestController {
 
         bookTags.doGoods();         //图书商品
 
-        goodTags.doGoods();         //非书商品
+        //goodTags.doGoods();         //非书商品
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());
 

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.windows;
 
+import com.ofpay.rex.control.helper.StringUtils;
 import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaBookFigureProvider;
@@ -11,16 +12,20 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.provider.SuspensionV2.SuspensionProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.excel.GoodsExcelProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.response.SuspensionV2.SuspensionByTypeResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishTempResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingProvider;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyContentRequest;
 import com.wanmi.sbc.setting.bean.vo.ExpressCompanyVO;
 import com.wanmi.sbc.topic.response.GoodsOrBookResponse;
@@ -79,6 +84,10 @@ public class SuspensionController {
     private MetaBookProvider metaBookProvider;
     @Autowired
     private MetaAwardProvider metaAwardProvider;
+    @Autowired
+    private GoodsProvider goodsProvider;
+    @Autowired
+    private RedisService redisService;
 
     @Value("classpath:/download/avtivity_goods.xlsx")
     private org.springframework.core.io.Resource templateFile;
@@ -116,11 +125,14 @@ public class SuspensionController {
     }
 
     @PostMapping("/test6")
-    public BaseResponse getMarketingInfo(@RequestParam(value = "skuId") String skuId)  {
-        return metaFigureProvider.listFigureByskuId(skuId);
+    public BaseResponse listFigureById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId") String skuId)  {
+        return metaFigureProvider.listFigureRecomdById(spuId,skuId);
     }
 
-
+    @PostMapping("/test10")
+    public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId") String skuId)  {
+        return goodsProvider.getGoodsDetialById(spuId,skuId);
+    }
     @PostMapping("/test7")
     public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId)  {
         return metaBookProvider.getRecommentKey(spuId);
