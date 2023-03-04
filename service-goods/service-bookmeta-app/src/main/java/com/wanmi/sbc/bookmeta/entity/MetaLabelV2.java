@@ -2,12 +2,12 @@ package com.wanmi.sbc.bookmeta.entity;
 
 import lombok.Data;
 
-import java.util.Date;
-import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 标签(MetaLabel)实体类
@@ -17,7 +17,7 @@ import javax.persistence.Table;
  */
 @Table(name = "meta_label")
 @Data
-public class MetaLabel implements Serializable {
+public class MetaLabelV2 implements Serializable {
     private static final long serialVersionUID = 262954670573753788L;
          
     @Id
@@ -105,6 +105,12 @@ public class MetaLabel implements Serializable {
 
     @Column(name = "is_show")
     private Integer isShow;
+
+    @Column(name = "goods_id")
+    private String goodsId;
+
+    @Column(name = "goods_name")
+    private String goodsName;
 
 }
 
