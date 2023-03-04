@@ -147,12 +147,20 @@ public interface TopicConfigProvider {
     BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request);
 
     /**
+     * @Description 混合标签tab分页
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/page")
+    BaseResponse<MicroServicePage<MixedComponentTabDto>> pageMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+
+    /**
      * @Description 混合标签tab列表
      * @Author zh
      * @Date  2023/2/18 11:50
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
-    BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+    BaseResponse<List<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
 
     /**
      * @Description 商品池add
@@ -216,7 +224,7 @@ public interface TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/list")
-    BaseResponse<MicroServicePage<ColumnContentDTO>> listTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
+    BaseResponse<MicroServicePage<ColumnContentDTO>> pageTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
 
     /**
      * @Description topic_storey_column_content表add

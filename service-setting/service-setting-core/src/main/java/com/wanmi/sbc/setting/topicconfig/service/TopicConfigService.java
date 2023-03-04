@@ -1155,14 +1155,14 @@ public class TopicConfigService {
     }
 
     /**
-     * @Description 混合标签tab列表
+     * @Description 混合标签tab分页
      * @Author zh
      * @Date  2023/2/18 11:50
      */
-    public MicroServicePage<MixedComponentTabDto> listMixedComponentTab(MixedComponentTabQueryRequest request) {
+    public MicroServicePage<MixedComponentTabDto> pageMixedComponentTab(MixedComponentTabQueryRequest request) {
         ColumnQueryRequest columnQueryRequest = new ColumnQueryRequest();
         BeanUtils.copyProperties(request, columnQueryRequest);
-        MicroServicePage<ColumnDTO> columnDTOS = listTopicStoreyColumn(columnQueryRequest);
+        MicroServicePage<ColumnDTO> columnDTOS = pageTopicStoreyColumn(columnQueryRequest);
         List<ColumnDTO> content = columnDTOS.getContent();
         List<MixedComponentTabDto> collect = content.stream().map(s -> {
             return new MixedComponentTabDto(s);
@@ -1170,6 +1170,21 @@ public class TopicConfigService {
         MicroServicePage<MixedComponentTabDto> mixedComponentTabDtos = new MicroServicePage<>();
         mixedComponentTabDtos.setContent(collect);
         mixedComponentTabDtos.setTotal(columnDTOS.getTotal());
+        return mixedComponentTabDtos;
+    }
+
+    /**
+     * @Description 混合标签tab列表
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    public List<MixedComponentTabDto> listMixedComponentTab(MixedComponentTabQueryRequest request) {
+        ColumnQueryRequest columnQueryRequest = new ColumnQueryRequest();
+        BeanUtils.copyProperties(request, columnQueryRequest);
+        List<ColumnDTO> columnDTOS = listTopicStoreyColumn(columnQueryRequest);
+        List<MixedComponentTabDto> mixedComponentTabDtos = columnDTOS.stream().map(s -> {
+            return new MixedComponentTabDto(s);
+        }).collect(Collectors.toList());
         return mixedComponentTabDtos;
     }
 
@@ -1187,11 +1202,11 @@ public class TopicConfigService {
     }
 
     /**
-     * @Description topic_storey_column表list
+     * @Description topic_storey_column表page
      * @Author zh
      * @Date  2023/2/18 12:53
      */
-    public MicroServicePage<ColumnDTO> listTopicStoreyColumn(ColumnQueryRequest request) {
+    public MicroServicePage<ColumnDTO> pageTopicStoreyColumn(ColumnQueryRequest request) {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.asc("deleted"));
         sortList.add(Sort.Order.asc("orderNum"));
@@ -1209,6 +1224,27 @@ public class TopicConfigService {
         }).collect(Collectors.toList()));
         return microServicePage;
     }
+
+    /**
+     * @Description topic_storey_column表list
+     * @Author zh
+     * @Date  2023/2/18 12:53
+     */
+    public List<ColumnDTO> listTopicStoreyColumn(ColumnQueryRequest request) {
+        List<Sort.Order> sortList = new ArrayList<>();
+        sortList.add(Sort.Order.asc("deleted"));
+        sortList.add(Sort.Order.asc("orderNum"));
+        List<TopicStoreyColumn> topicStoreySearchList = columnRepository
+                .findAll(columnRepository.columnSearch(request), Sort.by(sortList));
+        List<ColumnDTO> collect = topicStoreySearchList.stream().map(topicStoreyColumn -> {
+            ColumnDTO columnDTO = new ColumnDTO(topicStoreyColumn.getCreateTime(),
+                    topicStoreyColumn.getEndTime(), topicStoreyColumn.getDeleted());
+            BeanUtils.copyProperties(topicStoreyColumn, columnDTO);
+            return columnDTO;
+        }).collect(Collectors.toList());
+        return collect;
+    }
+
 
     /**
      * @Description topic_storey_column表add
