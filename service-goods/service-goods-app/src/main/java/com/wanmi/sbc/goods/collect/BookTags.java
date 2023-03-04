@@ -283,7 +283,9 @@ public class BookTags {
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
+        String spu_id = String.valueOf(goodMap.get("spu_id"));
 
+        //spu_id = "2c9a00ca86299cda01862a0163e60000"
         //spu_no = "P735546359";
         //isbn   = "ISBN_C_T003";
 
@@ -343,7 +345,7 @@ public class BookTags {
         }
 
         //80. 图书本身最小年龄段、最大年龄段有数据，显示数字，X~Y岁，当任意一项没有对应显示为空
-        List ageList = getAgeList(goodMap);
+        List ageList = getAgeList(isbn);
         if(ageList!=null && ageList.size() > 0){
             allList.addAll(ageList);
         }
@@ -375,42 +377,45 @@ public class BookTags {
         map.put("isBook","yes");
         map.put("tags",allList);
 
-        List marketList = marketLabel.doMarket(goodMap);    //营销标签
-
-        map.put("marketLabel",marketList);
-
-        setRedis_Tags(spu_no,map);
+        setRedis_Tags(spu_id,map);
     }
 
-    private List getAgeList(Map goodMap) {
+    private List getAgeList(String isbn) {
+
+        String fit_age_min = null;
+        String fit_age_max = null;
+
+        Map bookMap = bookJpa.getBookMap(isbn);
+        if(bookMap != null && bookMap.size() >0 ){
+            fit_age_min = String.valueOf(bookMap.get("fit_age_min"));        //'最小阅读年龄'
+            fit_age_max = String.valueOf(bookMap.get("fit_age_max"));        //'最大阅读年龄'
+        }
 
         List ageList = new ArrayList();
 
-        String fit_age_min = String.valueOf(goodMap.get("fit_age_min"));        //'最小阅读年龄'
-        String fit_age_max = String.valueOf(goodMap.get("fit_age_max"));        //'最大阅读年龄'
-
-        if(com.wanmi.sbc.goods.collect.DitaUtil.isNotBlank(fit_age_min) && com.wanmi.sbc.goods.collect.DitaUtil.isNotBlank(fit_age_max)){
+        if(DitaUtil.isNotBlank(fit_age_min) && DitaUtil.isNotBlank(fit_age_max)){
             Map map = new HashMap();
             String name = fit_age_min + "~" + fit_age_max + "岁";
             map.put("name",name);
             map.put("show_name",name);
             map.put("order_type",80);
+            ageList.add(map);
         }
 
         return ageList;
 
     }
 
-    public void setRedis_Tags(String spu_no,Map map){
+    public void setRedis_Tags(String spu_id,Map map){
 
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
 
-        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO + ":" + spu_no);
+        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID + ":" + spu_id);
         if(!json.equals(old_json)){
-            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":" + spu_no, json );
+            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID+":" + spu_id, json );
             String updateTime = DitaUtil.getCurrentAllDate();
-            bookJpa.updateGoodTimeByNo(updateTime,spu_no);
+            bookJpa.updateGoodTime(updateTime,spu_id);
         }
 
     }
