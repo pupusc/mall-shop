@@ -571,8 +571,8 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         return goodsInfoService.goodsInfoBySkuId(skuId);
     }
     @Override
-    public BaseResponse<String> getRedis(String spuNo) {
-        return BaseResponse.success(goodTags.getRedis_Tags(spuNo));
+    public BaseResponse<String> getRedis(String spuId) {
+        return BaseResponse.success(goodTags.getRedis_Tags(spuId));
     }
 
     @Override
