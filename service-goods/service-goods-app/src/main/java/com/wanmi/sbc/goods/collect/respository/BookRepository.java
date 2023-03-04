@@ -231,8 +231,6 @@ public class BookRepository {
     }
 
 
-
-
     public List getBookList(){
 
         String sql = "select * from meta_book where del_flag = 0";
@@ -257,8 +255,9 @@ public class BookRepository {
 
         String sql = " select a.goods_no as spu,b.prop_value as isbn,c.id,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
                      " left join meta_book c on b.prop_value = c.isbn " +
-                     " where b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0 and c.id = 7836 ";
+                     " where b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0 ";
 
+        //and c.id = 7836
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql,obj);
 

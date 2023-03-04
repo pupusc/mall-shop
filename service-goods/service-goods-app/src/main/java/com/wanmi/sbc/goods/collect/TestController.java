@@ -35,6 +35,7 @@ public class TestController {
         //goodTags.getRedis("P735546359");        //图书
         //goodTags.getRedis("P989359460");        //非书
 
+        //1小时37分
         System.out.println("begin:" + DitaUtil.getCurrentAllDate());
 
         bookTags.doGoods();         //图书商品

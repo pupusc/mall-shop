@@ -89,6 +89,7 @@ public class MarketLabel {
             allList.addAll(tagList1);
         }
 
+        //70. 其它标签
         List tagList2 = marketJpa.getTagList2(spu_id);
         if(tagList2 !=null && tagList2.size() > 0){
             allList.addAll(tagList2);
@@ -110,8 +111,8 @@ public class MarketLabel {
         String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_MARKING_SKU_ID + ":" + sku_id);
         if(!json.equals(old_json)){
             redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_MARKING_SKU_ID+":" + sku_id, json );
-            String updateTime = DitaUtil.getCurrentAllDate();
-            bookJpa.updateGoodTime(updateTime,spu_id);
+            //String updateTime = DitaUtil.getCurrentAllDate();
+            //bookJpa.updateGoodTime(updateTime,spu_id);
         }
 
     }
