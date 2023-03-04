@@ -369,7 +369,7 @@ public class TopicConfigController {
     @ApiOperation("混合标签tab列表")
     @PostMapping("/storey/v2/tag/list")
     public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request){
-        return topicConfigProvider.listMixedComponentTab(request);
+        return topicConfigProvider.pageMixedComponentTab(request);
     }
 
     /**
@@ -413,7 +413,7 @@ public class TopicConfigController {
     @ApiOperation("混合标签tab规则列表")
     @PostMapping("/storey/v2/tagRule/list")
     public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTabRule(@RequestBody MixedComponentTabQueryRequest request){
-        return topicConfigProvider.listMixedComponentTab(request);
+        return topicConfigProvider.pageMixedComponentTab(request);
     }
 
     /**
