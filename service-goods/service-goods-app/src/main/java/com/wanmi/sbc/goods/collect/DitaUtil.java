@@ -2,8 +2,7 @@ package com.wanmi.sbc.goods.collect;
 
 import java.text.SimpleDateFormat;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 
 /**
@@ -61,6 +60,63 @@ public class DitaUtil {
         } else {
             return true;
         }
+    }
+
+    //过滤出指定的key
+    //String filters = "id,name";
+    public static List<Map> filter(List<Map> list , String filters){
+
+        List ret = new ArrayList();
+
+        for(int i=0;i<list.size();i++){
+
+            Map newMap = new HashMap();
+
+            Map<String,Object> map = (Map)list.get(i);
+
+            Set set = map.keySet();
+            Iterator iterator = set.iterator();
+            while (iterator.hasNext()){
+                Object next = iterator.next();
+                //System.out.println("key为："+next+",value为："+map.get(next));
+                if(filters.contains(next.toString())){
+                    newMap.put(next,map.get(next));
+                }
+            }
+
+            if(newMap.size() > 0){
+                ret.add(newMap);
+            }
+
+        }
+
+        return ret;
+
+    }
+
+    public static void main(String[] args) {
+
+        List data = new ArrayList();
+
+        Map map1 = new HashMap();
+        map1.put("id",1);
+        map1.put("name","张三1");
+        map1.put("sex","1");
+
+        data.add(map1);
+
+        Map map2 = new HashMap();
+        map2.put("id",2);
+        map2.put("name","张三2");
+        map2.put("xxx","2");
+        data.add(map2);
+
+        String filters = "id,name";
+
+        List newList = DitaUtil.filter(data,filters);
+
+        System.out.println(newList);
+
     }
 
 }
