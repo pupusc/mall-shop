@@ -86,20 +86,8 @@ public class TopicConfigController implements TopicConfigProvider {
         return BaseResponse.success(topicConfigService.listStorey(request));
     }
 
-    public RankRequestListResponse rank(RankStoreyRequest storeyRequest) {
-        return topicConfigService.rank(storeyRequest);
-    }
-
-    public RankRequestListResponse rank2() {
-        return topicConfigService.rank2();
-    }
-
-    public RankPageResponse rankPage(RankStoreyRequest storeyRequest){
-        return topicConfigService.rankPage2(storeyRequest);
-    }
-
-    public RankPageResponse rankPage2(RankStoreyRequest storeyRequest){
-        return topicConfigService.rankPage2(storeyRequest);
+    public RankRequestListResponse rank() {
+        return topicConfigService.rank();
     }
 
     public RankPageResponse rankPageByBookList(RankStoreyRequest storeyRequest){
@@ -159,6 +147,24 @@ public class TopicConfigController implements TopicConfigProvider {
     @Override
     public BaseResponse addRankLevel(RankLevelAddRequest request) {
         topicConfigService.addRankLevel(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse addRankrelation(TopicRalationRequest request) {
+        topicConfigService.addRankrelation(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse updateRankrelation(TopicRalationRequest request) {
+        topicConfigService.updateRankrelation(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse deleteRankrelation(TopicRalationRequest request) {
+        topicConfigService.deleteRankrelation(request);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -225,12 +231,22 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     /**
+     * @Description 混合标签tab分页
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<MicroServicePage<MixedComponentTabDto>> pageMixedComponentTab(MixedComponentTabQueryRequest request) {
+        return BaseResponse.success(topicConfigService.pageMixedComponentTab(request));
+    }
+
+    /**
      * @Description 混合标签tab列表
      * @Author zh
      * @Date  2023/2/18 11:50
      */
     @Override
-    public BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(MixedComponentTabQueryRequest request) {
+    public BaseResponse<List<MixedComponentTabDto>> listMixedComponentTab(MixedComponentTabQueryRequest request) {
         return BaseResponse.success(topicConfigService.listMixedComponentTab(request));
     }
 
@@ -253,7 +269,7 @@ public class TopicConfigController implements TopicConfigProvider {
      */
     @Override
     public BaseResponse<MicroServicePage<ColumnDTO>> listTopicStoreyColumn(ColumnQueryRequest request) {
-        return BaseResponse.success(topicConfigService.listTopicStoreyColumn(request));
+        return BaseResponse.success(topicConfigService.pageTopicStoreyColumn(request));
     }
 
     /**
@@ -316,7 +332,7 @@ public class TopicConfigController implements TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @Override
-    public BaseResponse<MicroServicePage<ColumnContentDTO>> listTopicStoreyColumnContent(ColumnContentQueryRequest request) {
+    public BaseResponse<MicroServicePage<ColumnContentDTO>> pageTopicStoreyColumnContent(ColumnContentQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopicStoreyColumnContent(request));
     }
 

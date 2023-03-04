@@ -64,16 +64,7 @@ public interface TopicConfigProvider {
     BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
-    RankRequestListResponse rank(@RequestBody RankStoreyRequest storeyRequest);
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rank2")
-    RankRequestListResponse rank2();
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage")
-    RankPageResponse rankPage(@RequestBody RankStoreyRequest storeyRequest);
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage2")
-    RankPageResponse rankPage2(@RequestBody RankStoreyRequest storeyRequest);
+    RankRequestListResponse rank();
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/rankPageByBookList")
     RankPageResponse rankPageByBookList(@RequestBody RankStoreyRequest storeyRequest);
@@ -139,6 +130,30 @@ public interface TopicConfigProvider {
     BaseResponse addRankLevel(@RequestBody RankLevelAddRequest request);
 
     /**
+     * @Description 二级榜单添加
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/add")
+    BaseResponse addRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
+     * @Description 二级榜单更新
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/update")
+    BaseResponse updateRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
+     * @Description 二级榜单删除
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/delete")
+    BaseResponse deleteRankrelation(@RequestBody TopicRalationRequest request);
+
+    /**
      * @Description 榜单分类添加
      * @Author
      * @Date  2023/2/18 11:50
@@ -147,12 +162,20 @@ public interface TopicConfigProvider {
     BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request);
 
     /**
+     * @Description 混合标签tab分页
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/page")
+    BaseResponse<MicroServicePage<MixedComponentTabDto>> pageMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+
+    /**
      * @Description 混合标签tab列表
      * @Author zh
      * @Date  2023/2/18 11:50
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
-    BaseResponse<MicroServicePage<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
+    BaseResponse<List<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
 
     /**
      * @Description 商品池add
@@ -216,7 +239,7 @@ public interface TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/list")
-    BaseResponse<MicroServicePage<ColumnContentDTO>> listTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
+    BaseResponse<MicroServicePage<ColumnContentDTO>> pageTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
 
     /**
      * @Description topic_storey_column_content表add

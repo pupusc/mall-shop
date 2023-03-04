@@ -3,6 +3,7 @@ package com.wanmi.sbc.bookmeta.mapper;
 import com.wanmi.sbc.bookmeta.bo.AuthorityBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.entity.*;
+import com.wanmi.sbc.bookmeta.entity.*;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -113,10 +114,16 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     List<Map> getLabelCate(int parent_id);
 
-    List<MetaLabelV2> getLabels(@Param("name")String name, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+    List<MetaLabelV2> getLabels(@Param("name")String name,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
     int getLabelsCount(@Param("name")String name);
 
+    int isExistGoods(@Param("goods_id") String id);
 
+    int addGoodsLabelSpu(GoodsLabelSpu goodsLabelSpu);
+
+    int updateGoodsLabelSpu(GoodsLabelSpu goodsLabelSpu);
+
+    int deleteGoodsLabel(@Param("id") int id);
 }
 

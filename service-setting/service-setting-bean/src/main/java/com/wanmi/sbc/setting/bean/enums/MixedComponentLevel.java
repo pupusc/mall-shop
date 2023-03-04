@@ -13,13 +13,13 @@ import com.wanmi.sbc.common.annotation.ApiEnumProperty;
 @ApiEnum(dataType = "java.lang.String")
 public enum MixedComponentLevel {
 
-    @ApiEnumProperty("0")
+    @ApiEnumProperty("0:tab")
     ONE,
-    @ApiEnumProperty("1")
+    @ApiEnumProperty("1:关键词")
     TWO,
-    @ApiEnumProperty("2")
+    @ApiEnumProperty("2:规则")
     THREE,
-    @ApiEnumProperty("3")
+    @ApiEnumProperty("3:投放内容")
     FOUR;
 
     @JsonCreator

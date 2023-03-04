@@ -381,5 +381,79 @@
         </if>
     </select>
 
+    <select id="isExistGoods" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1) from goods where goods_id = #{goods_id}
+    </select>
+
+    <insert id="addGoodsLabelSpu" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsLabelSpu">
+        insert into meta_label_spu
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="goodsId !=null">
+                goods_id,
+            </if>
+            <if test="labelId != null">
+                label_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="firstId !=null">
+                first_id,
+            </if>
+            <if test="secondId != null">
+                second_id ,
+            </if>
+            <if test="orderNum!= null">
+                order_num
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="goodsId !=null">
+                #{goodsId},
+            </if>
+            <if test="labelId != null">
+                #{labelId},
+            </if>
+            <if test="createTime != null">
+                #{createTime},
+            </if>
+            <if test="firstId !=null">
+                #{firstId},
+            </if>
+            <if test="secondId != null">
+                #{secondId},
+            </if>
+            <if test="orderNum!= null">
+                #{orderNum}
+            </if>
+        </trim>
+    </insert>
+
+
+    <update id="updateGoodsLabelSpu" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsLabelSpu">
+        update meta_label_spu
+            <set>
+                <if test="goodsId !=null">
+                    goods_id=#{goodsId},
+                </if>
+
+                <if test="labelId != null">
+                    label_id=#{labelId},
+                </if>
+                <if test="firstId !=null">
+                    first_id=#{firstId},
+                </if>
+                <if test="secondId != null">
+                    second_id =#{secondId},
+                </if>
+                <if test="orderNum!= null">
+                    order_num=#{orderNum}
+                </if>
+            </set>
+            where id = #{id}
+    </update>
+    <delete id="deleteGoodsLabel" parameterType="java.lang.Integer">
+        delete from meta_label_spu where id = #{id}
+    </delete>
 </mapper>
 
