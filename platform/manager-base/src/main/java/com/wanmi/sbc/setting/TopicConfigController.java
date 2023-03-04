@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
@@ -416,6 +417,7 @@ public class TopicConfigController {
     @ApiOperation("混合标签tab添加")
     @PostMapping("/storey/v2/tag/add")
     public BaseResponse addMixedComponentTab(@RequestBody MixedComponentTabAddRequest request){
+        request.getKeyWords().forEach(s -> s.setId(UUIDUtil.getUUID()));
         return topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest());
     }
 
@@ -472,9 +474,8 @@ public class TopicConfigController {
      */
     @ApiOperation("视频指定内容投放数据添加")
     @PostMapping("/storey/v2/video/add")
-    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request ,@RequestParam(value="file") MultipartFile file){
+    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request){
         Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
-        excelService.importExcel(file, id, request.getBookType());
         return BaseResponse.SUCCESSFUL();
     }
 
