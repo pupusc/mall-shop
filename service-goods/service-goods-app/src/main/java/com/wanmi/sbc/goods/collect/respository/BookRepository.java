@@ -284,7 +284,7 @@ public class BookRepository {
     public List getOther(String book_id) {
 
         String sql = " select a.id as book_id, name as book_name,a.isbn from meta_book a left join meta_book_rcmmd b on a.id = b.biz_id " +
-                     " where b.book_id = ? and b.biz_type = 7 ";
+                     " where b.book_id = ? and b.biz_type = 7 limit 0,5 ";
         Object[] obj = new Object[]{book_id};
 
         List list = jpaManager.queryForList(sql,obj);
