@@ -39,6 +39,8 @@ import com.wanmi.sbc.goods.bean.enums.GoodsSource;
 import com.wanmi.sbc.goods.bean.vo.GoodsSimpleVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPageSimpleVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.job.CollectSpuNewJobHandler;
+import com.wanmi.sbc.job.StockAppointmentJobHandler;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -296,6 +298,14 @@ public class BossGoodsController {
     @RequestMapping(value = "/refreshBook", method = RequestMethod.POST)
     public BaseResponse refreshBook(@RequestBody SpuRequest spuRequest){
         return riskVerifyProvider.refreshBook(spuRequest);
+    }
+
+    @Autowired
+    private CollectSpuNewJobHandler collectSpuNewJobHandler;
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public BaseResponse test() throws Exception {
+        collectSpuNewJobHandler.execute(null);
+        return BaseResponse.SUCCESSFUL();
     }
 
 

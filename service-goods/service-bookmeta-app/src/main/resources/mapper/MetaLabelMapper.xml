@@ -24,6 +24,30 @@
         <result property="showText" column="show_text" jdbcType="VARCHAR"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="isShow" column="is_show" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaLabelV2" id="MetaLabelMapV2">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="seq" column="seq" jdbcType="INTEGER"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="scene" column="scene" jdbcType="INTEGER"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="isStatic" column="is_static" jdbcType="INTEGER"/>
+        <result property="isRun" column="is_run" jdbcType="INTEGER"/>
+        <result property="runFromTime" column="run_from_time" jdbcType="TIMESTAMP"/>
+        <result property="runToTime" column="run_to_time" jdbcType="TIMESTAMP"/>
+        <result property="showStatus" column="show_status" jdbcType="INTEGER"/>
+        <result property="showImg" column="show_img" jdbcType="VARCHAR"/>
+        <result property="showText" column="show_text" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="isShow" column="is_show" jdbcType="INTEGER"/>
         <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
         <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
     </resultMap>
@@ -332,7 +356,7 @@
         select id,name,parent_id from meta_label label where type = 1 and parent_id = #{parent_id} and del_flag = 0;
     </select>
 
-    <select id="getLabels" parameterType="java.lang.String" resultMap="MetaLabelMap">
+    <select id="getLabels" parameterType="java.lang.String" resultMap="MetaLabelMapV2">
         select a.label_id as id, b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
         from meta_label_spu a
                  left join meta_label b on a.label_id = b.id

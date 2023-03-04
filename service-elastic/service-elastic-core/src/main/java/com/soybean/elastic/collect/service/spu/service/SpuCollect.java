@@ -182,7 +182,10 @@ public class SpuCollect extends AbstractSpuCollect {
 
             TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(esSpuNew.getSpuId()).getContext();
             List<TagsDto.Tags> tags = tagsDto.getTags();
-            List<SubSpuLabelNew> subSpuLabelNews = KsBeanUtil.convertList(tags, SubSpuLabelNew.class);
+            List<SubSpuLabelNew> subSpuLabelNews=new ArrayList<>();
+            if(!CollectionUtils.isEmpty(tags)) {
+                subSpuLabelNews = KsBeanUtil.convertList(tags, SubSpuLabelNew.class);
+            }
             esSpuNew.setSpuLabels(subSpuLabelNews);
             //49包邮标签信息
             log.info("SpuCollect collect spuId:{} freightTempId is {}", collectSpuVO.getGoodsId(), collectSpuVO.getFreightTempId());

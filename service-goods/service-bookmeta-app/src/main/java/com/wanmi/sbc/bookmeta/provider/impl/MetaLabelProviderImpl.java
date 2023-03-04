@@ -2,10 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.*;
-import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
-import com.wanmi.sbc.bookmeta.entity.MetaLabel;
-import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
-import com.wanmi.sbc.bookmeta.entity.MetaTrade;
+import com.wanmi.sbc.bookmeta.entity.*;
 import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
@@ -186,7 +183,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        List<MetaLabel> labels = metaLabelMapper.getLabels(pageReqBO.getName(), page.getOffset(), page.getPageSize());
+        List<MetaLabelV2> labels = metaLabelMapper.getLabels(pageReqBO.getName(), page.getOffset(), page.getPageSize());
         List<MetaLabelBO> metaLabelBOS = KsBeanUtil.convertList(labels, MetaLabelBO.class);
         return BusinessResponse.success(metaLabelBOS);
     }
