@@ -328,7 +328,7 @@ public class TopicService {
      * @return
      */
     public List<RankRequest> rank(){
-        RankRequestListResponse response = topicConfigProvider.rank2();
+        RankRequestListResponse response = topicConfigProvider.rank();
         List<Integer> idList = response.getRankIds();
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
         idsRequest.setIds(idList);

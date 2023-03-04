@@ -64,16 +64,7 @@ public interface TopicConfigProvider {
     BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/rank")
-    RankRequestListResponse rank(@RequestBody RankStoreyRequest storeyRequest);
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rank2")
-    RankRequestListResponse rank2();
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage")
-    RankPageResponse rankPage(@RequestBody RankStoreyRequest storeyRequest);
-
-    @PostMapping("/setting/${application.setting.version}/topic/storey/rankPage2")
-    RankPageResponse rankPage2(@RequestBody RankStoreyRequest storeyRequest);
+    RankRequestListResponse rank();
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/rankPageByBookList")
     RankPageResponse rankPageByBookList(@RequestBody RankStoreyRequest storeyRequest);

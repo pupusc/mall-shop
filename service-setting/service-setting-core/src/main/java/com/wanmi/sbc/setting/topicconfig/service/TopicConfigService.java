@@ -177,78 +177,10 @@ public class TopicConfigService {
 
     /**
      * 首页榜单查询
-     * @param storeyRequest
+     * @param
      * @return
      */
-    public RankRequestListResponse rank(RankStoreyRequest storeyRequest) {
-
-
-        Integer topicStoreyId=storeyRequest.getTopicStoreyId();
-        String sql = "SELECT\n" +
-                " *\n" +
-                "FROM\n" +
-                " (SELECT * from topic_storey_column_content where topic_storey_id=?) AS a \n" +
-                "WHERE\n" +
-                "( SELECT count(*) FROM topic_storey_column_content tt WHERE topic_storey_column_id = a.topic_storey_column_id AND order_num >= a.order_num )<= 3\n" +
-                "ORDER BY\n" +
-                " topic_storey_column_id asc,order_num DESC";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
-        query.setParameter(1,topicStoreyId);
-        List<TopicStoreySearch> list=getRankNameList(topicStoreyId,true);
-        List<TopicStoreySearchContent> resultList = query.getResultList();
-        List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
-        entityManager.close();
-        List<RankRequest> rankRequests=new ArrayList<>();
-        RankRequestListResponse response=new RankRequestListResponse();
-        List<String> idList=new ArrayList<>();
-        list.forEach(ts->{
-            RankRequest rankRequest=new RankRequest();
-            rankRequest.setRankName(ts.getName());
-            rankRequest.setId(ts.getId());
-            List<Map> contentRequestList=new ArrayList<>();
-            rankRequest.setRankList(contentRequestList);
-            rankRequests.add(rankRequest);
-        });
-        rankRequests.forEach(r->{
-            contentRequests.forEach(c->{
-                if(c.getTopicStoreySearchId().equals(r.getId())){
-                    if(r.getRankList().size()<3) {
-                        Map map = new HashMap<>();
-                        map.put("id", c.getId());
-                        map.put("spuNo", c.getSpuNo());
-                        map.put("skuNo", c.getSkuNo());
-                        map.put("imageUrl", c.getImageUrl());
-                        map.put("sorting", c.getSorting());
-                        map.put("goodsName", c.getGoodsName());
-                        if (StringUtils.isNotBlank(c.getNumTxt())) {
-                            if (Integer.parseInt(c.getNumTxt()) >= 10000) {
-                                String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
-                                map.put("num", num);
-                            } else {
-                                map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
-                            }
-                        } else {
-                            map.put("num", "");
-                        }
-                        map.put("skuId", c.getSkuId());
-                        map.put("spuId", c.getSpuId());
-                        map.put("label", "");
-                        map.put("subName", "");
-                        r.getRankList().add(map);
-                    }
-                }
-                if(!idList.contains(c.getSkuId())) {
-                    idList.add(c.getSkuId());
-                }
-            });
-        });
-        response.setRankRequestList(rankRequests);
-        response.setIdList(idList);
-        return response;
-    }
-
-    public RankRequestListResponse rank2() {
+    public RankRequestListResponse rank() {
         RankRequestListResponse response=new RankRequestListResponse();
         List<Integer> ids=new ArrayList<>();
         List<RankRequest> rankRequestList=new ArrayList<>();
@@ -266,101 +198,10 @@ public class TopicConfigService {
     }
 
     /**
-     * 榜单详情页分页
+     * 获取榜单聚合页榜单数据
      * @param storeyRequest
      * @return
      */
-    public RankPageResponse rankPage2(RankStoreyRequest storeyRequest) {
-        Integer rankIdByTopicStoreyId = getRankIdByTopicStoreyId(storeyRequest.getTopicStoreyId());
-        storeyRequest.setTopicStoreyId(rankIdByTopicStoreyId);
-        List<RankRequest> requests = getRankNameList2(storeyRequest.getTopicStoreyId(), false);
-        String sql = "SELECT * FROM topic_storey_column_content where topic_storey_column_id = ?1 ";
-        Integer topicStoreySearchId=0;
-        if(null==storeyRequest.getTopicStoreySearchId()){
-            RankRequest request = requests.get(0);
-            Optional<RankRequest> first = request.getRankList().stream().findFirst();
-            if(first.isPresent()){
-                topicStoreySearchId = first.get().getId();
-            }
-        }else {
-            if(isLevel0(storeyRequest.getTopicStoreySearchId(),requests)){
-                Optional<RankRequest> first = requests.stream().filter(r -> r.getId().equals(storeyRequest.getTopicStoreySearchId())).findFirst();
-                if(first.isPresent()){
-                    RankRequest rankRequest = first.get();
-                    List<RankRequest> rankList = (List<RankRequest>) rankRequest.getRankList();
-                    Integer id = rankList.get(0).getId();
-                    topicStoreySearchId=id;
-                }
-            }else {
-                topicStoreySearchId = storeyRequest.getTopicStoreySearchId();
-            }
-        }
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query1 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
-        query1.setParameter(1,topicStoreySearchId);
-        RankPageRequest pageRequest=new RankPageRequest();
-        Long total = Long.valueOf(query1.getResultList().size());
-        if(null==storeyRequest.getPageSize()){
-            storeyRequest.setPageSize(10);
-        }
-        if(null==storeyRequest.getPageNum()){
-            storeyRequest.setPageNum(0);
-        }
-        pageRequest.setTotal(total);
-        pageRequest.setPageNum(storeyRequest.getPageNum());
-        pageRequest.setTotalPages((long) (Math.ceil(total/storeyRequest.getPageSize())+1));
-        int start = (storeyRequest.getPageNum()) * storeyRequest.getPageSize();
-        sql+="ORDER BY sorting asc limit ?2,?3";
-        Query query2 = entityManager.createNativeQuery(sql,TopicStoreySearchContent.class);
-        query2.setParameter(1,topicStoreySearchId);
-        query2.setParameter(2,start);
-        query2.setParameter(3,storeyRequest.getPageSize());
-        List<TopicStoreySearchContent> resultList = query2.getResultList();
-        entityManager.close();
-        List<TopicStoreySearchContentRequest> contentRequests=KsBeanUtil.convertList(resultList,TopicStoreySearchContentRequest.class);
-        List<String> idList=new ArrayList<>();
-        requests.forEach(r->{
-            r.getRankList().forEach(q->{
-                RankRequest rankRequest= (RankRequest) q;
-                List<Map> contentRequestList= (List<Map>) rankRequest.getRankList();
-                contentRequests.forEach(c->{
-                    if(c.getTopicStoreySearchId().equals(rankRequest.getId())){
-                        Map map=new HashMap<>();
-                        map.put("id",c.getId());
-                        map.put("spuNo",c.getSpuNo());
-                        map.put("skuNo",c.getSkuNo());
-                        map.put("imageUrl",c.getImageUrl());
-                        map.put("sorting",c.getSorting());
-                        map.put("goodsName",c.getGoodsName());
-                        if(StringUtils.isNotBlank(c.getNumTxt())) {
-                            if (Integer.parseInt(c.getNumTxt()) >= 10000) {
-                                String num = String.valueOf(Integer.parseInt(c.getNumTxt()) / 10000) + "万";
-                                map.put("num", num);
-                            } else {
-                                map.put("num", String.valueOf(Integer.parseInt(c.getNumTxt())));
-                            }
-                        }else {
-                            map.put("num", "");
-                        }
-                        map.put("skuId",c.getSkuId());
-                        map.put("spuId",c.getSpuId());
-                        map.put("label","");
-                        map.put("subName","");
-                        contentRequestList.add(map);
-                    }
-                    if(!idList.contains(c.getSkuId())) {
-                        idList.add(c.getSkuId());
-                    }
-                });
-            });
-        });
-        RankPageResponse response=new RankPageResponse();
-        pageRequest.setContentList(requests);
-        response.setPageRequest(pageRequest);
-        response.setIdList(idList);
-        return response;
-    }
-
     public RankPageResponse rankPageByBookList(RankStoreyRequest storeyRequest) {
         Integer rankIdByTopicStoreyId = getRankIdByTopicStoreyId(storeyRequest.getTopicStoreyId());
         storeyRequest.setTopicStoreyId(rankIdByTopicStoreyId);
@@ -368,38 +209,10 @@ public class TopicConfigService {
     }
 
     /**
-     * 去除空榜单
+     * 获取榜单id
+     * @param topicStoreyId
+     * @return
      */
-    public List<Integer> dislodgeBlankRank(){
-        String sql = "select distinct topic_storey_column_id from topic_storey_column_content where topic_storey_id=?1";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1,"185");
-        List<Integer> resultList = query.getResultList();
-        entityManager.close();
-        return resultList;
-    }
-
-    public Integer getTopicStoryId(RankStoreyRequest storeyRequest){
-        String sql = "SELECT id from topic_story where storey_type = 21 and topic_id=?1";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1,storeyRequest.getTopicId());
-        Integer id = Integer.parseInt(query.getSingleResult().toString());
-        entityManager.close();
-        return id;
-    }
-
-    public boolean isLevel0(Integer topicStoreySearchId, List<RankRequest> requests){
-        AtomicBoolean flag= new AtomicBoolean(false);
-        requests.forEach(r->{
-            if(topicStoreySearchId.equals(r.getId())){
-                flag.set(true);
-            }
-        });
-        return flag.get();
-    }
-
     public Integer getRankIdByTopicStoreyId(Integer topicStoreyId){
         String sql = "SELECT relation_store_id FROM topic_storey_column WHERE topic_storey_id = ?1";
         EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
@@ -410,66 +223,12 @@ public class TopicConfigService {
         return id;
     }
 
-    public List<TopicStoreySearch> getRankNameList(Integer topicStoreyId,Boolean isDitail){
-        String sql = "SELECT * FROM topic_storey_column where topic_storey_id=? ";
-        if(isDitail){
-            sql+="and level!=0 ";
-        }
-        sql+="ORDER BY order_num asc";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql,TopicStoreySearch.class);
-        query.setParameter(1,topicStoreyId);
-        List<TopicStoreySearch> list=query.getResultList();
-        entityManager.close();
-        return list;
-    }
-
-    public List<RankRequest> getRankNameList2(Integer topicStoreyId,Boolean isDitail){
-        String sql = "SELECT * FROM topic_storey_column where topic_storey_id=? ";
-        if(isDitail){
-            sql+="and level!=0 ";
-        }
-        sql+="ORDER BY order_num asc";
-        EntityManager entityManager = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
-        Query query = entityManager.createNativeQuery(sql,TopicStoreySearch.class);
-        query.setParameter(1,topicStoreyId);
-        List<TopicStoreySearch> list=query.getResultList();
-        entityManager.close();
-        List<RankRequest> rankRequests=new ArrayList<>();
-        List<Integer> dislodgeBlankRankList = dislodgeBlankRank();
-        list.forEach(l->{
-            if(null==l.getPId()||l.getLevel().equals(0)){
-                RankRequest rankRequest=new RankRequest();
-                rankRequest.setRankName(l.getName());
-                rankRequest.setId(l.getId());
-                rankRequest.setLevel(l.getLevel());
-                List<RankRequest> contentRequestList=new ArrayList<>();
-                rankRequest.setRankList(contentRequestList);
-                rankRequests.add(rankRequest);
-            }
-        });
-        list.stream().filter(l->null!=l.getPId()&&!l.getLevel().equals(0)&&dislodgeBlankRankList.contains(l.getId())).forEach(l->{
-            rankRequests.stream().filter(r->r.getId().equals(l.getPId())).forEach(r->{
-                RankRequest rankRequest=new RankRequest();
-                rankRequest.setRankName(l.getName());
-                rankRequest.setId(l.getId());
-                rankRequest.setLevel(l.getLevel());
-                rankRequest.setP_id(l.getPId());
-                List<Map> contentRequestList=new ArrayList<>();
-                rankRequest.setRankList(contentRequestList);
-                r.getRankList().add(rankRequest);
-            });
-        });
-        Iterator<RankRequest> iterator= rankRequests.iterator();
-        while (iterator.hasNext()){
-            RankRequest next = iterator.next();
-            if(CollectionUtils.isEmpty(next.getRankList())){
-                iterator.remove();
-            }
-        }
-        return rankRequests;
-    }
-
+    /**
+     * 初始化榜单树形结构
+     * @param storeyRequest
+     * @param isDitail
+     * @return
+     */
     public RankPageResponse getRankNameListRel(RankStoreyRequest storeyRequest,Boolean isDitail){
         Integer topicStoreyId = storeyRequest.getTopicStoreyId();
         List<TopicStoreyColumn> list = columnRepository.getByTopicStoreyIdAndLevelOrderByOrderNumAsc(topicStoreyId, 0);

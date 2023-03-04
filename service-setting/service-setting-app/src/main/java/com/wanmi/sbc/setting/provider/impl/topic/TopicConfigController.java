@@ -86,20 +86,8 @@ public class TopicConfigController implements TopicConfigProvider {
         return BaseResponse.success(topicConfigService.listStorey(request));
     }
 
-    public RankRequestListResponse rank(RankStoreyRequest storeyRequest) {
-        return topicConfigService.rank(storeyRequest);
-    }
-
-    public RankRequestListResponse rank2() {
-        return topicConfigService.rank2();
-    }
-
-    public RankPageResponse rankPage(RankStoreyRequest storeyRequest){
-        return topicConfigService.rankPage2(storeyRequest);
-    }
-
-    public RankPageResponse rankPage2(RankStoreyRequest storeyRequest){
-        return topicConfigService.rankPage2(storeyRequest);
+    public RankRequestListResponse rank() {
+        return topicConfigService.rank();
     }
 
     public RankPageResponse rankPageByBookList(RankStoreyRequest storeyRequest){
