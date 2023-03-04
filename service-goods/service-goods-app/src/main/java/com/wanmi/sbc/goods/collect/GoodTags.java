@@ -45,6 +45,7 @@ public class GoodTags {
     public void doGoods(Map goodMap){
 
         String spu_no = String.valueOf(goodMap.get("spu_no"));
+        String spu_id = String.valueOf(goodMap.get("goods_id"));
 
         //spu_no = "P989359460";
 
@@ -74,20 +75,20 @@ public class GoodTags {
         map.put("isBook","no");
         map.put("tags",allList);
 
-        setRedis_Tags(spu_no,map);
+        setRedis_Tags(spu_id,map);
     }
 
-    public void setRedis_Tags(String spu_no,Map map){
+    public void setRedis_Tags(String spu_id,Map map){
 
         //String json = JSONArray.parseArray(JSON.toJSONString(list)).toJSONString();
         String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
 
-        redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":"+spu_no, json );
+        redisService.setString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID+":"+spu_id, json );
 
     }
 
-    public String getRedis_Tags(String spu_no){
-        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_NO+":"+spu_no);
+    public String getRedis_Tags(String spu_id){
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID+":"+spu_id);
         if(DitaUtil.isBlank(value)){
             value = "{}";
         }
