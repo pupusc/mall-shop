@@ -156,12 +156,11 @@ public class TopicController {
 
     /**
      * 获取用户所有到货提醒
-     * @param request
      * @return
      */
     @PostMapping(value = "/findAppointment")
-    public BaseResponse<AppointmentRequest> findAppointment(@RequestBody AppointmentStockRequest request){
-        return topicService.findAppointment(request);
+    public BaseResponse<AppointmentRequest> findAppointment(){
+        return topicService.findAppointment();
     }
 
 }

@@ -1263,10 +1263,10 @@ public class TopicService {
 
     /**
      * 获取用户所有预约
-     * @param request
      * @return
      */
-    public BaseResponse<AppointmentRequest> findAppointment(AppointmentStockRequest request) {
+    public BaseResponse<AppointmentRequest> findAppointment() {
+        AppointmentStockRequest request=new AppointmentStockRequest();
         List<StockAppointmentRequest> list=new ArrayList<>();
         AppointmentRequest appointmentRequest=new AppointmentRequest();
         Operator operator = commonUtil.getOperator();
