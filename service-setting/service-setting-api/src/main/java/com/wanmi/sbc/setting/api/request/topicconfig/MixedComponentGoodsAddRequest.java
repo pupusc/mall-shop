@@ -27,11 +27,13 @@ public class MixedComponentGoodsAddRequest implements Serializable {
 
     private Integer level = MixedComponentLevel.FOUR.toValue();
 
+    private String name;
+
     private Integer bookType;
     private String dropName;
 
     private Integer orderWay;
-    private SelectDto image;
+    private String image;
 
     private String titleImage;
 
@@ -46,6 +48,7 @@ public class MixedComponentGoodsAddRequest implements Serializable {
     public ColumnAddRequest getColumnAddRequest() {
         ColumnAddRequest columnAddRequest = new ColumnAddRequest();
         columnAddRequest.setTopicStoreyId(topicStoreyId);
+        columnAddRequest.setName(name);
         columnAddRequest.setLevel(level);
         columnAddRequest.setBookType(bookType);
         columnAddRequest.setDropName(dropName);
