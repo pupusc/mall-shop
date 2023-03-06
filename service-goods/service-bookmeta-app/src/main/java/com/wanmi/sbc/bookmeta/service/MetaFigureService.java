@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -159,24 +160,34 @@ public class MetaFigureService {
                 if(goodsInfoViewByIdsResponseBaseResponse.getCode().equals(CommonErrorCode.FAILED)){
                     return bs;
                 }
-                List<String> skuIdList = goodsInfoViewByIdsResponseBaseResponse.getContext().getGoodsInfos().stream().map(g -> g.getGoodsInfoId()).collect(Collectors.toList());
-                goodsInfoViewByIdsRequest.getIsbnList().clear();
-                goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
-                List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
-                //用户信息
-                String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-                CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
-                //填充价格信息
-                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-                List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-                if(null==goodsInfoVOList || goodsInfoVOList.size()==0){
+                List<GoodsInfoVO> goodsInfos = goodsInfoViewByIdsResponseBaseResponse.getContext().getGoodsInfos();
+//                List<String> skuIdList = goodsInfoViewByIdsResponseBaseResponse.getContext().getGoodsInfos().stream().map(g -> g.getGoodsInfoId()).collect(Collectors.toList());
+//                goodsInfoViewByIdsRequest.getIsbnList().clear();
+//                goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+//                List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+//                //用户信息
+//                String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+//                CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+//                //填充价格信息
+//                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+//                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+//                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+//                List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+                if(null==goodsInfos || goodsInfos.size()==0){
                     //没有商品信息直接返回
                     return bs;
                 }
                 //构建返回类型
-                bs.getRecomentBookBoList().addAll(KsBeanUtil.convertList(goodsInfoVOList, MetaBookRcmmdFigureBO.RecomentBookVo.class));
+                bs.getRecomentBookBoList().addAll(KsBeanUtil.convertList(goodsInfos, MetaBookRcmmdFigureBO.RecomentBookVo.class));
+                List<MetaBookRcmmdFigureBO.RecomentBookVo> collect = bs.getRecomentBookBoList().stream().map(recomentBookVo -> {
+                    TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(recomentBookVo.getGoodsId()).getContext();
+                    if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+
+                        BeanUtils.copyProperties(tagsDto, recomentBookVo.getTagsDto().getTags());
+                    }
+                    return recomentBookVo;
+                }).collect(Collectors.toList());
+                bs.setRecomentBookBoList(collect);
                 return bs;
             }
             return null;

@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.collect.respository;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.bookmeta.bo.MetaAwardBO;
 import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
 import com.wanmi.sbc.goods.redis.RedisService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -424,5 +426,63 @@ public class BookRepository {
         return list;
     }
 
+
+    //通过book_id得到出品方名称,且不包含这本书
+    public List RcommdFigureByBookId(String bookId) {
+
+        String sql = " select a.*,b.name,b.job_title from meta_book_rcmmd as a left join meta_figure as b on a.biz_id = b.id where a.book_id=? and a.is_selected=1 and a.del_flag=0 ";
+
+        Object[] obj = new Object[]{bookId};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //通过id查询获奖名称
+    public List<Map> queryAwardById(int biz_id) {
+        String sql = "select id, name, image, create_time, update_time, del_flag, descr from meta_award where id = ? and del_flag = 0";
+        Object[] obj = new Object[]{biz_id};
+
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    public List<String> RcommdBookByFigureId(int biz_id, String book_id) {
+        String sql = "        select b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.biz_id=? and a.book_id !=? and a.is_selected=1 and a.del_flag=0 and b.del_flag=0";
+        Object[] obj = new Object[]{biz_id,book_id};
+
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        if(null!=list && list.size()!=0) {
+            List<String> isbn = list.stream().map(map -> {
+                return map.get("isbn").toString();
+            }).collect(Collectors.toList());
+            return isbn;
+        }else {
+            return null;
+        }
+    }
+
+    public List<Map> goodsInfoByIsbns(List<String> isbnList) {
+        if (null == isbnList || isbnList.size() == 0) {
+            return null;
+        }
+        String sql = "select * from goods_info where del_flag='0' and isbn_no in (";
+        Object[] obj = new Object[isbnList.size()];
+        int size = isbnList.size();
+        for (int i = 0; i < size; i++){
+            if (i==size-1){
+                sql=sql+"? )";
+                obj[i] = isbnList.get(i);
+            }else {
+                sql = sql + "? ,";
+                obj[i] = isbnList.get(i);
+            }
+       }
+        List<Map> list = jpaManager.queryForList(sql,obj);
+        return list;
+    }
 }
 

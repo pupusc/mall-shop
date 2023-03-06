@@ -434,6 +434,11 @@ public class TopicService {
                     goodsOrBookResponseTemp.setMarketPrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketPrice());
                     goodsOrBookResponseTemp.setSalePrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getSalePrice());
                     goodsOrBookResponseTemp.getMarketingLabels().addAll(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketingLabels());
+
+                    com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
+                    if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+                        goodsOrBookResponseTemp.setTagsDto(tagsDto);
+                    }
                     goodsOrBookResponse.add(goodsOrBookResponseTemp);
                 }
             });

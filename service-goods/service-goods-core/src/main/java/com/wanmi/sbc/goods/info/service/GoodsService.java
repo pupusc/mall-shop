@@ -1,8 +1,10 @@
 package com.wanmi.sbc.goods.info.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.google.gson.JsonArray;
 import com.soybean.common.util.WebConstantUtil;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -3789,7 +3791,7 @@ public class GoodsService {
      * @param spuId、skuId
      * @return
      */
-    public BaseResponse getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
+    public Map getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
 
         String old_json=null;
         //优先用spuId去取
@@ -3809,8 +3811,10 @@ public class GoodsService {
         if(null==old_json || old_json.isEmpty()){
             return null;//不去数据库再找了
         }else {
+
             Map map=JSONObject.parseObject(old_json,Map.class);
-            return BaseResponse.success(old_json);
+
+            return map;
         }
     }
 }
