@@ -64,7 +64,6 @@ public class TopicController {
      */
     @PostMapping(value = "/v2/refresRedis")
     public BaseResponse refresRedis(@RequestBody TopicQueryRequest request) {
-        System.out.println("refresRedis~begin:" + DitaUtil.getCurrentAllDate());
 
         new Thread(new Runnable() {
             public void run() {
@@ -76,8 +75,6 @@ public class TopicController {
                 }
             }
         }).start();
-
-        System.out.println("refresRedis~  end:" + DitaUtil.getCurrentAllDate());
 
         return BaseResponse.SUCCESSFUL();
     }
