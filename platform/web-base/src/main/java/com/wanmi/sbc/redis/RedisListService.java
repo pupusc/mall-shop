@@ -92,6 +92,26 @@ public class RedisListService {
         return lists;
     }
 
+    public Integer getSize(final String key){
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        Long size = operations.size(key);
+        return Integer.parseInt(size.toString());
+    }
+
+    /**
+     * 从redis 中查询数据
+     */
+    public List<JSONObject> findAll(final String key) {
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        Long size = operations.size(key);
+        List<JSONObject> lists = operations.range(key, 0, size);
+        return lists;
+    }
+
     /**
      * 从redis 中查询数据
      */

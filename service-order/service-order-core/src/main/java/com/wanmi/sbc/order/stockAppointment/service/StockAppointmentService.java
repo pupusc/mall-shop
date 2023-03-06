@@ -69,10 +69,10 @@ public class StockAppointmentService {
     public BaseResponse deleteById(Integer id) {
         try {
             repository.deleteById(id);
-            return BaseResponse.success("删除成功");
+            return BaseResponse.success("取消预约失败");
         }catch (Exception e){
             e.printStackTrace();
-            return BaseResponse.error("删除失败");
+            return BaseResponse.error("取消预约成功");
         }
     }
 }
