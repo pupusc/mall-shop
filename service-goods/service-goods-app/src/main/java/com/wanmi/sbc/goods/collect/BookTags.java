@@ -113,6 +113,7 @@ public class BookTags {
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);
+
         String saleNum = getSaleNum(spu_id);
         redisMap.put("salenum",saleNum);
         redisMap.put("bookDetail",allList);
