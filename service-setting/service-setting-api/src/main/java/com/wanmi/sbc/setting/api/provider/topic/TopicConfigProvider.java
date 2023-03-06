@@ -183,7 +183,7 @@ public interface TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnGoods/add")
-    BaseResponse addTopicStoreyColumnGoods(@RequestBody MixedComponentGoodsAddRequest request, @RequestParam(value="file") MultipartFile file);
+    BaseResponse addTopicStoreyColumnGoods(@RequestBody MixedComponentGoodsAddRequest request);
 
     /**
      * @Description topic_storey_column表list

@@ -2,10 +2,13 @@ package com.wanmi.sbc.setting.service;
 
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
+import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.ColumnContentAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentGoodsAddRequest;
 import com.wanmi.sbc.setting.bean.enums.BookType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -17,6 +20,8 @@ import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Description: todo-zh
@@ -32,9 +37,8 @@ public class ExcelService {
     @Autowired
     private TopicConfigProvider topicConfigProvider;
 
-
     @Transactional
-    public String importExcel(MultipartFile file, Integer topicStoreyColumnId, Integer bookType) {
+    public String importExcel(MultipartFile file, MixedComponentGoodsAddRequest request) {
         XSSFWorkbook wb = null;
         try {
             InputStream inputStream = file.getInputStream();
@@ -45,15 +49,17 @@ public class ExcelService {
             if(rowNum!=0&&sheet.getRow(0)!=null) {
                 columnNum = sheet.getRow(0).getPhysicalNumberOfCells();
             }
-            if (bookType == 1) {
-                for (int i = 2; i <=rowNum; i++) {
+            //Integer topicId = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
+            List<ColumnContentAddRequest> columnContentAddRequestList = new ArrayList<>();
+            if (request.getBookType() == 1) {
+                for (int i = 1; i <=rowNum; i++) {
                     XSSFRow row = sheet.getRow(i);
                     if(row == null) {
                         continue;
                     }
                     int j = 0;
                     //导入的spu编号
-                    String spu = row.getCell(j)==null?"":row.getCell(j).getStringCellValue();
+                    String spu = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
                     //判断spu是否为空 不为空就继续往下走
                     if(StringUtils.isEmpty(spu)) {
                         continue;
@@ -65,16 +71,16 @@ public class ExcelService {
                     }
                     ++j;
                     //导入的商品名称
-                    String goodsName = row.getCell(j)==null?"":row.getCell(j).getStringCellValue();
+                    String goodsName = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
                     ++j;
                     //导入的市场价
-                    BigDecimal marketPrice = new BigDecimal(row.getCell(j)==null?"":row.getCell(j).getStringCellValue());
+                    BigDecimal marketPrice = new BigDecimal(row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j)));
                     ++j;
                     //导入的在线状态
-                    Integer status = Integer.valueOf(row.getCell(j)==null?"":row.getCell(j).getStringCellValue());
+                    Integer status = Integer.valueOf(row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j)));
                     ++j;
                     //导入的排序
-                    Integer sorting = Integer.valueOf(row.getCell(j)==null?"0":row.getCell(j).getStringCellValue());
+                    Integer sorting = Integer.valueOf(row.getCell(j)==null?"0":new DataFormatter().formatCellValue(row.getCell(j)));
                     //构建了一个StudentConsultation对象 用来存储这个学生的信息
                     ColumnContentAddRequest columnContentAddRequest = new ColumnContentAddRequest();
                     columnContentAddRequest.setSpuId(spu);
@@ -82,44 +88,45 @@ public class ExcelService {
                     columnContentAddRequest.setGoodsName(goodsName);
                     columnContentAddRequest.setMarketPrice(marketPrice);
                     columnContentAddRequest.setSorting(sorting);
-                    columnContentAddRequest.setTopicStoreySearchId(topicStoreyColumnId);
                     columnContentAddRequest.setType(BookType.BOOK.toValue());
                     columnContentAddRequest.setCreateTime(LocalDateTime.now());
                     columnContentAddRequest.setGoodsStatus(status);
-                    topicConfigProvider.addTopicStoreyColumnContent(columnContentAddRequest);
+                    columnContentAddRequestList.add(columnContentAddRequest);
+                    //topicConfigProvider.addTopicStoreyColumnContent(columnContentAddRequest);
                 }
             } else {
-                for (int i = 2; i <=rowNum; i++) {
+                for (int i = 1; i <=rowNum; i++) {
                     XSSFRow row = sheet.getRow(i);
                     if(row == null) {
                         continue;
                     }
                     int j = 0;
                     //导入的图片id
-                    Long id = Long.valueOf(row.getCell(j)==null?"":row.getCell(j).getStringCellValue());
+                    Long id = Long.valueOf(row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j)));
                     if(id == null) {
                         //抛出异常告诉用户 SPU必须填写
                         return "图片id为必填项!";
                     }
                     ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
                     imagePageProviderRequest.setId(Integer.valueOf(id.toString()));
-                    String imgUrl = imageProvider.listNoPage(imagePageProviderRequest).getContext().get(0).getImgUrl();
+                    List<ImageProviderResponse> context = imageProvider.listNoPage(imagePageProviderRequest).getContext();
+                    String imgUrl = context.size() != 0 ? context.get(0).getImgUrl() : null;
                     ++j;
                     //导入的spu编号
-                    String spu = row.getCell(j)==null?"":row.getCell(j).getStringCellValue();
+                    String spu = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
                     ++j;
                     //导入的商品名称
-                    String goodsName = row.getCell(j)==null?"":row.getCell(j).getStringCellValue();
+                    String goodsName = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
                     ++j;
                     //导入的跳转链接
-                    String url = row.getCell(j)==null?"":row.getCell(j).getStringCellValue();
+                    String url = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
                     //判断spu是否为空 不为空就继续往下走
                     if(StringUtils.isEmpty(spu) && StringUtils.isEmpty(url)) {
                         return "spu编号&跳转链接二选一必填!";
                     }
                     ++j;
                     //导入的排序
-                    Integer sorting = Integer.valueOf(row.getCell(j)==null?"":row.getCell(j).getStringCellValue());
+                    Integer sorting = Integer.valueOf(row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j)));
                     //判断排序是否为空 不为空就继续往下走
                     if(sorting == null) {
                         return "排序为必填项!" ;
@@ -133,12 +140,14 @@ public class ExcelService {
                     columnContentAddRequest.setSorting(sorting);
                     columnContentAddRequest.setImageId(id);
                     columnContentAddRequest.setImageUrl(imgUrl);
-                    columnContentAddRequest.setTopicStoreySearchId(topicStoreyColumnId);
                     columnContentAddRequest.setType(BookType.ADVERTISEMENT.toValue());
                     columnContentAddRequest.setCreateTime(LocalDateTime.now());
-                    topicConfigProvider.addTopicStoreyColumnContent(columnContentAddRequest);
+                    columnContentAddRequestList.add(columnContentAddRequest);
+                    //topicConfigProvider.addTopicStoreyColumnContent(columnContentAddRequest);
                 }
             }
+            request.setColumnContent(columnContentAddRequestList);
+            topicConfigProvider.addTopicStoreyColumnGoods(request);
             wb.close();
             inputStream.close();
             return "导入成功！";

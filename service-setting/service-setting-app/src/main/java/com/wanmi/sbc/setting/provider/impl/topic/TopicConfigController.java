@@ -256,9 +256,8 @@ public class TopicConfigController implements TopicConfigProvider {
      * @Date  2023/2/18 11:50
      */
     @Override
-    public BaseResponse addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request, MultipartFile file) {
-        TopicStoreyColumn topicStoreyColumn = topicConfigService.addTopicStoreyColumn(request.getColumnAddRequest());
-        excelService.importExcel(file, topicStoreyColumn.getTopicStoreyId(), topicStoreyColumn.getBookType());
+    public BaseResponse addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request) {
+        topicConfigService.addTopicStoreyColumnGoods(request);
         return BaseResponse.SUCCESSFUL();
     }
 
