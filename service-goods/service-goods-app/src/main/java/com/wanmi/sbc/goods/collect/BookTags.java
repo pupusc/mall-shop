@@ -113,12 +113,22 @@ public class BookTags {
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);
-
-        redisMap.put("salenum","销量");
+        String saleNum = getSaleNum(spu_id);
+        redisMap.put("salenum",saleNum);
         redisMap.put("bookDetail",allList);
 
         setRedis_Books(spu_id,redisMap);
 
+    }
+
+    private String getSaleNum(String spu_id) {
+        String goods_id = bookJpa.getSkuBySpu(spu_id).get(0).get("goods_id").toString();
+        String sale_num = bookJpa.getSaleNum(goods_id).get(0).get("sale_num").toString();
+        if(Integer.parseInt(sale_num)<300){
+            String point = bookJpa.getComentPoint(spu_id).get(0).get("prop_value").toString();
+            return point;
+        }
+        return sale_num;
     }
 
     //讲稿中提到的其他书籍

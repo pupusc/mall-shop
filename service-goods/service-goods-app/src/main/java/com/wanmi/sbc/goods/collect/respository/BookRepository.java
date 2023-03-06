@@ -484,5 +484,33 @@ public class BookRepository {
         List<Map> list = jpaManager.queryForList(sql,obj);
         return list;
     }
+
+    public List<Map> getSkuBySpu(String spu_id) {
+        String sql = "select goods_id from goods_info  where goods_id = ? and del_flag = 0 order by goods_info_id asc";
+        Object[] obj = new Object[]{spu_id};
+
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    public  List<Map> getSaleNum(String goods_id) {
+        String sql = "select sku_id,sale_num,rank_text from t_book_list_goods_publish where sku_id = ? and del_flag = 0";
+        Object[] obj = new Object[]{goods_id};
+
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        return list;
+
+    }
+
+    public List<Map> getComentPoint(String spu_id) {
+        String sql = "sselect sku_id,sale_num,rank_text from t_book_list_goods_publish where sku_id = ? and del_flag = 0";
+        Object[] obj = new Object[]{spu_id};
+
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
 }
 
