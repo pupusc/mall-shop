@@ -1161,4 +1161,21 @@ public class TopicConfigService {
     }
 
 
+    @Transactional
+    public void addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request) {
+        ColumnAddRequest columnAddRequest = request.getColumnAddRequest();
+        Integer id = addTopicStoreyColumn(columnAddRequest).getId();
+        List<ColumnContentAddRequest> columnContent = request.getColumnContent();
+        List<TopicStoreyColumnContent> topicStoreyColumnContents = columnContent.stream().map(c -> {
+            TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
+            BeanUtils.copyProperties(request, topicStoreyColumnContent);
+            topicStoreyColumnContent.setUpdateTime(LocalDateTime.now());
+            topicStoreyColumnContent.setDeleted(0);
+            topicStoreyColumnContent.setTopicStoreyId(194);
+            topicStoreyColumnContent.setCreateTime(LocalDateTime.now());
+            topicStoreyColumnContent.setTopicStoreySearchId(id);
+            return topicStoreyColumnContent;
+        }).collect(Collectors.toList());
+        columnGoodsRepository.saveAll(topicStoreyColumnContents);
+    }
 }

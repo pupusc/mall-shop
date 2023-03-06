@@ -8,7 +8,9 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @ApiModel
@@ -38,9 +40,17 @@ public class MixedComponentVideoAddRequest implements Serializable {
         columnAddRequest.setRecommend(recommend);
         columnAddRequest.setOrderNum(sorting);
         columnAddRequest.setLabelId(JSON.toJSONString(labelId));
+        Map<String, Object> attributeInfo = new HashMap<>();
         if (BookType.VIDEO.toValue().equals(bookType)) {
+            attributeInfo.put("image", image);
+            attributeInfo.put("video", url);
+        } else if(BookType.ASSIGN.toValue().equals(bookType))  {
+            attributeInfo.put("titleImage", titleImage);
+            attributeInfo.put("image", image);
+        } else {
 
         }
+        columnAddRequest.setAttributeInfo(JSON.toJSONString(attributeInfo));
         return columnAddRequest;
     }
 }
