@@ -3,6 +3,7 @@ package com.wanmi.sbc.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
+import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
@@ -65,12 +66,20 @@ public class TopicController {
     public BaseResponse refresRedis(@RequestBody TopicQueryRequest request) {
         System.out.println("refresRedis~begin:" + DitaUtil.getCurrentAllDate());
 
-        BaseResponse response = new BaseResponse();
-        topicService.refresRedis();
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    topicService.refresRedis();
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
 
         System.out.println("refresRedis~  end:" + DitaUtil.getCurrentAllDate());
 
-        return response;
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
