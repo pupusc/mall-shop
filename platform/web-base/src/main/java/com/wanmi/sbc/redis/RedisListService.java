@@ -29,6 +29,20 @@ public class RedisListService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    /**
+     * 从redis 中查询数据
+     */
+    public boolean putAll(final String key, List list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
+        }
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        return true;
+    }
+
 
     /**
      * 从redis 中查询数据
