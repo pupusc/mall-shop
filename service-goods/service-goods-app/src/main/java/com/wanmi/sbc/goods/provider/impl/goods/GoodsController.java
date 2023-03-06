@@ -1,8 +1,11 @@
 package com.wanmi.sbc.goods.provider.impl.goods;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.GetCategoryChainResponse;
 import com.aliyuncs.linkedmall.model.v20180116.QueryBizItemListResponse;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemDetailResponse;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.CompanySourceType;
@@ -13,11 +16,15 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddAllResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
@@ -32,11 +39,9 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
-import com.wanmi.sbc.goods.bean.dto.LinkedMallItemDelDTO;
-import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
+import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.collect.RedisTagsConstant;
 import com.wanmi.sbc.goods.info.model.root.Goods;
@@ -64,6 +69,8 @@ import com.wanmi.sbc.linkedmall.api.provider.goods.LinkedMallGoodsQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.cate.CateChainByGoodsIdRequest;
 import com.wanmi.sbc.linkedmall.api.request.goods.GoodsDetailQueryRequest;
 import com.wanmi.sbc.linkedmall.api.request.goods.LinkedMallGoodsPageRequest;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +84,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,6 +94,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -152,6 +161,10 @@ public class GoodsController implements GoodsProvider {
 
     @Autowired
     private GoodsInfoService goodsInfoService;
+    @Autowired
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
 
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();
@@ -776,6 +789,58 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse getGoodsDetialById(String spuId, String skuId) {
-       return goodsService.getGoodsDetialById(spuId,skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+        Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+        //填充会员价
+        List detailList=(List)map.get("bookDetail");
+        Map medioMap =(Map) detailList.get(0);
+        List<JSONObject> medioRecomd =(List<JSONObject>) medioMap.get("medioRecomd");
+        List<String> skuIdList=new ArrayList<>();
+        //返回值
+        List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
+        //循环每个推荐人取出skuId
+        for(int i=0;i<medioRecomd.size();i++){
+            MetaBookRcmmdFigureBO metaBookRcmmdFigureBO =JSONObject.toJavaObject(medioRecomd.get(i),MetaBookRcmmdFigureBO.class) ;
+            List<MetaBookRcmmdFigureBO.RecomentBookVo> recomentBookBoList =metaBookRcmmdFigureBO.getRecomentBookBoList();
+            if(null !=recomentBookBoList&& recomentBookBoList.size()!=0){
+                //循环其推荐列表
+                List<String> sku = recomentBookBoList.stream().map(r -> r.getGoodsInfoId()).collect(Collectors.toList());
+                skuIdList.addAll(sku);
+            }
+        }
+
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //用户信息
+        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //价格信息
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+
+        //循环每个推荐人，回填会员价
+        for(int j=0;j<medioRecomd.size();j++){
+            MetaBookRcmmdFigureBO metaBookRcmmdFigureBO =JSONObject.toJavaObject(medioRecomd.get(j),MetaBookRcmmdFigureBO.class) ;
+            List<MetaBookRcmmdFigureBO.RecomentBookVo> recomentBookBoList =metaBookRcmmdFigureBO.getRecomentBookBoList();
+            if(null !=recomentBookBoList&& recomentBookBoList.size()!=0){
+                //循环其推荐列表
+               for(MetaBookRcmmdFigureBO.RecomentBookVo recomentBookVo :recomentBookBoList){
+                    if(null != goodsPriceMap && null != goodsPriceMap.get(recomentBookVo.getGoodsInfoId())){
+                       // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
+                        BeanUtils.copyProperties(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()),recomentBookVo);
+                    }
+                }
+            }
+            metaBookRcmmdFigureBOS.add(metaBookRcmmdFigureBO);
+        }
+        medioMap.put("medioRecomd",metaBookRcmmdFigureBOS);
+        detailList.set(0,medioMap);
+        map.put("bookDetail",detailList);
+        return BaseResponse.success(map);
     }
 }

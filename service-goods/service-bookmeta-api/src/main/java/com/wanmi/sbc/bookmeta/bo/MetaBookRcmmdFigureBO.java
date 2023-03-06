@@ -81,5 +81,23 @@ public class MetaBookRcmmdFigureBO implements Serializable {
          * 为空，以市场价为准
          */
         private BigDecimal salePrice;
+
+        private TagsDto tagsDto=new TagsDto();
+
+        @Data
+        public static class TagsDto {
+
+        private String isBook;
+        private List<Tags> tags=new ArrayList<>();
+
+        @Data
+        public static class Tags {
+            private String showName;
+            private String name;
+            private Integer id;
+            private Integer orderType;
+            private Integer type = 1;
+        }
+     }
     }
 }

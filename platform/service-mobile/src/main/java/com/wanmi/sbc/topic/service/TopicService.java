@@ -435,6 +435,11 @@ public class TopicService {
                     goodsOrBookResponseTemp.setMarketPrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketPrice());
                     goodsOrBookResponseTemp.setSalePrice(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getSalePrice());
                     goodsOrBookResponseTemp.getMarketingLabels().addAll(salePriceMap.get(goodsOrBookResponseTemp.getSkuId()).getMarketingLabels());
+
+                    com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
+                    if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+                        goodsOrBookResponseTemp.setTagsDto(tagsDto);
+                    }
                     goodsOrBookResponse.add(goodsOrBookResponseTemp);
                 }
             });
@@ -981,7 +986,7 @@ public class TopicService {
                 redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
             }
 
-            List<MixedComponentDto> mixedComponentDtos = new ArrayList<MixedComponentDto>();
+            List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
             // tab
             mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
                 return new MixedComponentDto(c);
@@ -998,15 +1003,17 @@ public class TopicService {
             List<KeyWordDto> keywords = new ArrayList<>();
             mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
                     .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getName()));});});
+                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
             if (keyWord == null || "".equals(keyWord)) {
                 keyWord = mixedComponentDtos.size() != 0 && keywords.size() != 0 ? keywords.get(0).getName() : null;
             }
 
             //瀑布流
-            String contentString = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWord);
-            List<MixedComponentContentDto> content = new ArrayList<>();
             String finalKeyWord = keyWord;
+            String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
+            String contentString = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWordId);
+            List<MixedComponentContentDto> content = new ArrayList<>();
+
             if (!StringUtils.isEmpty(contentString)) {
                 content = JSON.parseArray(contentString, MixedComponentContentDto.class);
             } else {
@@ -1087,7 +1094,7 @@ public class TopicService {
                     }
                 }
                 //存redis
-                redisService.setString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWord, JSON.toJSONString(content));
+                redisService.setString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWordId, JSON.toJSONString(content));
             }
             MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
             //排序

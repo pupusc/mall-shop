@@ -1,6 +1,7 @@
 package com.wanmi.sbc.topic.response;
 
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -63,5 +64,7 @@ public class GoodsOrBookResponse implements Serializable {
      * 促销标签
      */
     private List<MarketingLabelVO> marketingLabels = new ArrayList<>();
+
+    private TagsDto tagsDto;
 }
 

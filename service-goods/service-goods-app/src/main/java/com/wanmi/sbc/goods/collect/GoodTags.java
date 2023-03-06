@@ -52,7 +52,7 @@ public class GoodTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        List tagList = goodJpa.getTagList(spu_no);
+        List tagList = goodJpa.getTagList(spu_id);
         if(tagList !=null && tagList.size() > 0){
             allList.addAll(tagList);
         }
@@ -66,7 +66,7 @@ public class GoodTags {
         }
 
         //90. 取商品上关联的静态标签，按标签优先级依次呈现
-        List staticList = goodJpa.getStaticList(spu_no);
+        List staticList = goodJpa.getStaticList(spu_id);
         if(staticList!=null && staticList.size() > 0){
             allList.addAll(staticList);
         }

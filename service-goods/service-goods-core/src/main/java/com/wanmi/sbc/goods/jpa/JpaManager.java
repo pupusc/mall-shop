@@ -168,6 +168,7 @@ public class JpaManager {
         double pages = (double)total;
         pr.setTotal(total);
 
+        pr.setPagesize(pagesize);
         pr.setPagecount((int) Math.ceil(pages / (double) pagesize));
 
 
