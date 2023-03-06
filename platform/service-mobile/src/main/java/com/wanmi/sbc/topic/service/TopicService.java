@@ -44,6 +44,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -896,6 +897,10 @@ public class TopicService {
                     goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
                     goods.setLabels(goodsCustom.get().getLabels());
                     goods.setActivities(goodsCustom.get().getActivities());
+                    MarketingLabelNewDTO context = goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsCustom.get().getGoodsInfoId()).getContext();
+                    if(null!=context){
+                        goods.setMarketingLabels(context);
+                    }
                     if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
                         goods.setAtmosType(p.getAtmosType());
                         goods.setImageUrl(p.getImageUrl());

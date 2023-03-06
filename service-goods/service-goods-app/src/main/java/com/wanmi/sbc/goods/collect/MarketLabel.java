@@ -115,5 +115,13 @@ public class MarketLabel {
         }
 
     }
+
+    public String getRedis_Tags(String sku_id){
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_MARKING_SKU_ID+":"+sku_id);
+        if(DitaUtil.isBlank(value)){
+            value = "{}";
+        }
+        return value;
+    }
 }
 

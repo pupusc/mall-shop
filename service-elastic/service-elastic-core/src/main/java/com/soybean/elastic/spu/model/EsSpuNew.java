@@ -177,4 +177,10 @@ public class EsSpuNew {
     @Field(type = FieldType.Nested)
     private List<SubSpuLabelNew> spuLabels;
 
+    /**
+     * 营销标签
+     */
+    @Field(type = FieldType.Nested)
+    private List<SubSkuMarketingLabelNew> marketingLabel;
+
 }

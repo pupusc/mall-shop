@@ -37,6 +37,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewPageResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMarketingPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
@@ -70,7 +71,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -580,4 +580,10 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spuId), TagsDto.class);
         return BaseResponse.success(tagsDto);
     }
+    @Override
+    public BaseResponse<MarketingLabelNewDTO> getMarketingLabelsBySKu(String skuId) {
+        MarketingLabelNewDTO labelNewDTO = JSON.parseObject(goodTags.getRedis_Tags(skuId), MarketingLabelNewDTO.class);
+        return BaseResponse.success(labelNewDTO);
+    }
+
 }

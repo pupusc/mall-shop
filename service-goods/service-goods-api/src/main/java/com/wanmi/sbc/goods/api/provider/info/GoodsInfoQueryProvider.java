@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageR
 import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterpriseGoodsInfoPageResponse;
 import com.wanmi.sbc.goods.api.response.info.*;
+import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -202,6 +203,14 @@ public interface GoodsInfoQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/info/getTabsBySpu")
     BaseResponse<TagsDto> getTabsBySpu(@RequestParam(value = "spuId") String spuId);
+
+    /**
+     * 获取营销标签
+     * @param skuId
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/getMarketingLabelsBySKu")
+    BaseResponse<MarketingLabelNewDTO> getMarketingLabelsBySKu(@RequestParam(value = "skuId") String skuId);
 
 
 }
