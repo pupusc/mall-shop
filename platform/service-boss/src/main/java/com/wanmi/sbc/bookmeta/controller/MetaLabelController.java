@@ -168,6 +168,14 @@ public class MetaLabelController {
         return BusinessResponse.success(metaLabelQueryByIdResVOS);
     }
 
+    @PostMapping("getLabelsByGoods")
+    public BusinessResponse<List<MetaLabelGetAllByNameRespVO>> getLabelsByGood(@RequestBody MetaLabelQueryByIdResVO resVO) {
+        MetaLabelQueryByPageReqBO convert = KsBeanUtil.convert(resVO, MetaLabelQueryByPageReqBO.class);
+        BusinessResponse<List<MetaLabelBO>> labels = this.metaLabelProvider.getLabelByGoodsId(convert);
+        List<MetaLabelGetAllByNameRespVO> metaLabelQueryByIdResVOS = KsBeanUtil.convertList(labels.getContext(), MetaLabelGetAllByNameRespVO.class);
+        return BusinessResponse.success(metaLabelQueryByIdResVOS);
+    }
+
         /**
          * 标签-新增数据
          *

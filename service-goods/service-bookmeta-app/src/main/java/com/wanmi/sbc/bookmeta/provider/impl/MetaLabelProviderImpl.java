@@ -189,6 +189,15 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
+    public BusinessResponse<List<MetaLabelBO>> getLabelByGoodsId(MetaLabelQueryByPageReqBO metaLabelQueryByPageReqBO) {
+        MetaLabelV2 convert1 = KsBeanUtil.convert(metaLabelQueryByPageReqBO, MetaLabelV2.class);
+        List<MetaLabelV2> labelByGoodsId = metaLabelMapper.getLabelByGoodsIdOrLabelId(convert1);
+        List<MetaLabelBO> convert = KsBeanUtil.convert(labelByGoodsId, MetaLabelBO.class);
+        return BusinessResponse.success(convert);
+
+    }
+
+    @Override
     public BusinessResponse<Integer> insertGoodsLabel(GoodsLabelSpuReqBO bo) {
         GoodsLabelSpu convert = KsBeanUtil.convert(bo, GoodsLabelSpu.class);
         if (!metaLabelMapper.existsWithPrimaryKey(convert.getLabelId())){
