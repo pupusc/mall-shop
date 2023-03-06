@@ -3,6 +3,7 @@ package com.wanmi.sbc.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
+import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
@@ -56,6 +57,26 @@ public class TopicController {
     @PostMapping(value = "/headTopic")
     public BaseResponse<TopicResponse> storey(@RequestBody TopicQueryRequest request) {
         return topicService.detail(request,false);
+    }
+
+    /**
+     * @首页~刷新redis
+     */
+    @PostMapping(value = "/v2/refresRedis")
+    public BaseResponse refresRedis(@RequestBody TopicQueryRequest request) {
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    topicService.refresRedis();
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
+
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.setting.service;
 
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
+import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentGoodsAddRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ public class TopicConfigService {
     private TopicConfigProvider topicConfigProvider;
 
 
-    public void setTopicConfigProvider(TopicConfigProvider topicConfigProvider) {
-        this.topicConfigProvider = topicConfigProvider;
+    public void addMixedComponentVideo(MixedComponentGoodsAddRequest request) {
+        topicConfigProvider.addTopicStoreyColumnGoods(request);
     }
 }

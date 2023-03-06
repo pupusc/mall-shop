@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 
@@ -35,6 +36,9 @@ public class TopicConfigController {
 
     @Autowired
     private ExcelService excelService;
+
+    @Autowired
+    private TopicConfigService topicConfigService;
 
     /**
      * @description 新增专题
@@ -461,10 +465,9 @@ public class TopicConfigController {
      */
     @ApiOperation("商品池广告池投放数据添加")
     @PostMapping("/storey/v2/goods/add")
-    public BaseResponse addMixedComponentGoods(@RequestBody MixedComponentGoodsAddRequest request, @RequestParam(value="file") MultipartFile file){
-        Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
-        excelService.importExcel(file, id, request.getBookType());
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse addMixedComponentGoods(@RequestParam(value="file") MultipartFile file, MixedComponentGoodsAddRequest request){
+        String s = excelService.importExcel(file, request);
+        return BaseResponse.success(s);
     }
 
     /**
@@ -474,8 +477,8 @@ public class TopicConfigController {
      */
     @ApiOperation("视频指定内容投放数据添加")
     @PostMapping("/storey/v2/video/add")
-    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentVideoAddRequest request){
-        Integer id = (Integer) topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest()).getContext();
+    public BaseResponse addMixedComponentVideo(@RequestBody MixedComponentGoodsAddRequest request){
+        topicConfigService.addMixedComponentVideo(request);
         return BaseResponse.SUCCESSFUL();
     }
 
