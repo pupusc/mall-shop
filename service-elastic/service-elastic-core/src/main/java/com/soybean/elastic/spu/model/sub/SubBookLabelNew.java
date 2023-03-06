@@ -44,15 +44,15 @@ public class SubBookLabelNew {
     @Field(type = FieldType.Keyword)
     private String tagName;
 
-    @Field(type = FieldType.Integer)
-    private Integer isStatic;
-
-    @Field(type = FieldType.Integer)
-    private Integer isRun;
-
-    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    private Date runFromTime;
-
-    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    private Date runToTime;
+//    @Field(type = FieldType.Integer)
+//    private Integer isStatic;
+//
+//    @Field(type = FieldType.Integer)
+//    private Integer isRun;
+//
+//    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+//    private Date runFromTime;
+//
+//    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+//    private Date runToTime;
 }
