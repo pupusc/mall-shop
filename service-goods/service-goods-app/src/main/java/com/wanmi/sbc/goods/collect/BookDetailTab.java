@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
+import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.enums.FigureType;
 import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import com.wanmi.sbc.goods.collect.respository.GoodRepository;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,35 +60,84 @@ public class BookDetailTab {
         doOtherBooks(redisMap,book_id);
 
         List allList = new ArrayList();
-        //doTab1(allList,book_id);
+        doTab1(allList,book_id);
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);
 
-        redisMap.put("salenum","销量");
+        String saleNum = getSaleNum(spu_id);
+        redisMap.put("salenum",saleNum);
         redisMap.put("bookDetail",allList);
 
         setRedis_Books(spu_id,redisMap);
 
     }
 
-    //推荐内容~关键词
-    private void doSearch(Map redisMap, String book_id) {
-        List list = bookJpa.book_search_name(book_id);
-        for(int i=0;i<list.size();i++){
-            Map map = (Map)list.get(i);
-            String id = String.valueOf(map.get("id"));
-            List ret = bookJpa.book_search_key(id);
-            map.put("list",ret);
-        }
-        redisMap.put("search",list);
-    }
 
+    //redis优化用
     private void doTab1(List allList,String book_id) {
         Map map=new HashMap<>();
-        List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS = metaFigureService.getMetaBookRcmmdFigureBOS(Integer.parseInt(book_id));
-        map.put("medioRecomd",metaBookRcmmdFigureBOS);
+        //推荐人列表
+        List metaBookRcmmdFigureList = bookJpa.RcommdFigureByBookId(book_id);
+        //对于每一个推荐人，找到其推荐列表
+        List<Map> result =(List<Map>) metaBookRcmmdFigureList.stream().map(bs -> {
+            Map maptemp=(Map) bs;
+            maptemp.remove("del_flag");
+            maptemp.remove("update_time");
+            maptemp.remove("create_time");
+            maptemp.remove("is_selected");
+            maptemp.remove("biz_time");
+            if(BookRcmmdTypeEnum.WENMIAO.getCode().equals(Integer.parseInt(maptemp.get("biz_type").toString()))){
+                if(null==maptemp.get("descr")){
+                    return null;//文喵必有推荐语
+                }else{//文喵不用给商品列表
+                    return maptemp;
+                }
+            }
+            //如果是奖项，仅透出奖项名
+            if(BookRcmmdTypeEnum.AWARD.getCode().equals(Integer.parseInt(maptemp.get("biz_type").toString()))){
+                String awardName = bookJpa.queryAwardById(Integer.parseInt(maptemp.get("biz_id").toString())).get(0).get("name").toString();
+                maptemp.put("name",awardName);
+                return maptemp;
+            }
+            //如果是选书人，仅透出选书人信息
+            if(BookRcmmdTypeEnum.XUANSHUREN.getCode().equals(Integer.parseInt(maptemp.get("biz_type").toString()))){
+                return maptemp;
+            }
+            if(null==maptemp.get("biz_type") && null == maptemp.get("descr")){
+                return null;//没有推荐人和推荐语的跳过
+            }
+            List<String> isbnList = bookJpa.RcommdBookByFigureId(Integer.parseInt(maptemp.get("biz_id").toString()), book_id);
+            if (null !=isbnList && isbnList.size() != 0) {
+                //说明这个推荐人有其他可推荐的,构建推荐商品的详细信息
+
+                List<Map> goodsInfoMap = bookJpa.goodsInfoByIsbns(isbnList);
+
+                if(null==goodsInfoMap || goodsInfoMap.size()==0){
+                    return maptemp;
+                }
+                //构建返回类型
+                List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
+                    Map recomentBookVo = new HashMap<>();
+                    recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
+                    recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
+                    recomentBookVo.put("goodsInfoNo", goodsInfoMapTemp.get("goods_info_no").toString());
+                    //TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsInfoMapTemp.get("goods_id").toString()).getContext();
+                    //if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+                    //    recomentBookVo.put("tagsDto",tagsDto);
+                    //}
+                    return recomentBookVo;
+                }).collect(Collectors.toList());
+
+                maptemp.put("recomentBookBoList",recomentBookVoMap);
+                return maptemp;
+            }
+            return null;
+        }).collect(Collectors.toList());
+        List<Map> collect = result.stream().filter(r -> null != r).collect(Collectors.toList());
+        map.put("medioRecomd",collect);
         allList.add(map);
+
     }
 
     private void doTab2(List allList,String bookId,String spuNo) {
@@ -125,8 +177,6 @@ public class BookDetailTab {
         map.put("tab2", contentMap);
         allList.add(map);
     }
-
-
 
     //1.作家 2.翻译家
     private Map getFigure(String bookId, String figureType) {
@@ -230,19 +280,17 @@ public class BookDetailTab {
 
     }
 
-    public void setRedis_Books(String spu_id,Map map){
-
-        //String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
-        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
-
-        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + ":" + spu_id);
-        if(!json.equals(old_json)){
-            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":" + spu_id, json );
-            String updateTime = DitaUtil.getCurrentAllDate();
-            bookJpa.updateGoodTime(updateTime,spu_id);
+    private String getSaleNum(String spu_id) {
+        String goods_id = bookJpa.getSkuBySpu(spu_id).get(0).get("goods_id").toString();
+        String sale_num = bookJpa.getSaleNum(goods_id).get(0).get("sale_num").toString();
+        if(Integer.parseInt(sale_num)<300){
+            String point = bookJpa.getComentPoint(spu_id).get(0).get("prop_value").toString();
+            return point;
         }
-
+        return sale_num;
     }
+
+
 
     //讲稿中提到的其他书籍
     private void doOtherBooks(Map redisMap, String book_id) {
@@ -264,6 +312,32 @@ public class BookDetailTab {
         }
 
         redisMap.put("otherBook",ret);
+    }
+
+    //推荐内容~关键词
+    private void doSearch(Map redisMap, String book_id) {
+        List list = bookJpa.book_search_name(book_id);
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            String id = String.valueOf(map.get("id"));
+            List ret = bookJpa.book_search_key(id);
+            map.put("list",ret);
+        }
+        redisMap.put("search",list);
+    }
+
+    public void setRedis_Books(String spu_id,Map map){
+
+        //String json = JSONObject.parseObject(JSON.toJSONString(map)).toJSONString();
+        String json = JSON.toJSONString(map, SerializerFeature.WriteMapNullValue);
+
+        String old_json = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + ":" + spu_id);
+        if(!json.equals(old_json)){
+            redisService.setString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":" + spu_id, json );
+            String updateTime = DitaUtil.getCurrentAllDate();
+            bookJpa.updateGoodTime(updateTime,spu_id);
+        }
+
     }
 
 }
