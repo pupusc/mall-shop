@@ -40,6 +40,9 @@ public class MetaLabelQueryByPageReqBO implements Serializable {
      * 说明
      */
     private String descr;
+
+
+    private String goodsId;
     /**
      * 顺序
      */

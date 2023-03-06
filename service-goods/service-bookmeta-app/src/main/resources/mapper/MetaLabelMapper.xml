@@ -356,6 +356,7 @@
         select id,name,parent_id from meta_label label where type = 1 and parent_id = #{parent_id} and del_flag = 0;
     </select>
 
+<!--    按商品分组-->
     <select id="getLabels" parameterType="java.lang.String" resultMap="MetaLabelMapV2">
         select a.label_id as id, b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
         from meta_label_spu a
@@ -364,10 +365,28 @@
         where
            c.del_flag = 0 and b.del_flag = 0
             <if test="name != null">
-               and b.name like concat('%',#{name},'%')
+               and b.name like concat('%',#{name},'%') or c.goods_name like concat('%',#{name},'%')
             </if>
+            group by a.goods_id
         limit #{limitIndex}, #{limitSize}
     </select>
+
+<!--    该商品的标签-->
+   <select id="getLabelByGoodsIdOrLabelId" resultMap="MetaLabelMapV2" parameterType="com.wanmi.sbc.bookmeta.entity.MetaLabelV2">
+       select a.label_id as id, b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
+       from meta_label_spu a
+                left join meta_label b on a.label_id = b.id
+                left join goods c on a.goods_id = c.goods_id
+       where
+           c.del_flag = 0 and b.del_flag = 0
+         <if test="goodsId !=null and goodsId!= '' ">
+             and a.goods_id = #{goodsId}
+         </if>
+       <if test="id !=null and id!= '' ">
+           and a.label_id = #{id}
+       </if>
+   </select>
+
 
     <select id="getLabelsCount" parameterType="java.lang.String" resultType="java.lang.Integer">
         select count(1)

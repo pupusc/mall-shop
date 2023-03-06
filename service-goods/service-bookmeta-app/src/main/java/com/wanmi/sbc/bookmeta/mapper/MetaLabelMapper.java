@@ -116,6 +116,8 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     List<MetaLabelV2> getLabels(@Param("name")String name,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
+    List<MetaLabelV2> getLabelByGoodsIdOrLabelId(MetaLabelV2 metaLabelV2);
+
     int getLabelsCount(@Param("name")String name);
 
     int isExistGoods(@Param("goods_id") String id);
