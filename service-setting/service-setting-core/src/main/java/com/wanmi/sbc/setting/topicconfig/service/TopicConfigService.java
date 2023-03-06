@@ -1168,7 +1168,7 @@ public class TopicConfigService {
         List<ColumnContentAddRequest> columnContent = request.getColumnContent();
         List<TopicStoreyColumnContent> topicStoreyColumnContents = columnContent.stream().map(c -> {
             TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
-            BeanUtils.copyProperties(request, topicStoreyColumnContent);
+            BeanUtils.copyProperties(c, topicStoreyColumnContent);
             topicStoreyColumnContent.setUpdateTime(LocalDateTime.now());
             topicStoreyColumnContent.setDeleted(0);
             topicStoreyColumnContent.setTopicStoreyId(194);
