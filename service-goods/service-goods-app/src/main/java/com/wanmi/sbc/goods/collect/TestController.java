@@ -28,6 +28,9 @@ public class TestController {
     @Autowired
     MarketLabel marketLabel;
 
+    @Autowired
+    CacheService cacheService;
+
     @GetMapping("/test")
     public BaseResponse test(){
 
@@ -43,6 +46,8 @@ public class TestController {
         goodTags.doGoods();         //非书商品
 
         marketLabel.doMarket();     //营销标签
+
+        cacheService.clear();       //释放内存
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());
 

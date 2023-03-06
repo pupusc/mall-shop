@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.collect.respository;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.bookmeta.bo.MetaAwardBO;
+import com.wanmi.sbc.goods.collect.CacheService;
 import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
 import com.wanmi.sbc.goods.redis.RedisService;
@@ -21,6 +22,9 @@ public class BookRepository {
 
     @Autowired
     JpaManager jpaManager;
+
+    @Autowired
+    CacheService cacheService;
 
     //tab2 根据book_id得到关联推荐主副标题
     public List book_search_name(String book_id) {
@@ -147,6 +151,15 @@ public class BookRepository {
         }
 
         return bookMap;
+    }
+
+    //通过isbn查找spu
+    public List findSpuByV2_cache(String isbn){
+        if(cacheService.isbnSPUList == null){
+            cacheService.initIsbnSPUList();
+            return cacheService.findIsbnSPUList(isbn);
+        }
+        return cacheService.findIsbnSPUList(isbn);
     }
 
     //通过isbn查找spu
