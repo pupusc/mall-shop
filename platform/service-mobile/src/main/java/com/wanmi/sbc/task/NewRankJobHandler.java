@@ -71,12 +71,12 @@ public class NewRankJobHandler extends IJobHandler {
     public ReturnT<String> execute(String param) throws Exception {
         //获取首页榜单
         RankRedisListResponse rank = new RankRedisListResponse();
-        rank.setRankRequestList(this.rank());
+        rank.setRankRequestList(this.rank(param));
         redisService.setString(RedisKeyUtil.HOME_RANK, JSON.toJSONString(rank));
         return SUCCESS;
     }
 
-    public List<RankRequest> rank(){
+    public List<RankRequest> rank(String param){
         RankRequestListResponse response = topicConfigProvider.rank();
         List<Integer> idList = response.getRankIds();
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
@@ -100,7 +100,7 @@ public class NewRankJobHandler extends IJobHandler {
             response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
         });
         //初始化榜单商品
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,param);
         goodsCustomResponses.forEach(g->{
 //            String label = g.getGoodsLabelList().get(0);
             response.getRankRequestList().forEach(r->{
@@ -125,7 +125,7 @@ public class NewRankJobHandler extends IJobHandler {
         return response.getRankRequestList();
     }
 
-    private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
+    private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds,String param) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
@@ -138,7 +138,22 @@ public class NewRankJobHandler extends IJobHandler {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
-        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        if(param.equals("H5")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(1));
+        }else if(param.equals("MINIPROGRAM")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(2));
+        }else if(param.equals("MALL_NORMAL")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(3));
+        }else if(param.equals("FDDS_DELIVER")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(4));
+        }else if(param.equals("SUPPLIER")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(10));
+        }else if(param.equals("PC")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(11));
+        }else if(param.equals("APP")){
+            queryRequest.setGoodsChannelTypeSet(Collections.singletonList(12));
+        }
+
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
