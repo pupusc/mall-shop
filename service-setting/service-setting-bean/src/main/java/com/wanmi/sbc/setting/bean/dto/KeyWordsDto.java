@@ -13,6 +13,8 @@ import java.io.Serializable;
 public class KeyWordsDto implements Serializable {
     private static final long serialVersionUID = -6910200208944439012L;
 
+    private String id;
+
     private Integer sort;
 
     private String name;

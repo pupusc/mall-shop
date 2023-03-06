@@ -14,11 +14,13 @@ import java.io.Serializable;
 public class KeyWordDto implements Serializable {
     private static final long serialVersionUID = -6910200208944439012L;
 
+    private String id;
     private String name;
 
     private MicroServicePage<MixedComponentContentDto> mixedComponentContentPage;
 
-    public KeyWordDto(String name) {
+    public KeyWordDto(String id ,String name) {
+        this.id = id;
         this.name = name;
     }
 

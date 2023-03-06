@@ -16,4 +16,7 @@ public class TopicConfigService {
     private TopicConfigProvider topicConfigProvider;
 
 
+    public void setTopicConfigProvider(TopicConfigProvider topicConfigProvider) {
+        this.topicConfigProvider = topicConfigProvider;
+    }
 }
