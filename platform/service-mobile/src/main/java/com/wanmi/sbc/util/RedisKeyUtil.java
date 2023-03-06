@@ -59,4 +59,9 @@ public class RedisKeyUtil {
      * 混合组件旧
      */
     public final static String MIXED_COMPONENT = "ELASTIC_SAVE:HOMEPAGE:194:";
+
+    /**
+     * 混合组件旧
+     */
+    public final static String HOME_RANK = "ELASTIC_SAVE:HOMEPAGE:185";
 }

@@ -53,10 +53,7 @@ import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.redis.RedisService;
-import com.wanmi.sbc.setting.api.request.RankPageRequest;
-import com.wanmi.sbc.setting.api.request.RankRequest;
-import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
-import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
+import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
@@ -329,51 +326,51 @@ public class TopicService {
      * @return
      */
     public List<RankRequest> rank(){
-        RankRequestListResponse response = topicConfigProvider.rank();
-        List<Integer> idList = response.getRankIds();
-        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
-        idsRequest.setIds(idList);
-        List<String> goods=new ArrayList<>();
-        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
-        if(CollectionUtils.isEmpty(baseResponse)){
-            return null;
-        }
-        //初始化榜单商品树形结构
-        idList.forEach(id->{
-            List<String> goodIds=new ArrayList<>();
-            List<Map> maps=new ArrayList<>();
-            baseResponse.stream().filter(item->item.getBookListId().equals(id)&&goodIds.size()<3).forEach(item->{
-                goodIds.add(item.getSkuId());
-                Map map=new HashMap();
-                map.put("spuId",item.getSpuId());
-                maps.add(map);
-            });
-            goods.addAll(goodIds);
-            response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
-        });
-        //初始化榜单商品
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
-        goodsCustomResponses.forEach(g->{
-//            String label = g.getGoodsLabelList().get(0);
-            response.getRankRequestList().forEach(r->{
-                if(null!=r.getRankList()&&r.getRankList().size()>0){
-                    r.getRankList().forEach(t->{
-                        Map map= (Map) t;
-                        if(map.get("spuId").equals(g.getGoodsId())){
-                            map.put("label","");
-                            map.put("goodsInfoId",g.getGoodsInfoId());
-                            map.put("subName",g.getGoodsSubName());
-                            map.put("showPrice",g.getShowPrice());
-                            map.put("linePrice",g.getLinePrice());
-                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-                            map.put("stock",g.getStock());
-                            map.put("author",g.getGoodsExtProperties().getAuthor());
-                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
-                        }
-                    });
-                }
-            });
-        });
+        RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK),RankRedisListResponse.class);
+//        List<Integer> idList = response.getRankIds();
+//        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
+//        idsRequest.setIds(idList);
+//        List<String> goods=new ArrayList<>();
+//        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
+//        if(CollectionUtils.isEmpty(baseResponse)){
+//            return null;
+//        }
+//        //初始化榜单商品树形结构
+//        idList.forEach(id->{
+//            List<String> goodIds=new ArrayList<>();
+//            List<Map> maps=new ArrayList<>();
+//            baseResponse.stream().filter(item->item.getBookListId().equals(id)&&goodIds.size()<3).forEach(item->{
+//                goodIds.add(item.getSkuId());
+//                Map map=new HashMap();
+//                map.put("spuId",item.getSpuId());
+//                maps.add(map);
+//            });
+//            goods.addAll(goodIds);
+//            response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
+//        });
+//        //初始化榜单商品
+//        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
+//        goodsCustomResponses.forEach(g->{
+////            String label = g.getGoodsLabelList().get(0);
+//            response.getRankRequestList().forEach(r->{
+//                if(null!=r.getRankList()&&r.getRankList().size()>0){
+//                    r.getRankList().forEach(t->{
+//                        Map map= (Map) t;
+//                        if(map.get("spuId").equals(g.getGoodsId())){
+//                            map.put("label","");
+//                            map.put("goodsInfoId",g.getGoodsInfoId());
+//                            map.put("subName",g.getGoodsSubName());
+//                            map.put("showPrice",g.getShowPrice());
+//                            map.put("linePrice",g.getLinePrice());
+//                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+//                            map.put("stock",g.getStock());
+//                            map.put("author",g.getGoodsExtProperties().getAuthor());
+//                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
+//                        }
+//                    });
+//                }
+//            });
+//        });
         return response.getRankRequestList();
     }
 

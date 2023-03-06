@@ -9,6 +9,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentReques
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
+import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
@@ -81,12 +82,16 @@ public class TopicController {
 
     @Autowired
     private HomeIndexGoodsJobHandler homeIndexGoodsJobHandler;
+
+    @Autowired
+    private NewRankJobHandler rankJobHandler;
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
 //        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
 
-        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
+//        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
+//        rankJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 
