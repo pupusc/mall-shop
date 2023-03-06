@@ -546,8 +546,9 @@ public class TopicService {
             request.setTopicStoreySearchId(rankRequestList.get(0).getId());
         }
         if (null==request.getRankId()){
-            List<RankRequest> rankRequests = KsBeanUtil.convertList((List) rankRequestList.get(0).getRankList(), RankRequest.class);
-            request.setTopicStoreySearchId(rankRequests.get(0).getId());
+            Collection rankList = rankRequestList.get(0).getRankList();
+            RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+            request.setRankId(convert.getId());
         }
         String key=RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":listGoods:"+request.getRankId();
         //瀑布流分页
@@ -556,12 +557,12 @@ public class TopicService {
         long totalPages=(long)Math.ceil(total/ pageSize);
         Integer pageNum= request.getPageNum();
         Integer start=(pageNum)*pageSize;
-        Integer end=start+pageSize;
+        Integer end=start+pageSize-1;
         if(start>=total){
             return null;
         }
         if(end>total){
-            end=total;
+            end=total-1;
         }
         List<Map> goodsCustomResponses=new ArrayList<>();
         List<JSONObject> goodsInfoList = redisListService.findByRange(key,start,end);
