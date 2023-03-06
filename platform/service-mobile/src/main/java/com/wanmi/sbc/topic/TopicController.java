@@ -59,6 +59,21 @@ public class TopicController {
     }
 
     /**
+     * @首页~刷新redis
+     */
+    @PostMapping(value = "/v2/refresRedis")
+    public BaseResponse refresRedis(@RequestBody TopicQueryRequest request) {
+        System.out.println("refresRedis~begin:" + DitaUtil.getCurrentAllDate());
+
+        BaseResponse response = new BaseResponse();
+        topicService.refresRedis();
+
+        System.out.println("refresRedis~  end:" + DitaUtil.getCurrentAllDate());
+
+        return response;
+    }
+
+    /**
      * @description 根据专题id返回页面数据_V2
      * @menu 专题
      * @param request
