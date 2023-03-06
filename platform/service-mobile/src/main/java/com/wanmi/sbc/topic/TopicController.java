@@ -117,7 +117,7 @@ public class TopicController {
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
 //        rankJobHandler.execute(null);
-        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
         return BaseResponse.SUCCESSFUL();
     }
 

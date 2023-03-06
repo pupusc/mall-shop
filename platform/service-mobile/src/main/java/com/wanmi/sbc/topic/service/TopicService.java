@@ -542,13 +542,18 @@ public class TopicService {
                 rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
             }
         }
-        if (null==request.getTopicStoreySearchId()){
+        if (null==request.getTopicStoreySearchId()&&null==request.getRankId()){
             request.setTopicStoreySearchId(rankRequestList.get(0).getId());
-        }
-        if (null==request.getRankId()){
             Collection rankList = rankRequestList.get(0).getRankList();
             RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
             request.setRankId(convert.getId());
+        }else if(null!=request.getTopicStoreySearchId()&&null==request.getRankId()){
+            Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
+            if(first.isPresent()){
+                Collection rankList =first.get().getRankList();
+                RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+                request.setRankId(convert.getId());
+            }
         }
         String key=RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":listGoods:"+request.getRankId();
         //瀑布流分页

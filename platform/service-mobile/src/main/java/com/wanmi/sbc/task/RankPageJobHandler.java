@@ -122,7 +122,6 @@ public class RankPageJobHandler extends IJobHandler {
         pageResponse.getPageRequest().getContentList().forEach(r->{
             r.getRankList().forEach(t->{
                 Map tMap= (Map) t;
-                List<Map> rankList=(List<Map>) tMap.get("rankList");
                 List<Map> redisGoods=new ArrayList<>();
                 baseResponse.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
                     goodsCustomResponses.stream().filter(g->b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
@@ -130,18 +129,18 @@ public class RankPageJobHandler extends IJobHandler {
                         map.put("id",g.getGoodsId());
                         map.put("spuNo",g.getGoodsNo());
                         map.put("skuNo",g.getGoodsInfoNo());
-                        map.put("imageUrl",g.getImageUrl());
+                        map.put("imageUrl",g.getGoodsCoverImg());
                         map.put("sorting",b.getOrderNum());
                         map.put("goodsName",g.getGoodsName());
                         if(null!=b.getSaleNum()) {
                             if (b.getSaleNum() >= 10000) {
                                 String num = String.valueOf(b.getSaleNum() / 10000) + "万";
-                                map.put("num", num);
+                                map.put("saleNum", num);
                             } else {
                                 map.put("num", String.valueOf(b.getSaleNum()));
                             }
                         }else {
-                            map.put("num", "");
+                            map.put("saleNum", "");
                         }
                         map.put("skuId",b.getSkuId());
                         map.put("spuId",b.getSpuId());
@@ -151,7 +150,10 @@ public class RankPageJobHandler extends IJobHandler {
                         redisGoods.add(map);
                     });
                 });
-                redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"),goodsCustomResponses);
+                if(redisListService.getSize(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"))>0){
+                    redisService.delete(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"));
+                }
+                redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"),redisGoods);
             });
         });
     }
