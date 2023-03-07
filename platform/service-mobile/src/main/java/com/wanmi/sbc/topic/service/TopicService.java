@@ -1194,9 +1194,7 @@ public class TopicService {
                     Integer id = pool.getId();
                     ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
                     columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
                     PoolService poolService = poolFactory.getPoolService(pool.getBookType());
                     poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
                 }

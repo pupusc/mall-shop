@@ -65,7 +65,7 @@ public class AssignPoolServiceImpl implements PoolService {
         goodsDto.setGoodsName(skuDetailBO.getSkuName());
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
         String score = null;
-        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
+        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : (res.getBook() != null ? res.getBook().getIsbn() : null);
         if (isbn != null) {
             goodsDto.setIsbn(isbn);
             List context = bookListModelProvider.getBookRecommend(isbn).getContext();
@@ -74,7 +74,7 @@ public class AssignPoolServiceImpl implements PoolService {
                 score = map.get("score") != null ? map.get("score").toString() : null;
             }
         }
-        Integer saleNum = Integer.valueOf(skuDetailBO.getSaleNum());
+        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
         if (saleNum >= 1000000) {
             score = saleNum.toString().substring(0, 3) + "万+";
         } else if (saleNum >= 100000) {

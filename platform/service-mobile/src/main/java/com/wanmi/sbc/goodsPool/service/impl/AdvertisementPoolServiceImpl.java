@@ -73,7 +73,7 @@ public class AdvertisementPoolServiceImpl implements PoolService {
                 score = map.get("score") != null ? map.get("score").toString() : null;
             }
         }
-        Integer saleNum = Integer.valueOf(skuDetailBO.getSaleNum());
+        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
         if (saleNum >= 1000000) {
             score = saleNum.toString().substring(0, 3) + "万+";
         } else if (saleNum >= 100000) {
