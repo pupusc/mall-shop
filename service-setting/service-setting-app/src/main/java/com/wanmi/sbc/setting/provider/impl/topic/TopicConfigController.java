@@ -335,6 +335,11 @@ public class TopicConfigController implements TopicConfigProvider {
         return BaseResponse.success(topicConfigService.listTopicStoreyColumnContent(request));
     }
 
+    @Override
+    public BaseResponse<List<ColumnContentDTO>> ListTopicStoreyColumnContent(ColumnContentQueryRequest request) {
+        return BaseResponse.success(topicConfigService.AllListTopicStoreyColumnContent(request));
+    }
+
     /**
      * @Description topic_storey_column_content表add
      * @Author zh

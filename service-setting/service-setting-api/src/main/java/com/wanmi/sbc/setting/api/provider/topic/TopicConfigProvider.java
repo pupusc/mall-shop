@@ -241,6 +241,10 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/list")
     BaseResponse<MicroServicePage<ColumnContentDTO>> pageTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
 
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnContent/AllList")
+    BaseResponse<List<ColumnContentDTO>> ListTopicStoreyColumnContent(@RequestBody ColumnContentQueryRequest request);
+
     /**
      * @Description topic_storey_column_content表add
      * @Author zh

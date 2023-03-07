@@ -1088,6 +1088,22 @@ public class TopicConfigService {
         return microServicePage;
     }
 
+
+    public List<ColumnContentDTO> AllListTopicStoreyColumnContent(ColumnContentQueryRequest request) {
+        List<Sort.Order> sortList = new ArrayList<>();
+        sortList.add(Sort.Order.desc("deleted"));
+        sortList.add(Sort.Order.asc("orderNum"));
+        List<TopicStoreyColumnContent> topicStoreySearchContentPage = columnGoodsRepository
+                .findAll(columnGoodsRepository.topicStoreySearchContent(request), Sort.by(sortList));
+        List<ColumnContentDTO> resultList = new ArrayList<ColumnContentDTO>();
+        resultList = topicStoreySearchContentPage.stream().map(topicStoreyColumnContent -> {
+            ColumnContentDTO columnContentDTO = new ColumnContentDTO();
+            BeanUtils.copyProperties(topicStoreyColumnContent, columnContentDTO);
+            return columnContentDTO;
+        }).collect(Collectors.toList());
+        return resultList;
+    }
+
     /**
      * @Description topic_storey_column_content表add
      * @Author zh
