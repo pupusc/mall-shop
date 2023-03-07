@@ -15,10 +15,12 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
@@ -119,6 +121,15 @@ public class RankPageJobHandler extends IJobHandler {
         redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":table",contentList);
         //初始化榜单树形结构，获取商品详情
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(skus);
+        GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+        goodsInfoByIdRequest.setGoodsInfoIds(skus);
+        goodsInfoByIdRequest.setIsHavSpecText(1);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+        if(redisListService.getSize(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList")>0){
+            redisService.delete(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList");
+        }
+        redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList",goodsInfos);
         pageResponse.getPageRequest().getContentList().forEach(r->{
             r.getRankList().forEach(t->{
                 Map tMap= (Map) t;

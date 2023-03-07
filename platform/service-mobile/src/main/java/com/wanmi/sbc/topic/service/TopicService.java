@@ -5,16 +5,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
-import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
-import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -39,18 +35,14 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
 import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
-import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goodsPool.PoolFactory;
-import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.index.V2tabConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
@@ -63,12 +55,7 @@ import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
-import com.wanmi.sbc.setting.api.response.RankPageResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
-import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
-import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
-import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.task.MixedComponentContentJobHandler;
 import com.wanmi.sbc.task.NewBookPointJobHandler;
@@ -93,11 +80,9 @@ import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
-import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -105,19 +90,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import springfox.documentation.spring.web.json.Json;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.alibaba.nacos.api.selector.SelectorType.label;
 
 @Service
 @Slf4j
@@ -391,6 +369,13 @@ public class TopicService {
         return BaseResponse.success(response);
     }
 
+    public CustomerGetByIdResponse getCustomer(){
+//
+           String c="{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+           CustomerGetByIdResponse customer= JSON.parseObject(c, CustomerGetByIdResponse.class);
+           return customer;
+    }
+
     /**
      * 首页榜单
      * @param
@@ -559,6 +544,7 @@ public class TopicService {
 
     /**
      * 榜单聚合页
+     *
      * @param request
      * @return
      */
@@ -570,6 +556,21 @@ public class TopicService {
                 for (JSONObject goodStr : objectList) {
                     rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
                 }
+            }
+            List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>();
+            List<JSONObject> infoObjectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":goodsInfoList");
+            if (!CollectionUtils.isEmpty(infoObjectList)) {
+                for (JSONObject goodStr : objectList) {
+                    goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
+                }
+            }
+            List<GoodsInfoVO> goodsInfos=new ArrayList<>();
+            if(goodsInfoVOList.size()>0){
+                CustomerGetByIdResponse customer = this.getCustomer();
+                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoVOList, GoodsInfoDTO.class));
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
             }
             if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
                 request.setTopicStoreySearchId(rankRequestList.get(0).getId());
@@ -605,6 +606,13 @@ public class TopicService {
                     goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
             }
+            List<GoodsInfoVO> finalGoodsInfos = goodsInfos;
+            goodsCustomResponses.forEach(g->{
+                Map map=g;
+                finalGoodsInfos.stream().filter(i->i.getGoodsInfoId().equals(map.get("skuId"))).forEach(i->{
+                    map.put("vipPrice",i.getSalePrice());
+                });
+            });
             //初始化榜单树形结构，获取商品详情
             rankRequestList.forEach(r -> {
                 r.getRankList().forEach(t -> {
@@ -630,6 +638,7 @@ public class TopicService {
 
     /**
      * 榜单更多
+     *
      * @param storeyResponse
      * @return
      */
