@@ -1059,31 +1059,36 @@ public class TopicService {
 
     //获取会员价
     public void initVipPrice(List<GoodsPoolDto> goodsPoolDtos, CustomerGetByIdResponse customer) {
-        for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
-            List<GoodsDto> goodsDtos = goodsPoolDto.getGoods();
-            if(goodsDtos.size() != 0) {
-                List<String> skuIdList = goodsDtos.stream().map(GoodsDto::getSkuId).collect(Collectors.toList());
-                //获取商品信息
-                GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
-                goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
-                goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
-                goodsInfoByIdRequest.setIsHavSpecText(1);
-                List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
-                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-                List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-                Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
-                        .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
-                for (int i = 0; i < goodsDtos.size(); i++) {
-                    if(null==goodsVipPriceMap.get(goodsDtos.get(i).getSkuId())){
-                        continue;
+        try {
+            for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
+                List<GoodsDto> goodsDtos = goodsPoolDto.getGoods();
+                if(goodsDtos.size() != 0) {
+                    List<String> skuIdList = goodsDtos.stream().map(GoodsDto::getSkuId).collect(Collectors.toList());
+                    //获取商品信息
+                    GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+                    goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+                    goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
+                    goodsInfoByIdRequest.setIsHavSpecText(1);
+                    List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+                    MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+                    filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+                    filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                    List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+                    Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+                            .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+                    for (int i = 0; i < goodsDtos.size(); i++) {
+                        if(null==goodsVipPriceMap.get(goodsDtos.get(i).getSkuId())){
+                            continue;
+                        }
+                        goodsDtos.get(i).setPaidCardPrice(goodsVipPriceMap.get(goodsDtos.get(i).getSkuId()).getSalePrice());
                     }
-                    goodsDtos.get(i).setPaidCardPrice(goodsVipPriceMap.get(goodsDtos.get(i).getSkuId()).getSalePrice());
                 }
+                goodsPoolDto.setGoods(goodsDtos);
             }
-            goodsPoolDto.setGoods(goodsDtos);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
+
     }
 
     //获取商品详情
