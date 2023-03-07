@@ -83,14 +83,13 @@ public class BookTags {
     }
 
 
-
     public void doGoods(Map goodMap){
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
         String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-        //spu_id = "2c9a00ca86299cda01862a0163e60000"
+        //spu_id = "2c9a00ca86299cda01862a0163e60000";
         //spu_no = "P735546359";
         //isbn   = "ISBN_C_T003";
 
