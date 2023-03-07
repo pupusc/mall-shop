@@ -63,7 +63,7 @@ public class BookDetailTab {
         doOtherBooks(redisMap,book_id);
 
         List allList = new ArrayList();
-        doTab1(allList,book_id);
+        //doTab1(allList,book_id);
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
         doTab4(allList);

@@ -50,7 +50,7 @@ public class BookTags {
     BookDetailTab bookDetailTab;
 
     @Autowired
-    private MetaFigureService metaFigureService;
+    private CacheService cacheService;
 
     public void doGoods(){
 
@@ -94,7 +94,8 @@ public class BookTags {
         //spu_no = "P735546359";
         //isbn   = "ISBN_C_T003";
 
-        Map bookMap = bookJpa.getBookMap(isbn);
+        //Map bookMap = bookJpa.getBookMap(isbn);               //1.读数据库
+        Map bookMap = cacheService.getBookMap_cache(isbn);      //2.读缓存
 
         if(bookMap == null || bookMap.size() == 0){
             return;
@@ -106,7 +107,10 @@ public class BookTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        List tagList1 = bookJpa.getTagList(book_id);
+        /*List tagList1 = bookJpa.getTagList(book_id);*/
+
+        //10. 大促标签_缓存
+        List tagList1 = cacheService.getTagList_cache(book_id);
         if(tagList1!=null && tagList1.size() > 0){
             allList.addAll(tagList1);
         }
