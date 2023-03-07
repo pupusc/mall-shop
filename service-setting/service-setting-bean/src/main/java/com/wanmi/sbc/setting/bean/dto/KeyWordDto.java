@@ -17,7 +17,7 @@ public class KeyWordDto implements Serializable {
     private String id;
     private String name;
 
-    private MicroServicePage<MixedComponentContentDto> mixedComponentContentPage;
+    private MicroServicePage<GoodsPoolDto> goodsPoolPage;
 
     public KeyWordDto(String id ,String name) {
         this.id = id;
