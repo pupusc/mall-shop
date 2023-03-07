@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -28,5 +29,9 @@ public class MetaTradeBO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss" ,timezone = "GMT+8")
     private Date updateTime;
     private int delFlag;
-    private List<MetaTradeBO> childrenList;
+    private List<MetaTradeBO> childrenList =new ArrayList<>();
+
+    public void addChild(MetaTradeBO node) {
+        childrenList.add(node);
+    }
 }

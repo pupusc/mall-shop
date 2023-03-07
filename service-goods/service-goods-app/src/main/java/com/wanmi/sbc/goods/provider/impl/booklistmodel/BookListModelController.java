@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishServ
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
+import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class BookListModelController implements BookListModelProvider {
 
     @Autowired
     private BookListGoodsPublishService bookListGoodsPublishService;
+
+    @Autowired
+    private BookRepository bookRepository;
 
     /**
      * 新增书单模版
@@ -301,4 +305,8 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(collect);
     }
 
+    @Override
+    public BaseResponse<List> getBookRecommend(String isbnId) {
+        return BaseResponse.success(bookRepository.getBookRecommend(isbnId));
+    }
 }

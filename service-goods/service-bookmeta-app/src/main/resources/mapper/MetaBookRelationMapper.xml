@@ -1,9 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookRelationMapper">
-    
+
+    <resultMap id="MetaBookRelationMap" type="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="subName" column="sub_name" jdbcType="VARCHAR"/>
+        <result property="startTime" column="start_time" jdbcType="DATE"/>
+        <result property="endTime" column="end_time" jdbcType="DATE"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="DATE"/>
+        <result property="updateTime" column="update_time" jdbcType="DATE"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+    <delete id="deleteSelective">
+        update meta_book_relation set del_flay = 1 where id = #{id}
+    </delete>
+
     <select id="getTitleByBookId" resultType="map">
         select id,book_id,name,sub_name from meta_book_relation where book_id = #{bookId} and del_flag = 0 order by order_num asc limit 0,1;
     </select>
+
+    <insert id="insertSelective" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into meta_book_relation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bookId !=null">
+                `book_id`,
+            </if>
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="subName !=null">
+                `sub_name`,
+            </if>
+            <if test="startTime !=null">
+                `start_time`,
+            </if>
+            <if test="endTime !=null">
+                `end_time`,
+            </if>
+            <if test="orderNum != null">
+                `order_num`,
+            </if>
+            <if test="createTime !=null">
+                `create_time`
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bookId !=null">
+                #{bookId},
+            </if>
+            <if test="name !=null">
+                #{name},
+            </if>
+            <if test="subName !=null">
+                #{subName},
+            </if>
+            <if test="startTime !=null">
+                #{startTime},
+            </if>
+            <if test="endTime != null">
+                #{endTime},
+            </if>
+            <if test="orderNum !=null">
+                #{orderNum},
+            </if>
+            <if test="createTime !=null">
+                #{createTime}
+            </if>
+        </trim>
+    </insert>
+
+
 </mapper>
 

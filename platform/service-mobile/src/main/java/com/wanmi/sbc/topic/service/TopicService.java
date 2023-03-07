@@ -2,7 +2,6 @@ package com.wanmi.sbc.topic.service;
 
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -47,9 +46,8 @@ import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.index.RefreshConfig;
-//import com.wanmi.sbc.index.V2tabConfigResponse;
-import com.wanmi.sbc.index.response.ProductConfigResponse;
+import com.wanmi.sbc.goodsPool.PoolFactory;
+import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
@@ -93,7 +91,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -175,13 +172,10 @@ public class TopicService {
     private RedisService redisService;
 
     @Autowired
-    private RefreshConfig refreshConfig;
-
-    @Autowired
     private RedisListService redisListService;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private PoolFactory poolFactory;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -1071,7 +1065,9 @@ public class TopicService {
                                 if (tags != null) {
                                     tags.forEach(s -> {
                                         TagsDto tagsDto = new TagsDto();
-                                        tagsDto.setName((String) JSON.parseObject(s.toString()).get("show_name"));
+                                        Map map = (Map) s;
+                                        tagsDto.setName(map.get("show_name").toString());
+                                        tagsDto.setType((Integer) map.get("order_type"));
                                         tagsDtos.add(tagsDto);
                                     });
                                 }
@@ -1098,8 +1094,8 @@ public class TopicService {
                     } else {
                         List<TagsDto> tabs = new ArrayList<>();
                         if (c.getLabelId() != null && !"".equals(c.getLabelId())) {
-                            for (String s : c.getLabelId().split(",")) {
-                                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(Integer.valueOf(s)).getContext();
+                            for (Integer s : c.getLabelId()) {
+                                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(s).getContext();
                                 TagsDto tagsDto = new TagsDto();
                                 tagsDto.setName(metaLabelBO.getName());
                                 tagsDto.setShowStatus(metaLabelBO.getStatus());
@@ -1152,6 +1148,59 @@ public class TopicService {
         }
     }
 
+    public void saveMixedComponentContent() {
+        //栏目信息
+        Integer topicStoreyId = 194;
+        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
+        request.setTopicStoreyId(topicStoreyId);
+        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
+        //存redis
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
+        // tab
+        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
+            return new MixedComponentDto(c);
+        }).collect(Collectors.toList());
+        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
+            Integer tabId = mixedComponentDto.getId();
+            // 获取关键字
+            List<KeyWordDto> keywords = new ArrayList<>();
+            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
+                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
+            // 获取规则
+            List<String> rules = new ArrayList<>();
+            mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
+                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                    .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
+            //获取商品池
+            List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
+            for (KeyWordDto keyword : keywords) {
+                String keyWordId = keyword.getId();
+                String keyWord = keyword.getName();
+                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
+                for (MixedComponentTabDto pool : pools) {
+                    Integer id = pool.getId();
+                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+                    columnContentQueryRequest.setTopicStoreySearchId(id);
+                    columnContentQueryRequest.setDeleted(0);
+                    columnContentQueryRequest.setPageSize(10000);
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
+                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
+                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
+                }
+                //排序
+                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
+                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
+                        .collect(Collectors.toList());
+                //存redis
+                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
+            }
+        }
+
+
+
+    }
+
     //获取商品详情
     private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
         //获取会员价
@@ -1179,34 +1228,77 @@ public class TopicService {
         }
         if (esSpuNewResps == null) {return;}
         CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
-        esSpuNewResps.forEach(res -> {
+        for (EsSpuNewResp res : esSpuNewResps) {
             DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
             request.setGoodsId(res.getSpuId());
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
-            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-            filterRequest.setCustomerDTO(convert);
-            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+//            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+//            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+//            filterRequest.setCustomerDTO(convert);
+//            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.stream().filter(s ->
+//                    res.getSpuName().equals(s.getGoodsInfoName())
+//            ).findFirst().get();
+//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.get(0);
             GoodsDto goodsDto = new GoodsDto();
             goodsDto.setSpuId(res.getSpuId());
-            goodsDto.setGoodsName(res.getSpuName());
-            goodsDto.setImage(column.getImageUrl());
-            goodsDto.setRecommend(column.getRecommend());
-            goodsDto.setRecommendName(column.getRecommendName());
-            goodsDto.setReferrer(column.getReferrer());
-            goodsDto.setReferrerTitle(column.getReferrerTitle());
-            goodsDto.setScore(res.getBook() != null ? String.valueOf(res.getBook().getScore()) : null);
-            goodsDto.setRetailPrice(res.getSalesPrice());
-            goodsDto.setListMessage(column.getName());
-            List<String> tags = new ArrayList<>();
-            if (res.getLabels() != null) {res.getLabels().forEach(label -> tags.add(label.getLabelName()));}
-            goodsDto.setTags(tags);
-            if (goodsInfoVOList.size() != 0 && goodsInfoVOList.get(0).getPaidCardPrice() != null) {
-                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
-                goodsDto.setDiscount(res.getSalesPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsInfoVOList.get(0).getPaidCardPrice().divide(res.getSalesPrice())).multiply(new BigDecimal(100))) : null);
+            goodsDto.setGoodsName(column.getGoodsName());
+            String isbn = column.getIsbn() != null ? column.getIsbn() : res.getBook().getIsbn();
+            goodsDto.setIsbn(isbn);
+            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
+            String score = null;
+            if (context.size() != 0) {
+                Map map = (Map) context.get(0);
+                score = map.get("score") != null ? map.get("score").toString() : null;
+                String name = map.get("descr") != null ? map.get("descr").toString() : null ;
+                goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
+                goodsDto.setRecommendName(name);
+                goodsDto.setReferrer(name == null ? "文喵" : name);
+                goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
             }
+
+//            if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
+//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 3) + "万+";
+//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100000) {
+//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 2) + "万+";
+//            } else if (goodsInfoVO.getGoodsSalesNum() >= 10000) {
+//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "万+";
+//            } else if (goodsInfoVO.getGoodsSalesNum() >= 1000) {
+//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "千+";
+//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100) {
+//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "百+";
+//            } else {
+//                //当图书库评分为空取商城商品评分
+//                score = score != null ? score : null;
+//            }
+            goodsDto.setScore(score);
+            goodsDto.setRetailPrice(res.getSalesPrice());
+            if (JSON.parseObject(goodsInfoQueryProvider.getRedis(res.getSpuId()).getContext()) != null) {
+                List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
+                if (tags != null) {
+                    tags.forEach(s -> {
+                        TagsDto tagsDto = new TagsDto();
+                        Map tagMap = (Map) s;
+                        if ("20".equals(tagMap.get("order_type").toString())) {
+                            goodsDto.setListMessage(tagMap.get("show_name").toString());
+                        }
+                    });
+                }
+            }
+//            goodsDto.setSkuId(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoId() : null);
+//            goodsDto.setImage(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoImg() :
+//                    (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
+            List<String> tags = new ArrayList<>();
+            if (res.getLabels() != null) {
+                res.getLabels().forEach(label -> tags.add(label.getLabelName()));
+            }
+            goodsDto.setTags(tags);
+//            if (goodsInfoVOList.size() != 0 && goodsInfoVOList.get(0).getPaidCardPrice() != null) {
+//                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
+//                goodsDto.setDiscount(res.getSalesPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsInfoVOList.get(0).getPaidCardPrice().divide(res.getSalesPrice())).multiply(new BigDecimal(100))) : null);
+//            }
             goods.add(goodsDto);
-        });
+        }
     }
 
 

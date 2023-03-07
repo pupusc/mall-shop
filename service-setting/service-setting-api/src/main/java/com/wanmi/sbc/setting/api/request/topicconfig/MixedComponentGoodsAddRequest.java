@@ -54,6 +54,7 @@ public class MixedComponentGoodsAddRequest implements Serializable {
         columnAddRequest.setDropName(dropName);
         columnAddRequest.setOrderType(orderWay);
         columnAddRequest.setRecommend(recommend);
+        columnAddRequest.setLabelId(JSON.toJSONString(labelId));
         columnAddRequest.setOrderNum(sorting);
         Map<String, Object> attributeInfo = new HashMap<>();
         if (BookType.VIDEO.toValue().equals(bookType)) {

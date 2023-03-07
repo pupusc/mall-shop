@@ -169,6 +169,7 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/page")
     BaseResponse<MicroServicePage<MixedComponentTabDto>> pageMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
 
+
     /**
      * @Description 混合标签tab列表
      * @Author zh
@@ -184,6 +185,14 @@ public interface TopicConfigProvider {
      */
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/topicStoreyColumnGoods/add")
     BaseResponse addTopicStoreyColumnGoods(@RequestBody MixedComponentGoodsAddRequest request);
+
+    /**
+     * @Description 商品池详情
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/getGoodsPool")
+    BaseResponse<MixedComponentGoodsDto> getGoodsPool(@RequestBody MixedComponentTabQueryRequest request);
 
     /**
      * @Description topic_storey_column表list
@@ -234,7 +243,7 @@ public interface TopicConfigProvider {
     BaseResponse<ColumnDTO> getTopicStoreyColumnById(@RequestParam("id") Integer id);
 
     /**
-     * @Description topic_storey_column_content表list
+     * @Description topic_storey_column_content表page
      * @Author zh
      * @Date  2023/2/18 11:50
      */

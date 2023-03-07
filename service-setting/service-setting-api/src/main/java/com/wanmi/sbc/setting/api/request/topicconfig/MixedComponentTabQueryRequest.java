@@ -37,4 +37,6 @@ public class MixedComponentTabQueryRequest implements Serializable {
     private String keyWord;
 
     private Integer level;
+
+    private Integer bookType;
 }

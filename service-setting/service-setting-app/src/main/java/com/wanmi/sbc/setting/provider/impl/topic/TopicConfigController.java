@@ -241,6 +241,16 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     /**
+     * @Description 商品池详情
+     * @Author zh
+     * @Date  2023/2/18 11:50
+     */
+    @Override
+    public BaseResponse<MixedComponentGoodsDto> getGoodsPool(MixedComponentTabQueryRequest request) {
+        return BaseResponse.success(topicConfigService.getGoodsPool(request));
+    }
+
+    /**
      * @Description 混合标签tab列表
      * @Author zh
      * @Date  2023/2/18 11:50
@@ -249,6 +259,7 @@ public class TopicConfigController implements TopicConfigProvider {
     public BaseResponse<List<MixedComponentTabDto>> listMixedComponentTab(MixedComponentTabQueryRequest request) {
         return BaseResponse.success(topicConfigService.listMixedComponentTab(request));
     }
+
 
     /**
      * @Description topic_storey_column表add

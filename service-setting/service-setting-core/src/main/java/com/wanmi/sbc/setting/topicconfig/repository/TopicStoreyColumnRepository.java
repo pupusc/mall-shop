@@ -123,11 +123,14 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
             if (request.getLevel() != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("level"), request.getLevel()));
             }
+            if (request.getBookType() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("bookType"), request.getBookType()));
+            }
             if (request.getPublishState() != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("deleted"), request.getPublishState()));
             }
             if (request.getKeyWord() != null && !"".equals(request.getKeyWord())) {
-                conditionList.add(criteriaBuilder.equal(root.get("attribute_info"), "%" + request.getKeyWord().trim() + "%"));
+                conditionList.add(criteriaBuilder.like(root.get("attributeInfo"), "%" + request.getKeyWord().trim() + "%"));
             }
             if(request.getState() != null){
                 LocalDateTime now = LocalDateTime.now();
