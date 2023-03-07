@@ -107,10 +107,7 @@ public class BookTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        /*List tagList1 = bookJpa.getTagList(book_id);
-        if(tagList1!=null && tagList1.size() > 0){
-            allList.addAll(tagList1);
-        }*/
+        /*List tagList1 = bookJpa.getTagList(book_id);*/
 
         //10. 大促标签_缓存
         List tagList1 = cacheService.getTagList_cache(book_id);
