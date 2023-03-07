@@ -286,9 +286,9 @@ public class TopicService {
                 int storeyType = storeyDTO.getStoreyType();
 
                 if(storeyType == 14){                 //14, "三本好书"
-                    //writeRedis(storeyType);
+                    //writeRedis(topic_store_id);
                 }else if(storeyType == 15){
-                    //writeRedis(storeyType);
+                    //writeRedis(topic_store_id);
                 }
 
             }
