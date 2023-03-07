@@ -70,6 +70,9 @@ import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
+import com.wanmi.sbc.task.NewBookPointJobHandler;
+import com.wanmi.sbc.task.NewRankJobHandler;
+import com.wanmi.sbc.task.RankPageJobHandler;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -266,8 +269,16 @@ public class TopicService {
 
 
     }
+    @Autowired
+    private NewRankJobHandler rankJobHandler;
 
-    public void refresRedis(){
+    @Autowired
+    private NewBookPointJobHandler newBookPointJobHandler;
+
+    @Autowired
+    private RankPageJobHandler rankPageJobHandler;
+
+    public void refresRedis() throws Exception {
 
         List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
         if(list != null && list.size() > 0){
@@ -287,10 +298,14 @@ public class TopicService {
                 String name = storeyDTO.getName();
                 int storeyType = storeyDTO.getStoreyType();
 
-                if(storeyType == 14){                 //14, "三本好书"
+                if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                 //14, "三本好书"
                     //writeRedis(topic_store_id);
-                }else if(storeyType == 15){
+                    newBookPointJobHandler.execute(null);
+                }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){
                     //writeRedis(topic_store_id);
+                    rankJobHandler.execute(null);
+                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){
+                    rankPageJobHandler.execute(topicKey);
                 }
 
             }
