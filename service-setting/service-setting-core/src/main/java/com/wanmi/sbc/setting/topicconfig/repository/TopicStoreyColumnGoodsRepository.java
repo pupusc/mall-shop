@@ -36,8 +36,12 @@ public interface TopicStoreyColumnGoodsRepository extends JpaRepository<TopicSto
             if (request.getId() != null &&  !"".equals(request.getId())) {
                 conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
             }
+            //sku编码查询条件
+            if (request.getSkuNo() != null && !"".equals(request.getSkuNo())) {
+                conditionList.add(criteriaBuilder.equal(root.get("skuNo"), request.getSkuNo()));
+            }
             if (request.getGoodsName() != null &&  !"".equals(request.getGoodsName())) {
-                conditionList.add(criteriaBuilder.like(root.get("goods_name"), request.getGoodsName() + "%"));
+                conditionList.add(criteriaBuilder.like(root.get("goodsName"), request.getGoodsName() + "%"));
             }
             if (request.getStartTime() != null) {
                 conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), request.getStartTime()));

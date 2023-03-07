@@ -27,6 +27,11 @@ public class TopicStoreyColumnGoodsQueryRequest implements Serializable {
     private String goodsName;
 
     /**
+     * sku编码
+     * */
+    private String skuNo;
+
+    /**
      * 0-未开始 1-进行中 2-已结束
      */
     public Integer state;
@@ -56,4 +61,6 @@ public class TopicStoreyColumnGoodsQueryRequest implements Serializable {
     public Integer topicStoreyId;
 
     public String spuNo;
+
+
 }
