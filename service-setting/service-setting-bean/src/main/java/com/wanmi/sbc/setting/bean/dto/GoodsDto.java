@@ -26,6 +26,8 @@ public class GoodsDto implements Serializable {
 
     private String spuId;
 
+    private String skuId;
+
     private String referrer;
 
     private String referrerTitle;
@@ -49,4 +51,6 @@ public class GoodsDto implements Serializable {
     private String listMessage;
 
     private List<String> tags;
+
+    private String isbn;
 }

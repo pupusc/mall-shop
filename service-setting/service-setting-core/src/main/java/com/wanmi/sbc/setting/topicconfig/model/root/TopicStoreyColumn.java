@@ -94,5 +94,5 @@ public class TopicStoreyColumn {
     private String dropName;
 
     @Column(name = "attribute_info")
-    private String AttributeInfo;
+    private String attributeInfo;
 }

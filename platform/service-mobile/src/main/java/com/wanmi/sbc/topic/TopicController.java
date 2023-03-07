@@ -127,6 +127,12 @@ public class TopicController {
         return BaseResponse.success(mixedComponentContent);
     }
 
+    @PostMapping(value = "/v2/saveMixedComponentContent")
+    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent() {
+        topicService.saveMixedComponentContent();
+        return BaseResponse.SUCCESSFUL();
+    }
+
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPageV2")
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {

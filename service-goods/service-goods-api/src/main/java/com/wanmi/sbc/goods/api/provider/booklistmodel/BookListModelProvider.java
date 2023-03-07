@@ -161,4 +161,7 @@ public interface BookListModelProvider {
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/importById")
     String importById(@RequestBody RankGoodsPublishResponse response);
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/getBookRecommend")
+    BaseResponse<List> getBookRecommend(@RequestParam String isbnId);
 }

@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.bean.dto;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.setting.bean.enums.BookType;
@@ -32,7 +33,7 @@ public class MixedComponentTabDto implements Serializable {
 
     private Integer level;
 
-    private String labelId;
+    private List<Integer> labelId;
 
     private String subName;
 
@@ -71,7 +72,7 @@ public class MixedComponentTabDto implements Serializable {
         this.name = columnDTO.getName();
         this.subName = columnDTO.getSubName();
         this.dropName = columnDTO.getDropName();
-        this.labelId = columnDTO.getLabelId();
+        this.labelId = JSON.parseArray(columnDTO.getLabelId(), Integer.class);
         this.sorting = columnDTO.getOrderNum();
         this.startTime = columnDTO.getCreateTime();
         this.endTime = columnDTO.getEndTime();

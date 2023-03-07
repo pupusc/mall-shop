@@ -1181,4 +1181,16 @@ public class TopicConfigService {
         }).collect(Collectors.toList());
         columnGoodsRepository.saveAll(topicStoreyColumnContents);
     }
+
+    public MixedComponentGoodsDto getGoodsPool(MixedComponentTabQueryRequest request) {
+        ColumnDTO columnDTO = this.getTopicStoreyColumnById(request.getId());
+        MixedComponentGoodsDto mixedComponentGoodsDto = new MixedComponentGoodsDto(columnDTO);
+        ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+        columnContentQueryRequest.setPageSize(request.getPageSize());
+        columnContentQueryRequest.setPageNum(request.getPageNum());
+        columnContentQueryRequest.setTopicStoreySearchId(request.getId());
+        MicroServicePage<ColumnContentDTO> columnContentDTOS = this.listTopicStoreyColumnContent(columnContentQueryRequest);
+        mixedComponentGoodsDto.setColumnContentDTOS(columnContentDTOS);
+        return mixedComponentGoodsDto;
+    }
 }

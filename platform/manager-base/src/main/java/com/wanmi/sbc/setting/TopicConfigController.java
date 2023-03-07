@@ -483,6 +483,17 @@ public class TopicConfigController {
     }
 
     /**
+     * @description 商品池详情
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("商品池详情")
+    @PostMapping("/storey/v2/goodsPool/get")
+    public BaseResponse<MixedComponentGoodsDto> getGoodsPool(@RequestBody MixedComponentTabQueryRequest request){
+        return topicConfigProvider.getGoodsPool(request);
+    }
+
+    /**
      * @description 混合标签tabRule修改
      * @param request
      * @status undone
