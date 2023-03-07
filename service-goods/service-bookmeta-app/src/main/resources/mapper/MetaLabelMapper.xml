@@ -404,6 +404,44 @@
         select count(1) from goods where goods_id = #{goods_id}
     </select>
 
+    <select id="getSkuIdBySpuId" resultType="java.util.Map" parameterType="java.lang.String">
+        select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info
+        where goods_id = #{goodsId} and stock > 0
+          and del_flag = 0 order by market_price asc limit 1;
+    </select>
+
+    <select id="getScoreBySkuId" resultType="java.lang.String">
+
+        select prop_value
+        from goods_prop_detail_rel
+        where goods_id = #{goodsId}
+          and prop_id = 3
+
+
+    </select>
+    <select id="getIsbnBySkuId" resultType="java.lang.String">
+
+        select a.goods_no as spu, b.prop_value as isbn, c.id
+        from goods a
+                 left join goods_prop_detail_rel b on a.goods_id = b.goods_id
+                 left join meta_book c on b.prop_value = c.isbn
+        where b.prop_id = 5 and a.goods_id = #{goodsId}
+          and c.id is not null
+          and a.del_flag = 0
+          and c.del_flag = 0
+          and b.del_flag = 0
+    </select>
+    <select id="getSaleNumSkuId" resultType="java.lang.String">
+        select sale_num from t_book_list_goods_publish
+        where sku_id = #{goodsId}
+          and del_flag = 0;
+    </select>
+    <select id="getSkuIdBySpuId1" resultType="java.util.Map">
+        select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info
+        where goods_id = #{goodsId}
+          and del_flag = 0 order by market_price asc limit 1;
+    </select>
+
     <insert id="addGoodsLabelSpu" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsLabelSpu">
         insert into meta_label_spu
         <trim prefix="(" suffix=")" suffixOverrides=",">

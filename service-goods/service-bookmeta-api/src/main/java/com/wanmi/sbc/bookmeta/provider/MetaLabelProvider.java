@@ -108,4 +108,7 @@ public interface MetaLabelProvider {
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/deleteGoodsLabel")
     Integer deleteGoodsLabel(@RequestBody @NotNull GoodsLabelSpuReqBO bo);
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/getGoodsInfoBySpuId")
+    SkuDetailBO getGoodsInfoBySpuId(@RequestBody @NotNull String id);
 }

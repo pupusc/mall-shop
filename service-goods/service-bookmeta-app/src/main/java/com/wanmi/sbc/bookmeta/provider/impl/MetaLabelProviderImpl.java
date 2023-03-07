@@ -12,13 +12,17 @@ import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -256,6 +260,33 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
 
+    @Override
+    public SkuDetailBO getGoodsInfoBySpuId(String id) {
+        SkuDetailBO bo = new SkuDetailBO();
+        Map map = metaLabelMapper.getSkuIdBySpuId(id);
+        String skuId = (String) map.get("goods_info_id");
+        if (StringUtils.isBlank(skuId)){
+            map=metaLabelMapper.getSkuIdBySpuId1(id);
+            skuId=(String) map.get("goods_info_id");
+        }
+        String img = (String) map.get("goods_info_img");
+        String SkuName = (String) map.get("goods_info_name");
+        BigDecimal price = (BigDecimal) map.get("market_price");
+        String score = metaLabelMapper.getScoreBySkuId(id);
+        String Isbn = metaLabelMapper.getIsbnBySkuId(id);
+        String saleNum = metaLabelMapper.getSaleNumSkuId(skuId);
+        bo.setSkuId(skuId);
+        bo.setImg(img);
+        bo.setSkuId(skuId);
+        bo.setScore(score);
+        if (StringUtils.isNotBlank(Isbn)) {
+            bo.setIsbn(Isbn);
+        }
+        bo.setSaleNum(saleNum);
+        bo.setSkuName(SkuName);
+        bo.setPrice(price);
+        return bo;
+    }
 
 
 }

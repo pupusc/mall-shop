@@ -4,17 +4,14 @@ package com.wanmi.sbc.topic.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
-import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
-import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -39,13 +36,10 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
 import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
-import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -55,6 +49,7 @@ import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.index.V2tabConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
@@ -63,13 +58,9 @@ import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
-import com.wanmi.sbc.setting.api.response.RankPageResponse;
-import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
-import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
-import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
-import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
+import com.wanmi.sbc.task.MixedComponentContentJobHandler;
 import com.wanmi.sbc.task.NewBookPointJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.task.RankPageJobHandler;
@@ -92,11 +83,9 @@ import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
-import io.jsonwebtoken.Claims;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,19 +93,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import springfox.documentation.spring.web.json.Json;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.alibaba.nacos.api.selector.SelectorType.label;
 
 @Service
 @Slf4j
@@ -278,6 +261,9 @@ public class TopicService {
     @Autowired
     private RankPageJobHandler rankPageJobHandler;
 
+    @Autowired
+    private MixedComponentContentJobHandler mixedComponentContentJobHandler;
+
     public void refresRedis() throws Exception {
 
         List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
@@ -306,6 +292,14 @@ public class TopicService {
                     rankJobHandler.execute(null);
                 }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){
                     rankPageJobHandler.execute(topicKey);
+                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
+                    mixedComponentContentJobHandler.execute(null);
+                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                    threeBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){
+                   goodsOrBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){
+                    goodsOrBookSaveRedis(topic_store_id);
                 }
 
             }
@@ -322,17 +316,7 @@ public class TopicService {
      * @return
      */
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
-
-
-//        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-//        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
-//        Map customerMap = ( Map ) httpRequest.getAttribute("claims");
-//        if(null!=customerMap && null!=customerMap.get("customerId")) {
-//            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-//
-//        }
-        String c="{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-        CustomerGetByIdResponse customer= JSON.parseObject(c, CustomerGetByIdResponse.class);
+        CustomerGetByIdResponse customer = getCustomer();
         //调用老版首页入口加载老版组件
         BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
         if(null==detail||null==detail.getContext()){
@@ -353,7 +337,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
-                topicResponse.setMixedComponentContent(getMixedComponentContent(topicResponse.getId(), request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
+                topicResponse.setMixedComponentContent(getMixedComponentContent(request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
@@ -365,15 +349,17 @@ public class TopicService {
                 RankPageRequest rankPage = rankPage(topicResponse);
                 topicResponse.setRankPageRequest(rankPage);
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
-                topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
+                TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Books.getId());
-                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
-                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 suspensionByTypeRequest.setType(2L);
@@ -385,13 +371,24 @@ public class TopicService {
         return BaseResponse.success(response);
     }
 
+    public CustomerGetByIdResponse getCustomer(){
+        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
+        Map customerMap = ( Map ) httpRequest.getAttribute("claims");
+        if(null!=customerMap && null!=customerMap.get("customerId")) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+        }
+        return customer;
+    }
+
     /**
      * 首页榜单
      * @param
      * @return
      */
     public List<RankRequest> rank(){
-        RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK),RankRedisListResponse.class);
+        try {
+            RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK), RankRedisListResponse.class);
 //        List<Integer> idList = response.getRankIds();
 //        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
 //        idsRequest.setIds(idList);
@@ -436,12 +433,17 @@ public class TopicService {
 //                }
 //            });
 //        });
-        return response.getRankRequestList();
+            return response.getRankRequestList();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
      * 商品组件及图书组件
      */
+    @Deprecated
     public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest,CustomerGetByIdResponse customer){
 
         try {
@@ -548,72 +550,101 @@ public class TopicService {
 
     /**
      * 榜单聚合页
+     *
      * @param request
      * @return
      */
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
-        List<RankRequest> rankRequestList=new ArrayList<>();
-        List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
-        if (!CollectionUtils.isEmpty(objectList)) {
-            for (JSONObject goodStr : objectList) {
-                rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
+        try {
+            List<RankRequest> rankRequestList = new ArrayList<>();
+            List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
+            if (!CollectionUtils.isEmpty(objectList)) {
+                for (JSONObject goodStr : objectList) {
+                    rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
+                }
             }
-        }
-        if (null==request.getTopicStoreySearchId()&&null==request.getRankId()){
-            request.setTopicStoreySearchId(rankRequestList.get(0).getId());
-            Collection rankList = rankRequestList.get(0).getRankList();
-            RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
-            request.setRankId(convert.getId());
-        }else if(null!=request.getTopicStoreySearchId()&&null==request.getRankId()){
-            Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
-            if(first.isPresent()){
-                Collection rankList =first.get().getRankList();
+            List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>();
+            List<JSONObject> infoObjectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":goodsInfoList");
+            if (!CollectionUtils.isEmpty(infoObjectList)) {
+                for (JSONObject goodStr : infoObjectList) {
+                    goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
+                }
+            }
+            List<GoodsInfoVO> goodsInfos=new ArrayList<>();
+            if(goodsInfoVOList.size()>0){
+                CustomerGetByIdResponse customer = this.getCustomer();
+                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+                filterRequest.setGoodsInfos(KsBeanUtil.convertList(goodsInfoVOList, GoodsInfoDTO.class));
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            }
+            if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
+                request.setTopicStoreySearchId(rankRequestList.get(0).getId());
+                Collection rankList = rankRequestList.get(0).getRankList();
                 RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
                 request.setRankId(convert.getId());
+            } else if (null != request.getTopicStoreySearchId() && null == request.getRankId()) {
+                Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
+                if (first.isPresent()) {
+                    Collection rankList = first.get().getRankList();
+                    RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+                    request.setRankId(convert.getId());
+                }
             }
-        }
-        String key=RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":listGoods:"+request.getRankId();
-        //瀑布流分页
-        Integer total=redisListService.getSize(key);
-        Integer pageSize= request.getPageSize();
-        long totalPages=(long)Math.ceil(total/ pageSize);
-        Integer pageNum= request.getPageNum();
-        Integer start=(pageNum)*pageSize;
-        Integer end=start+pageSize-1;
-        if(start>=total){
+            String key = RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":listGoods:" + request.getRankId();
+            //瀑布流分页
+            Integer total = redisListService.getSize(key);
+            Integer pageSize = request.getPageSize();
+            long totalPages = (long) Math.ceil(total / pageSize);
+            Integer pageNum = request.getPageNum();
+            Integer start = (pageNum) * pageSize;
+            Integer end = start + pageSize - 1;
+            if (start >= total) {
+                return null;
+            }
+            if (end > total) {
+                end = total - 1;
+            }
+            List<Map> goodsCustomResponses = new ArrayList<>();
+            List<JSONObject> goodsInfoList = redisListService.findByRange(key, start, end);
+            if (!CollectionUtils.isEmpty(goodsInfoList)) {
+                for (JSONObject goodStr : goodsInfoList) {
+                    goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
+                }
+            }
+            List<GoodsInfoVO> finalGoodsInfos = goodsInfos;
+            goodsCustomResponses.forEach(g->{
+                Map map=g;
+                finalGoodsInfos.stream().filter(i->i.getGoodsInfoId().equals(map.get("skuId"))).forEach(i->{
+                    map.put("vipPrice",i.getSalePrice());
+                });
+            });
+            //初始化榜单树形结构，获取商品详情
+            rankRequestList.forEach(r -> {
+                r.getRankList().forEach(t -> {
+                    Map tMap = (Map) t;
+                    if (tMap.get("id").equals(request.getRankId())) {
+                        List<Map> rankList = (List<Map>) tMap.get("rankList");
+                        rankList.addAll(goodsCustomResponses);
+                    }
+                });
+            });
+            RankPageRequest pageRequest = new RankPageRequest();
+            pageRequest.setContentList(rankRequestList);
+            pageRequest.setPageNum(pageNum);
+            pageRequest.setTotalPages(totalPages);
+            pageRequest.setPageSize(pageSize);
+            pageRequest.setTotal(Long.valueOf(total));
+            return pageRequest;
+        }catch (Exception e){
+            e.printStackTrace();
             return null;
         }
-        if(end>total){
-            end=total-1;
-        }
-        List<Map> goodsCustomResponses=new ArrayList<>();
-        List<JSONObject> goodsInfoList = redisListService.findByRange(key,start,end);
-        if (!CollectionUtils.isEmpty(goodsInfoList)) {
-            for (JSONObject goodStr : goodsInfoList) {
-                goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
-            }
-        }
-        //初始化榜单树形结构，获取商品详情
-        rankRequestList.forEach(r->{
-            r.getRankList().forEach(t->{
-                Map tMap= (Map) t;
-                if(tMap.get("id").equals(request.getRankId())) {
-                    List<Map> rankList = (List<Map>) tMap.get("rankList");
-                    rankList.addAll(goodsCustomResponses);
-                }
-            });
-        });
-        RankPageRequest pageRequest =new RankPageRequest();
-        pageRequest.setContentList(rankRequestList);
-        pageRequest.setPageNum(pageNum);
-        pageRequest.setTotalPages(totalPages);
-        pageRequest.setPageSize(pageSize);
-        pageRequest.setTotal(Long.valueOf(total));
-        return pageRequest;
     }
 
     /**
      * 榜单更多
+     *
      * @param storeyResponse
      * @return
      */
@@ -630,6 +661,7 @@ public class TopicService {
     /**
      * 三本好书,首页加载
      */
+    @Deprecated
      public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest){
 
          try {
@@ -734,8 +766,158 @@ public class TopicService {
         }
     }
 
+    /**
+     * 三本好书存redis
+     */
+    public BaseResponse threeBookSaveRedis(Integer topicStoreyId){
+        ThreeGoodBookRequest threeGoodBookRequest=new ThreeGoodBookRequest();
+        List<ThreeGoodBookResponse> threeGoodBookResponses = new ArrayList<>();
+        try {
+            if (null == threeGoodBookRequest.getId()) {
+                //没有指定栏目id,添加所有栏目
+                TopicStoreyColumnQueryRequest request=new TopicStoreyColumnQueryRequest();
+                request.setState(1);
+                request.setPublishState(0);
+                //  request.setTopicStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+                request.setTopicStoreyId(topicStoreyId);
+                topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
+                    ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+                    BeanUtils.copyProperties(t, threeGoodBookResponse);
+                    threeGoodBookResponses.add(threeGoodBookResponse);
+                });
+            }
 
+            if (null != threeGoodBookResponses && threeGoodBookResponses.size() != 0) {
+                TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
+                topicStoreyColumnGoodsQueryRequest.setPublishState(0);
+                for (ThreeGoodBookResponse threeGoodBookResponse : threeGoodBookResponses) {
+                    topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponse.getId());
+                    //设定指定的分页
+                    topicStoreyColumnGoodsQueryRequest.setPageNum(threeGoodBookRequest.getPageNum());
+                    topicStoreyColumnGoodsQueryRequest.setPageSize(threeGoodBookRequest.getPageSize());
+                    MicroServicePage<TopicStoreyColumnGoodsDTO> contextPage = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext();
+                    List<TopicStoreyColumnGoodsDTO> content = contextPage.getContent();
+                    if (null != content && content.size() != 0) {
+                        List<ThreeGoodBookGoods> goodBookGoods = new ArrayList<>();
+                        content.stream().forEach(t -> {
+                            ThreeGoodBookGoods goodBookGoodsTemp = new ThreeGoodBookGoods();
+                            BeanUtils.copyProperties(t, goodBookGoodsTemp);
+                            goodBookGoods.add(goodBookGoodsTemp);
+                        });
+                        threeGoodBookResponse.setGoodBookGoods(goodBookGoods);
+                    }
+                }
+            }
+        }catch (Exception e){
+            return BaseResponse.error("失败");
+        }
+        String json = JSON.toJSONString(threeGoodBookResponses, SerializerFeature.WriteMapNullValue);
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyId.toString());
+        if(!json.equals(old_json)){
+            redisService.setString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyId.toString(), json );
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+    /**
+     * 三本好书取redis
+     */
+    public List getThreeBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ){
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+        List list=JSONObject.parseObject(old_json,List.class);
+        return list;
+    }
 
+    /**
+     * 商品组件或图书组件存redis
+     */
+    public BaseResponse goodsOrBookSaveRedis( Integer topicStoreyId){
+        List<GoodsOrBookResponse> goodsOrBookResponse = new ArrayList<>();
+        try {
+            TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+            //获得主题id
+            topicStoreyContentRequest.setStoreyId(topicStoreyId);
+            //获得主题下商品skuList
+            List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+
+            if (null == collectTemp || collectTemp.size() == 0) {
+                return BaseResponse.error("没有可存储的数据");
+            }
+            List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
+
+            //获取商品信息
+            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+            goodsInfoByIdRequest.setGoodsInfoIds(skuList);
+            goodsInfoByIdRequest.setIsHavSpecText(1);
+
+            collectTemp.stream().forEach(g -> {
+                GoodsOrBookResponse goodsOrBookResponseTemp = new GoodsOrBookResponse();
+                BeanUtils.copyProperties(g, goodsOrBookResponseTemp);
+                com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
+                if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+                    goodsOrBookResponseTemp.setTagsDto(tagsDto);
+                }
+                goodsOrBookResponse.add(goodsOrBookResponseTemp);
+            });
+            String json = JSON.toJSONString(goodsOrBookResponse, SerializerFeature.WriteMapNullValue);
+            String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+            if(!json.equals(old_json)){
+                redisService.setString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString(), json );
+            }
+        }catch (Exception e){
+            return BaseResponse.error("失败");
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 商品组件或图书组件取redis
+     */
+    public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ){
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+        List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
+        List<String> skuIdList=new ArrayList<>();
+        //返回值
+        List<Map> goodsOrBookMapList=new ArrayList<>();
+        //循环每个商品取出skuId
+        for(int i=0;i<goodsOrBookResponseList.size();i++){
+            Map goodsOrBookMap= (Map)goodsOrBookResponseList.get(i);
+            skuIdList.add(goodsOrBookMap.get("skuId").toString());
+            goodsOrBookMapList.add(goodsOrBookMap);
+        }
+
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //用户信息
+        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //价格信息
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        if(null== priceContext){
+            return goodsOrBookMapList;
+        }
+        List<GoodsInfoVO> goodsInfoVOList = priceContext.getGoodsInfoVOList();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        //循环每个商品
+        for(int j=0;j<goodsOrBookMapList.size();j++){
+            if(null != goodsPriceMap && null != goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString())){
+                // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
+                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice()) {
+                    goodsOrBookMapList.get(j).put("salePrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice());
+                }
+                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
+                    goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
+                }
+            }
+        }
+        return goodsOrBookMapList;
+    }
     /**
      * 初始化优惠券信息
      */
@@ -990,21 +1172,13 @@ public class TopicService {
 
     }
 
-    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
+    public List<MixedComponentDto> getMixedComponentContent(Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         try {
             //详情
             String mixed = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ "details");
             List<MixedComponentTabDto> mixedComponentTab = new ArrayList<>();
             if (!StringUtils.isEmpty(mixed)) {
                 mixedComponentTab = JSON.parseArray(mixed, MixedComponentTabDto.class);
-            } else {
-                MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
-                request.setTopicStoreyId(topicStoreyId);
-                request.setPublishState(0);
-                request.setPageSize(10000);
-                mixedComponentTab = topicConfigProvider.pageMixedComponentTab(request).getContext().getContent();
-                //存redis
-                redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
             }
 
             List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
@@ -1012,14 +1186,10 @@ public class TopicService {
             mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
                 return new MixedComponentDto(c);
             }).collect(Collectors.toList());
-
-
             if (tabId == null || "".equals(tabId)) {
                 tabId = mixedComponentDtos != null ? mixedComponentDtos.get(0).getId() : null;
             }
-
             Integer finalTabId = tabId;
-
             // 获取关键字
             List<KeyWordDto> keywords = new ArrayList<>();
             mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
@@ -1028,117 +1198,25 @@ public class TopicService {
             if (keyWord == null || "".equals(keyWord)) {
                 keyWord = mixedComponentDtos.size() != 0 && keywords.size() != 0 ? keywords.get(0).getName() : null;
             }
-
             //瀑布流
             String finalKeyWord = keyWord;
             String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
-            String contentString = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWordId);
-            List<MixedComponentContentDto> content = new ArrayList<>();
-
-            if (!StringUtils.isEmpty(contentString)) {
-                content = JSON.parseArray(contentString, MixedComponentContentDto.class);
-            } else {
-                // 获取规则
-                List<String> rules = new ArrayList<>();
-                mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
-                        .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                        .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
-                //根据规则获取商品池信息
-                List<MixedComponentTabDto> goodsCollect = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
-                for (MixedComponentTabDto c : goodsCollect) {
-                    Integer id = c.getId();
-                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
-                    columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
-                    if (c.getBookType() != null && BookType.BOOK.toValue().equals(c.getBookType())) {
-                        for (ColumnContentDTO column : columnContent) {
-                            List<GoodsDto> goods = new ArrayList<>();
-                            getGoods(finalKeyWord, column, goods, customer);
-                            MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
-                            mixedComponentContentDto.setSorting(column.getSorting());
-                            if (JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()) != null) {
-                                List<TagsDto> tagsDtos = new ArrayList<>();
-                                List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
-                                if (tags != null) {
-                                    tags.forEach(s -> {
-                                        TagsDto tagsDto = new TagsDto();
-                                        Map map = (Map) s;
-                                        tagsDto.setName(map.get("show_name").toString());
-                                        tagsDto.setType((Integer) map.get("order_type"));
-                                        tagsDtos.add(tagsDto);
-                                    });
-                                }
-                                //获取标签
-                                mixedComponentContentDto.setLabelId(tagsDtos);
-                            }
-                            if (goods.size() != 0) {
-                                content.add(mixedComponentContentDto);
-                            }
-                        }
-                    } else if (c.getBookType() != null && BookType.ADVERTISEMENT.toValue().equals(c.getBookType())) {
-                        for (ColumnContentDTO column : columnContent) {
-                            List<GoodsDto> goods = new ArrayList<>();
-                            getGoods(finalKeyWord, column, goods, customer);
-                            MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
-                            mixedComponentContentDto.setImage(column.getImageUrl());
-                            mixedComponentContentDto.setUrl(goods.size() == 0 ? column.getLinkUrl() : null);
-                            mixedComponentContentDto.setSorting(column.getSorting());
-                            //获取标签
-                            if (goods.size() != 0 || column.getLinkUrl() != null) {
-                                content.add(mixedComponentContentDto);
-                            }
-                        }
-                    } else {
-                        List<TagsDto> tabs = new ArrayList<>();
-                        if (c.getLabelId() != null && !"".equals(c.getLabelId())) {
-                            for (Integer s : c.getLabelId()) {
-                                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(s).getContext();
-                                TagsDto tagsDto = new TagsDto();
-                                tagsDto.setName(metaLabelBO.getName());
-                                tagsDto.setShowStatus(metaLabelBO.getStatus());
-                                tagsDto.setShowImg(metaLabelBO.getShowImg());
-                                tagsDto.setType(metaLabelBO.getType());
-                                tabs.add(tagsDto);
-                            }
-                        }
-                        List<GoodsDto> goods = new ArrayList<>();
-                        columnContent.forEach(column -> {
-                            getGoods(finalKeyWord, column, goods, customer);
-                        });
-                        MixedComponentContentDto mixedComponentContentDto = new MixedComponentContentDto(c, goods);
-                        mixedComponentContentDto.setSorting(c.getSorting());
-                        //获取标签
-                        mixedComponentContentDto.setLabelId(tabs);
-                        if (goods.size() != 0) {
-                            content.add(mixedComponentContentDto);
-                        }
-                    }
+            MicroServicePage<GoodsPoolDto> goodsPoolPage = new MicroServicePage<>();
+            List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, pageNum, pageSize);
+            List<GoodsPoolDto> goodsPoolDtos = byRange.stream().map(s -> {return JSON.toJavaObject(s, GoodsPoolDto.class);}).collect(Collectors.toList());
+            //初始化会员价
+            if (customer == null) {
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                customer =new CustomerGetByIdResponse();
+                Map customerMap = ( Map ) request.getAttribute("claims");
+                if(null!=customerMap && null!=customerMap.get("customerId")) {
+                    customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
                 }
-                //存redis
-                redisService.setString(RedisKeyUtil.MIXED_COMPONENT+ tabId + keyWordId, JSON.toJSONString(content));
             }
-            MicroServicePage<MixedComponentContentDto> mixedComponentContentPage = new MicroServicePage<>();
-            //排序
-            List<MixedComponentContentDto> mixedComponentContentDtos = content.stream().sorted(Comparator.comparing(MixedComponentContentDto::getSorting)
-                            .thenComparing(Comparator.comparing(MixedComponentContentDto::getType).reversed()))
-                    .collect(Collectors.toList());
-            // 每页显示的数据条数
-            int number = pageNum + 1;
-            // 数据总条数
-            int totalPageSize = mixedComponentContentDtos.size();
-            // 总页数
-            int totalPage = (totalPageSize % pageSize) > 0 ? (totalPageSize / pageSize) + 1 : (totalPageSize / pageSize);
-            // 一页一页读取数据
-            Stream.iterate(1, i -> i + 1).limit(totalPage).forEach(pageIndex -> {
-                if (pageIndex == number) {
-                    List<MixedComponentContentDto> collect = mixedComponentContentDtos.stream().skip((pageIndex - 1) * pageSize).limit(pageSize).collect(Collectors.toList());
-                    mixedComponentContentPage.setContent(collect);
-                }
-            });
-            mixedComponentContentPage.setTotal(totalPageSize);
-            if(keywords.size() != 0) {keywords.forEach(s -> {if(finalKeyWord.equals(s.getName())) {s.setMixedComponentContentPage(mixedComponentContentPage);}});}
+            initVipPrice(goodsPoolDtos, customer);
+            goodsPoolPage.setContent(goodsPoolDtos);
+            goodsPoolPage.setTotal(redisListService.getSize(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId));
+            if(keywords.size() != 0) {keywords.forEach(s -> {if(finalKeyWord.equals(s.getName())) {s.setGoodsPoolPage(goodsPoolPage);}});}
             if(mixedComponentDtos.size() != 0) {mixedComponentDtos.forEach(s -> {if(finalTabId.equals(s.getId())) {s.setKeywords(keywords);}});}
             return mixedComponentDtos;
         } catch (Exception e) {
@@ -1147,162 +1225,40 @@ public class TopicService {
         }
     }
 
-    public void saveMixedComponentContent() {
-        //栏目信息
-        Integer topicStoreyId = 194;
-        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
-        request.setTopicStoreyId(topicStoreyId);
-        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
-        //存redis
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
-        // tab
-        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
-            return new MixedComponentDto(c);
-        }).collect(Collectors.toList());
-        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
-            Integer tabId = mixedComponentDto.getId();
-            // 获取关键字
-            List<KeyWordDto> keywords = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
-            // 获取规则
-            List<String> rules = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
-            //获取商品池
-            List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
-            for (KeyWordDto keyword : keywords) {
-                String keyWordId = keyword.getId();
-                String keyWord = keyword.getName();
-                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
-                for (MixedComponentTabDto pool : pools) {
-                    Integer id = pool.getId();
-                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
-                    columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
-                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
-                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
-                }
-                //排序
-                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
-                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
-                        .collect(Collectors.toList());
-                //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
-            }
-        }
-
-
-
-    }
-
-    //获取商品详情
-    private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
-        //获取会员价
-        if (customer == null) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            customer =new CustomerGetByIdResponse();
-            Map customerMap = ( Map ) request.getAttribute("claims");
-            if(null!=customerMap && null!=customerMap.get("customerId")) {
-                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-            }
-        }
-        List<EsSpuNewResp> esSpuNewResps = null;
-        if (column.getSpuId() == null) {
-            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setIsbn(column.getIsbn());
-            es.setKeyword(finalKeyWord);
-            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-        } else {
-            List<String> spuIds = new ArrayList<>();
-            spuIds.add(column.getSpuId());
-            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setSpuIds(spuIds);
-            es.setKeyword(finalKeyWord);
-            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-        }
-        if (esSpuNewResps == null) {return;}
-        CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
-        for (EsSpuNewResp res : esSpuNewResps) {
-            DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
-            request.setGoodsId(res.getSpuId());
-            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
-//            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-//            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-//            filterRequest.setCustomerDTO(convert);
-//            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.stream().filter(s ->
-//                    res.getSpuName().equals(s.getGoodsInfoName())
-//            ).findFirst().get();
-//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.get(0);
-            GoodsDto goodsDto = new GoodsDto();
-            goodsDto.setSpuId(res.getSpuId());
-            goodsDto.setGoodsName(column.getGoodsName());
-            String isbn = column.getIsbn() != null ? column.getIsbn() : res.getBook().getIsbn();
-            goodsDto.setIsbn(isbn);
-            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
-            String score = null;
-            if (context.size() != 0) {
-                Map map = (Map) context.get(0);
-                score = map.get("score") != null ? map.get("score").toString() : null;
-                String name = map.get("descr") != null ? map.get("descr").toString() : null ;
-                goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
-                goodsDto.setRecommendName(name);
-                goodsDto.setReferrer(name == null ? "文喵" : name);
-                goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
-            }
-
-//            if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 3) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 2) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 10000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 1000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "千+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "百+";
-//            } else {
-//                //当图书库评分为空取商城商品评分
-//                score = score != null ? score : null;
-//            }
-            goodsDto.setScore(score);
-            goodsDto.setRetailPrice(res.getSalesPrice());
-            if (JSON.parseObject(goodsInfoQueryProvider.getRedis(res.getSpuId()).getContext()) != null) {
-                List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
-                if (tags != null) {
-                    tags.forEach(s -> {
-                        TagsDto tagsDto = new TagsDto();
-                        Map tagMap = (Map) s;
-                        if ("20".equals(tagMap.get("order_type").toString())) {
-                            goodsDto.setListMessage(tagMap.get("show_name").toString());
+    //获取会员价
+    public void initVipPrice(List<GoodsPoolDto> goodsPoolDtos, CustomerGetByIdResponse customer) {
+        try {
+            for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
+                List<GoodsDto> goodsDtos = goodsPoolDto.getGoods();
+                if(goodsDtos.size() != 0) {
+                    List<String> skuIdList = goodsDtos.stream().map(GoodsDto::getSkuId).collect(Collectors.toList());
+                    //获取商品信息
+                    GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+                    goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+                    goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
+                    goodsInfoByIdRequest.setIsHavSpecText(1);
+                    List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+                    MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+                    filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+                    filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                    List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+                    Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+                            .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+                    for (int i = 0; i < goodsDtos.size(); i++) {
+                        if(null==goodsVipPriceMap.get(goodsDtos.get(i).getSkuId())){
+                            continue;
                         }
-                    });
+                        goodsDtos.get(i).setPaidCardPrice(goodsVipPriceMap.get(goodsDtos.get(i).getSkuId()).getSalePrice());
+                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
+                    }
                 }
+                goodsPoolDto.setGoods(goodsDtos);
             }
-//            goodsDto.setSkuId(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoId() : null);
-//            goodsDto.setImage(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoImg() :
-//                    (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
-            List<String> tags = new ArrayList<>();
-            if (res.getLabels() != null) {
-                res.getLabels().forEach(label -> tags.add(label.getLabelName()));
-            }
-            goodsDto.setTags(tags);
-//            if (goodsInfoVOList.size() != 0 && goodsInfoVOList.get(0).getPaidCardPrice() != null) {
-//                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
-//                goodsDto.setDiscount(res.getSalesPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsInfoVOList.get(0).getPaidCardPrice().divide(res.getSalesPrice())).multiply(new BigDecimal(100))) : null);
-//            }
-            goods.add(goodsDto);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
+
     }
-
-
-
-
     private Map<String, String> getUrlParams(String url) {
         Map<String, String> map = new HashMap<>();
         if (StringUtils.isEmpty(url)) {
@@ -1366,5 +1322,53 @@ public class TopicService {
         list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
         appointmentRequest.setAppointmentList(list);
         return stockAppointmentProvider.findCustomerAppointment(appointmentRequest);
+    }
+
+    public void saveMixedComponentContent() {
+        //栏目信息
+        Integer topicStoreyId = 194;
+        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
+        request.setTopicStoreyId(topicStoreyId);
+        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
+        //存redis
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
+        // tab
+        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
+            return new MixedComponentDto(c);
+        }).collect(Collectors.toList());
+        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
+            Integer tabId = mixedComponentDto.getId();
+            // 获取关键字
+            List<KeyWordDto> keywords = new ArrayList<>();
+            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
+                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
+            // 获取规则
+            List<String> rules = new ArrayList<>();
+            mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
+                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
+                    .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
+            //获取商品池
+            List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
+            for (KeyWordDto keyword : keywords) {
+                String keyWordId = keyword.getId();
+                String keyWord = keyword.getName();
+                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
+                for (MixedComponentTabDto pool : pools) {
+                    Integer id = pool.getId();
+                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+                    columnContentQueryRequest.setTopicStoreySearchId(id);
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
+                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
+                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
+                }
+                //排序
+                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
+                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
+                        .collect(Collectors.toList());
+                //存redis
+                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
+            }
+        }
     }
 }

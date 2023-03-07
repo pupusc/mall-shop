@@ -127,5 +127,14 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     int updateGoodsLabelSpu(GoodsLabelSpu goodsLabelSpu);
 
     int deleteGoodsLabel(@Param("id") int id);
-}
 
+    Map<String,Object> getSkuIdBySpuId(@Param("goodsId") String goodsId);
+
+    Map<String,Object> getSkuIdBySpuId1(@Param("goodsId") String goodsId);
+
+    String getScoreBySkuId(@Param("goodsId") String goodsId);
+
+    String getIsbnBySkuId(@Param("goodsId") String goodsId);
+
+    String getSaleNumSkuId(@Param("goodsId") String goodsId);
+}

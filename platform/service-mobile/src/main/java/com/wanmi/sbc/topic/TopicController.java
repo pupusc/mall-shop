@@ -3,7 +3,6 @@ package com.wanmi.sbc.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
-import com.wanmi.sbc.pay.weixinpaysdk.WXPayUtil;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
@@ -13,7 +12,6 @@ import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
 import com.wanmi.sbc.task.NewBookPointJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.task.RankPageJobHandler;
-import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
 import com.wanmi.sbc.util.DitaUtil;
@@ -120,14 +118,14 @@ public class TopicController {
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
 //        rankJobHandler.execute(null);
-//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
-        newBookPointJobHandler.execute(null);
+        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+//        newBookPointJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 
     @PostMapping(value = "/v2/getMixedComponentContent")
     public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(@RequestBody MixedComponentContentRequest request) {
-        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent(request.getTopicStoreyId(), request.getTabId(), request.getKeyWord(), null, request.getPageNum(), request.getPageSize());
+        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent( request.getTabId(), request.getKeyWord(), null, request.getPageNum(), request.getPageSize());
         return BaseResponse.success(mixedComponentContent);
     }
 
