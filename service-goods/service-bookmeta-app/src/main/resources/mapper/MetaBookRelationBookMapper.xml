@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookRelationBookMapper">
+    <resultMap id="MetaBookRelationMap" type="com.wanmi.sbc.bookmeta.entity.MetaBookRelationBook">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="relationId" column="relation_id" jdbcType="INTEGER"/>
+        <result property="isbn" column="isbn" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="orderNum" column="order_num" jdbcType="DATE"/>
+        <result property="createTime" column="create_time" jdbcType="DATE"/>
+        <result property="updateTime" column="update_time" jdbcType="DATE"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+    <insert id="insertMetaBookRelationBook" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelationBook">
+        insert into meta_book_relation_book
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="relationId !=null">
+                `relation_id`,
+            </if>
+            <if test="isbn !=null">
+                `isbn`,
+            </if>
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="orderNum !=null">
+                `order_num`,
+            </if>
+            <if test="createTime !=null">
+                `create_time`
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="relationId !=null">
+                #{relationId},
+            </if>
+            <if test="isbn !=null">
+                #{isbn},
+            </if>
+            <if test="name !=null">
+                #{name},
+            </if>
+            <if test="orderNum !=null">
+                #{orderNum},
+            </if>
+            <if test="createTime !=null">
+                #{createTime}
+            </if>
+        </trim>
+    </insert>
+    <delete id="deleteMetaBookRelationBook" parameterType="java.lang.Integer">
+        update meta_book_relation_book set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>

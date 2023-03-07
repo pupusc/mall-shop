@@ -1,11 +1,11 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.wanmi.sbc.bookmeta.bo.MetaTradeBO;
+import com.wanmi.sbc.bookmeta.bo.MetaTradePageQueryBO;
+import com.wanmi.sbc.bookmeta.bo.MetaTradePageQueryRespBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.bookmeta.provider.MetaTradeProvider;
-import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageReqVO;
-import com.wanmi.sbc.bookmeta.vo.MetaTradeAddReq;
-import com.wanmi.sbc.bookmeta.vo.MetaTradeTreeRespVO;
+import com.wanmi.sbc.bookmeta.vo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,9 +29,10 @@ public class MetaTradeController {
     @Resource
     private MetaTradeProvider metaTradeProvider;
     @PostMapping("queryMetaTradeTree")
-    public BusinessResponse<List<MetaTradeTreeRespVO>> getMetaTradeTree(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
-        List<MetaTradeBO> list = this.metaTradeProvider.getMetaTadeTree(pageRequest.getParentId());
-        List<MetaTradeTreeRespVO> metaTradeTreeRespVOS = KsBeanUtil.convertList(list, MetaTradeTreeRespVO.class);
+    public BusinessResponse<MetaTradePageQueryRespVO> getMetaTradeTree(@RequestBody MetaTradeQueryByPageReqVO pageRequest) {
+        MetaTradePageQueryBO convert = KsBeanUtil.convert(pageRequest, MetaTradePageQueryBO.class);
+        MetaTradePageQueryRespBO list = this.metaTradeProvider.getMetaTadeTree(convert);
+        MetaTradePageQueryRespVO metaTradeTreeRespVOS = KsBeanUtil.convert(list, MetaTradePageQueryRespVO.class);
         return BusinessResponse.success(metaTradeTreeRespVOS);
     }
 

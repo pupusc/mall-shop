@@ -17,8 +17,17 @@
     <select id="getMetaTradeTree" resultMap="MetaTradeMap">
         select *
         from meta_trade
-        where parent_id = #{parentId}
-          and del_flag = 0
+        where
+            del_flag = 0
+          <if test="parentId !=null and parentId !=''">
+              and  parent_id = #{parentId}
+          </if>
+    </select>
+    <select id="getAllMetaTradeNode" resultMap="MetaTradeMap">
+        select *
+        from meta_trade
+        where
+        del_flag = 0
     </select>
 
     <insert id="insertMetaTrade" parameterType="com.wanmi.sbc.bookmeta.entity.MetaTrade">

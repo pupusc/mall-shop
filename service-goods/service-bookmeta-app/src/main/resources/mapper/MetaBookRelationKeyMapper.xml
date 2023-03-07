@@ -12,10 +12,45 @@
         <result property="relationId" column="relation_id" jdbcType="INTEGER"/>
         <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
     </resultMap>
+    <delete id="deleteSelective" parameterType="java.lang.Integer">
+        update meta_book_relation_key  set del_flag  =1 where id = #{id}
+    </delete>
 
 
     <select id="getKeyById" resultMap="MetaBookRelationKeyMap">
         select * from meta_book_relation_key where relation_id = #{id} order by order_num asc;
     </select>
+
+    <insert id="insertSelective" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+    insert into meta_book_relation_key
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="relationId !=null">
+            `relation_id`,
+        </if>
+        <if test="name !=null">
+            `name`,
+        </if>
+        <if test="orderNum != null">
+            `order_num`,
+        </if>
+        <if test="createTime !=null">
+            `create_time`
+        </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="relationId !=null">
+            #{relationId},
+        </if>
+        <if test="name !=null">
+            #{name},
+        </if>
+        <if test="orderNum !=null">
+            #{orderNum},
+        </if>
+        <if test="createTime !=null">
+            #{createTime}
+        </if>
+    </trim>
+    </insert>
 </mapper>
 
