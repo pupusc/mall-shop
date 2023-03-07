@@ -50,8 +50,8 @@ public class MarketLabel {
         String spu_id = String.valueOf(skuMap.get("spu_id"));
         String sku_id = String.valueOf(skuMap.get("sku_id"));
 
-        //spu_id 2c9a00ca86299cda01862a0163e60000
-        //sku_id 2c9a009b86a5b1850186a6ae64c80004
+        //spu_id = "2c9a00ca86299cda01862a0163e60000";
+        //sku_id= "2c9a009b86a5b1850186a6ae64c80004";
 
         //10.积分
         List pointList = marketJpa.getPointList(sku_id);
