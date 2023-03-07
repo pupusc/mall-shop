@@ -97,8 +97,8 @@ public class AssignPoolServiceImpl implements PoolService {
                 tags.forEach(s -> {
                     TagsDto tagsDto = new TagsDto();
                     Map tagMap = (Map) s;
-                    if ("20".equals(tagMap.get("order_type").toString())) {
-                        goodsDto.setListMessage(tagMap.get("show_name").toString());
+                    if ("20".equals(String.valueOf(tagMap.get("order_type")))) {
+                        goodsDto.setListMessage(String.valueOf(tagMap.get("show_name")));
                     }
                 });
             }
@@ -109,7 +109,12 @@ public class AssignPoolServiceImpl implements PoolService {
             res.getLabels().forEach(label -> tags.add(label.getLabelName()));
         }
         goodsDto.setTags(tags);
-        goods.add(goodsDto);
+        if (goods.size() <= 5) {
+            goods.add(goodsDto);
+        } else {
+            return;
+        }
+
     }
 
     @Override
