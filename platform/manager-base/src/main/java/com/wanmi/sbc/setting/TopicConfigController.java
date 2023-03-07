@@ -483,6 +483,30 @@ public class TopicConfigController {
     }
 
     /**
+     * @description 模块修改
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("模块修改")
+    @PostMapping("/storey/v2/pool/update")
+    public BaseResponse updateMixedComponentVideo(@RequestBody MixedComponentGoodsUpdateRequest request){
+        //topicConfigProvider.updateTopicStoreyColumn(request.getColumnUpdateRequest());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 商品池删除
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("商品池删除")
+    @PostMapping("/storey/v2/pool/del")
+    public BaseResponse delMixedComponentVideo(@RequestBody MixedComponentTabQueryRequest request){
+        topicConfigProvider.deleteTopicStoreyColumnContent(request.getId());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * @description 商品池详情
      * @param request
      * @status undone
