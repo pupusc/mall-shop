@@ -48,7 +48,7 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.index.RefreshConfig;
-import com.wanmi.sbc.index.V2tabConfigResponse;
+//import com.wanmi.sbc.index.V2tabConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -56,6 +56,7 @@ import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvide
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
+import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -92,6 +93,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.validator.internal.util.logging.formatter.ObjectArrayFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -175,6 +177,12 @@ public class TopicService {
     @Autowired
     private RefreshConfig refreshConfig;
 
+    @Autowired
+    private RedisListService redisListService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
@@ -257,38 +265,38 @@ public class TopicService {
 
     }
 
-    public void refresRedis(){
-
-        List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
-        if(list != null && list.size() > 0){
-            V2tabConfigResponse response = list.get(0);
-            String topicKey = response.getParamsId();
-
-            TopicQueryRequest request = new TopicQueryRequest();
-            request.setTopicKey(topicKey);
-
-            BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
-            List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
-
-            for(int i=0;i<tpList.size();i++){
-                TopicStoreyDTO storeyDTO = tpList.get(i);
-
-                int topic_store_id = storeyDTO.getId();
-                String name = storeyDTO.getName();
-                int storeyType = storeyDTO.getStoreyType();
-
-                if(storeyType == 14){                 //14, "三本好书"
-                    //writeRedis(storeyType);
-                }else if(storeyType == 15){
-                    //writeRedis(storeyType);
-                }
-
-            }
-
-        }
-
-
-    }
+//    public void refresRedis(){
+//
+//        List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
+//        if(list != null && list.size() > 0){
+//            V2tabConfigResponse response = list.get(0);
+//            String topicKey = response.getParamsId();
+//
+//            TopicQueryRequest request = new TopicQueryRequest();
+//            request.setTopicKey(topicKey);
+//
+//            BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+//            List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
+//
+//            for(int i=0;i<tpList.size();i++){
+//                TopicStoreyDTO storeyDTO = tpList.get(i);
+//
+//                int topic_store_id = storeyDTO.getId();
+//                String name = storeyDTO.getName();
+//                int storeyType = storeyDTO.getStoreyType();
+//
+//                if(storeyType == 14){                 //14, "三本好书"
+//                    //writeRedis(storeyType);
+//                }else if(storeyType == 15){
+//                    //writeRedis(storeyType);
+//                }
+//
+//            }
+//
+//        }
+//
+//
+//    }
 
     /**
      * 新版首页入口
@@ -527,76 +535,59 @@ public class TopicService {
      * @return
      */
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
-        RankPageResponse pageResponse = topicConfigProvider.rankPageByBookList(request);
-        if(null==pageResponse){
-            return null;
+        List<RankRequest> rankRequestList=new ArrayList<>();
+        List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
+        if (!CollectionUtils.isEmpty(objectList)) {
+            for (JSONObject goodStr : objectList) {
+                rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
+            }
         }
-        List<Integer> idList = pageResponse.getRankIdList();
-        if(CollectionUtils.isEmpty(idList)){
-            return null;
+        if (null==request.getTopicStoreySearchId()&&null==request.getRankId()){
+            request.setTopicStoreySearchId(rankRequestList.get(0).getId());
+            Collection rankList = rankRequestList.get(0).getRankList();
+            RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+            request.setRankId(convert.getId());
+        }else if(null!=request.getTopicStoreySearchId()&&null==request.getRankId()){
+            Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
+            if(first.isPresent()){
+                Collection rankList =first.get().getRankList();
+                RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+                request.setRankId(convert.getId());
+            }
         }
-        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
-        idsRequest.setIds(idList);
-        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
-        if(CollectionUtils.isEmpty(baseResponse)){
-            return null;
-        }
+        String key=RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":listGoods:"+request.getRankId();
         //瀑布流分页
-        Integer total=baseResponse.size();
+        Integer total=redisListService.getSize(key);
         Integer pageSize= request.getPageSize();
         long totalPages=(long)Math.ceil(total/ pageSize);
         Integer pageNum= request.getPageNum();
         Integer start=(pageNum)*pageSize;
-        Integer end=start+pageSize;
+        Integer end=start+pageSize-1;
         if(start>=total){
             return null;
         }
         if(end>total){
-            end=total;
+            end=total-1;
         }
-        List<RankGoodsPublishResponse> subList = baseResponse.subList(start, end);
-        List<String> skus= new ArrayList<>();
-        subList.forEach(b->{
-            if(!skus.contains(b.getSkuId())){
-                skus.add(b.getSkuId());
+        List<Map> goodsCustomResponses=new ArrayList<>();
+        List<JSONObject> goodsInfoList = redisListService.findByRange(key,start,end);
+        if (!CollectionUtils.isEmpty(goodsInfoList)) {
+            for (JSONObject goodStr : goodsInfoList) {
+                goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
             }
-        });
+        }
         //初始化榜单树形结构，获取商品详情
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(skus);
-            pageResponse.getPageRequest().getContentList().forEach(r->{
-                r.getRankList().forEach(t->{
-                    Map tMap= (Map) t;
-                    List<Map> rankList=(List<Map>) tMap.get("rankList");
-                    subList.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
-                        goodsCustomResponses.stream().filter(g->b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
-                            Map map=new HashMap();
-                            map.put("id",g.getGoodsId());
-                            map.put("spuNo",g.getGoodsNo());
-                            map.put("skuNo",g.getGoodsInfoNo());
-                            map.put("imageUrl",g.getImageUrl());
-                            map.put("sorting",b.getOrderNum());
-                            map.put("goodsName",g.getGoodsName());
-                            if(null!=b.getSaleNum()) {
-                                if (b.getSaleNum() >= 10000) {
-                                    String num = String.valueOf(b.getSaleNum() / 10000) + "万";
-                                    map.put("num", num);
-                                } else {
-                                    map.put("num", String.valueOf(b.getSaleNum()));
-                                }
-                            }else {
-                                map.put("num", "");
-                            }
-                            map.put("skuId",b.getSkuId());
-                            map.put("spuId",b.getSpuId());
-                            map.put("label",g.getLabels());
-                            map.put("subName",g.getGoodsSubName());
-                            map.put("rankText",b.getRankText());
-                            rankList.add(map);
-                        });
-                    });
-                });
+        rankRequestList.forEach(r->{
+            r.getRankList().forEach(t->{
+                Map tMap= (Map) t;
+                if(tMap.get("id").equals(request.getRankId())) {
+                    List<Map> rankList = (List<Map>) tMap.get("rankList");
+                    rankList.addAll(goodsCustomResponses);
+                }
             });
-        RankPageRequest pageRequest = pageResponse.getPageRequest();
+        });
+        RankPageRequest pageRequest =new RankPageRequest();
+        pageRequest.setContentList(rankRequestList);
         pageRequest.setPageNum(pageNum);
         pageRequest.setTotalPages(totalPages);
         pageRequest.setPageSize(pageSize);
@@ -1267,22 +1258,15 @@ public class TopicService {
      */
     @Transactional
     public BaseResponse deleteAppointment(AppointmentStockRequest request) {
-        List<StockAppointmentRequest> list=new ArrayList<>();
-        Operator operator = commonUtil.getOperator();
-        request.setAccount(operator.getAccount());
-        request.setCustomer(operator.getUserId());
-        AppointmentRequest appointmentRequest=new AppointmentRequest();
-        list.add(KsBeanUtil.convert(request,StockAppointmentRequest.class));
-        appointmentRequest.setAppointmentList(list);
-        return stockAppointmentProvider.delete(appointmentRequest);
+        return stockAppointmentProvider.deleteById(request.getId());
     }
 
     /**
      * 获取用户所有预约
-     * @param request
      * @return
      */
-    public BaseResponse<AppointmentRequest> findAppointment(AppointmentStockRequest request) {
+    public BaseResponse<AppointmentRequest> findAppointment() {
+        AppointmentStockRequest request=new AppointmentStockRequest();
         List<StockAppointmentRequest> list=new ArrayList<>();
         AppointmentRequest appointmentRequest=new AppointmentRequest();
         Operator operator = commonUtil.getOperator();

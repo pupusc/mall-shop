@@ -11,6 +11,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
+import com.wanmi.sbc.task.RankPageJobHandler;
 import com.wanmi.sbc.topic.response.RankPageRespones;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
@@ -68,7 +69,7 @@ public class TopicController {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    topicService.refresRedis();
+//                    topicService.refresRedis();
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
@@ -106,6 +107,9 @@ public class TopicController {
 
     @Autowired
     private NewRankJobHandler rankJobHandler;
+
+    @Autowired
+    private RankPageJobHandler rankPageJobHandler;
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
@@ -113,6 +117,7 @@ public class TopicController {
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
 //        rankJobHandler.execute(null);
+//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -151,12 +156,11 @@ public class TopicController {
 
     /**
      * 获取用户所有到货提醒
-     * @param request
      * @return
      */
     @PostMapping(value = "/findAppointment")
-    public BaseResponse<AppointmentRequest> findAppointment(@RequestBody AppointmentStockRequest request){
-        return topicService.findAppointment(request);
+    public BaseResponse<AppointmentRequest> findAppointment(){
+        return topicService.findAppointment();
     }
 
 }

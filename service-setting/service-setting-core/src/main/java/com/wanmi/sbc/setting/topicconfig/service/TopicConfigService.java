@@ -233,27 +233,14 @@ public class TopicConfigService {
         Integer topicStoreyId = storeyRequest.getTopicStoreyId();
         List<TopicStoreyColumn> list = columnRepository.getByTopicStoreyIdAndLevelOrderByOrderNumAsc(topicStoreyId, 0);
         List<Integer> idList=new ArrayList<>();
-        if(null!=storeyRequest.getTopicStoreySearchId()){
-            list.stream().filter(t->t.getId().equals(storeyRequest.getTopicStoreySearchId())).forEach(t->{
-                idList.add(t.getId());
-            });
-        }else {
-            idList.add(list.get(0).getId());
-        }
+        list.forEach(t->{idList.add(t.getId());});
         List<Integer> cIds=new ArrayList<>();
         List<TopicRankRelation> rankRelations = relationRepository.collectByPRankColumIdOrderByCRankSortingAsc(idList);
         if(CollectionUtils.isEmpty(rankRelations)){
             return null;
         }
-        if(null!=storeyRequest.getRankId()){
-            rankRelations.stream().filter(r->r.getPRankColumId().equals(storeyRequest.getRankId())).forEach(r->cIds.add(r.getCRankId()));
-            cIds.add(storeyRequest.getRankId());
-        }else {
-            cIds.add(rankRelations.get(0).getCRankId());
-        }
-        if(CollectionUtils.isEmpty(cIds)){
-            return null;
-        }
+        rankRelations.forEach(r->cIds.add(r.getCRankId()));
+        cIds.add(storeyRequest.getRankId());
         List<RankRequest> rankRequests=new ArrayList<>();
         list.forEach(l->{
             RankRequest rankRequest=new RankRequest();
