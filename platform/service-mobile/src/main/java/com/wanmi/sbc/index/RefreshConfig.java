@@ -42,5 +42,7 @@ public class RefreshConfig {
     @Value("${recommend.sort}")
     private volatile String recommendSort;
 
+    @Value("${integralActivity.v2tabConfig}")
+    private volatile String v2tabConfig;
 
 }
