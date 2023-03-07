@@ -2,6 +2,7 @@ package com.wanmi.sbc.topic.service;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -48,6 +49,8 @@ import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goodsPool.PoolFactory;
 import com.wanmi.sbc.goodsPool.service.PoolService;
+import com.wanmi.sbc.index.RefreshConfig;
+import com.wanmi.sbc.index.V2tabConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
@@ -177,6 +180,9 @@ public class TopicService {
     @Autowired
     private PoolFactory poolFactory;
 
+    @Autowired
+    private RefreshConfig refreshConfig;
+
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
@@ -259,38 +265,38 @@ public class TopicService {
 
     }
 
-//    public void refresRedis(){
-//
-//        List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
-//        if(list != null && list.size() > 0){
-//            V2tabConfigResponse response = list.get(0);
-//            String topicKey = response.getParamsId();
-//
-//            TopicQueryRequest request = new TopicQueryRequest();
-//            request.setTopicKey(topicKey);
-//
-//            BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
-//            List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
-//
-//            for(int i=0;i<tpList.size();i++){
-//                TopicStoreyDTO storeyDTO = tpList.get(i);
-//
-//                int topic_store_id = storeyDTO.getId();
-//                String name = storeyDTO.getName();
-//                int storeyType = storeyDTO.getStoreyType();
-//
-//                if(storeyType == 14){                 //14, "三本好书"
-//                    //writeRedis(storeyType);
-//                }else if(storeyType == 15){
-//                    //writeRedis(storeyType);
-//                }
-//
-//            }
-//
-//        }
-//
-//
-//    }
+    public void refresRedis(){
+
+        List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
+        if(list != null && list.size() > 0){
+            V2tabConfigResponse response = list.get(0);
+            String topicKey = response.getParamsId();
+
+            TopicQueryRequest request = new TopicQueryRequest();
+            request.setTopicKey(topicKey);
+
+            BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+            List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
+
+            for(int i=0;i<tpList.size();i++){
+                TopicStoreyDTO storeyDTO = tpList.get(i);
+
+                int topic_store_id = storeyDTO.getId();
+                String name = storeyDTO.getName();
+                int storeyType = storeyDTO.getStoreyType();
+
+                if(storeyType == 14){                 //14, "三本好书"
+                    //writeRedis(storeyType);
+                }else if(storeyType == 15){
+                    //writeRedis(storeyType);
+                }
+
+            }
+
+        }
+
+
+    }
 
     /**
      * 新版首页入口

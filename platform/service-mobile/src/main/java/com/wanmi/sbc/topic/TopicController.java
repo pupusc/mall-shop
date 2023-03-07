@@ -69,7 +69,7 @@ public class TopicController {
         new Thread(new Runnable() {
             public void run() {
                 try {
-//                    topicService.refresRedis();
+                    topicService.refresRedis();
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
