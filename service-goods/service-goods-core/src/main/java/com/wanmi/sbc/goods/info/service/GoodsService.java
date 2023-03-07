@@ -3817,4 +3817,36 @@ public class GoodsService {
             return map;
         }
     }
+
+    /**
+     * 通过spu或者sku取redis获取商详榜单信息
+     * @param spuId、skuId
+     * @return
+     */
+    public Map getGoodsDetailRankById(String spuId, String skuId,String redisTagsConstant) {
+
+        String old_json=null;
+        //优先用spuId去取
+        if(null!=spuId && spuId.isEmpty()==false){
+            old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+        } else{
+            //spuId为空则通过skuId获取spuId
+            if(null == skuId || skuId.isEmpty()){
+                return null;
+            }else {
+                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
+                spuId=goodsInfoMap.get("spuId");
+                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+            }
+        }
+
+        if(null==old_json || old_json.isEmpty()){
+            return null;//不去数据库再找了
+        }else {
+
+            Map map=JSONObject.parseObject(old_json,Map.class);
+
+            return map;
+        }
+    }
 }
