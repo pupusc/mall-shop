@@ -1202,7 +1202,7 @@ public class TopicService {
             String finalKeyWord = keyWord;
             String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
             MicroServicePage<GoodsPoolDto> goodsPoolPage = new MicroServicePage<>();
-            List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, pageNum, pageSize);
+            List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, pageNum * pageSize, pageNum * pageSize + 9);
             List<GoodsPoolDto> goodsPoolDtos = byRange.stream().map(s -> {return JSON.toJavaObject(s, GoodsPoolDto.class);}).collect(Collectors.toList());
             //初始化会员价
             if (customer == null) {

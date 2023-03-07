@@ -122,7 +122,7 @@ public class GoodsPoolServiceImpl implements PoolService {
                 tags.forEach(s -> {
                     TagsDto tagsDto = new TagsDto();
                     Map map = (Map) s;
-                    tagsDto.setName(map.get("show_name").toString());
+                    tagsDto.setName(String.valueOf(map.get("show_name")));
                     tagsDto.setType((Integer) map.get("order_type"));
                     tagsDtos.add(tagsDto);
                 });
