@@ -294,6 +294,12 @@ public class TopicService {
                     rankPageJobHandler.execute(topicKey);
                 }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
                     mixedComponentContentJobHandler.execute(null);
+                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                    threeBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){
+                   goodsOrBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){
+                    goodsOrBookSaveRedis(topic_store_id);
                 }
 
             }
