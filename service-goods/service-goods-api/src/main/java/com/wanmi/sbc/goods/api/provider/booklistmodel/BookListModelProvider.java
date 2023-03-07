@@ -163,5 +163,5 @@ public interface BookListModelProvider {
     String importById(@RequestBody RankGoodsPublishResponse response);
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/getBookRecommend")
-    BaseResponse<List> getBookRecommend(@RequestParam String isbnId);
+    BaseResponse<List> getBookRecommend(@RequestParam(value = "isbnId") String isbnId);
 }
