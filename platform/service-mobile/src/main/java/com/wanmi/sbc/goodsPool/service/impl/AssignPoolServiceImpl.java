@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
+import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
@@ -24,6 +26,9 @@ public class AssignPoolServiceImpl implements PoolService {
 
     @Autowired
     private EsSpuNewProvider esSpuNewProvider;
+
+    @Autowired
+    private MetaLabelProvider metaLabelProvider;
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
@@ -65,22 +70,20 @@ public class AssignPoolServiceImpl implements PoolService {
         goodsPoolDto.setTitleImage(JSON.parseObject(pool.getAttributeInfo()).get("titleImage").toString());
         goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
         goodsPoolDto.setGoods(goods);
-        String tagList = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
-        if (JSON.parseObject(tagList) != null) {
-            List<TagsDto> tagsDtos = new ArrayList<>();
-            List tags = (List) JSON.parseObject(tagList).get("tags");
-            if (tags != null) {
-                tags.forEach(s -> {
-                    TagsDto tagsDto = new TagsDto();
-                    Map map = (Map) s;
-                    tagsDto.setName(map.get("show_name").toString());
-                    tagsDto.setType((Integer) map.get("order_type"));
-                    tagsDtos.add(tagsDto);
-                });
+        List<TagsDto> tabs = new ArrayList<>();
+        if (pool.getLabelId() != null && !"".equals(pool.getLabelId())) {
+            for (Integer s : pool.getLabelId()) {
+                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(s).getContext();
+                TagsDto tagsDto = new TagsDto();
+                tagsDto.setName(metaLabelBO.getName());
+                tagsDto.setShowStatus(metaLabelBO.getStatus());
+                tagsDto.setShowImg(metaLabelBO.getShowImg());
+                tagsDto.setType(metaLabelBO.getType());
+                tabs.add(tagsDto);
             }
-            //获取标签
-            goodsPoolDto.setLabelId(tagsDtos);
         }
+        //获取标签
+        goodsPoolDto.setLabelId(tabs);
         return goodsPoolDto;
     }
 
