@@ -92,6 +92,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -1093,110 +1094,6 @@ public class TopicService {
         }
 
     }
-
-    //获取商品详情
-    private void getGoods(String finalKeyWord, ColumnContentDTO column, List<GoodsDto> goods,CustomerGetByIdResponse customer) {
-        //获取会员价
-        if (customer == null) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            customer =new CustomerGetByIdResponse();
-            Map customerMap = ( Map ) request.getAttribute("claims");
-            if(null!=customerMap && null!=customerMap.get("customerId")) {
-                customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-            }
-        }
-        List<EsSpuNewResp> esSpuNewResps = null;
-        if (column.getSpuId() == null) {
-            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setIsbn(column.getIsbn());
-            es.setKeyword(finalKeyWord);
-            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-        } else {
-            List<String> spuIds = new ArrayList<>();
-            spuIds.add(column.getSpuId());
-            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setSpuIds(spuIds);
-            es.setKeyword(finalKeyWord);
-            esSpuNewResps = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-        }
-        if (esSpuNewResps == null) {return;}
-        CustomerDTO convert = KsBeanUtil.convert(customer, CustomerDTO.class);
-        for (EsSpuNewResp res : esSpuNewResps) {
-            DistributionGoodsChangeRequest request = new DistributionGoodsChangeRequest();
-            request.setGoodsId(res.getSpuId());
-            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.getByGoodsId(request).getContext().getGoodsInfoVOList();
-//            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-//            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-//            filterRequest.setCustomerDTO(convert);
-//            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.stream().filter(s ->
-//                    res.getSpuName().equals(s.getGoodsInfoName())
-//            ).findFirst().get();
-//            GoodsInfoVO goodsInfoVO = goodsInfoVOList.get(0);
-            GoodsDto goodsDto = new GoodsDto();
-            goodsDto.setSpuId(res.getSpuId());
-            goodsDto.setGoodsName(column.getGoodsName());
-            String isbn = column.getIsbn() != null ? column.getIsbn() : res.getBook().getIsbn();
-            goodsDto.setIsbn(isbn);
-            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
-            String score = null;
-            if (context.size() != 0) {
-                Map map = (Map) context.get(0);
-                score = map.get("score") != null ? map.get("score").toString() : null;
-                String name = map.get("descr") != null ? map.get("descr").toString() : null ;
-                goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
-                goodsDto.setRecommendName(name);
-                goodsDto.setReferrer(name == null ? "文喵" : name);
-                goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
-            }
-
-//            if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 3) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 2) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 10000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "万+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 1000) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "千+";
-//            } else if (goodsInfoVO.getGoodsSalesNum() >= 100) {
-//                score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "百+";
-//            } else {
-//                //当图书库评分为空取商城商品评分
-//                score = score != null ? score : null;
-//            }
-            goodsDto.setScore(score);
-            goodsDto.setRetailPrice(res.getSalesPrice());
-            if (JSON.parseObject(goodsInfoQueryProvider.getRedis(res.getSpuId()).getContext()) != null) {
-                List tags = (List) JSON.parseObject(goodsInfoQueryProvider.getRedis(column.getSpuId()).getContext()).get("tags");
-                if (tags != null) {
-                    tags.forEach(s -> {
-                        TagsDto tagsDto = new TagsDto();
-                        Map tagMap = (Map) s;
-                        if ("20".equals(tagMap.get("order_type").toString())) {
-                            goodsDto.setListMessage(tagMap.get("show_name").toString());
-                        }
-                    });
-                }
-            }
-//            goodsDto.setSkuId(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoId() : null);
-//            goodsDto.setImage(goodsInfoVO != null ? goodsInfoVO.getGoodsInfoImg() :
-//                    (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
-            List<String> tags = new ArrayList<>();
-            if (res.getLabels() != null) {
-                res.getLabels().forEach(label -> tags.add(label.getLabelName()));
-            }
-            goodsDto.setTags(tags);
-//            if (goodsInfoVOList.size() != 0 && goodsInfoVOList.get(0).getPaidCardPrice() != null) {
-//                goodsDto.setPaidCardPrice(goodsInfoVOList.get(0).getPaidCardPrice());
-//                goodsDto.setDiscount(res.getSalesPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsInfoVOList.get(0).getPaidCardPrice().divide(res.getSalesPrice())).multiply(new BigDecimal(100))) : null);
-//            }
-            goods.add(goodsDto);
-        }
-    }
-
-
-
-
     private Map<String, String> getUrlParams(String url) {
         Map<String, String> map = new HashMap<>();
         if (StringUtils.isEmpty(url)) {
