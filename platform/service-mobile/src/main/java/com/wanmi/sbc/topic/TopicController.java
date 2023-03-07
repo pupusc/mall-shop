@@ -10,6 +10,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentReques
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
+import com.wanmi.sbc.task.NewBookPointJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.task.RankPageJobHandler;
 import com.wanmi.sbc.topic.response.RankPageRespones;
@@ -110,6 +111,8 @@ public class TopicController {
 
     @Autowired
     private RankPageJobHandler rankPageJobHandler;
+    @Autowired
+    private NewBookPointJobHandler newBookPointJobHandler;
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
@@ -118,6 +121,7 @@ public class TopicController {
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
 //        rankJobHandler.execute(null);
 //        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+        newBookPointJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 

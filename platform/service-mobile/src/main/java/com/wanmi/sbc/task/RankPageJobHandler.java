@@ -132,12 +132,14 @@ public class RankPageJobHandler extends IJobHandler {
                         map.put("imageUrl",g.getGoodsCoverImg());
                         map.put("sorting",b.getOrderNum());
                         map.put("goodsName",g.getGoodsName());
+                        map.put("linePrice",g.getLinePrice());
+                        map.put("showPrice",g.getShowPrice());
                         if(null!=b.getSaleNum()) {
                             if (b.getSaleNum() >= 10000) {
                                 String num = String.valueOf(b.getSaleNum() / 10000) + "万";
                                 map.put("saleNum", num);
                             } else {
-                                map.put("num", String.valueOf(b.getSaleNum()));
+                                map.put("saleNum", String.valueOf(b.getSaleNum()));
                             }
                         }else {
                             map.put("saleNum", "");

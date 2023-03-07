@@ -43,6 +43,8 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsReques
 import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
+import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
 import com.wanmi.sbc.goods.api.response.index.NormalModuleSkuResp;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
@@ -668,35 +670,11 @@ public class TopicService {
     public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest,CustomerGetByIdResponse customer) {
 
         try {
-            List<NewBookPointResponse> newBookPointResponseList = new ArrayList<>();
-
-
-            List<NormalModuleSkuResp> context = pointsGoodsQueryProvider.getReturnPointGoods(baseQueryRequest).getContext();
-
-            List<NormalActivitySkuResp> ponitByActivity = normalActivityPointSkuProvider.getPonitByActivity();
-
-            Map<String, NormalActivitySkuResp> goodsPointMap = ponitByActivity.stream()
-                    .filter(normalActivitySkuResp -> normalActivitySkuResp.getNum() != 0)
-                    .collect(Collectors.toMap(NormalActivitySkuResp::getSkuId, Function.identity()));
-
-            //获取商品积分
-            List<String> skuIdList = new ArrayList<>();
-            context.stream().forEach(normalModuleSkuResp -> {
-                NewBookPointResponse newBookPointResponse = new NewBookPointResponse();
-                BeanUtils.copyProperties(normalModuleSkuResp, newBookPointResponse);
-                if (null != goodsPointMap.get(normalModuleSkuResp.getSkuId()) && null != goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum()) {
-                    newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
-                }
-                skuIdList.add(newBookPointResponse.getSkuId());
-                newBookPointResponseList.add(newBookPointResponse);
-            });
-
-            //获取商品信息
-            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
-            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
-            goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
-            goodsInfoByIdRequest.setIsHavSpecText(1);
-            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+            String string = redisService.getString(RedisKeyUtil.NEW_BOOK_POINT);
+            GoodsInfosRedisResponse response = JSON.parseObject(string, GoodsInfosRedisResponse.class);
+            List<NewBookPointRedisResponse> pointResponseList = response.getNewBookPointResponseList();
+            List<NewBookPointResponse> newBookPointResponseList = KsBeanUtil.convertList(pointResponseList, NewBookPointResponse.class);
+            List<GoodsInfoVO> goodsInfos = response.getGoodsInfoVOList();
 
             Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));

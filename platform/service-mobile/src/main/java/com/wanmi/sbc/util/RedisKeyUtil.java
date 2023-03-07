@@ -66,6 +66,11 @@ public class RedisKeyUtil {
     public final static String HOME_RANK = "ELASTIC_SAVE:HOMEPAGE:185";
 
     /**
+     * 新书速递（返积分）
+     */
+    public final static String NEW_BOOK_POINT = "ELASTIC_SAVE:HOMEPAGE:187";
+
+    /**
      * 榜单聚合页
      */
     public final static String RANK_PAGE = "ELASTIC_SAVE:RANK_PAGE:";
