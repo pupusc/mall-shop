@@ -57,12 +57,13 @@ public class GoodsPoolServiceImpl implements PoolService {
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
+        //goodsDto.setSkuId();
         goodsDto.setGoodsName(columnContentDTO.getGoodsName());
         String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
+        String score = null;
         if (isbn != null) {
             goodsDto.setIsbn(isbn);
             List context = bookListModelProvider.getBookRecommend(isbn).getContext();
-            String score = null;
             if (context.size() != 0) {
                 Map map = (Map) context.get(0);
                 score = map.get("score") != null ? map.get("score").toString() : null;
@@ -73,6 +74,7 @@ public class GoodsPoolServiceImpl implements PoolService {
                 goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
             }
         }
+        //goodsDto.setImage( : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
 
 
 //        if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
@@ -89,6 +91,15 @@ public class GoodsPoolServiceImpl implements PoolService {
 //            //当图书库评分为空取商城商品评分
 //            score = score != null ? score : null;
 //        }
+        goodsDto.setScore(score);
+        goodsDto.setRetailPrice(res.getSalesPrice());
+
+        //商品标签
+        List<String> tags = new ArrayList<>();
+        if (res.getLabels() != null) {
+            res.getLabels().forEach(label -> tags.add(label.getLabelName()));
+        }
+        goodsDto.setTags(tags);
         goods.add(goodsDto);
     }
 
