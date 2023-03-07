@@ -349,15 +349,17 @@ public class TopicService {
                 RankPageRequest rankPage = rankPage(topicResponse);
                 topicResponse.setRankPageRequest(rankPage);
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
-                topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
+                TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Books.getId());
-                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
-                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 suspensionByTypeRequest.setType(2L);
