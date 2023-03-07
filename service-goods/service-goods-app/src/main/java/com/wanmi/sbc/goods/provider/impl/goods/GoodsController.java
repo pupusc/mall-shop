@@ -794,6 +794,10 @@ public class GoodsController implements GoodsProvider {
         List detailList=(List)map.get("bookDetail");
         Map medioMap =(Map) detailList.get(0);
         List<JSONObject> medioRecomd =(List<JSONObject>) medioMap.get("medioRecomd");
+        if(null==medioRecomd ||medioRecomd.size()==0 ){
+            //媒体推荐没有
+            return BaseResponse.success(map);
+        }
         List<String> skuIdList=new ArrayList<>();
         //返回值
         List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
