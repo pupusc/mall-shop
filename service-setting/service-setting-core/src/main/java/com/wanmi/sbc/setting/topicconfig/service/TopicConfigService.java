@@ -399,8 +399,9 @@ public class TopicConfigService {
             return response;
          }
          response.setContents(KsBeanUtil.convertList(list,TopicStoreyContentDTO.class));
+
         //设置属性
-        initAttr(response.getContents(),topicStorey.getStoreyType());
+        //initAttr(response.getContents(),topicStorey.getStoreyType());
         return response;
     }
 
