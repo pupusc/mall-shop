@@ -366,7 +366,22 @@ public class SpuNewSearchService {
                 }
                 spuNewBookListResp.setLabels(labels);
             }
-
+            if(null!=esSpuNewRespParam.getSpuLabels()&&esSpuNewRespParam.getSpuLabels().size()>0) {
+                List<SpuNewBookListResp.SubSpuLabelNew> spuLabels=new ArrayList<>();
+                esSpuNewRespParam.getSpuLabels().forEach(e->{
+                    SpuNewBookListResp.SubSpuLabelNew labelNew=new SpuNewBookListResp.SubSpuLabelNew();
+                    labelNew.setId(e.getId());
+                    labelNew.setType(e.getType());
+                    labelNew.setName(e.getName());
+                    labelNew.setShowName(e.getShowName());
+                    labelNew.setOrderType(e.getOrderType());
+                    spuLabels.add(labelNew);
+                });
+                spuNewBookListResp.setSpuLabels(spuLabels);
+            }
+            if(null!=esSpuNewRespParam.getMarketingLabel()&&esSpuNewRespParam.getMarketingLabel().size()>0) {
+                spuNewBookListResp.setMarketingLabel(KsBeanUtil.convertList(esSpuNewRespParam.getMarketingLabel(), SpuNewBookListResp.SubSkuMarketingLabelNew.class));
+            }
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());

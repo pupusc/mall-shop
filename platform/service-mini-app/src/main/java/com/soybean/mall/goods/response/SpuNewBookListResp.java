@@ -142,7 +142,7 @@ public class SpuNewBookListResp {
     private List<SubSkuMarketingLabelNew> marketingLabel;
 
     @Data
-    public class SubSpuLabelNew {
+    public static class SubSpuLabelNew {
 
         private String showName;
 
@@ -156,7 +156,7 @@ public class SpuNewBookListResp {
     }
 
     @Data
-    public class SubSkuMarketingLabelNew {
+    public static class SubSkuMarketingLabelNew {
 
         @Field(type = FieldType.Text)
         private String name;
