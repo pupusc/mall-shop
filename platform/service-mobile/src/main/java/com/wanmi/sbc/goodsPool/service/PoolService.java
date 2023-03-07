@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goodsPool.service;
 
+import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.setting.bean.dto.ColumnContentDTO;
 import com.wanmi.sbc.setting.bean.dto.GoodsDto;
 import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
@@ -16,6 +17,6 @@ import java.util.List;
 public interface PoolService {
     void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword);
 
-    void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods);
+    void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp esSpuNewResp);
     GoodsPoolDto getPool(MixedComponentTabDto pool, ColumnContentDTO columnContentDTO, List<GoodsDto> goods);
 }

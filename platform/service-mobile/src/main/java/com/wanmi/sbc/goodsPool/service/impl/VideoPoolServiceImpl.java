@@ -36,15 +36,13 @@ public class VideoPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         List<GoodsDto> goods = new ArrayList<>();
         for (ColumnContentDTO columnContentDTO : poolCollect) {
-            String spuId = columnContentDTO.getSpuId();
-            List<String> spuIds = new ArrayList<>();
-            spuIds.add(spuId);
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setSpuIds(spuIds);
+            es.setIsbn(columnContentDTO.getIsbn());
             es.setKeyword(keyword);
             List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (content.size() != 0) {
-                getGoods(columnContentDTO, goods);
+                EsSpuNewResp esSpuNewResp = content.get(0);
+                getGoods(columnContentDTO, goods, esSpuNewResp);
             }
         }
         if (goods.size() != 0) {
@@ -54,7 +52,7 @@ public class VideoPoolServiceImpl implements PoolService {
     }
 
     @Override
-    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
+    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
         goods.add(goodsDto);

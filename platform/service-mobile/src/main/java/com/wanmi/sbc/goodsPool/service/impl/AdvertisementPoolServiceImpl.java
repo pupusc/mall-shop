@@ -35,8 +35,9 @@ public class AdvertisementPoolServiceImpl implements PoolService {
                 es.setKeyword(keyword);
                 List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
                 if (content.size() != 0) {
+                    EsSpuNewResp esSpuNewResp = content.get(0);
                     List<GoodsDto> goods = new ArrayList<>();
-                    getGoods(columnContentDTO, goods);
+                    getGoods(columnContentDTO, goods,esSpuNewResp);
                     GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
                     goodsPoolDtos.add(goodsPoolDto);
                 }
@@ -48,7 +49,7 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     }
 
     @Override
-    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
+    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
         goods.add(goodsDto);

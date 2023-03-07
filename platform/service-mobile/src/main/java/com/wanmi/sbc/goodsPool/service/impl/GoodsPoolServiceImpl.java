@@ -43,8 +43,9 @@ public class GoodsPoolServiceImpl implements PoolService {
             es.setKeyword(keyword);
             List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (content.size() != 0) {
+                EsSpuNewResp esSpuNewResp = content.get(0);
                 List<GoodsDto> goods = new ArrayList<>();
-                getGoods(columnContentDTO, goods);
+                getGoods(columnContentDTO, goods, esSpuNewResp);
                 GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
                 goodsPoolDtos.add(goodsPoolDto);
             }
@@ -53,24 +54,27 @@ public class GoodsPoolServiceImpl implements PoolService {
 
     //初始化商品
     @Override
-    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
+    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
+        goodsDto.setGoodsName(columnContentDTO.getGoodsName());
+        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
+        if (isbn != null) {
+            goodsDto.setIsbn(isbn);
+            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
+            String score = null;
+            if (context.size() != 0) {
+                Map map = (Map) context.get(0);
+                score = map.get("score") != null ? map.get("score").toString() : null;
+                String name = map.get("descr") != null ? map.get("descr").toString() : null ;
+                goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
+                goodsDto.setRecommendName(name);
+                goodsDto.setReferrer(name == null ? "文喵" : name);
+                goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
+            }
+        }
 
-        //goodsDto.setGoodsName(column.getGoodsName());
-        //String isbn = column.getIsbn() != null ? column.getIsbn() : res.getBook().getIsbn();
-        //goodsDto.setIsbn(isbn);
-//        List context = bookListModelProvider.getBookRecommend(isbn).getContext();
-//        String score = null;
-//        if (context.size() != 0) {
-//            Map map = (Map) context.get(0);
-//            score = map.get("score") != null ? map.get("score").toString() : null;
-//            String name = map.get("descr") != null ? map.get("descr").toString() : null ;
-//            goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
-//            goodsDto.setRecommendName(name);
-//            goodsDto.setReferrer(name == null ? "文喵" : name);
-//            goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
-//        }
+
 //        if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
 //            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 3) + "万+";
 //        } else if (goodsInfoVO.getGoodsSalesNum() >= 100000) {
