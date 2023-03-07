@@ -3,6 +3,8 @@ package com.wanmi.sbc.goodsPool.service.impl;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
+import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
@@ -27,6 +29,9 @@ public class AdvertisementPoolServiceImpl implements PoolService {
 
     @Autowired
     private BookListModelProvider bookListModelProvider;
+
+    @Autowired
+    private MetaLabelProvider metaLabelProvider;
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
@@ -56,7 +61,8 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
-        //goodsDto.setSkuId();
+        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
+        goodsDto.setSkuId(skuDetailBO.getSkuId());
         String score = null;
         String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
         if (isbn != null) {
@@ -67,22 +73,23 @@ public class AdvertisementPoolServiceImpl implements PoolService {
                 score = map.get("score") != null ? map.get("score").toString() : null;
             }
         }
-//        if (goodsInfoVO.getGoodsSalesNum() >= 1000000) {
-//            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 3) + "万+";
-//        } else if (goodsInfoVO.getGoodsSalesNum() >= 100000) {
-//            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 2) + "万+";
-//        } else if (goodsInfoVO.getGoodsSalesNum() >= 10000) {
-//            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "万+";
-//        } else if (goodsInfoVO.getGoodsSalesNum() >= 1000) {
-//            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "千+";
-//        } else if (goodsInfoVO.getGoodsSalesNum() >= 100) {
-//            score = goodsInfoVO.getGoodsSalesNum().toString().substring(0, 1) + "百+";
-//        } else {
-//            //当图书库评分为空取商城商品评分
-//            score = score != null ? score : null;
-//        }
+        Integer saleNum = Integer.valueOf(skuDetailBO.getSaleNum());
+        if (saleNum >= 1000000) {
+            score = saleNum.toString().substring(0, 3) + "万+";
+        } else if (saleNum >= 100000) {
+            score = saleNum.toString().substring(0, 2) + "万+";
+        } else if (saleNum >= 10000) {
+            score = saleNum.toString().substring(0, 1) + "万+";
+        } else if (saleNum >= 1000) {
+            score = saleNum.toString().substring(0, 1) + "千+";
+        } else if (saleNum >= 100) {
+            score = saleNum.toString().substring(0, 1) + "百+";
+        } else {
+            //当图书库评分为空取商城商品评分
+            score = score != null ? score : skuDetailBO.getScore();
+        }
         goodsDto.setScore(score);
-        goodsDto.setRetailPrice(res.getSalesPrice());
+        goodsDto.setRetailPrice(skuDetailBO.getPrice());
         //商品标签
         List<String> tags = new ArrayList<>();
         if (res.getLabels() != null) {

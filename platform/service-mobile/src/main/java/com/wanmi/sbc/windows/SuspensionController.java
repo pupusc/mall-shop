@@ -147,6 +147,22 @@ public class SuspensionController {
     BusinessResponse<List<MetaAwardBO>> queryBySku(@RequestParam(value = "sku") String sku) {
         return this.metaAwardProvider.queryBySku(sku);
     }
+    @GetMapping("/test11")
+    public BaseResponse threeBookSaveRedis(@RequestParam(value = "topicStoreyId") Integer topicStoreyId)  {
+        return topicService.threeBookSaveRedis(topicStoreyId);
+    }
+    @PostMapping("/test12")
+    public BaseResponse getThreeBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
+        return BaseResponse.success(topicService.getThreeBookSaveByRedis(topicStoreyContentRequest));
+    }
+    @GetMapping("/test13")
+    public BaseResponse goodsOrBookSaveRedis(@RequestParam(value = "topicStoreyId") Integer topicStoreyId)  {
+         return topicService.goodsOrBookSaveRedis(topicStoreyId);
+    }
+    @PostMapping("/test14")
+    public BaseResponse getGoodsOrBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
+        return BaseResponse.success(topicService.getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
+    }
     /**
      * 下载模板
      */

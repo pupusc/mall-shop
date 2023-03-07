@@ -4,6 +4,7 @@ package com.wanmi.sbc.topic.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.gson.Gson;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
@@ -48,6 +49,7 @@ import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.index.V2tabConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.order.api.provider.stockAppointment.StockAppointmentProvider;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.api.request.stockAppointment.StockAppointmentRequest;
@@ -433,6 +435,7 @@ public class TopicService {
     /**
      * 商品组件及图书组件
      */
+    @Deprecated
     public List<GoodsOrBookResponse> bookOrGoods(TopicStoreyContentRequest topicStoreyContentRequest,CustomerGetByIdResponse customer){
 
         try {
@@ -650,6 +653,7 @@ public class TopicService {
     /**
      * 三本好书,首页加载
      */
+    @Deprecated
      public List<ThreeGoodBookResponse> threeGoodBook(ThreeGoodBookRequest threeGoodBookRequest){
 
          try {
@@ -754,6 +758,158 @@ public class TopicService {
         }
     }
 
+    /**
+     * 三本好书存redis
+     */
+    public BaseResponse threeBookSaveRedis(Integer topicStoreyId){
+        ThreeGoodBookRequest threeGoodBookRequest=new ThreeGoodBookRequest();
+        List<ThreeGoodBookResponse> threeGoodBookResponses = new ArrayList<>();
+        try {
+            if (null == threeGoodBookRequest.getId()) {
+                //没有指定栏目id,添加所有栏目
+                TopicStoreyColumnQueryRequest request=new TopicStoreyColumnQueryRequest();
+                request.setState(1);
+                request.setPublishState(0);
+                //  request.setTopicStoreyId(topicConfigProvider.getStoreyIdByType(TopicStoreyTypeV2.THREEGOODBOOK.getId()).get(0).getId());
+                request.setTopicStoreyId(topicStoreyId);
+                topicConfigProvider.listStoryColumn(request).getContext().getContent().stream().forEach(t -> {
+                    ThreeGoodBookResponse threeGoodBookResponse = new ThreeGoodBookResponse();
+                    BeanUtils.copyProperties(t, threeGoodBookResponse);
+                    threeGoodBookResponses.add(threeGoodBookResponse);
+                });
+            }
+
+            if (null != threeGoodBookResponses && threeGoodBookResponses.size() != 0) {
+                TopicStoreyColumnGoodsQueryRequest topicStoreyColumnGoodsQueryRequest = new TopicStoreyColumnGoodsQueryRequest();
+                topicStoreyColumnGoodsQueryRequest.setPublishState(0);
+                for (ThreeGoodBookResponse threeGoodBookResponse : threeGoodBookResponses) {
+                    topicStoreyColumnGoodsQueryRequest.setTopicStoreySearchId(threeGoodBookResponse.getId());
+                    //设定指定的分页
+                    topicStoreyColumnGoodsQueryRequest.setPageNum(threeGoodBookRequest.getPageNum());
+                    topicStoreyColumnGoodsQueryRequest.setPageSize(threeGoodBookRequest.getPageSize());
+                    MicroServicePage<TopicStoreyColumnGoodsDTO> contextPage = topicConfigProvider.listStoryColumnGoods(topicStoreyColumnGoodsQueryRequest).getContext();
+                    List<TopicStoreyColumnGoodsDTO> content = contextPage.getContent();
+                    if (null != content && content.size() != 0) {
+                        List<ThreeGoodBookGoods> goodBookGoods = new ArrayList<>();
+                        content.stream().forEach(t -> {
+                            ThreeGoodBookGoods goodBookGoodsTemp = new ThreeGoodBookGoods();
+                            BeanUtils.copyProperties(t, goodBookGoodsTemp);
+                            goodBookGoods.add(goodBookGoodsTemp);
+                        });
+                        threeGoodBookResponse.setGoodBookGoods(goodBookGoods);
+                    }
+                }
+            }
+        }catch (Exception e){
+            return BaseResponse.error("失败");
+        }
+        String json = JSON.toJSONString(threeGoodBookResponses, SerializerFeature.WriteMapNullValue);
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyId.toString());
+        if(!json.equals(old_json)){
+            redisService.setString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyId.toString(), json );
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+    /**
+     * 三本好书取redis
+     */
+    public List getThreeBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ){
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+        List list=JSONObject.parseObject(old_json,List.class);
+        return list;
+    }
+
+    /**
+     * 商品组件或图书组件存redis
+     */
+    public BaseResponse goodsOrBookSaveRedis( Integer topicStoreyId){
+        List<GoodsOrBookResponse> goodsOrBookResponse = new ArrayList<>();
+        try {
+            TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+            //获得主题id
+            topicStoreyContentRequest.setStoreyId(topicStoreyId);
+            //获得主题下商品skuList
+            List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
+
+            if (null == collectTemp || collectTemp.size() == 0) {
+                return BaseResponse.error("没有可存储的数据");
+            }
+            List<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toList());
+
+            //获取商品信息
+            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+            goodsInfoByIdRequest.setGoodsInfoIds(skuList);
+            goodsInfoByIdRequest.setIsHavSpecText(1);
+
+            collectTemp.stream().forEach(g -> {
+                GoodsOrBookResponse goodsOrBookResponseTemp = new GoodsOrBookResponse();
+                BeanUtils.copyProperties(g, goodsOrBookResponseTemp);
+                com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
+                if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+                    goodsOrBookResponseTemp.setTagsDto(tagsDto);
+                }
+                goodsOrBookResponse.add(goodsOrBookResponseTemp);
+            });
+            String json = JSON.toJSONString(goodsOrBookResponse, SerializerFeature.WriteMapNullValue);
+            String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+            if(!json.equals(old_json)){
+                redisService.setString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString(), json );
+            }
+        }catch (Exception e){
+            return BaseResponse.error("失败");
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 商品组件或图书组件取redis
+     */
+    public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ){
+        String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
+        List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
+        List<String> skuIdList=new ArrayList<>();
+        //返回值
+        List<Map> goodsOrBookMapList=new ArrayList<>();
+        //循环每个商品取出skuId
+        for(int i=0;i<goodsOrBookResponseList.size();i++){
+            Map goodsOrBookMap= (Map)goodsOrBookResponseList.get(i);
+            skuIdList.add(goodsOrBookMap.get("skuId").toString());
+            goodsOrBookMapList.add(goodsOrBookMap);
+        }
+
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //用户信息
+        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //价格信息
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        if(null== priceContext){
+            return goodsOrBookMapList;
+        }
+        List<GoodsInfoVO> goodsInfoVOList = priceContext.getGoodsInfoVOList();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        //循环每个商品
+        for(int j=0;j<goodsOrBookMapList.size();j++){
+            if(null != goodsPriceMap && null != goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString())){
+                // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
+                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice()) {
+                    goodsOrBookMapList.get(j).put("salePrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice());
+                }
+                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
+                    goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
+                }
+            }
+        }
+        return goodsOrBookMapList;
+    }
     /**
      * 初始化优惠券信息
      */
