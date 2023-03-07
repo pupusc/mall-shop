@@ -555,7 +555,7 @@ public class TopicService {
             List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>();
             List<JSONObject> infoObjectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":goodsInfoList");
             if (!CollectionUtils.isEmpty(infoObjectList)) {
-                for (JSONObject goodStr : objectList) {
+                for (JSONObject goodStr : infoObjectList) {
                     goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
                 }
             }
@@ -563,7 +563,7 @@ public class TopicService {
             if(goodsInfoVOList.size()>0){
                 CustomerGetByIdResponse customer = this.getCustomer();
                 MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoVOList, GoodsInfoDTO.class));
+                filterRequest.setGoodsInfos(KsBeanUtil.convertList(goodsInfoVOList, GoodsInfoDTO.class));
                 filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
                 goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
             }
