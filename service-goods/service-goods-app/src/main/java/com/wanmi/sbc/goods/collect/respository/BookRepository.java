@@ -154,15 +154,6 @@ public class BookRepository {
     }
 
     //通过isbn查找spu
-    public List findSpuByV2_cache(String isbn){
-        if(cacheService.isbnSPUList == null){
-            cacheService.initIsbnSPUList();
-            return cacheService.findIsbnSPUList(isbn);
-        }
-        return cacheService.findIsbnSPUList(isbn);
-    }
-
-    //通过isbn查找spu
     public List findSpuByV2(String isbn) {
         String spu_no = null;
 
