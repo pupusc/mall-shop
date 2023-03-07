@@ -70,6 +70,7 @@ import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentQueryRequest;
 import com.wanmi.sbc.setting.api.response.mixedcomponentV2.TopicStoreyMixedComponentResponse;
 import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
+import com.wanmi.sbc.task.MixedComponentContentJobHandler;
 import com.wanmi.sbc.task.NewBookPointJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.task.RankPageJobHandler;
@@ -278,6 +279,9 @@ public class TopicService {
     @Autowired
     private RankPageJobHandler rankPageJobHandler;
 
+    @Autowired
+    private MixedComponentContentJobHandler mixedComponentContentJobHandler;
+
     public void refresRedis() throws Exception {
 
         List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
@@ -306,6 +310,8 @@ public class TopicService {
                     rankJobHandler.execute(null);
                 }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){
                     rankPageJobHandler.execute(topicKey);
+                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
+                    mixedComponentContentJobHandler.execute(null);
                 }
 
             }
@@ -1067,57 +1073,6 @@ public class TopicService {
                 }
             }
             goodsPoolDto.setGoods(goodsDtos);
-        }
-    }
-
-    //存redis
-    public void saveMixedComponentContent() {
-        //栏目信息
-        Integer topicStoreyId = 194;
-        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
-        request.setTopicStoreyId(topicStoreyId);
-        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
-        //存redis
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
-        // tab
-        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
-            return new MixedComponentDto(c);
-        }).collect(Collectors.toList());
-        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
-            Integer tabId = mixedComponentDto.getId();
-            // 获取关键字
-            List<KeyWordDto> keywords = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
-            // 获取规则
-            List<String> rules = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
-            //获取商品池
-            List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
-            for (KeyWordDto keyword : keywords) {
-                String keyWordId = keyword.getId();
-                String keyWord = keyword.getName();
-                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
-                for (MixedComponentTabDto pool : pools) {
-                    Integer id = pool.getId();
-                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
-                    columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
-                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
-                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
-                }
-                //排序
-                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
-                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
-                        .collect(Collectors.toList());
-                //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
-            }
         }
     }
 
