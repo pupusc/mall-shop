@@ -82,6 +82,9 @@ public class BookDetailTab {
         Map map=new HashMap<>();
         //推荐人列表
         List metaBookRcmmdFigureList = bookJpa.RcommdFigureByBookId(book_id);
+        if(null==metaBookRcmmdFigureList || metaBookRcmmdFigureList.size()==0){
+            return;
+        }
         //对于每一个推荐人，找到其推荐列表
         List<Map> result =(List<Map>) metaBookRcmmdFigureList.stream().map(bs -> {
             Map maptemp=(Map) bs;
@@ -90,6 +93,9 @@ public class BookDetailTab {
             maptemp.remove("create_time");
             maptemp.remove("is_selected");
             maptemp.remove("biz_time");
+            if(null==maptemp.get("biz_type") || null== maptemp.get("biz_id")){
+                return null;
+            }
             if(BookRcmmdTypeEnum.WENMIAO.getCode().equals(Integer.parseInt(maptemp.get("biz_type").toString()))){
                 if(null==maptemp.get("descr")){
                     return null;//文喵必有推荐语
@@ -121,6 +127,9 @@ public class BookDetailTab {
                 }
                 //构建返回类型
                 List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
+                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("goods_info_no")){
+                        return null;
+                    }
                     Map recomentBookVo = new HashMap<>();
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
@@ -130,9 +139,11 @@ public class BookDetailTab {
                         recomentBookVo.put("tagsDto",tagsDto);
                     }
                     return recomentBookVo;
-                }).collect(Collectors.toList());
+                }).filter(g->null !=g).collect(Collectors.toList());
 
-                maptemp.put("recomentBookBoList",recomentBookVoMap);
+                if(null!=recomentBookVoMap&&recomentBookVoMap.size()!=0){
+                    maptemp.put("recomentBookBoList",recomentBookVoMap);
+                }
                 return maptemp;
             }
             return null;
@@ -284,10 +295,33 @@ public class BookDetailTab {
     }
 
     private String getSaleNum(String spu_id) {
-        String goods_id = bookJpa.getSkuBySpu(spu_id).get(0).get("goods_id").toString();
-        String sale_num = bookJpa.getSaleNum(goods_id).get(0).get("sale_num").toString();
+        List<Map> skuBySpu = bookJpa.getSkuBySpu(spu_id);
+        if(null==skuBySpu ||skuBySpu.size()==0 ){
+            return null;
+        }
+        if(null ==skuBySpu.get(0).get("goods_id")){
+            return null;
+        }
+        String goods_id = skuBySpu.get(0).get("goods_id").toString();
+
+        List<Map> saleNum = bookJpa.getSaleNum(goods_id);
+        if(null==saleNum ||saleNum.size()==0 ){
+            return null;
+        }
+        if(null ==saleNum.get(0).get("sale_num")){
+            return null;
+        }
+        String sale_num = saleNum.get(0).get("sale_num").toString();
         if(Integer.parseInt(sale_num)<300){
-            String point = bookJpa.getComentPoint(spu_id).get(0).get("prop_value").toString();
+
+            List<Map> comentPoint = bookJpa.getComentPoint(spu_id);
+            if(null==comentPoint ||comentPoint.size()==0 ){
+                return null;
+            }
+            if(null ==comentPoint.get(0).get("prop_value")){
+                return null;
+            }
+            String point = comentPoint.get(0).get("prop_value").toString();
             return point;
         }
         return sale_num;

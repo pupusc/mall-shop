@@ -841,6 +841,9 @@ public class GoodsController implements GoodsProvider {
         medioMap.put("medioRecomd",metaBookRcmmdFigureBOS);
         detailList.set(0,medioMap);
         map.put("bookDetail",detailList);
+        //榜单
+        Map rankMap = goodsService.getGoodsDetailRankById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID);
+        map.put("rank",rankMap);
         return BaseResponse.success(map);
     }
 }
