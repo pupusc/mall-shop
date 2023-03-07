@@ -294,6 +294,12 @@ public class TopicService {
                     rankPageJobHandler.execute(topicKey);
                 }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
                     mixedComponentContentJobHandler.execute(null);
+                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                    threeBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){
+                   goodsOrBookSaveRedis(topic_store_id);
+                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){
+                    goodsOrBookSaveRedis(topic_store_id);
                 }
 
             }
@@ -343,15 +349,17 @@ public class TopicService {
                 RankPageRequest rankPage = rankPage(topicResponse);
                 topicResponse.setRankPageRequest(rankPage);
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
-                topicResponse.setThreeGoodBookResponses(this.threeGoodBook(new ThreeGoodBookRequest()));
+                TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Books.getId());
-                topicResponse.setBooksResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
-                topicStoreyContentRequest.setStoreyType(TopicStoreyTypeV2.Goods.getId());
-                topicResponse.setGoodsResponses(this.bookOrGoods(topicStoreyContentRequest,customer));
+                topicStoreyContentRequest.setStoreyId(topicResponse.getId());
+                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 suspensionByTypeRequest.setType(2L);
@@ -1350,9 +1358,7 @@ public class TopicService {
                     Integer id = pool.getId();
                     ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
                     columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
                     PoolService poolService = poolFactory.getPoolService(pool.getBookType());
                     poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
                 }

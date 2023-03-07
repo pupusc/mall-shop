@@ -81,7 +81,7 @@ public class GoodsPoolServiceImpl implements PoolService {
             }
         }
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
-        Integer saleNum = Integer.valueOf(skuDetailBO.getSaleNum());
+        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
         if (saleNum >= 1000000) {
             score = saleNum.toString().substring(0, 3) + "万+";
         } else if (saleNum >= 100000) {

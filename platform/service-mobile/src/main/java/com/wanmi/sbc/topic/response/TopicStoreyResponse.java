@@ -68,13 +68,13 @@ public class TopicStoreyResponse implements Serializable {
     private List<RankResponse> rankList;
 
     @ApiModelProperty("三本好书栏目信息")
-    private List<ThreeGoodBookResponse> threeGoodBookResponses;
+    private List threeGoodBookResponses;
 
     @ApiModelProperty("商品栏目信息")
-    private List<GoodsOrBookResponse> GoodsResponses;
+    private List GoodsResponses;
 
     @ApiModelProperty("图书栏目信息")
-    private List<GoodsOrBookResponse> BooksResponses;
+    private List BooksResponses;
 
     @ApiModelProperty("混合栏目信息")
     private List<MixedComponentDto> mixedComponentContent;
