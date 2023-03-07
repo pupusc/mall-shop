@@ -397,7 +397,8 @@ public class TopicService {
      * @return
      */
     public List<RankRequest> rank(){
-        RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK),RankRedisListResponse.class);
+        try {
+            RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK), RankRedisListResponse.class);
 //        List<Integer> idList = response.getRankIds();
 //        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
 //        idsRequest.setIds(idList);
@@ -442,7 +443,11 @@ public class TopicService {
 //                }
 //            });
 //        });
-        return response.getRankRequestList();
+            return response.getRankRequestList();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -558,64 +563,69 @@ public class TopicService {
      * @return
      */
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
-        List<RankRequest> rankRequestList=new ArrayList<>();
-        List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
-        if (!CollectionUtils.isEmpty(objectList)) {
-            for (JSONObject goodStr : objectList) {
-                rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
+        try {
+            List<RankRequest> rankRequestList = new ArrayList<>();
+            List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
+            if (!CollectionUtils.isEmpty(objectList)) {
+                for (JSONObject goodStr : objectList) {
+                    rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
+                }
             }
-        }
-        if (null==request.getTopicStoreySearchId()&&null==request.getRankId()){
-            request.setTopicStoreySearchId(rankRequestList.get(0).getId());
-            Collection rankList = rankRequestList.get(0).getRankList();
-            RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
-            request.setRankId(convert.getId());
-        }else if(null!=request.getTopicStoreySearchId()&&null==request.getRankId()){
-            Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
-            if(first.isPresent()){
-                Collection rankList =first.get().getRankList();
+            if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
+                request.setTopicStoreySearchId(rankRequestList.get(0).getId());
+                Collection rankList = rankRequestList.get(0).getRankList();
                 RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
                 request.setRankId(convert.getId());
+            } else if (null != request.getTopicStoreySearchId() && null == request.getRankId()) {
+                Optional<RankRequest> first = rankRequestList.stream().filter(r -> r.getId().equals(request.getTopicStoreySearchId())).findFirst();
+                if (first.isPresent()) {
+                    Collection rankList = first.get().getRankList();
+                    RankRequest convert = KsBeanUtil.convert(rankList.stream().findFirst(), RankRequest.class);
+                    request.setRankId(convert.getId());
+                }
             }
-        }
-        String key=RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":listGoods:"+request.getRankId();
-        //瀑布流分页
-        Integer total=redisListService.getSize(key);
-        Integer pageSize= request.getPageSize();
-        long totalPages=(long)Math.ceil(total/ pageSize);
-        Integer pageNum= request.getPageNum();
-        Integer start=(pageNum)*pageSize;
-        Integer end=start+pageSize-1;
-        if(start>=total){
+            String key = RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":listGoods:" + request.getRankId();
+            //瀑布流分页
+            Integer total = redisListService.getSize(key);
+            Integer pageSize = request.getPageSize();
+            long totalPages = (long) Math.ceil(total / pageSize);
+            Integer pageNum = request.getPageNum();
+            Integer start = (pageNum) * pageSize;
+            Integer end = start + pageSize - 1;
+            if (start >= total) {
+                return null;
+            }
+            if (end > total) {
+                end = total - 1;
+            }
+            List<Map> goodsCustomResponses = new ArrayList<>();
+            List<JSONObject> goodsInfoList = redisListService.findByRange(key, start, end);
+            if (!CollectionUtils.isEmpty(goodsInfoList)) {
+                for (JSONObject goodStr : goodsInfoList) {
+                    goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
+                }
+            }
+            //初始化榜单树形结构，获取商品详情
+            rankRequestList.forEach(r -> {
+                r.getRankList().forEach(t -> {
+                    Map tMap = (Map) t;
+                    if (tMap.get("id").equals(request.getRankId())) {
+                        List<Map> rankList = (List<Map>) tMap.get("rankList");
+                        rankList.addAll(goodsCustomResponses);
+                    }
+                });
+            });
+            RankPageRequest pageRequest = new RankPageRequest();
+            pageRequest.setContentList(rankRequestList);
+            pageRequest.setPageNum(pageNum);
+            pageRequest.setTotalPages(totalPages);
+            pageRequest.setPageSize(pageSize);
+            pageRequest.setTotal(Long.valueOf(total));
+            return pageRequest;
+        }catch (Exception e){
+            e.printStackTrace();
             return null;
         }
-        if(end>total){
-            end=total-1;
-        }
-        List<Map> goodsCustomResponses=new ArrayList<>();
-        List<JSONObject> goodsInfoList = redisListService.findByRange(key,start,end);
-        if (!CollectionUtils.isEmpty(goodsInfoList)) {
-            for (JSONObject goodStr : goodsInfoList) {
-                goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
-            }
-        }
-        //初始化榜单树形结构，获取商品详情
-        rankRequestList.forEach(r->{
-            r.getRankList().forEach(t->{
-                Map tMap= (Map) t;
-                if(tMap.get("id").equals(request.getRankId())) {
-                    List<Map> rankList = (List<Map>) tMap.get("rankList");
-                    rankList.addAll(goodsCustomResponses);
-                }
-            });
-        });
-        RankPageRequest pageRequest =new RankPageRequest();
-        pageRequest.setContentList(rankRequestList);
-        pageRequest.setPageNum(pageNum);
-        pageRequest.setTotalPages(totalPages);
-        pageRequest.setPageSize(pageSize);
-        pageRequest.setTotal(Long.valueOf(total));
-        return pageRequest;
     }
 
     /**
