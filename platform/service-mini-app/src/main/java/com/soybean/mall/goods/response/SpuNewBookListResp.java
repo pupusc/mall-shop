@@ -1,9 +1,13 @@
 package com.soybean.mall.goods.response;
 
+import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.soybean.elastic.api.utils.ConstantUtil;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -126,6 +130,74 @@ public class SpuNewBookListResp {
     private List<GoodsInfoVO> skus = new ArrayList<>();
 
     private Integer buyCount;
+
+    /**
+     * 商品标签
+     */
+    private List<SubSpuLabelNew> spuLabels;
+
+    /**
+     * 营销标签
+     */
+    private List<SubSkuMarketingLabelNew> marketingLabel;
+
+    @Data
+    public class SubSpuLabelNew {
+
+        private String showName;
+
+        private String name;
+
+        private Integer id;
+
+        private Integer orderType;
+
+        private Integer type = 1;
+    }
+
+    @Data
+    public class SubSkuMarketingLabelNew {
+
+        @Field(type = FieldType.Text)
+        private String name;
+
+        @Field(type = FieldType.Nested)
+        private List<Labels> labels;
+
+        @Data
+        public class Labels {
+
+            @Field(type = FieldType.Text)
+            private String sku_no;
+
+            @Field(type = FieldType.Text)
+            private String spu_no;
+
+            @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+            private String show_name;
+
+            @Field(type = FieldType.Text)
+            private String name;
+
+            @Field(type = FieldType.Text)
+            private String goods_info_id;
+
+            @Field(type = FieldType.Text)
+            private String goods_info_name;
+
+            @Field(type = FieldType.Integer)
+            private Integer id;
+
+            @Field(type = FieldType.Integer)
+            private Integer order_num;
+
+            @Field(type = FieldType.Integer)
+            private Integer order_type;
+
+            @Field(type = FieldType.Integer)
+            private Integer freight_temp_id;
+        }
+    }
 
     /**
      * 书单或者榜单信息

@@ -1,6 +1,10 @@
 package com.soybean.elastic.api.resp;
 
+import com.soybean.elastic.api.utils.ConstantUtil;
+import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.awt.print.Book;
 import java.io.Serializable;
@@ -69,6 +73,44 @@ public class EsSpuNewResp implements Serializable {
      * 标签信息
      */
     private List<SubLabel> labels;
+
+    /**
+     * 商品标签
+     */
+    private List<SubSpuLabelNew> spuLabels;
+
+    /**
+     * 营销标签
+     */
+    private List<SubSkuMarketingLabelNew> marketingLabel;
+
+    @Data
+    public class SubSkuMarketingLabelNew {
+
+        @Field(type = FieldType.Text)
+        private String name;
+
+        @Field(type = FieldType.Nested)
+        private List<MarketingLabelNewDTO.Labels> labels;
+    }
+
+    @Data
+    public static class SubSpuLabelNew {
+        @Field(type = FieldType.Text)
+        private String showName;
+
+        @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+        private String name;
+
+        @Field(type = FieldType.Integer)
+        private Integer id;
+
+        @Field(type = FieldType.Integer)
+        private Integer orderType;
+
+        @Field(type = FieldType.Integer)
+        private Integer type = 1;
+    }
 
     /**
      * 主播推荐
@@ -140,7 +182,6 @@ public class EsSpuNewResp implements Serializable {
          * 标签
          */
         private List<SubBookLabel> tags;
-
 
         @Data
         public static class SubBookLabel{

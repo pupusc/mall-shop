@@ -16,7 +16,7 @@ public class SubSkuMarketingLabelNew {
     private String name;
 
     @Field(type = FieldType.Nested)
-    private List<MarketingLabelNewDTO.Labels> labels;
+    private List<Labels> labels;
 
     @Data
     public static class Labels{
