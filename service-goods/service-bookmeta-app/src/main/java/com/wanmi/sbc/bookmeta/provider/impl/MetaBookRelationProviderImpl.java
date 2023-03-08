@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
     @Override
     @Transactional
     public Integer insert(MetaBookRelationAddBO addBO) {
-        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKeyAddBo();
+        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey()                 ;
         List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
         MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
         List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
@@ -59,7 +60,7 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
 
     @Override
     public Integer delete(MetaBookRelationAddBO addBO) {
-        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKeyAddBo();
+        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey();
         List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
         MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
         List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
@@ -83,4 +84,20 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
     public Integer deleteBook(MetaBookRelationDelBO delBOBO) {
         return metaBookRelationBookMapper.deleteMetaBookRelationBook(delBOBO.getId());
     }
+
+    @Override
+    public List<MetaBookRelationAddBO> selectAll(MetaBookRelationDelBO addBO) {
+        List<MetaBookRelation> metaBookRelation = metaBookRelationMapper.getMetaBookRelation(addBO.getBookId());
+        List<MetaBookRelationAddBO> list =new ArrayList<>();
+        for (MetaBookRelation temp : metaBookRelation) {
+            List<MetaBookRelationBook> metaBookRelationBook = metaBookRelationBookMapper.getMetaBookRelationBook(temp.getId());
+            List<MetaBookRelationKey> metaBookRelationKeys = metaBookRelationKeyMapper.getKeyById(temp.getId());
+            MetaBookRelationAddBO convert = KsBeanUtil.convert(temp, MetaBookRelationAddBO.class);
+            convert.setMetaBookRelationBook(KsBeanUtil.convert(metaBookRelationBook,MetaBookRelationBookAddBo.class));
+            convert.setMetaBookRelationKey(KsBeanUtil.convert(metaBookRelationKeys,MetaBookRelationKeyAddBo.class));
+            list.add(convert);
+        }
+        return list;
+    }
+
 }

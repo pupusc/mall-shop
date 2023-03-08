@@ -31,5 +31,5 @@ public class MetaBookRelationAddBO implements Serializable {
     private Date updateTime;
     private int delFlag;
     private List<MetaBookRelationBookAddBo> metaBookRelationBook;
-    private List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo;
+    private List<MetaBookRelationKeyAddBo> metaBookRelationKey;
 }

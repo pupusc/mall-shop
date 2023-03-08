@@ -18,7 +18,7 @@
 
 
     <select id="getKeyById" resultMap="MetaBookRelationKeyMap">
-        select * from meta_book_relation_key where relation_id = #{id} order by order_num asc;
+        select * from meta_book_relation_key where relation_id = #{id} and del_flag = 0 order by order_num asc;
     </select>
 
     <insert id="insertSelective" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">

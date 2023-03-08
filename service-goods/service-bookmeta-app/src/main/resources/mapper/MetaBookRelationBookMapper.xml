@@ -48,8 +48,33 @@
             </if>
         </trim>
     </insert>
+
+
+    <update id="updateMetaBookRelationBook" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelationBook">
+        update meta_book_relation_book
+        <set>
+            <if test="relationId !=null">
+                `relation_id`=#{relationId},
+            </if>
+            <if test="isbn !=null">
+                `isbn`=#{isbn},
+            </if>
+            <if test="name !=null">
+                `name`=#{name},
+            </if>
+            <if test="orderNum !=null">
+                `order_num`=#{orderNum},
+            </if>
+        </set>
+            where id= #{id}
+    </update>
+
     <delete id="deleteMetaBookRelationBook" parameterType="java.lang.Integer">
         update meta_book_relation_book set del_flag = 1 where id = #{id}
     </delete>
+
+    <select id="getMetaBookRelationBook" resultType="com.wanmi.sbc.bookmeta.entity.MetaBookRelationBook">
+        select * from meta_book_relation_book where relation_id = #{relationId} and del_flag = 0
+    </select>
 
 </mapper>
