@@ -32,6 +32,7 @@ import com.wanmi.sbc.topic.response.GoodsOrBookResponse;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.topic.response.ThreeGoodBookResponse;
 import com.wanmi.sbc.topic.service.TopicService;
+import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.windows.request.MarketingRequest;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import io.swagger.annotations.ApiImplicitParam;

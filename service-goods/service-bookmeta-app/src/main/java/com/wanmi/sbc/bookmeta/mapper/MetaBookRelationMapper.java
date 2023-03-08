@@ -16,6 +16,8 @@ public interface MetaBookRelationMapper {
     List<Map> getTitleByBookId(@Param("bookId") String bookId);
     int insertSelective(MetaBookRelation metaBookRelation);
     int deleteSelective(int id);
+    List<MetaBookRelation> getMetaBookRelation(@Param("bookId") int bookId);
+    int updateMetaBookRelation(MetaBookRelation metaBookRelation);
 
 
 

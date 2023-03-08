@@ -348,8 +348,11 @@ public class BookDetailTab {
             if(goodMap != null && goodMap.size() >0){
                 String spu_no = String.valueOf(goodMap.get("spu_no"));
                 String goods_name = String.valueOf(goodMap.get("goods_name"));
+                String spu_id = String.valueOf(goodMap.get("spu_id"));
+                map.put("spu_id",spu_id);
                 map.put("spu_no",spu_no);
                 map.put("goods_name",goods_name);
+
                 ret.add(map);
             }
         }

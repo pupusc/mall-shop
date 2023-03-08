@@ -1228,22 +1228,24 @@ public class TopicService {
     //获取会员价
     public void initVipPrice(List<GoodsPoolDto> goodsPoolDtos, CustomerGetByIdResponse customer) {
         try {
+            List<String> skuIdList = new ArrayList<>();
+            goodsPoolDtos.stream().map(GoodsPoolDto::getGoods).collect(Collectors.toList()).forEach(s -> {
+                        if (s != null && s.size() != 0) {s.forEach(c -> {skuIdList.add(c.getSkuId());});}});
+            //获取商品信息
+            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+            goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
+            goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
+            goodsInfoByIdRequest.setIsHavSpecText(1);
+            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+            filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
             for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
                 List<GoodsDto> goodsDtos = goodsPoolDto.getGoods();
                 if(goodsDtos.size() != 0) {
-                    List<String> skuIdList = goodsDtos.stream().map(GoodsDto::getSkuId).collect(Collectors.toList());
-                    //获取商品信息
-                    GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
-                    goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
-                    goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
-                    goodsInfoByIdRequest.setIsHavSpecText(1);
-                    List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
-                    MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                    filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
-                    filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-                    List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-                    Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
-                            .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
                     for (int i = 0; i < goodsDtos.size(); i++) {
                         if(null==goodsVipPriceMap.get(goodsDtos.get(i).getSkuId())){
                             continue;

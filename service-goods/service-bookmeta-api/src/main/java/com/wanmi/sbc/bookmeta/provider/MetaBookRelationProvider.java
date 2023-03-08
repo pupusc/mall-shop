@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,4 +31,10 @@ public interface MetaBookRelationProvider {
 
     @PostMapping("/goods/${application.goods.version}/MetaRelationProvider/deleteBookRelationBook")
     Integer deleteBook(@RequestBody @NotNull MetaBookRelationDelBO addBO);
+
+    @PostMapping("/goods/${application.goods.version}/MetaRelationProvider/getAllBookRelationBook")
+    List<MetaBookRelationAddBO> selectAll(@RequestBody @NotNull MetaBookRelationDelBO addBO);
+
+    @PostMapping("/goods/${application.goods.version}/MetaRelationProvider/updateRelationBook")
+    int updateAll(@RequestBody @NotNull MetaBookRelationAddBO addBO);
 }
