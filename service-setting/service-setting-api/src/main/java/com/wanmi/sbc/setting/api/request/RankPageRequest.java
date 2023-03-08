@@ -24,4 +24,6 @@ public class RankPageRequest implements Serializable {
 
     private List<RankRequest> contentList;
 
+
+
 }
