@@ -96,8 +96,11 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         Integer topicStoreyId = 194;
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
+        request.setPublishState(0);
+        request.setState(1);
         List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
         //存redis
+
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
         // tab
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
@@ -125,9 +128,9 @@ public class MixedComponentContentJobHandler extends IJobHandler {
                     Integer id = pool.getId();
                     ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
                     columnContentQueryRequest.setTopicStoreySearchId(id);
-                    columnContentQueryRequest.setDeleted(0);
-                    columnContentQueryRequest.setPageSize(10000);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.pageTopicStoreyColumnContent(columnContentQueryRequest).getContext().getContent();
+                    request.setPublishState(0);
+                    request.setState(1);
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
                     PoolService poolService = poolFactory.getPoolService(pool.getBookType());
                     poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
                 }

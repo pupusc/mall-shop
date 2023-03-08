@@ -994,6 +994,7 @@ public class TopicConfigService {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.asc("deleted"));
         sortList.add(Sort.Order.asc("orderNum"));
+        request.setDeleted(request.getPublishState());
         List<TopicStoreyColumn> topicStoreySearchList = columnRepository
                 .findAll(columnRepository.columnSearch(request), Sort.by(sortList));
         List<ColumnDTO> collect = topicStoreySearchList.stream().map(topicStoreyColumn -> {
@@ -1097,6 +1098,7 @@ public class TopicConfigService {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.desc("deleted"));
         sortList.add(Sort.Order.asc("orderNum"));
+        request.setDeleted(request.getPublishState());
         List<TopicStoreyColumnContent> topicStoreySearchContentPage = columnGoodsRepository
                 .findAll(columnGoodsRepository.topicStoreySearchContent(request), Sort.by(sortList));
         List<ColumnContentDTO> resultList = new ArrayList<ColumnContentDTO>();
