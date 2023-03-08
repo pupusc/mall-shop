@@ -2,6 +2,9 @@ package com.wanmi.sbc.task;
 
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
+import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -15,6 +18,7 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.redis.RedisService;
@@ -23,6 +27,7 @@ import com.wanmi.sbc.setting.api.request.RankRedisListResponse;
 import com.wanmi.sbc.setting.api.request.RankRequest;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -66,6 +71,10 @@ public class NewRankJobHandler extends IJobHandler {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private EsSpuNewProvider esSpuNewProvider;
+
+
 
     @Override
     public ReturnT<String> execute(String param) throws Exception {
@@ -94,6 +103,8 @@ public class NewRankJobHandler extends IJobHandler {
                 goodIds.add(item.getSkuId());
                 Map map=new HashMap();
                 map.put("spuId",item.getSpuId());
+                map.put("rankText",item.getRankText());
+                map.put("saleNum",item.getSaleNum());
                 maps.add(map);
             });
             goods.addAll(goodIds);
@@ -102,13 +113,33 @@ public class NewRankJobHandler extends IJobHandler {
         //初始化榜单商品
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,param);
         goodsCustomResponses.forEach(g->{
+            EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
+            List<String> spuid=new ArrayList<>();
+            spuid.add(g.getGoodsId());
+            req.setSpuIds(spuid);
+            TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
+            List<TagsDto.Tags> tags = tagsDto.getTags();
+            MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
+            List<MarketingLabelNewDTO.Labels> marketinglabels=marketingLabel.getLabels();
+            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listNormalEsSpuNew(req).getContext().getContent();
+            EsSpuNewResp esSpuNewResp = esSpuNewResps.get(0);
 //            String label = g.getGoodsLabelList().get(0);
             response.getRankRequestList().forEach(r->{
                 if(null!=r.getRankList()&&r.getRankList().size()>0){
                     r.getRankList().forEach(t->{
                         Map map= (Map) t;
                         if(map.get("spuId").equals(g.getGoodsId())){
-                            map.put("label","");
+                            map.put("label",esSpuNewResp.getSpuLabels());
+                            map.put("marketingLabel",marketinglabels);
+                            if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
+                                map.put("imageUrl",esSpuNewResp.getPic());
+                            }else if(DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())){
+                                map.put("imageUrl",esSpuNewResp.getUnBackgroundPic());
+                            }else if(DitaUtil.isNotBlank(g.getImageUrl())){
+                                map.put("imageUrl",g.getImageUrl());
+                            }else {
+                                map.put("imageUrl",g.getGoodsUnBackImg());
+                            }
                             map.put("goodsInfoId",g.getGoodsInfoId());
                             map.put("subName",g.getGoodsSubName());
                             map.put("showPrice",g.getShowPrice());

@@ -142,7 +142,7 @@ public class BookListModelAndGoodsService {
      */
     public CustomerVO getCustomerVo() {
         String operatorId = commonUtil.getOperatorId();
-        if (StringUtils.isEmpty(operatorId)) {
+        if (null==operatorId||StringUtils.isEmpty(operatorId)||"null".equals(operatorId)) {
             return null;
         }
         return commonUtil.getCanNullCustomer();
