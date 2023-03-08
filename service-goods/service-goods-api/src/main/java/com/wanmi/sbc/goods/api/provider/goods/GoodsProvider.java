@@ -349,5 +349,5 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/get_goods-detial-by-id")
-    BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId") String skuId);
+    BaseResponse getGoodsDetialById(@RequestParam(value = "spuId" ,required = false) String spuId,@RequestParam(value = "skuId",required = false) String skuId);
 }

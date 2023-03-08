@@ -130,18 +130,14 @@ public class SuspensionController {
         return metaFigureProvider.listFigureRecomdById(spuId,skuId);
     }
 
-    @PostMapping("/test10")
-    public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId",required = false) String skuId)  {
-
-        if(DitaUtil.isBlank(skuId)){
-            //skuId = getSkuId(spuId);
-            if(DitaUtil.isBlank(skuId)){
-                return BaseResponse.error("商品不存在");
-            }
-        }
-
-        return goodsProvider.getGoodsDetialById(spuId,skuId);
+    @PostMapping("/goodsDetail")
+    public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId",required = false) String spuId,@RequestParam(value = "skuId,",required = false) String skuId)  {
+        log.info("test10_start");
+        BaseResponse goodsDetialById = goodsProvider.getGoodsDetialById(spuId, skuId);
+        log.info("test10_end");
+        return goodsDetialById;
     }
+
     @PostMapping("/test7")
     public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId)  {
         return metaBookProvider.getRecommentKey(spuId);
