@@ -63,4 +63,12 @@ public class MetaBookRelationController {
         List<MetaBookRelationAddReqVO> convert1 = KsBeanUtil.convertList(metaBookRelationAddBO, MetaBookRelationAddReqVO.class);
         return BusinessResponse.success(convert1);
     }
+
+
+    @PostMapping("updateRelation")
+    public BusinessResponse<Integer> updateRelations(@RequestBody MetaBookRelationAddReqVO reqVO) {
+        MetaBookRelationAddBO convert = KsBeanUtil.convert(reqVO, MetaBookRelationAddBO.class);
+        Integer updateAll = metaBookRelationProvider.updateAll(convert);
+        return BusinessResponse.success(updateAll);
+    }
 }

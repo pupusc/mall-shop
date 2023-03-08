@@ -100,4 +100,22 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
         return list;
     }
 
+    @Override
+    public int updateAll(MetaBookRelationAddBO addBO) {
+        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey()                 ;
+        List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
+        MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
+        List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
+        List<MetaBookRelationKey> convertKey = KsBeanUtil.convertList(metaBookRelationKeyAddBo, MetaBookRelationKey.class);
+        int i = metaBookRelationMapper.updateMetaBookRelation(convert);
+        int id = convert.getId();
+        for (MetaBookRelationBook book:convertBook) {
+            metaBookRelationBookMapper.updateMetaBookRelationBook(book);
+        }
+        for (MetaBookRelationKey key:convertKey) {
+            metaBookRelationKeyMapper.updateSelective(key);
+        }
+        return i;
+    }
+
 }

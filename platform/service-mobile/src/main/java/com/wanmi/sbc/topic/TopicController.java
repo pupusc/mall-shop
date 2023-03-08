@@ -1,6 +1,10 @@
 package com.wanmi.sbc.topic;
 
+import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
+import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
@@ -12,6 +16,8 @@ import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
 import com.wanmi.sbc.task.NewBookPointJobHandler;
 import com.wanmi.sbc.task.NewRankJobHandler;
 import com.wanmi.sbc.task.RankPageJobHandler;
+import com.wanmi.sbc.topic.request.GoodsSearchBySpuIdRequest;
+import com.wanmi.sbc.topic.response.GoodsSearchBySpuIdResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
 import com.wanmi.sbc.util.DitaUtil;
@@ -24,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -140,6 +147,15 @@ public class TopicController {
     public BaseResponse<RankPageRequest> rankPageV2(@RequestBody RankStoreyRequest request) {
         BaseResponse<RankPageRequest> response = BaseResponse.success(topicService.rankPageByBookList(request));
         return response;
+    }
+
+    @Resource
+    private GoodsSearchKeyProvider goodsSearchKeyProvider;
+    @PostMapping("/v2/queryGoodsSearchKey")
+    public BusinessResponse<List<GoodsSearchBySpuIdResponse>> getGoodsSearch(@RequestBody GoodsSearchBySpuIdRequest pageRequest) {
+        List<GoodsNameBySpuIdBO> goodsNameBySpuId = goodsSearchKeyProvider.getGoodsNameBySpuId(pageRequest.getName());
+        List<GoodsSearchBySpuIdResponse> goodsSearchBySpuIdRespVOS = KsBeanUtil.convertList(goodsNameBySpuId, GoodsSearchBySpuIdResponse.class);
+        return BusinessResponse.success(goodsSearchBySpuIdRespVOS);
     }
 
     /**
