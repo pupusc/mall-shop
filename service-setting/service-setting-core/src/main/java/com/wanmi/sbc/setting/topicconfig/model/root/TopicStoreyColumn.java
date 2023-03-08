@@ -95,4 +95,7 @@ public class TopicStoreyColumn {
 
     @Column(name = "attribute_info")
     private String attributeInfo;
+
+    @Column(name = "begin_time")
+    private LocalDateTime beginTime;
 }
