@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -56,9 +57,10 @@ public class MetaBookRelationController {
     }
 
     @PostMapping("getRelationBook")
-    public BusinessResponse<Integer> getRelations(@RequestBody MetaBookRelationAddReqVO reqVO) {
+    public BusinessResponse<List<MetaBookRelationAddReqVO>> getRelations(@RequestBody MetaBookRelationDelBO reqVO) {
         MetaBookRelationDelBO convert = KsBeanUtil.convert(reqVO, MetaBookRelationDelBO.class);
-        Integer deleteBook = metaBookRelationProvider.deleteBook(convert);
-        return BusinessResponse.success(deleteBook);
+        List<MetaBookRelationAddBO> metaBookRelationAddBO = metaBookRelationProvider.selectAll(convert);
+        List<MetaBookRelationAddReqVO> convert1 = KsBeanUtil.convertList(metaBookRelationAddBO, MetaBookRelationAddReqVO.class);
+        return BusinessResponse.success(convert1);
     }
 }

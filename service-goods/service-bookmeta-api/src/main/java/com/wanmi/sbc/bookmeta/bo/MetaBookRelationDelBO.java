@@ -14,4 +14,6 @@ import java.io.Serializable;
 @Data
 public class MetaBookRelationDelBO implements Serializable {
     private int id;
+
+    private int bookId;
 }
