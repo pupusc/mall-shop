@@ -370,6 +370,10 @@ public class BookDetailTab {
                 map.put("spu_id",spu_id);
                 map.put("spu_no",spu_no);
                 map.put("goods_name",goods_name);
+                if(null!= spu_id) {
+                    TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
+                    map.put("tags",tagsDto);
+                }
                 ret.add(map);
             }
         }
