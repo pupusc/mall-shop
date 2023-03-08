@@ -104,7 +104,11 @@ public class NewRankJobHandler extends IJobHandler {
                 Map map=new HashMap();
                 map.put("spuId",item.getSpuId());
                 map.put("rankText",item.getRankText());
-                map.put("saleNum",item.getSaleNum());
+                if(null!=item.getSaleNum()&&item.getSaleNum()>10000){
+                    map.put("saleNum",item.getSaleNum()/10000+"万");
+                }else {
+                    map.put("saleNum",item.getSaleNum());
+                }
                 maps.add(map);
             });
             goods.addAll(goodIds);
@@ -129,7 +133,10 @@ public class NewRankJobHandler extends IJobHandler {
                     r.getRankList().forEach(t->{
                         Map map= (Map) t;
                         if(map.get("spuId").equals(g.getGoodsId())){
-                            map.put("label",esSpuNewResp.getSpuLabels());
+                            map.put("goodsName",esSpuNewResp.getSpuName());
+                            if(CollectionUtils.isNotEmpty(g.getGoodsLabelList())) {
+                                map.put("label", g.getGoodsLabelList().get(0));
+                            }
                             map.put("marketingLabel",marketinglabels);
                             if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
                                 map.put("imageUrl",esSpuNewResp.getPic());

@@ -111,4 +111,10 @@ public interface MetaLabelProvider {
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/getGoodsInfoBySpuId")
     SkuDetailBO getGoodsInfoBySpuId(@RequestBody @NotNull String id);
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/getGoodsDetailOther")
+    GoodDetailOtherRespBO getGoodsDetailAndOther(@RequestBody @NotNull String GoodsId);
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/updateGoodsDetailOther")
+    int updateGoodsDetailAndOther(@RequestBody @NotNull GoodDetailOtherRespBO goodDetailOtherRespBO);
 }

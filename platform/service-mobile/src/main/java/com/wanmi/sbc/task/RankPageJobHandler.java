@@ -195,7 +195,9 @@ public class RankPageJobHandler extends IJobHandler {
                         }
                         map.put("skuId",b.getSkuId());
                         map.put("spuId",b.getSpuId());
-                        map.put("label",esSpuNewResp.getLabels());
+                        if(!CollectionUtils.isEmpty(g.getGoodsLabelList())) {
+                            map.put("label", g.getGoodsLabelList().get(0));
+                        }
                         map.put("spuLabels",esSpuNewResp.getSpuLabels());
                         map.put("subName",esSpuNewResp.getSpuSubName());
                         map.put("rankText",b.getRankText());
