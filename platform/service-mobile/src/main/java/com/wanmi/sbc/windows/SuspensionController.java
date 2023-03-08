@@ -134,7 +134,7 @@ public class SuspensionController {
     public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId",required = false) String skuId)  {
 
         if(DitaUtil.isBlank(skuId)){
-            skuId = getSkuId(spuId);
+            //skuId = getSkuId(spuId);
             if(DitaUtil.isBlank(skuId)){
                 return BaseResponse.error("商品不存在");
             }
