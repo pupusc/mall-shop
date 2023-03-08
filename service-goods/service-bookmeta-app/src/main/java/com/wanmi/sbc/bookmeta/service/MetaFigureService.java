@@ -121,6 +121,7 @@ public class MetaFigureService {
         Integer bookId = metaBookMapper.queryAllByLimit(metaBook, 0, 10).get(0).getId();
         return getMetaBookRcmmdFigureBOS(bookId);
     }
+
     /**
      * 通过bookId获得商详媒体推荐
      */

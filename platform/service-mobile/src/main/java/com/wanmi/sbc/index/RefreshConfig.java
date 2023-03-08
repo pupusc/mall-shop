@@ -45,4 +45,7 @@ public class RefreshConfig {
     @Value("${integralActivity.v2tabConfig}")
     private volatile String v2tabConfig;
 
+    @Value("${integralActivity.v2searchKey}")
+    private volatile String v2searchKey;
+
 }

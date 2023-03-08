@@ -140,12 +140,16 @@ public class EsStandardSearchCriteriaBuilder {
         builder.withIndices(EsConstants.DOC_STANDARD_GOODS);
         builder.withTypes(EsConstants.DOC_STANDARD_GOODS);
         builder.withQuery(getWhereCriteria(request));
-        System.out.println("where===>" + getWhereCriteria(request).toString());
+
         builder.withPageable(request.getPageable());
         List<SortBuilder> sortBuilders = getSorts(request);
         if (CollectionUtils.isNotEmpty(sortBuilders)) {
             sortBuilders.forEach(builder::withSort);
         }
+
+        System.out.println("where3===>" + getWhereCriteria(request).toString());
+        System.out.println("sort3===>" + sortBuilders.toString());
+
         return builder.build();
     }
 }

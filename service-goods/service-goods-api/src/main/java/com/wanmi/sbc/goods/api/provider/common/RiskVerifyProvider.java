@@ -22,7 +22,5 @@ public interface RiskVerifyProvider {
     @PostMapping("/goods/${application.goods.version}/image-verify")
     BaseResponse verifyImage();
 
-    @PostMapping("/goods/${application.goods.version}/refreshBook")
-    BaseResponse refreshBook(@RequestBody @Valid SpuRequest spuRequest);
 
 }

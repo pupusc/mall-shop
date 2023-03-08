@@ -111,4 +111,9 @@ public class CollectSpuFactory extends AbstractCollectFactory {
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         redisService.setString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY, df.format(endTime));
     }
+
+    public static void main(String[] args) {
+
+    }
+
 }

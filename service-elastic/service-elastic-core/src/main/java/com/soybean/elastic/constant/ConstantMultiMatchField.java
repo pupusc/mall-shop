@@ -53,6 +53,9 @@ public class ConstantMultiMatchField {
 //    public static final String FIELD_SPU_BOOK_SERIESNAME = "book.seriesName";
     public static final String FIELD_SPU_BOOK_BINDINGNAME = "book.bindingName";
     public static final String FIELD_SPU_BOOK_TAGS_TAGNAME= "book.tags.tagName";
+
+    public static final String FIELD_SPU_BOOK_TAGS_TAGNAME_KEYWORD = "book.tags.tagName.keyword";
+
     public static final String FIELD_SPU_BOOK_TAGS_STAGNAME = "book.tags.stagName";
 
 

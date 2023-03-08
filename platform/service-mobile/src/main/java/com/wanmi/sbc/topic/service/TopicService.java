@@ -42,6 +42,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
 import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
+import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goodsPool.PoolFactory;
 import com.wanmi.sbc.goodsPool.service.PoolService;
@@ -290,7 +291,7 @@ public class TopicService {
                 }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){
                     //writeRedis(topic_store_id);
                     rankJobHandler.execute(null);
-                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单详情
                     rankPageJobHandler.execute(topicKey);
                 }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
                     mixedComponentContentJobHandler.execute(null);
@@ -361,9 +362,11 @@ public class TopicService {
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
-                SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
-                suspensionByTypeRequest.setType(2L);
-                topicResponse.setSuspensionDTOList(suspensionProvider.getByType(suspensionByTypeRequest).getContext().getSuspensionDTOList());
+                //SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
+                //suspensionByTypeRequest.setType(2L);
+                //topicResponse.setSuspensionDTOList(suspensionProvider.getByType(suspensionByTypeRequest).getContext().getSuspensionDTOList());
+                List<SuspensionDTO> list = this.getSearchKey();
+                topicResponse.setSuspensionDTOList(list);
             }
 
             System.out.println("storeyType:" + storeyType + "~  end:" + DitaUtil.getCurrentAllDate());
@@ -379,6 +382,12 @@ public class TopicService {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
         }
         return customer;
+    }
+
+    private List<SuspensionDTO> getSearchKey() {
+        List<SuspensionDTO> list = JSONArray.parseArray(refreshConfig.getV2searchKey(), SuspensionDTO.class);
+
+        return list;
     }
 
     /**

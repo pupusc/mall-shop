@@ -9,6 +9,8 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
+import com.wanmi.sbc.goods.jpa.JpaManager;
+import com.wanmi.sbc.goods.jpa.PersistenceResult;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +50,13 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-
 public class ClassifyService {
 
     @Autowired
     private LocalContainerEntityManagerFactoryBean entityManagerFactory;
+
+    @Autowired
+    JpaManager jpaManager;
 
     @Resource
     private ClassifyRepository classifyRepository;
@@ -161,6 +165,22 @@ public class ClassifyService {
 
         //query.setParameter(1,0);
         //List<Map> resultList2 = query.getResultList();
+        //end
+
+        //5
+        //begin
+        //String sql = "select * from t_classify where del_flag=? and has_show_index=1 order by index_order_num asc, update_time asc";
+        //Object[] obj = new Object[]{0};
+        //List resultList2 = jpaManager.queryForList(sql,obj);
+        //System.out.println(resultList2);
+        //end
+
+        //6
+        //begin
+        String sql = "select * from t_classify where del_flag=? order by index_order_num asc, update_time asc";
+        Object[] obj = new Object[]{0};
+        PersistenceResult pr = jpaManager.queryForPr(sql,obj,1,5);
+        System.out.println(pr);
         //end
 
         for (ClassifyDTO classifyParam : resultList) {

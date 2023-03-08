@@ -46,6 +46,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
+import com.wanmi.sbc.goods.collect.RedisTagsConstant;
 import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
@@ -81,6 +82,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -164,8 +166,10 @@ public class GoodsController implements GoodsProvider {
 
     @Autowired
     private GoodsInfoService goodsInfoService;
+
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
 

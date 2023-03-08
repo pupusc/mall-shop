@@ -265,12 +265,15 @@ public class EsSpuSearchCriteriaBuilder {
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
         QueryBuilder whereCriteria = getWhereCriteria(request);
         builder.withQuery(whereCriteria);
-        System.out.println("where===>" + whereCriteria.toString());
+
         builder.withPageable(request.getPageable());
         List<SortBuilder> sortBuilders = getSorts(request);
         if (CollectionUtils.isNotEmpty(sortBuilders)) {
             sortBuilders.forEach(builder::withSort);
         }
+        System.out.println("where1===>" + whereCriteria.toString());
+        System.out.println("sort1===>" + sortBuilders.toString());
+
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsSpuSearchCriteriaBuilder.getWhereCriteria DSL: {}", build.getQuery().toString());
         return build;
