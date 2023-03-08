@@ -297,6 +297,7 @@ public class BookRepository {
         return list;
     }
 
+
     //图书简介的第一位作家
     public List getFirstWriter(String bookId, String figureType) {
 
