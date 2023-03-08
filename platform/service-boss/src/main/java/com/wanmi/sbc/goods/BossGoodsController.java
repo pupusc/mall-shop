@@ -17,6 +17,7 @@ import com.wanmi.sbc.elastic.api.request.standard.EsStandardDeleteByIdsRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.elastic.api.response.spu.EsSpuPageResponse;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
+import com.wanmi.sbc.goods.api.provider.common.GoodsRedisProvider;
 import com.wanmi.sbc.goods.api.provider.common.RiskVerifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
@@ -108,6 +109,8 @@ public class BossGoodsController {
     @Autowired
     private RiskVerifyProvider riskVerifyProvider;
 
+    @Autowired
+    private GoodsRedisProvider goodsRedisProvider;
 
     /**
      * 审核/驳回商品
@@ -295,9 +298,16 @@ public class BossGoodsController {
         return  riskVerifyProvider.verifyImageCallBack(imageVerifyRequest);
     }
 
+    //单个
     @RequestMapping(value = "/refreshBook", method = RequestMethod.POST)
     public BaseResponse refreshBook(@RequestBody SpuRequest spuRequest){
-        return riskVerifyProvider.refreshBook(spuRequest);
+        return goodsRedisProvider.refreshBook(spuRequest);
+    }
+
+    //所有
+    @RequestMapping(value = "/refreshRedis", method = RequestMethod.POST)
+    public BaseResponse refreshRedis(){
+        return goodsRedisProvider.refreshRedis();
     }
 
     @Autowired
