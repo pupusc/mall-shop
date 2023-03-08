@@ -789,6 +789,8 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse getGoodsDetialById(String spuId, String skuId) {
+
+
         Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
         //填充会员价
         List detailList=(List)map.get("bookDetail");

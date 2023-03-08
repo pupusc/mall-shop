@@ -34,13 +34,4 @@ public class RiskVerifyController implements RiskVerifyProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @Override
-    public BaseResponse refreshBook(SpuRequest spuRequest) {
-
-        String isbn = spuRequest.getIsbn();
-        System.out.println("isbn:" + isbn);
-        return BaseResponse.SUCCESSFUL();
-    }
-
-
 }

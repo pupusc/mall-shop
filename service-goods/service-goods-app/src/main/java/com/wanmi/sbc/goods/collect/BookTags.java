@@ -59,16 +59,20 @@ public class BookTags {
         //7分41秒
         for(int i=0;i<list.size();i++){
             Map map = (Map)list.get(i);
-            doData(map);
+            doGoods(map);                 //卖点标签&&营销标签
+
         }
 
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            bookDetailTab.doBook(map);    //图书tab
+        }
     }
 
     private void doData(Map map) {
 
         doGoods(map);                 //卖点标签&&营销标签
         bookDetailTab.doBook(map);    //图书tab
-
     }
 
     //单条记录
