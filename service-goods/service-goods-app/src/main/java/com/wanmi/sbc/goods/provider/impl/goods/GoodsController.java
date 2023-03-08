@@ -811,6 +811,10 @@ public class GoodsController implements GoodsProvider {
                 skuIdList.addAll(sku);
             }
         }
+        if(null==skuIdList ||skuIdList.size()==0 ){
+            //媒体推荐人没有商品信息
+            return BaseResponse.success(map);
+        }
 
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);

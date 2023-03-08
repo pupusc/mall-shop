@@ -134,6 +134,12 @@ public class BookDetailTab {
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
                     recomentBookVo.put("goodsInfoNo", goodsInfoMapTemp.get("goods_info_no").toString());
+                    if(null !=  goodsInfoMapTemp.get("goods_info_img")){
+                        recomentBookVo.put("goodsInfoImg", goodsInfoMapTemp.get("goods_info_img").toString());
+                    }
+                    if(null !=  goodsInfoMapTemp.get("market_price")){
+                        recomentBookVo.put("market_price", goodsInfoMapTemp.get("market_price").toString());
+                    }
                     TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(goodsInfoMapTemp.get("goods_id").toString()), TagsDto.class);
                     if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
                         recomentBookVo.put("tagsDto",tagsDto);
