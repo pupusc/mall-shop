@@ -421,7 +421,7 @@ public class TopicConfigController {
     @ApiOperation("混合标签tab添加")
     @PostMapping("/storey/v2/tag/add")
     public BaseResponse addMixedComponentTab(@RequestBody MixedComponentTabAddRequest request){
-        request.getKeyWords().forEach(s -> s.setId(UUIDUtil.getUUID()));
+        if(request.getKeyWords() != null) {request.getKeyWords().forEach(s -> s.setId(UUIDUtil.getUUID()));}
         return topicConfigProvider.addTopicStoreyColumn(request.getColumnAddRequest());
     }
 
