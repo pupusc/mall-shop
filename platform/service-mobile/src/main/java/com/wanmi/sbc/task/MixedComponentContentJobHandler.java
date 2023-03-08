@@ -100,7 +100,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         request.setState(1);
         List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
         //存redis
-
+        redisService.delete(RedisKeyUtil.MIXED_COMPONENT + "details");
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
         // tab
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
@@ -139,6 +139,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
+                redisService.delete(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId);
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
             }
         }
