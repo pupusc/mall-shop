@@ -633,7 +633,7 @@ public class CouponActivityService {
                 item.setTotalCount(config.getTotalCount());
             }
         })).collect(Collectors.toList());
-        couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activity.getActivityId());
+        couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activity.getActivityId(), null);
         //4. 按金额大小 从大到小排序
         getCouponGroupResponse.sort(Comparator.comparing(GetCouponGroupResponse::getDenomination).reversed());
         response.setCouponList(getCouponGroupResponse);
@@ -702,7 +702,7 @@ public class CouponActivityService {
     public SendCouponResponse sendCouponGroup(SendCouponGroupRequest request) {
         SendCouponResponse response = new SendCouponResponse();
         couponCodeService.sendBatchCouponCodeByCustomer(request.getCouponInfos(), request.getCustomerId(), request
-                .getActivityId());
+                .getActivityId(), null);
         response.setCouponList(request.getCouponInfos());
         return response;
     }
@@ -744,7 +744,7 @@ public class CouponActivityService {
         CouponActivity couponActivity = findDistributeCouponActivity();
 
         List<CouponCode> codeList = couponCodeService.sendBatchCouponCodeByCustomer(couponGroupResponseList,
-                requestCustomerId, couponActivity.getActivityId());
+                requestCustomerId, couponActivity.getActivityId(), null);
 
         return sum == codeList.size() ? Boolean.TRUE : Boolean.FALSE;
     }

@@ -2,22 +2,17 @@ package com.wanmi.sbc.marketing.coupon.mq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeQueryRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
-import com.wanmi.sbc.marketing.coupon.model.root.CouponCode;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
 import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.service.CouponActivityConfigService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
-import io.seata.core.context.RootContext;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -69,7 +64,7 @@ public class PaidCouponsMqService {
             })).collect(Collectors.toList());
 //            log.info("需要发放的优惠券：{}",getCouponGroupResponse);
             // 批量发放优惠券
-            couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId);
+            couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId, null);
 //        }
         log.info("优惠券发放结束:{} ",customerId);
     }

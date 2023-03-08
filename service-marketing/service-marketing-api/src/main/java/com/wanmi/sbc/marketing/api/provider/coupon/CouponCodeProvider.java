@@ -88,4 +88,14 @@ public interface CouponCodeProvider {
     BaseResponse sendCouponCodeByCouponIds(@RequestBody CouponCodeByCouponIdsRequest couponCodeByCouponIdsRequest);
 
 
+    /**
+     * 回收已发放的优惠券
+     * 已使用的不回收
+     * @param request
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/recycle-coupon")
+    BaseResponse recycleCoupon(@RequestBody @Valid CouponRecycleRequest request);
+
+
 }
