@@ -35,9 +35,6 @@
             <if test="orderNum != null">
                 `order_num`,
             </if>
-            <if test="createTime !=null">
-                `create_time`
-            </if>
         </set>
         where id = #{id}
     </update>

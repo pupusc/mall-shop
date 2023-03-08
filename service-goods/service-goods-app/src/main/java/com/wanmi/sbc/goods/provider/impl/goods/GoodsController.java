@@ -789,6 +789,8 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse getGoodsDetialById(String spuId, String skuId) {
+
+
         Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
         //填充会员价
         List detailList=(List)map.get("bookDetail");
@@ -810,6 +812,10 @@ public class GoodsController implements GoodsProvider {
                 List<String> sku = recomentBookBoList.stream().map(r -> r.getGoodsInfoId()).collect(Collectors.toList());
                 skuIdList.addAll(sku);
             }
+        }
+        if(null==skuIdList ||skuIdList.size()==0 ){
+            //媒体推荐人没有商品信息
+            return BaseResponse.success(map);
         }
 
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();

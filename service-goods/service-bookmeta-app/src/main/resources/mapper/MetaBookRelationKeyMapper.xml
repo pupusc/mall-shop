@@ -12,6 +12,23 @@
         <result property="relationId" column="relation_id" jdbcType="INTEGER"/>
         <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
     </resultMap>
+    <update id="updateSelective" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+        update meta_book_relation_key
+        <set>
+            <if test="relationId !=null">
+                `relation_id`,
+            </if>
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="orderNum != null">
+                `order_num`,
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+
     <delete id="deleteSelective" parameterType="java.lang.Integer">
         update meta_book_relation_key  set del_flag  =1 where id = #{id}
     </delete>
