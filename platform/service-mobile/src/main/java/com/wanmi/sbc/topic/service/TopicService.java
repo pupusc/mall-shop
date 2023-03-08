@@ -1340,6 +1340,8 @@ public class TopicService {
         Integer topicStoreyId = 194;
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
+        request.setPublishState(0);
+        request.setState(1);
         List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
         //存redis
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
@@ -1369,6 +1371,8 @@ public class TopicService {
                     Integer id = pool.getId();
                     ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
                     columnContentQueryRequest.setTopicStoreySearchId(id);
+                    request.setPublishState(0);
+                    request.setState(1);
                     List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
                     PoolService poolService = poolFactory.getPoolService(pool.getBookType());
                     poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);

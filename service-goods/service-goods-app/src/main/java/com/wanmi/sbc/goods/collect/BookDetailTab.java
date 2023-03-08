@@ -220,8 +220,14 @@ public class BookDetailTab {
                 if(goodMap != null && goodMap.size() >0){
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    String spu_id = String.valueOf(goodMap.get("spu_id"));
                     writerBookMap.put("spu_no",spu_no);
                     writerBookMap.put("goods_name",goods_name);
+                    writerBookMap.put("spu_id",spu_id);
+                    if(null!= spu_id) {
+                        TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
+                        writerBookMap.put("tags",tagsDto);
+                    }
                     ret.add(writerBookMap);
                 }
             }
@@ -251,8 +257,14 @@ public class BookDetailTab {
                 if(goodMap != null && goodMap.size() >0){
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    String spu_id = String.valueOf(goodMap.get("spu_id"));
                     libraryMap.put("spu_no",spu_no);
                     libraryMap.put("goods_name",goods_name);
+                    libraryMap.put("spu_id",spu_id);
+                    if(null!= spu_id) {
+                        TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
+                        libraryMap.put("tags",tagsDto);
+                    }
                     ret.add(libraryMap);
                 }
             }
@@ -282,8 +294,14 @@ public class BookDetailTab {
                 if(goodMap != null && goodMap.size() >0){
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    String spu_id = String.valueOf(goodMap.get("spu_id"));
                     producerMap.put("spu_no",spu_no);
                     producerMap.put("goods_name",goods_name);
+                    producerMap.put("spu_id",spu_id);
+                    if(null!= spu_id) {
+                        TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
+                        producerMap.put("tags",tagsDto);
+                    }
                     ret.add(producerMap);
                 }
             }
@@ -352,6 +370,10 @@ public class BookDetailTab {
                 map.put("spu_id",spu_id);
                 map.put("spu_no",spu_no);
                 map.put("goods_name",goods_name);
+                if(null!= spu_id) {
+                    TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
+                    map.put("tags",tagsDto);
+                }
                 ret.add(map);
             }
         }
