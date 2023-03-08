@@ -32,6 +32,7 @@ import com.wanmi.sbc.topic.response.GoodsOrBookResponse;
 import com.wanmi.sbc.topic.response.NewBookPointResponse;
 import com.wanmi.sbc.topic.response.ThreeGoodBookResponse;
 import com.wanmi.sbc.topic.service.TopicService;
+import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.windows.request.MarketingRequest;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import io.swagger.annotations.ApiImplicitParam;
@@ -130,7 +131,15 @@ public class SuspensionController {
     }
 
     @PostMapping("/test10")
-    public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId") String skuId)  {
+    public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId") String spuId,@RequestParam(value = "skuId",required = false) String skuId)  {
+
+        if(DitaUtil.isBlank(skuId)){
+            skuId = getSkuId(spuId);
+            if(DitaUtil.isBlank(skuId)){
+                return BaseResponse.error("商品不存在");
+            }
+        }
+
         return goodsProvider.getGoodsDetialById(spuId,skuId);
     }
     @PostMapping("/test7")
