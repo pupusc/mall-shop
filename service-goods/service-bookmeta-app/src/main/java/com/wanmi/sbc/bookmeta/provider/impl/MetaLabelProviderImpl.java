@@ -288,5 +288,18 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         return bo;
     }
 
+    @Override
+    public GoodDetailOtherRespBO getGoodsDetailAndOther(String GoodsId) {
+        GoodsOtherDetail goodsOtherDetail = metaLabelMapper.getGoodsOtherDetail(GoodsId);
+        GoodDetailOtherRespBO convert = KsBeanUtil.convert(goodsOtherDetail, GoodDetailOtherRespBO.class);
+        return convert;
+    }
+
+    @Override
+    public int updateGoodsDetailAndOther(GoodDetailOtherRespBO goodDetailOtherRespBO) {
+        GoodsOtherDetail convert = KsBeanUtil.convert(goodDetailOtherRespBO, GoodsOtherDetail.class);
+        return metaLabelMapper.updateGoodsOtherDetail(convert);
+    }
+
 
 }

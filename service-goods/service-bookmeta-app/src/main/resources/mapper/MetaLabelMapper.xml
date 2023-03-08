@@ -52,6 +52,14 @@
         <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
     </resultMap>
 
+    <resultMap id="GoodsOtherDetail" type="com.wanmi.sbc.bookmeta.entity.GoodsOtherDetail">
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="goodsShowType" column="goods_show_type" jdbcType="VARCHAR"/>
+        <result property="goodsDetail" column="goods_detail" jdbcType="VARCHAR"/>
+        <result property="orderShowType" column="order_show_type" jdbcType="VARCHAR"/>
+        <result property="orderDetail" column="order_detail" jdbcType="VARCHAR"/>
+    </resultMap>
+
 
 
     <!--查询单个-->
@@ -512,5 +520,28 @@
     <delete id="deleteGoodsLabel" parameterType="java.lang.Integer">
         delete from meta_label_spu where id = #{id}
     </delete>
+
+    <select id="getGoodsOtherDetail" resultMap="GoodsOtherDetail">
+        select goods_id,goods_show_type,goods_detail,order_show_type,order_detail from goods where goods_id = #{goodsId}
+    </select>
+
+    <update id="updateGoodsOtherDetail" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsOtherDetail">
+        update goods
+        <set>
+            <if test="goodsShowType!= null">
+                goods_show_type=#{goodsShowType},
+            </if>
+            <if test="goodsDetail!= null">
+                goods_detail=#{goodsDetail},
+            </if>
+            <if test="orderShowType!= null">
+                order_show_type=#{orderShowType},
+            </if>
+            <if test="orderDetail!= null">
+                order_detail=#{orderDetail}
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+    </update>
 </mapper>
 
