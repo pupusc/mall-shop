@@ -1,12 +1,9 @@
 package com.wanmi.sbc.goods.info.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
-import com.google.gson.JsonArray;
 import com.soybean.common.util.WebConstantUtil;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -49,6 +46,7 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.enums.UnAddedFlagReason;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
@@ -140,6 +138,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
@@ -3848,5 +3847,119 @@ public class GoodsService {
 
             return map;
         }
+    }    /**
+     * 收集商详table1相关信息中的skuId信息
+     * @param  map, skuIdList 商详中的所有sku
+     * @return skuIdTableOneList table1中sku
+     */
+    public List<String> getSkuIdByGoodsDetailTableOne(Map map,List<String> skuIdList) {
+        List<String> skuIdTableOneList=new ArrayList<>();
+        List detailList=(List)map.get("bookDetail");
+        Map medioMap =(Map) detailList.get(0);
+        List<JSONObject> medioRecomd =(List<JSONObject>) medioMap.get("medioRecomd");
+        if(null==medioRecomd ||medioRecomd.size()==0 ){
+            //媒体推荐没有
+            return skuIdTableOneList;
+        }
+        for(int i=0;i<medioRecomd.size();i++){
+            List recomentBookBoList= (List)medioRecomd.get(i).get("recomentBookBoList");
+            if(null !=recomentBookBoList&& recomentBookBoList.size()!=0){
+                //循环其推荐列表
+                recomentBookBoList.stream().forEach(r -> {
+                    Map mapTemp=(Map) r;
+                    skuIdList.add(mapTemp.get("goodsInfoId").toString());
+                    skuIdTableOneList.add(mapTemp.get("goodsInfoId").toString());
+                });
+            }
+        }
+        return skuIdTableOneList;
+    }
+    /**
+     * 收集商详其他书籍相关信息中的skuId信息
+     * @param  map,skuIdList
+     * @return
+     */
+    public List<String> getSkuIdByGoodsDetailOtherBook(Map map, List<String> skuIdList) {
+        List<String> skuIdOtherBookList=new ArrayList<>();
+        List otherBookList=(List)map.get("otherBook");
+        if(null==otherBookList ||otherBookList.size()==0 ){
+            //没有其他书籍
+            return skuIdOtherBookList;
+        }
+        for(int i=0;i<otherBookList.size();i++){
+            Map otherBookMap= (Map) otherBookList.get(i);
+            Object spu_id = otherBookMap.get("sku_id");
+            if(null!=spu_id) {
+                skuIdList.add(spu_id.toString());
+                skuIdOtherBookList.add(spu_id.toString());
+            }
+        }
+        return skuIdOtherBookList;
+    }
+
+    /**
+     * 收集商详table2相关信息中的skuId信息
+     * @param  map,skuIdList
+     * @return
+     */
+    public List<String> getSkuIdByGoodsDetailTableTwo(Map map, List<String> skuIdList) {
+        return null;
+    }
+
+    /**
+     * 根据skuId回填商详table1相关信息中的价格信息
+     * @param  map 待处理商详, goodsPriceMap 商详中的所有sku相关信息
+     * @return skuIdTableOneList 回填后的table1
+     */
+    public List fillGoodsDetailTableOne(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
+        List<String> skuIdTableOneList=new ArrayList<>();
+        List detailList=(List)map.get("bookDetail");
+        Map medioMap =(Map) detailList.get(0);
+        List<JSONObject> medioRecomd =(List<JSONObject>) medioMap.get("medioRecomd");
+        if(null==medioRecomd ||medioRecomd.size()==0 ){
+            //媒体推荐没有
+            return detailList;
+        }
+
+        //循环每个推荐人，回填会员价
+        for(int j=0;j<medioRecomd.size();j++){
+            List recomentBookBoList= (List)medioRecomd.get(j).get("recomentBookBoList");
+            if(null !=recomentBookBoList&& recomentBookBoList.size()!=0){
+                //循环其推荐列表
+                for(Object o  :recomentBookBoList){
+                    Map recomentBookVo=(Map) o;
+                    Object goods_info_id = recomentBookVo.get("goods_info_id");
+                    if(null != goods_info_id && null != goodsPriceMap.get(goods_info_id.toString())){
+                        // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
+                        BeanUtils.copyProperties(goodsPriceMap.get(goods_info_id.toString()),recomentBookVo);
+                    }
+                }
+            }
+        }
+        medioMap.put("medioRecomd",medioRecomd);
+        detailList.set(0,medioMap);
+        return detailList;
+    }
+
+    public List fillGoodsDetailOtherBook(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
+        List<String> skuIdOtherBookList=new ArrayList<>();
+        List otherBookList=(List)map.get("otherBook");
+        if(null==otherBookList ||otherBookList.size()==0 ){
+            //没有其他书籍
+            return otherBookList;
+        }
+        for(int i=0;i<otherBookList.size();i++){
+            Map otherBookMap= (Map) otherBookList.get(i);
+            Object sku_id = otherBookMap.get("sku_id");
+            if(null != sku_id && null != goodsPriceMap.get(sku_id.toString())){
+                // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
+                otherBookMap.put("sale_price",goodsPriceMap.get(sku_id.toString()).getSalePrice());
+            }
+        }
+        return otherBookList;
+
+    }
+
+    public void fillGoodsDetailTableTwo(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
     }
 }

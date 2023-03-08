@@ -828,6 +828,7 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+    @Deprecated
     @Override
     public BaseResponse getGoodsDetialById(String spuId, String skuId) {
 
@@ -892,6 +893,67 @@ public class GoodsController implements GoodsProvider {
         medioMap.put("medioRecomd",metaBookRcmmdFigureBOS);
         detailList.set(0,medioMap);
         map.put("bookDetail",detailList);
+        //榜单
+        Map rankMap = goodsService.getGoodsDetailRankById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID);
+        map.put("rank",rankMap);
+        return BaseResponse.success(map);
+    }
+
+    @Override
+    public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
+
+
+        Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+
+        List<String> skuIdList=new ArrayList<>();
+
+        List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
+        //循环每个推荐人取出skuId,并放入skuIdList
+        List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
+        List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
+        List<String> skuIdByGoodsDetailTableTwo = goodsService.getSkuIdByGoodsDetailTableTwo(map, skuIdList);
+
+        if(null==skuIdList ||skuIdList.size()==0 ){
+            //没有商品信息需要回填
+            return BaseResponse.success(map);
+        }
+
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //用户信息
+        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //价格信息
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        if(null==goodsPriceMap ||goodsPriceMap.size()==0 ){
+            //没有商品信息
+            return BaseResponse.success(map);
+        }
+
+        if(null!=skuIdByGoodsDetailTableOne && skuIdByGoodsDetailTableOne.size()!=0){
+            //推荐人有商品需要回填信息
+            List detailList=goodsService.fillGoodsDetailTableOne(map,goodsPriceMap);
+            map.put("bookDetail",detailList);
+        }
+        if(null!=skuIdByGoodsDetailOtherBook && skuIdByGoodsDetailOtherBook.size()!=0){
+            //其他书籍有商品需要回填信息
+            List otherBookList = goodsService.fillGoodsDetailOtherBook(map, goodsPriceMap);
+            map.put("otherBook",otherBookList);
+
+        }
+        if(null!=skuIdByGoodsDetailTableTwo && skuIdByGoodsDetailTableTwo.size()!=0){
+            //table2有商品需要回填信息
+            goodsService.fillGoodsDetailTableTwo(map,goodsPriceMap);
+        }
+
+
         //榜单
         Map rankMap = goodsService.getGoodsDetailRankById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID);
         map.put("rank",rankMap);

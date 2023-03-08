@@ -350,4 +350,12 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/get_goods-detial-by-id")
     BaseResponse getGoodsDetialById(@RequestParam(value = "spuId" ,required = false) String spuId,@RequestParam(value = "skuId",required = false) String skuId);
+
+    /**
+     * 通过spu或者sku取redis获取商详媒体推荐信息
+     * @param spuId、skuId
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/get_goods-detial-by-id")
+    BaseResponse getGoodsDetialById1(@RequestParam(value = "spuId" ,required = false) String spuId,@RequestParam(value = "skuId",required = false) String skuId);
 }
