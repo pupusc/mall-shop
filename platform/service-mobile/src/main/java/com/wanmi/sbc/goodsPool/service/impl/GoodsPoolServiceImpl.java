@@ -73,7 +73,7 @@ public class GoodsPoolServiceImpl implements PoolService {
             if (context.size() != 0) {
                 Map map = (Map) context.get(0);
                 score = map.get("score") != null ? map.get("score").toString() : null;
-                String name = map.get("descr") != null ? map.get("descr").toString() : null ;
+                String name = map.get("name") != null ? map.get("name").toString() : null ;
                 goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
                 goodsDto.setRecommendName(name);
                 goodsDto.setReferrer(name == null ? "文喵" : name);
@@ -82,16 +82,10 @@ public class GoodsPoolServiceImpl implements PoolService {
         }
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
         Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
-        if (saleNum >= 1000000) {
-            score = saleNum.toString().substring(0, 3) + "万+";
-        } else if (saleNum >= 100000) {
-            score = saleNum.toString().substring(0, 2) + "万+";
-        } else if (saleNum >= 10000) {
-            score = saleNum.toString().substring(0, 1) + "万+";
-        } else if (saleNum >= 1000) {
-            score = saleNum.toString().substring(0, 1) + "千+";
-        } else if (saleNum >= 100) {
-            score = saleNum.toString().substring(0, 1) + "百+";
+        String[] digit = {"十+", "百+", "千+", "万+"};
+        if (saleNum >= 300) {
+            String num = String.valueOf(saleNum / 100).split(".")[0];
+            score = num.length() <= 3 ? num.substring(0,1) + digit[num.length()] : num.substring(0, num.length()-3) + digit[3];
         } else {
             //当图书库评分为空取商城商品评分
             score = score != null ? score : skuDetailBO.getScore();
