@@ -60,7 +60,6 @@ public class BookTags {
         for(int i=0;i<list.size();i++){
             Map map = (Map)list.get(i);
             doGoods(map);                 //卖点标签&&营销标签
-
         }
 
         for(int i=0;i<list.size();i++){
