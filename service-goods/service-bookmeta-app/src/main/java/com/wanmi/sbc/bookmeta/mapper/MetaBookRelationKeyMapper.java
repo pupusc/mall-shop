@@ -16,7 +16,6 @@ public interface MetaBookRelationKeyMapper {
      */
     List<MetaBookRelationKey> getKeyById(@Param("id") Integer id);
 
-
     int insertSelective(MetaBookRelationKey key);
 
     int deleteSelective(int id);

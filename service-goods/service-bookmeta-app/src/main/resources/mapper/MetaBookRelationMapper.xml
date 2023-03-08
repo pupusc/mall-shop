@@ -14,12 +14,42 @@
         <result property="updateTime" column="update_time" jdbcType="DATE"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
     </resultMap>
+    <update id="updateMetaBookRelation" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+        update meta_book_relation
+        <set>
+            <if test="bookId !=null">
+                `book_id`,
+            </if>
+            <if test="name !=null">
+                `name`,
+            </if>
+            <if test="subName !=null">
+                `sub_name`,
+            </if>
+            <if test="startTime !=null">
+                `start_time`,
+            </if>
+            <if test="endTime !=null">
+                `end_time`,
+            </if>
+            <if test="orderNum != null">
+                `order_num`,
+            </if>
+            <if test="createTime !=null">
+                `create_time`
+            </if>
+        </set>
+        where id = #{id}
+    </update>
     <delete id="deleteSelective">
         update meta_book_relation set del_flay = 1 where id = #{id}
     </delete>
 
     <select id="getTitleByBookId" resultType="map">
         select id,book_id,name,sub_name from meta_book_relation where book_id = #{bookId} and del_flag = 0 order by order_num asc limit 0,1;
+    </select>
+    <select id="getMetaBookRelation" resultType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+        select * from meta_book_relation where book_id = #{bookId} and del_flag = 0;
     </select>
 
     <insert id="insertSelective" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
