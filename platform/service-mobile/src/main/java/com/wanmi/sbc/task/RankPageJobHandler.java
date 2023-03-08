@@ -2,6 +2,10 @@ package com.wanmi.sbc.task;
 
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
+import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -18,6 +22,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdsByRankListIdsReques
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
+import com.wanmi.sbc.goods.bean.dto.TagsDto;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -33,15 +38,16 @@ import com.wanmi.sbc.topic.response.RankResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.response.TopicStoreyResponse;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -77,6 +83,9 @@ public class RankPageJobHandler extends IJobHandler {
 
     @Autowired
     private RedisListService redisListService;
+
+    @Autowired
+    private EsSpuNewProvider esSpuNewProvider;
 
 
     @Override
@@ -135,14 +144,31 @@ public class RankPageJobHandler extends IJobHandler {
                 Map tMap= (Map) t;
                 List<Map> redisGoods=new ArrayList<>();
                 baseResponse.stream().filter(b->b.getBookListId().equals(tMap.get("id"))).forEach(b->{
-                    goodsCustomResponses.stream().filter(g->b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
+                    goodsCustomResponses.stream().filter(g->g.getStock()>5&&b.getSkuId().equals(g.getGoodsInfoId())).forEach(g->{
+                        EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
+                        List<String> spuid=new ArrayList<>();
+                        spuid.add(g.getGoodsId());
+                        TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
+                        List<TagsDto.Tags> tags = tagsDto.getTags();
+                        MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
+                        List<MarketingLabelNewDTO.Labels> marketinglabels=marketingLabel.getLabels();
+                        List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listNormalEsSpuNew(req).getContext().getContent();
+                        EsSpuNewResp esSpuNewResp = esSpuNewResps.get(0);
                         Map map=new HashMap();
                         map.put("id",g.getGoodsId());
                         map.put("spuNo",g.getGoodsNo());
                         map.put("skuNo",g.getGoodsInfoNo());
-                        map.put("imageUrl",g.getGoodsCoverImg());
+                        if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
+                            map.put("imageUrl",esSpuNewResp.getPic());
+                        }else if(DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())){
+                            map.put("imageUrl",esSpuNewResp.getUnBackgroundPic());
+                        }else if(DitaUtil.isNotBlank(g.getImageUrl())){
+                            map.put("imageUrl",g.getImageUrl());
+                        }else {
+                            map.put("imageUrl",g.getGoodsUnBackImg());
+                        }
                         map.put("sorting",b.getOrderNum());
-                        map.put("goodsName",g.getGoodsName());
+                        map.put("goodsName",esSpuNewResp.getSpuName());
                         map.put("linePrice",g.getLinePrice());
                         map.put("showPrice",g.getShowPrice());
                         if(null!=b.getSaleNum()) {
@@ -155,10 +181,21 @@ public class RankPageJobHandler extends IJobHandler {
                         }else {
                             map.put("saleNum", "");
                         }
+                        if(!CollectionUtils.isEmpty(tags)){
+                            map.put("spuTags",tags);
+                        }else {
+                            map.put("spuTags",null);
+                        }
+                        if(!CollectionUtils.isEmpty(marketinglabels)){
+                            map.put("marketinglabels",marketinglabels);
+                        }else {
+                            map.put("marketinglabels",null);
+                        }
                         map.put("skuId",b.getSkuId());
                         map.put("spuId",b.getSpuId());
-                        map.put("label",g.getLabels());
-                        map.put("subName",g.getGoodsSubName());
+                        map.put("label",esSpuNewResp.getLabels());
+                        map.put("spuLabels",esSpuNewResp.getSpuLabels());
+                        map.put("subName",esSpuNewResp.getSpuSubName());
                         map.put("rankText",b.getRankText());
                         redisGoods.add(map);
                     });
