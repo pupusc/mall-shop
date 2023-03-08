@@ -34,4 +34,7 @@ public interface MetaBookRelationProvider {
 
     @PostMapping("/goods/${application.goods.version}/MetaRelationProvider/getAllBookRelationBook")
     List<MetaBookRelationAddBO> selectAll(@RequestBody @NotNull MetaBookRelationDelBO addBO);
+
+    @PostMapping("/goods/${application.goods.version}/MetaRelationProvider/updateRelationBook")
+    int updateAll(@RequestBody @NotNull MetaBookRelationAddBO addBO);
 }
