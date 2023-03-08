@@ -46,6 +46,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static java.time.LocalDateTime.now;
+
 @Service
 @Slf4j
 public class TopicConfigService {
@@ -79,8 +81,8 @@ public class TopicConfigService {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
         topic.setTopicKey(UUIDUtil.getUUID());
         topic.setTrackKey(topic.getTopicKey());
-        topic.setCreateTime(LocalDateTime.now());
-        topic.setUpdateTime(LocalDateTime.now());
+        topic.setCreateTime(now());
+        topic.setUpdateTime(now());
         topic.setDeleted(DeleteFlag.NO.toValue());
         topic.setStatus(0);
         topicSettingRepository.save(topic);
@@ -95,7 +97,7 @@ public class TopicConfigService {
         topic.setTopicName(request.getTopicName());
         topic.setTopicColor(request.getTopicColor());
         topic.setNavigationColor(request.getNavigationColor());
-        topic.setUpdateTime(LocalDateTime.now());
+        topic.setUpdateTime(now());
         topicSettingRepository.save(topic);
     }
 
@@ -119,16 +121,16 @@ public class TopicConfigService {
 
     public void addHeadImage(HeadImageConfigAddRequest request){
         TopicHeadImage headImage = KsBeanUtil.convert(request, TopicHeadImage.class);
-        headImage.setCreateTime(LocalDateTime.now());
-        headImage.setUpdateTime(LocalDateTime.now());
+        headImage.setCreateTime(now());
+        headImage.setUpdateTime(now());
         headImage.setDeleted(DeleteFlag.NO.toValue());
         topicHeadImageRepository.save(headImage);
     }
 
     public void modifyHeadImage(TopicHeadImageModifyRequest request){
         TopicHeadImage headImage = KsBeanUtil.convert(request, TopicHeadImage.class);
-        headImage.setCreateTime(LocalDateTime.now());
-        headImage.setUpdateTime(LocalDateTime.now());
+        headImage.setCreateTime(now());
+        headImage.setUpdateTime(now());
         headImage.setDeleted(DeleteFlag.NO.toValue());
         topicHeadImageRepository.save(headImage);
     }
@@ -147,8 +149,8 @@ public class TopicConfigService {
 
     public void addStorey(TopicStoreyAddRequest request){
         TopicStorey storey = KsBeanUtil.convert(request, TopicStorey.class);
-        storey.setCreateTime(LocalDateTime.now());
-        storey.setUpdateTime(LocalDateTime.now());
+        storey.setCreateTime(now());
+        storey.setUpdateTime(now());
         storey.setDeleted(DeleteFlag.NO.toValue());
         storey.setStatus(1);
         storeyRepository.save(storey);
@@ -161,7 +163,7 @@ public class TopicConfigService {
         }
         TopicStorey storey = KsBeanUtil.convert(request, TopicStorey.class);
         storey.setCreateTime(oldStorey.getCreateTime());
-        storey.setUpdateTime(LocalDateTime.now());
+        storey.setUpdateTime(now());
         storey.setDeleted(DeleteFlag.NO.toValue());
         storey.setStatus(1);
         storeyRepository.save(storey);
@@ -306,7 +308,7 @@ public class TopicConfigService {
             if (Arrays.asList(TopicStoreyType.HETERSCROLLIMAGE.getId(),TopicStoreyType.COUPON.getId()).contains(p.getStoreyType())) {
                 //轮播类型或优惠券根据时间过滤
                 itemList.addAll(items.stream().filter(i->i.getStartTime() == null ||  i.getEndTime() == null).collect(Collectors.toList()));
-                itemList.addAll(items.stream().filter(i->i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(now()) <= 0 && i.getEndTime().compareTo(now()) >=0).collect(Collectors.toList()));
             }else{
                 itemList = items;
             }
@@ -374,8 +376,8 @@ public class TopicConfigService {
         List<TopicStoreyContent> contents = KsBeanUtil.convertList(request.getContents(),TopicStoreyContent.class);
 
         contents.forEach(c->{
-            c.setCreateTime(LocalDateTime.now());
-            c.setUpdateTime(LocalDateTime.now());
+            c.setCreateTime(now());
+            c.setUpdateTime(now());
             c.setDeleted(DeleteFlag.NO.toValue());
             c.setStoreyId(request.getStoreyId());
             c.setTopicId(request.getTopicId());
@@ -519,11 +521,12 @@ public class TopicConfigService {
     public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setCreateTime(now());
+        topicStoreySearch.setBeginTime(request.getBeginTime());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setUpdateTime(LocalDateTime.now());
+        topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
         columnRepository.save(topicStoreySearch);
     }
@@ -540,7 +543,7 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setUpdateTime(LocalDateTime.now());
+        topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
         topicStoreySearch.setLevel(request.getLevel());
         columnRepository.save(topicStoreySearch);
@@ -583,7 +586,7 @@ public class TopicConfigService {
     public void updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setId(request.getId());
-        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setBeginTime(request.getBeginTime());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
@@ -651,8 +654,8 @@ public class TopicConfigService {
         topicStoreySearchContent.setSkuNo(request.getSkuNo());
         topicStoreySearchContent.setSorting(request.getSorting());
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
-        topicStoreySearchContent.setCreateTime(LocalDateTime.now());
-        topicStoreySearchContent.setUpdateTime(LocalDateTime.now());
+        topicStoreySearchContent.setCreateTime(now());
+        topicStoreySearchContent.setUpdateTime(now());
         topicStoreySearchContent.setDeleted(0);
         topicStoreySearchContent.setType(1);
         topicStoreySearchContent.setSpuNo(request.getSpuNo());
@@ -703,7 +706,7 @@ public class TopicConfigService {
     }
 
     private List<TopicStoreyColumnDTO> changeTopicStoreyColumn(List<TopicStoreyColumn> content) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
         return content.stream().map(topicStoreySearch -> {
             TopicStoreyColumnDTO topicStoreyColumnDTO = new TopicStoreyColumnDTO();
             BeanUtils.copyProperties(topicStoreySearch, topicStoreyColumnDTO);
@@ -747,7 +750,7 @@ public class TopicConfigService {
     }
 
     private List<TopicStoreyColumnGoodsDTO> changeTopicStoreyColumnGoods(List<TopicStoreyColumnContent> content) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
         return content.stream().map(topicStoreySearchContent -> {
             TopicStoreyColumnGoodsDTO topicStoreyColumnGoodsDTO = new TopicStoreyColumnGoodsDTO();
             BeanUtils.copyProperties(topicStoreySearchContent, topicStoreyColumnGoodsDTO);
@@ -1011,7 +1014,7 @@ public class TopicConfigService {
     public TopicStoreyColumn addTopicStoreyColumn(ColumnAddRequest request) {
         TopicStoreyColumn topicStoreyColumn = new TopicStoreyColumn();
         BeanUtils.copyProperties(request, topicStoreyColumn);
-        topicStoreyColumn.setUpdateTime(LocalDateTime.now());
+        topicStoreyColumn.setUpdateTime(now());
         topicStoreyColumn.setColor(JSON.toJSONString(request.getColor()));
         topicStoreyColumn.setImage(JSON.toJSONString(request.getImage()));
         topicStoreyColumn.setDeleted(0);
@@ -1113,7 +1116,7 @@ public class TopicConfigService {
     public void addTopicStoreyColumnContent(ColumnContentAddRequest request) {
         TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
         BeanUtils.copyProperties(request, topicStoreyColumnContent);
-        topicStoreyColumnContent.setUpdateTime(LocalDateTime.now());
+        topicStoreyColumnContent.setUpdateTime(now());
         topicStoreyColumnContent.setDeleted(0);
         columnGoodsRepository.save(topicStoreyColumnContent);
     }
@@ -1173,10 +1176,10 @@ public class TopicConfigService {
         List<TopicStoreyColumnContent> topicStoreyColumnContents = columnContent.stream().map(c -> {
             TopicStoreyColumnContent topicStoreyColumnContent = new TopicStoreyColumnContent();
             BeanUtils.copyProperties(c, topicStoreyColumnContent);
-            topicStoreyColumnContent.setUpdateTime(LocalDateTime.now());
+            topicStoreyColumnContent.setUpdateTime(now());
             topicStoreyColumnContent.setDeleted(0);
             topicStoreyColumnContent.setTopicStoreyId(194);
-            topicStoreyColumnContent.setCreateTime(LocalDateTime.now());
+            topicStoreyColumnContent.setCreateTime(now());
             topicStoreyColumnContent.setTopicStoreySearchId(id);
             return topicStoreyColumnContent;
         }).collect(Collectors.toList());
