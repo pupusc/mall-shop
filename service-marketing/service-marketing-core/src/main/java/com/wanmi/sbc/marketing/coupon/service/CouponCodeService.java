@@ -3,7 +3,6 @@ package com.wanmi.sbc.marketing.coupon.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -28,20 +27,17 @@ import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByIdsRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
-import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
-import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateVO;
+import com.wanmi.sbc.marketing.api.request.Source;
 import com.wanmi.sbc.marketing.api.request.coupon.*;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCheckoutResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodeValidOrderCommitResponse;
@@ -51,7 +47,6 @@ import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.CouponCodeBatchModifyDTO;
 import com.wanmi.sbc.marketing.bean.dto.CouponInfoDTO;
-import com.wanmi.sbc.marketing.bean.dto.GoodsCouponDTO;
 import com.wanmi.sbc.marketing.bean.enums.*;
 import com.wanmi.sbc.marketing.bean.vo.CheckGoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
@@ -76,8 +71,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shardingsphere.transaction.annotation.ShardingTransactionType;
-import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,8 +84,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -1150,12 +1141,13 @@ public class CouponCodeService {
      * @param couponInfoList
      * @param customerId
      * @param couponActivityId
+     * @param source
      * @return
      */
     @Transactional
 //    @GlobalTransactional(propagation = io.seata.tm.api.transaction.Propagation.NEVER)
     public List<CouponCode> sendBatchCouponCodeByCustomer(List<GetCouponGroupResponse> couponInfoList,
-                                                          String customerId, String couponActivityId) {
+                                                          String customerId, String couponActivityId, Source source) {
         List<CouponCode> couponCodeList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         couponInfoList.forEach(item -> {
@@ -1177,6 +1169,11 @@ public class CouponCodeService {
                 couponCode.setDelFlag(DeleteFlag.NO);
                 couponCode.setCreateTime(LocalDateTime.now());
                 couponCode.setCreatePerson(customerId);
+
+                if (source != null) {
+                    couponCode.setSourceId(source.getSourceId());
+                    couponCode.setSourceType(SourceType.getByCode(source.getSourceType()));
+                }
                 couponCodeList.add(couponCode);
                 log.info("发券插入的数据是:{}", JSON.toJSONString(couponCode));
             }
@@ -1268,7 +1265,7 @@ public class CouponCodeService {
                 for(String customerId : customerIdList) {
 
                     // 批量发放优惠券
-                    sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activity.getActivityId());
+                    sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activity.getActivityId(), null);
                 }
             }
         }
@@ -1476,4 +1473,8 @@ public class CouponCodeService {
         query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
         return CouponCodeWillExpireRequest.converter(query.getResultList());
    }
+
+    public int recycleCoupon(String customerId, String sourceId, Integer sourceType) {
+        return couponCodeRepository.recycleCoupon(customerId, sourceId, sourceType);
+    }
 }

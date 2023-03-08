@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.*;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
+import com.wanmi.sbc.marketing.api.response.coupon.SendCouponResponse;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
@@ -158,7 +159,7 @@ public class CouponCodeController implements CouponCodeProvider {
                     item.setTotalCount(config.getTotalCount());
                 }
             })).collect(Collectors.toList());
-            couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, param.getCustomerId(), param.getActivityId());
+            couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, param.getCustomerId(), param.getActivityId(), param.getSource());
         }
         log.info("****************手动发放优惠券   结束 ****************");
         return BaseResponse.SUCCESSFUL();
@@ -264,6 +265,25 @@ public class CouponCodeController implements CouponCodeProvider {
     @Override
     public BaseResponse sendCouponCodeByCouponIds(CouponCodeByCouponIdsRequest couponCodeByCouponIdsRequest) {
         couponCodeService.sendCouponByCouponIds(couponCodeByCouponIdsRequest.getCouponIds(),couponCodeByCouponIdsRequest.getCustomerId());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 回收已发放的优惠券
+     * 已使用的不回收
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<SendCouponResponse> recycleCoupon(CouponRecycleRequest request) {
+        if (request.getSource() == null
+                || request.getSource().getSourceType() == null
+                || request.getSource().getSourceId() == null){
+            return BaseResponse.error("参数缺失");
+        }
+
+        couponCodeService.recycleCoupon(request.getCustomerId(), request.getSource().getSourceId(), request.getSource().getSourceType());
         return BaseResponse.SUCCESSFUL();
     }
 }

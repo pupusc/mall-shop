@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.marketing.bean.enums.SourceType;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
@@ -154,5 +155,19 @@ public class CouponCode {
      */
     @Column(name = "del_person")
     private String delPerson;
+
+
+    /**
+     * 来源id
+     */
+    @Column(name = "source_id")
+    private String sourceId;
+
+    /**
+     * 来源类型
+     */
+    @Enumerated
+    @Column(name = "source_type")
+    private SourceType sourceType;
 
 }

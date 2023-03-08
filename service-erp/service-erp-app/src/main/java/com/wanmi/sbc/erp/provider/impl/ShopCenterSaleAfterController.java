@@ -33,7 +33,11 @@ public class ShopCenterSaleAfterController implements ShopCenterSaleAfterProvide
 			JSONObject json = JSON.parseObject(str);
 			Long data = JSON.parseObject(json.getString("data"), Long.class);
 			if (data == null) {
-				return BaseResponse.FAILED();
+				BaseResponse result = BaseResponse.FAILED();
+				if (json.get("msg") != null) {
+					result.setMessage(json.getString("msg"));
+				}
+				return result;
 			}
 			return BaseResponse.success(data);
 		} catch (Exception e) {

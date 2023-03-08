@@ -95,4 +95,8 @@ public interface CouponCodeRepository extends JpaRepository<CouponCode, String>,
     Integer returnCoupon(String couponCodeId, String customerId);
 
 //    @Query("insert into CouponCode ")
+
+    @Modifying
+    @Query("update CouponCode c set c.delFlag = 1, a.delTime = now() where c.delFlag = 0 and c.useStatus = 0 and c.customerId = ?1 and c.sourceId = ?2 and c.sourceType = ?3 ")
+    int recycleCoupon(String customerId, String sourceId, Integer sourceType);
 }

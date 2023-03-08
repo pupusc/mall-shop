@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListTypeEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
 import com.wanmi.sbc.goods.blacklist.repository.GoodsBlackListRepository;
@@ -22,6 +23,7 @@ import com.wanmi.sbc.goods.fandeng.model.SyncBookPkgReqVO;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaLabelReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResReqVO;
+import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -46,11 +48,13 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -312,8 +316,43 @@ public class SiteSearchService {
             return;
         }
 
+
         List<BookListGoodsPublishDTO> publishList = bookListGoodsPublishService.list(null, pkgId, CategoryEnum.BOOK_LIST_MODEL.getCode(), null, "xxoo");
 
+        Map<String, GoodsInfo> skuId2ModelAllMap = new HashMap<>();
+        Map<String, Goods> spuId2ModelAllMap = new HashMap<>();
+        Map<String, GoodsImage> spuId2GoodsImageMap = new HashMap<>();
+        if (publishList.size() > 0){
+            List<String> spuIds = publishList.stream().map(BookListGoodsPublishDTO::getSpuId).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(spuIds)){
+                log.error("书单信息对应的spu信息为null, id = {}", pkgId);
+            } else {
+                List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(spuIds);
+                if (!CollectionUtils.isEmpty(goodsInfoList)) {
+                    Map<String, GoodsInfo> skuId2ModelMap = goodsInfoList.stream()
+                            .filter(e -> Objects.equals(e.getAddedFlag(), AddedFlag.YES.toValue()) && Objects.equals(e.getDelFlag(), DeleteFlag.NO))
+                            .collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+                    skuId2ModelAllMap.putAll(skuId2ModelMap);
+                }
+                List<Goods> goodsList = goodsRepository.findAllByGoodsIdIn(spuIds);
+                if (!CollectionUtils.isEmpty(goodsList)) {
+                    Map<String, Goods> spuId2ModelMap = goodsList.stream()
+                            .filter(e -> Objects.equals(e.getAddedFlag(), AddedFlag.YES.toValue()) && Objects.equals(e.getDelFlag(), DeleteFlag.NO))
+                            .collect(Collectors.toMap(Goods::getGoodsId, Function.identity(), (k1, k2) -> k1));
+                    spuId2ModelAllMap.putAll(spuId2ModelMap);
+                }
+
+                List<GoodsImage> spuImages = goodsImageRepository.findByGoodsIds(spuIds);
+                if (!org.springframework.util.CollectionUtils.isEmpty(spuImages)){
+                    Map<String, GoodsImage> tempSpuId2GoodsMap = spuImages.stream()
+                            .filter(ex -> Objects.equals(ex.getSort(), 0))
+                            .collect(Collectors.toMap(GoodsImage::getGoodsId, Function.identity(), (k1,k2) -> k1));
+                    spuId2GoodsImageMap.putAll(tempSpuId2GoodsMap);
+                }
+            }
+
+        }
+        
         SyncBookPkgMetaReq pkgMeta = new SyncBookPkgMetaReq();
         pkgMeta.setPackageId(pkgDto.getId().toString());
         pkgMeta.setTitle(pkgDto.getName());
@@ -330,6 +369,31 @@ public class SiteSearchService {
         if (!Integer.valueOf(1).equals(pkgMeta.getPublishStatus())) {
             log.info("同步书籍书单为下架状态，goodsId = {}, goodsInfo = {}", pkgDto.getId(), JSON.toJSONString(pkgDto));
         }
+
+        List<SyncBookPkgMetaReq.Item> itemList = new ArrayList<>();
+        for (BookListGoodsPublishDTO bookListGoodsPublishDTO : publishList) {
+            SyncBookPkgMetaReq.Item item = new SyncBookPkgMetaReq.Item();
+            item.setTid(bookListGoodsPublishDTO.getSpuId());
+            Goods goods = spuId2ModelAllMap.get(bookListGoodsPublishDTO.getSpuId());
+            item.setTitle(goods == null ? "" : goods.getGoodsName());
+            GoodsInfo goodsInfo = skuId2ModelAllMap.get(bookListGoodsPublishDTO.getSkuId());
+            String goodsInfoImgUrl = goodsInfo == null ? "" : goodsInfo.getGoodsInfoImg();
+            if (StringUtils.isBlank(goodsInfoImgUrl)) {
+                GoodsImage goodsImage = spuId2GoodsImageMap.get(bookListGoodsPublishDTO.getSpuId());
+                goodsInfoImgUrl = goodsImage == null ? "" : goodsImage.getArtworkUrl();
+            }
+
+            item.setCoverImageUrl(goodsInfoImgUrl);
+//            GoodsInfo goodsInfo = skuId2ModelAllMap.get(bookListGoodsPublishDTO.getSkuId());
+//            item.setCoverImageUrl(goodsInfo == null ? "" : goodsInfo.getGoodsInfoImg());
+//            item.setHasShow((goods == null || goodsInfo == null) ? 1 : 0);
+            if (goods == null || goodsInfo == null) {
+                continue;
+            }
+            itemList.add(item);
+        }
+        pkgMeta.setItems(itemList);
+
 
         SyncBookPkgReqVO reqVO = new SyncBookPkgReqVO();
         reqVO.setBookPackages(Arrays.asList(pkgMeta));

@@ -9,7 +9,6 @@ import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
 import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.service.CouponActivityConfigService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
@@ -56,7 +55,7 @@ public class IssueCouponsMqService {
             }
         })).collect(Collectors.toList());
         // 批量发放优惠券
-        couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId);
+        couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId, null);
     }
 
 }

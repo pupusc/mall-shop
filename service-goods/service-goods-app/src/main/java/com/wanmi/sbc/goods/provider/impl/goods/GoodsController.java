@@ -19,6 +19,7 @@ import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
@@ -43,7 +44,9 @@ import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
-import com.wanmi.sbc.goods.collect.RedisTagsConstant;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
@@ -165,6 +168,12 @@ public class GoodsController implements GoodsProvider {
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
     @Autowired
     private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private BookListGoodsPublishService bookListGoodsPublishService;
+
+    @Autowired
+    private SiteSearchService siteSearchService;
 
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();
@@ -459,6 +468,18 @@ public class GoodsController implements GoodsProvider {
             map = goodsService.edit(goodsSaveRequest);
         }
 
+        //获取商品所在的书单，如果存在，则重新加载书单
+        try {
+            List<BookListGoodsPublishDTO> bookListGoodsPublishDTOList = bookListGoodsPublishService.list(
+                    null, null, CategoryEnum.BOOK_LIST_MODEL.getCode(), goodsSaveRequest.getGoods().getGoodsId(), "xxoo");
+            if (CollectionUtils.isNotEmpty(bookListGoodsPublishDTOList)) {
+                List<Integer> bookListModelIdList = bookListGoodsPublishDTOList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
+                siteSearchService.siteSearchBookPkgNotify(bookListModelIdList);
+            }
+        } catch (Exception ex) {
+            log.error("GoodsController modify exception", ex);
+        }
+
 //        //ares埋点-商品-后台修改商品sku
 //        goodsAresService.dispatchFunction("editGoodsSku",
 //                new Object[]{map.get("newGoodsInfo"), map.get("delInfoIds"), map.get("oldGoodsInfos"), map.get("storeGoodsInfoIds")});
@@ -570,6 +591,22 @@ public class GoodsController implements GoodsProvider {
         Integer addedFlag = request.getAddedFlag();
         List<String> goodsIdList = request.getGoodsIds();
         goodsService.updateAddedStatus(addedFlag, goodsIdList);
+        //获取商品所在的书单，如果存在，则重新加载书单
+        try {
+            List<BookListGoodsPublishDTO> allBookListGoodsPublishList = new ArrayList<>();
+            for (String s : goodsIdList) {
+                List<BookListGoodsPublishDTO> bookListGoodsPublishDTOList = bookListGoodsPublishService.list(
+                        null, null, CategoryEnum.BOOK_LIST_MODEL.getCode(), s, "xxoo");
+                allBookListGoodsPublishList.addAll(bookListGoodsPublishDTOList);
+            }
+
+            if (CollectionUtils.isNotEmpty(allBookListGoodsPublishList)) {
+                List<Integer> bookListModelIdList = allBookListGoodsPublishList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
+                siteSearchService.siteSearchBookPkgNotify(bookListModelIdList);
+            }
+        } catch (Exception ex) {
+            log.error("GoodsController modifyAddedStatus exception", ex);
+        }
         return BaseResponse.SUCCESSFUL();
     }
 

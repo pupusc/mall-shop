@@ -1,5 +1,7 @@
 package com.wanmi.sbc.marketing.api.request.coupon;
 
+import com.wanmi.sbc.marketing.api.request.Source;
+import com.wanmi.sbc.marketing.bean.enums.SourceType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -17,4 +19,6 @@ public class CouponCodeByCustomizeProviderRequest implements Serializable {
     private String activityId;
 
     private String customerId;
+
+    private Source source;
 }

@@ -192,8 +192,8 @@ public class GoodsInfoStockService {
             Long tmpActualStockQty = goodsInfoStockAndCostPriceSyncParam.getStockQTY();
             BigDecimal tmpCostPrice = goodsInfoStockAndCostPriceSyncParam.getCostPrice();
 
-            boolean canSyncStock = erpGoodsInfoRequest.getHasSyncStock();
-            boolean canSyncCostPrice = erpGoodsInfoRequest.getHasSyncCostPrice();
+            boolean canSyncStock = erpGoodsInfoRequest.getHasSyncStock() && Objects.equals(goodsInfoStockAndCostPriceSyncParam.getStockSyncFlag(), 1);
+            boolean canSyncCostPrice = erpGoodsInfoRequest.getHasSyncCostPrice() && Objects.equals(goodsInfoStockAndCostPriceSyncParam.getCostPriceSyncFlag(), 1);
 
             Long erpStock = erpGoodsInfoRequest.getErpStock() == null ? 0L : erpGoodsInfoRequest.getErpStock();
             BigDecimal erpCostPrice =erpGoodsInfoRequest.getErpCostPrice() == null ? BigDecimal.ZERO : erpGoodsInfoRequest.getErpCostPrice();

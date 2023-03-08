@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Liang Jun
@@ -65,4 +66,25 @@ public class SyncBookPkgMetaReq implements Serializable {
      * 书单发布结束时间
      */
     private Date resPublishEnd;
+
+    /**
+     * 子列表信息
+     */
+    private List<Item> items;
+
+
+    @Data
+    public static class Item {
+
+        private String tid;
+
+        private String title;
+
+        private String coverImageUrl;
+
+//        /**
+//         * 0展示 1不展示
+//         */
+//        private Integer hasShow;
+    }
 }
