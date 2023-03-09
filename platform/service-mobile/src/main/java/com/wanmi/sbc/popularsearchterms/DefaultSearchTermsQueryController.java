@@ -31,7 +31,7 @@ public class DefaultSearchTermsQueryController {
 
 
     @ApiOperation(value = "默认词列表查询")
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
     public BaseResponse<List<DefaultSearchTermsListResponse>> listDefaultSearchTerms() {
         return defaultSearchTermsQueryProvider.listDefaultSearchTerms(0);
     }
