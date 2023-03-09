@@ -1507,7 +1507,7 @@ public class CouponCodeService {
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public int recycleCoupon(String customerId, String sourceId, Integer sourceType) {
-        return couponCodeRepository.recycleCoupon(customerId, sourceId, sourceType);
+    public boolean recycleCoupon(String customerId, String sourceId, Integer sourceType) {
+        return couponCodeRepository.recycleCoupon(customerId, sourceId, sourceType) > 0;
     }
 }
