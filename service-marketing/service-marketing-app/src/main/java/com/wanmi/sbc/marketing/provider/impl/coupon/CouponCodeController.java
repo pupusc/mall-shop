@@ -4,9 +4,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.*;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchSendCouponRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCouponIdsRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCustomizeProviderRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByFileCustomizeProviderRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponRecycleRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
-import com.wanmi.sbc.marketing.api.response.coupon.SendCouponResponse;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
@@ -276,14 +282,14 @@ public class CouponCodeController implements CouponCodeProvider {
      * @return
      */
     @Override
-    public BaseResponse<SendCouponResponse> recycleCoupon(CouponRecycleRequest request) {
+    public BaseResponse<Boolean> recycleCoupon(CouponRecycleRequest request) {
         if (request.getSource() == null
                 || request.getSource().getSourceType() == null
                 || request.getSource().getSourceId() == null){
             return BaseResponse.error("参数缺失");
         }
 
-        couponCodeService.recycleCoupon(request.getCustomerId(), request.getSource().getSourceId(), request.getSource().getSourceType());
-        return BaseResponse.SUCCESSFUL();
+        boolean result = couponCodeService.recycleCoupon(request.getCustomerId(), request.getSource().getSourceId(), request.getSource().getSourceType());
+        return BaseResponse.success(result);
     }
 }
