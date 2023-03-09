@@ -70,7 +70,7 @@ public class TopicController {
      * @首页~刷新redis
      */
     @PostMapping(value = "/v2/refresRedis")
-    public BaseResponse refresRedis(@RequestBody TopicQueryRequest request) {
+    public BaseResponse refresRedis() {
 
         new Thread(new Runnable() {
             public void run() {
