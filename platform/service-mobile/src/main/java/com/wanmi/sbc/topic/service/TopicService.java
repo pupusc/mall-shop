@@ -285,21 +285,21 @@ public class TopicService {
                 String name = storeyDTO.getName();
                 int storeyType = storeyDTO.getStoreyType();
 
-                if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                 //14, "三本好书"
+                if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                //13.新书速递
                     //writeRedis(topic_store_id);
                     newBookPointJobHandler.execute(null);
-                }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){
+                }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){         //11.榜单组件
                     //writeRedis(topic_store_id);
-                    rankJobHandler.execute(null);
-                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单详情
+                    rankJobHandler.execute("H5");
+                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单更多
                     rankPageJobHandler.execute(topicKey);
-                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){              //20.混合组件
                     mixedComponentContentJobHandler.execute(null);
-                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){      //14.三本好书
                     threeBookSaveRedis(topic_store_id);
-                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){              //19.商品组件
                    goodsOrBookSaveRedis(topic_store_id);
-                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){              //18.图书组件
                     goodsOrBookSaveRedis(topic_store_id);
                 }
 
