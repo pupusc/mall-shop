@@ -80,6 +80,11 @@
             <artifactId>micro-service</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-api</artifactId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>

@@ -19,11 +19,14 @@ import com.soybean.mall.goods.req.KeyWordBookListQueryReq;
 import com.soybean.mall.goods.req.KeyWordQueryReq;
 import com.soybean.mall.goods.req.KeyWordSpuQueryReq;
 import com.soybean.mall.goods.response.BookListSpuResp;
+import com.soybean.mall.goods.response.GoodsSearchBySpuIdResponse;
 import com.soybean.mall.goods.response.SearchHomeResp;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.mall.goods.service.BookListSearchService;
 import com.soybean.mall.goods.service.SpuComponentService;
 import com.soybean.mall.goods.service.SpuNewSearchService;
+import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
+import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
@@ -76,6 +79,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -106,6 +110,9 @@ public class SearchController {
 
     @Autowired
     private BookListSearchService bookListSearchService;
+
+    @Resource
+    private GoodsSearchKeyProvider goodsSearchKeyProvider;
 
     @Autowired
     private SpuNewSearchService spuNewSearchService;
@@ -263,6 +270,7 @@ public class SearchController {
                 Arrays.asList(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode(), GoodsBlackListCategoryEnum.GOODS_SESRCH_AT_INDEX.getCode()));
         request.setUnSpuIds(unSpuIds);
 
+        List<GoodsNameBySpuIdBO> goodsNameBySpuId=new ArrayList<>();
         //获取是否知识顾问用户
         //获取客户信息
         CustomerGetByIdResponse customer = null;
@@ -276,6 +284,21 @@ public class SearchController {
             }
         }
         EsSpuNewAggResp<List<SpuNewBookListResp>> result = new EsSpuNewAggResp<>();
+        if(null!=request.getKeyword()&&!request.getKeyword().equals("")) {
+            goodsNameBySpuId = goodsSearchKeyProvider.getGoodsNameBySpuId(request.getKeyword());
+        }
+        if(!CollectionUtils.isEmpty(goodsNameBySpuId)){
+            GoodsNameBySpuIdBO goodsNameBySpuIdBO = goodsNameBySpuId.get(0);
+            List<String> spuIds=new ArrayList<>();
+            spuIds.add(goodsNameBySpuIdBO.getSpuId());
+            KeyWordSpuQueryReq req=new KeyWordSpuQueryReq();
+            req.setSpuIds(spuIds);
+            EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(req).getContext();
+            List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
+            if(!CollectionUtils.isEmpty(spuNewBookListResps)){
+                result.setKeyWordGoods(spuNewBookListResps);
+            }
+        }
         if(null!=request.getMarketingLabelId()){
             PromoteGoodsParamVO paramVO=new PromoteGoodsParamVO();
             paramVO.setId(request.getMarketingLabelId().toString());
@@ -288,16 +311,13 @@ public class SearchController {
             result.setPromoteInfo(promoteInfo);
             result.setReq(esSpuNewAggResp.getReq());
             result.setAggsCategorys(esSpuNewAggResp.getAggsCategorys());
-            result.setReq(esSpuNewAggResp.getReq());
             result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
             return result;
         }
-
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
         result.setReq(esSpuNewAggResp.getReq());
         result.setAggsCategorys(esSpuNewAggResp.getAggsCategorys());
-        result.setReq(esSpuNewAggResp.getReq());
         result.setResult(new CommonPageResp<>(esSpuNewAggResp.getResult().getTotal(), spuNewBookListResps));
         return result;
     }
