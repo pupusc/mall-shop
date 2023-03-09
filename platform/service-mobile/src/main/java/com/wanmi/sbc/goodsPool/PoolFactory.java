@@ -8,6 +8,7 @@ import com.wanmi.sbc.goodsPool.service.impl.VideoPoolServiceImpl;
 import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentTabDto;
 import com.wanmi.sbc.setting.bean.enums.BookType;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -28,29 +29,18 @@ import java.util.List;
 @Component
 public class PoolFactory extends ApplicationObjectSupport {
 
-//    @Autowired
-//    private GoodsPoolServiceImpl goodsPoolService;
-//
-//    @Autowired
-//    private AdvertisementPoolServiceImpl advertisementPoolService;
-//
-//    @Autowired
-//    private VideoPoolServiceImpl videoPoolService;
-//
-//    @Autowired
-//    private AssignPoolServiceImpl assignPoolService;
-
+    @Autowired
+    private BeanFactoryHelper beanFactoryHelper;
     /**
      * 商品池类型实例化
      * @return
      */
     public PoolService getPoolService(Integer bookType) {
         if (bookType == null) {return null;}
-        WebApplicationContext wac = ContextLoader.getCurrentWebApplicationContext();
-        if (BookType.BOOK.toValue().equals(bookType)) {return wac.getBean(GoodsPoolServiceImpl.class);}
-        if (BookType.ADVERTISEMENT.toValue().equals(bookType)) {return wac.getBean(AdvertisementPoolServiceImpl.class);}
-        if (BookType.VIDEO.toValue().equals(bookType)) {return wac.getBean(VideoPoolServiceImpl.class);}
-        if (BookType.ASSIGN.toValue().equals(bookType)) {return wac.getBean(AssignPoolServiceImpl.class);}
+        if (BookType.BOOK.toValue().equals(bookType)) {return beanFactoryHelper.getBean(GoodsPoolServiceImpl.class);}
+        if (BookType.ADVERTISEMENT.toValue().equals(bookType)) {return beanFactoryHelper.getBean(AdvertisementPoolServiceImpl.class);}
+        if (BookType.VIDEO.toValue().equals(bookType)) {return beanFactoryHelper.getBean(VideoPoolServiceImpl.class);}
+        if (BookType.ASSIGN.toValue().equals(bookType)) {return beanFactoryHelper.getBean(AssignPoolServiceImpl.class);}
         throw new RuntimeException("不存在的商品池类型");
     }
 }
