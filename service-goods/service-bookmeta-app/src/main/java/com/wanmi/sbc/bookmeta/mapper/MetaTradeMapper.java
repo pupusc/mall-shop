@@ -27,6 +27,8 @@ public interface MetaTradeMapper extends Mapper<MetaTrade> {
     int updateMetaTrade(MetaTrade metaTrade);
 
     int deleteMetaTrade(int id);
+
+    int isExist(String name);
 }
 
 

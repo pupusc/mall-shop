@@ -264,11 +264,10 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public SkuDetailBO getGoodsInfoBySpuId(String id) {
         SkuDetailBO bo = new SkuDetailBO();
         Map map = metaLabelMapper.getSkuIdBySpuId(id);
-        String skuId = (String) map.get("goods_info_id");
-        if (StringUtils.isBlank(skuId)){
-            map=metaLabelMapper.getSkuIdBySpuId1(id);
-            skuId=(String) map.get("goods_info_id");
+        if (map==null) {
+            map = metaLabelMapper.getSkuIdBySpuId1(id);
         }
+        String skuId = (String) map.get("goods_info_id");
         String img = (String) map.get("goods_info_img");
         String SkuName = (String) map.get("goods_info_name");
         BigDecimal price = (BigDecimal) map.get("market_price");

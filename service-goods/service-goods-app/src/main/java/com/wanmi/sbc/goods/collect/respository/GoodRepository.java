@@ -73,9 +73,13 @@ public class GoodRepository {
         List list = jpaManager.queryForList(sql,obj);
         if(list !=null && list.size() >0){
             skuMap = (Map)list.get(0);
+        }else{
+            String sql1 = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ?" +
+                    " and del_flag = 0 order by market_price asc limit 1 ";
+            List list1 = jpaManager.queryForList(sql1,obj);
+            skuMap = (Map)list1.get(0);
         }
         return skuMap;
     }
-
 }
 
