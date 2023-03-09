@@ -54,12 +54,15 @@ public class MixedComponentTabAddRequest implements Serializable {
 
     private List<KeyWordsDto> keyWords;
 
+    private Integer pId;
+
     private Integer id;
 
     public ColumnAddRequest getColumnAddRequest() {
         ColumnAddRequest columnAddRequest = new ColumnAddRequest();
         columnAddRequest.setLevel(level);
         columnAddRequest.setEndTime(endTime);
+        columnAddRequest.setPId(pId);
         columnAddRequest.setCreateTime(startTime);
         columnAddRequest.setDropName(dropName);
         columnAddRequest.setName(name);

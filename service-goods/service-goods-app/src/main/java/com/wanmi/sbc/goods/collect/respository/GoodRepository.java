@@ -63,5 +63,19 @@ public class GoodRepository {
         return list;
     }
 
+    //根据spu获取sku
+    public Map getSkuBySpuId(String spu_id) {
+        Map skuMap = null;
+
+        String sql = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ? and stock > 0 " +
+                " and del_flag = 0 order by market_price asc limit 1 ";
+        Object[] obj = new Object[]{spu_id};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            skuMap = (Map)list.get(0);
+        }
+        return skuMap;
+    }
+
 }
 

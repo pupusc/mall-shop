@@ -10,6 +10,7 @@ import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
@@ -148,6 +149,7 @@ public class RankPageJobHandler extends IJobHandler {
                         EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
                         List<String> spuid=new ArrayList<>();
                         spuid.add(g.getGoodsId());
+                        req.setSpuIds(spuid);
                         TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
                         List<TagsDto.Tags> tags = tagsDto.getTags();
                         MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
@@ -193,7 +195,9 @@ public class RankPageJobHandler extends IJobHandler {
                         }
                         map.put("skuId",b.getSkuId());
                         map.put("spuId",b.getSpuId());
-                        map.put("label",esSpuNewResp.getLabels());
+                        if(!CollectionUtils.isEmpty(g.getGoodsLabelList())) {
+                            map.put("label", g.getGoodsLabelList().get(0));
+                        }
                         map.put("spuLabels",esSpuNewResp.getSpuLabels());
                         map.put("subName",esSpuNewResp.getSpuSubName());
                         map.put("rankText",b.getRankText());
@@ -221,7 +225,7 @@ public class RankPageJobHandler extends IJobHandler {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
-        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.H5.getCode()));
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);

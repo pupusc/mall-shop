@@ -124,7 +124,7 @@ public class TopicController {
 //        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
-//        rankJobHandler.execute(null);
+        rankJobHandler.execute("H5");
         rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
 //        newBookPointJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();

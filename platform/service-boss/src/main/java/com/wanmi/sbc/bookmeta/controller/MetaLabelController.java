@@ -302,6 +302,17 @@ public class MetaLabelController {
         return BusinessResponse.success(metaLabelProvider.deleteGoodsLabel(convert));
     }
 
+    @PostMapping("getGoodsDetailOther")
+    public BusinessResponse<GoodDetailOtherRespBO> getGoodsDetailOther(@RequestBody GoodsLabelAddReqVO reqVO) {
+        GoodDetailOtherRespBO respBO = metaLabelProvider.getGoodsDetailAndOther(reqVO.getGoodsId());
+        return BusinessResponse.success(respBO);
+    }
+
+    @PostMapping("updateGoodsDetailOther")
+    public BusinessResponse<Integer> updateGoodsDetailOther(@RequestBody GoodDetailOtherRespBO reqVO) {
+        int i = metaLabelProvider.updateGoodsDetailAndOther(reqVO);
+        return BusinessResponse.success(i);
+    }
 
 }
 

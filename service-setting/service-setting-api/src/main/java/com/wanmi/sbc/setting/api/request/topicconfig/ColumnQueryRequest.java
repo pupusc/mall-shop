@@ -88,6 +88,6 @@ public class ColumnQueryRequest implements Serializable {
     public Integer publishState;
 
     public ColumnQueryRequest() {
-        deleted = publishState;
+
     }
 }

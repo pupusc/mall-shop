@@ -628,17 +628,18 @@ public class TopicService {
                     map.put("vipPrice",i.getSalePrice());
                 });
             });
+            RankPageRequest pageRequest = new RankPageRequest();
             //初始化榜单树形结构，获取商品详情
             rankRequestList.forEach(r -> {
                 r.getRankList().forEach(t -> {
                     Map tMap = (Map) t;
                     if (tMap.get("id").equals(request.getRankId())) {
+                        pageRequest.setTopicStoreySearchId(Integer.parseInt(String.valueOf(tMap.get("id"))));
                         List<Map> rankList = (List<Map>) tMap.get("rankList");
                         rankList.addAll(goodsCustomResponses);
                     }
                 });
             });
-            RankPageRequest pageRequest = new RankPageRequest();
             pageRequest.setContentList(rankRequestList);
             pageRequest.setPageNum(pageNum);
             pageRequest.setTotalPages(totalPages);
@@ -1344,6 +1345,7 @@ public class TopicService {
         request.setState(1);
         List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
         //存redis
+
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
         // tab
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {

@@ -31,6 +31,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -994,6 +995,7 @@ public class TopicConfigService {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.asc("deleted"));
         sortList.add(Sort.Order.asc("orderNum"));
+        request.setDeleted(request.getPublishState());
         List<TopicStoreyColumn> topicStoreySearchList = columnRepository
                 .findAll(columnRepository.columnSearch(request), Sort.by(sortList));
         List<ColumnDTO> collect = topicStoreySearchList.stream().map(topicStoreyColumn -> {
@@ -1097,6 +1099,7 @@ public class TopicConfigService {
         List<Sort.Order> sortList = new ArrayList<>();
         sortList.add(Sort.Order.desc("deleted"));
         sortList.add(Sort.Order.asc("orderNum"));
+        request.setDeleted(request.getPublishState());
         List<TopicStoreyColumnContent> topicStoreySearchContentPage = columnGoodsRepository
                 .findAll(columnGoodsRepository.topicStoreySearchContent(request), Sort.by(sortList));
         List<ColumnContentDTO> resultList = new ArrayList<ColumnContentDTO>();
@@ -1171,6 +1174,7 @@ public class TopicConfigService {
     @Transactional
     public void addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request) {
         ColumnAddRequest columnAddRequest = request.getColumnAddRequest();
+        columnAddRequest.setEndTime(DateUtil.parseDate("2999-01-03 14:19:12"));
         Integer id = addTopicStoreyColumn(columnAddRequest).getId();
         List<ColumnContentAddRequest> columnContent = request.getColumnContent();
         List<TopicStoreyColumnContent> topicStoreyColumnContents = columnContent.stream().map(c -> {

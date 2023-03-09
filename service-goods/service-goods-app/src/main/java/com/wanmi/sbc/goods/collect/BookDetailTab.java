@@ -221,6 +221,11 @@ public class BookDetailTab {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                    if(skuBySpuId != null && skuBySpuId.size() >0){
+                        String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                        writerBookMap.put("sku_id",sku_id);
+                    }
                     writerBookMap.put("spu_no",spu_no);
                     writerBookMap.put("goods_name",goods_name);
                     writerBookMap.put("spu_id",spu_id);
@@ -258,6 +263,11 @@ public class BookDetailTab {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                    if(skuBySpuId != null && skuBySpuId.size() >0){
+                        String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                        libraryMap.put("sku_id",sku_id);
+                    }
                     libraryMap.put("spu_no",spu_no);
                     libraryMap.put("goods_name",goods_name);
                     libraryMap.put("spu_id",spu_id);
@@ -295,6 +305,11 @@ public class BookDetailTab {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                    if(skuBySpuId != null && skuBySpuId.size() >0){
+                        String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                        producerMap.put("sku_id",sku_id);
+                    }
                     producerMap.put("spu_no",spu_no);
                     producerMap.put("goods_name",goods_name);
                     producerMap.put("spu_id",spu_id);
@@ -367,6 +382,11 @@ public class BookDetailTab {
                 String spu_no = String.valueOf(goodMap.get("spu_no"));
                 String goods_name = String.valueOf(goodMap.get("goods_name"));
                 String spu_id = String.valueOf(goodMap.get("spu_id"));
+                Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                if(skuBySpuId != null && skuBySpuId.size() >0){
+                    String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                    map.put("sku_id",sku_id);
+                }
                 map.put("spu_id",spu_id);
                 map.put("spu_no",spu_no);
                 map.put("goods_name",goods_name);
