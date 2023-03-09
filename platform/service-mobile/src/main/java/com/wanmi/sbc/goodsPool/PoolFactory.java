@@ -8,8 +8,15 @@ import com.wanmi.sbc.goodsPool.service.impl.VideoPoolServiceImpl;
 import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentTabDto;
 import com.wanmi.sbc.setting.bean.enums.BookType;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ApplicationObjectSupport;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
@@ -19,19 +26,19 @@ import java.util.List;
  * @Date 2023/3/3 16:28
  */
 @Component
-public class PoolFactory {
+public class PoolFactory extends ApplicationObjectSupport {
 
-    @Autowired
-    private GoodsPoolServiceImpl goodsPoolService;
-
-    @Autowired
-    private AdvertisementPoolServiceImpl advertisementPoolService;
-
-    @Autowired
-    private VideoPoolServiceImpl videoPoolService;
-
-    @Autowired
-    private AssignPoolServiceImpl assignPoolService;
+//    @Autowired
+//    private GoodsPoolServiceImpl goodsPoolService;
+//
+//    @Autowired
+//    private AdvertisementPoolServiceImpl advertisementPoolService;
+//
+//    @Autowired
+//    private VideoPoolServiceImpl videoPoolService;
+//
+//    @Autowired
+//    private AssignPoolServiceImpl assignPoolService;
 
     /**
      * 商品池类型实例化
@@ -39,10 +46,11 @@ public class PoolFactory {
      */
     public PoolService getPoolService(Integer bookType) {
         if (bookType == null) {return null;}
-        if (BookType.BOOK.toValue().equals(bookType)) {return goodsPoolService;}
-        if (BookType.ADVERTISEMENT.toValue().equals(bookType)) {return advertisementPoolService;}
-        if (BookType.VIDEO.toValue().equals(bookType)) {return videoPoolService;}
-        if (BookType.ASSIGN.toValue().equals(bookType)) {return assignPoolService;}
+        WebApplicationContext wac = ContextLoader.getCurrentWebApplicationContext();
+        if (BookType.BOOK.toValue().equals(bookType)) {return wac.getBean(GoodsPoolServiceImpl.class);}
+        if (BookType.ADVERTISEMENT.toValue().equals(bookType)) {return wac.getBean(AdvertisementPoolServiceImpl.class);}
+        if (BookType.VIDEO.toValue().equals(bookType)) {return wac.getBean(VideoPoolServiceImpl.class);}
+        if (BookType.ASSIGN.toValue().equals(bookType)) {return wac.getBean(AssignPoolServiceImpl.class);}
         throw new RuntimeException("不存在的商品池类型");
     }
 }

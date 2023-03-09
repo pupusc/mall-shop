@@ -136,11 +136,11 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
                 LocalDateTime now = LocalDateTime.now();
                 if(request.getState() == 0){
                     //未开始
-                    conditionList.add(criteriaBuilder.greaterThan(root.get("createTime"), now));
+                    conditionList.add(criteriaBuilder.greaterThan(root.get("beginTime"), now));
                 }else if(request.getState() == 1){
                     //进行中
                     conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
-                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"), now));
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("beginTime"), now));
                 }else if(request.getState() == 2){
                     //已结束
                     conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));

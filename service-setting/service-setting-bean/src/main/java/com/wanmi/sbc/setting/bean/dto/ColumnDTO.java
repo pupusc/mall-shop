@@ -40,6 +40,12 @@ public class ColumnDTO implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime beginTime;
+
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
     private Integer deleted;
@@ -86,10 +92,10 @@ public class ColumnDTO implements Serializable {
     public ColumnDTO() {
     }
 
-    public ColumnDTO(LocalDateTime createTime, LocalDateTime endTime, Integer deleted) {
+    public ColumnDTO(LocalDateTime beginTime, LocalDateTime endTime, Integer deleted) {
         LocalDateTime now = LocalDateTime.now();
         this.publishState = deleted;
-        if (createTime != null && now.isBefore(createTime)) {
+        if (beginTime != null && now.isBefore(beginTime)) {
             //未开始
             this.state = 0;
         } else if (endTime != null && now.isAfter(endTime)) {

@@ -175,7 +175,7 @@ public interface TopicConfigProvider {
      * @Author zh
      * @Date  2023/2/18 11:50
      */
-    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tag/list")
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/tab/list")
     BaseResponse<List<MixedComponentTabDto>> listMixedComponentTab(@RequestBody MixedComponentTabQueryRequest request);
 
     /**

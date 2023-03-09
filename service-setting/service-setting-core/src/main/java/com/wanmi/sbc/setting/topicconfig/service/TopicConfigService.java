@@ -999,7 +999,7 @@ public class TopicConfigService {
         List<TopicStoreyColumn> topicStoreySearchList = columnRepository
                 .findAll(columnRepository.columnSearch(request), Sort.by(sortList));
         List<ColumnDTO> collect = topicStoreySearchList.stream().map(topicStoreyColumn -> {
-            ColumnDTO columnDTO = new ColumnDTO(topicStoreyColumn.getCreateTime(),
+            ColumnDTO columnDTO = new ColumnDTO(topicStoreyColumn.getBeginTime(),
                     topicStoreyColumn.getEndTime(), topicStoreyColumn.getDeleted());
             BeanUtils.copyProperties(topicStoreyColumn, columnDTO);
             return columnDTO;
@@ -1174,6 +1174,7 @@ public class TopicConfigService {
     @Transactional
     public void addTopicStoreyColumnGoods(MixedComponentGoodsAddRequest request) {
         ColumnAddRequest columnAddRequest = request.getColumnAddRequest();
+        columnAddRequest.setBeginTime(LocalDateTime.now());
         columnAddRequest.setEndTime(DateUtil.parseDate("2999-01-03 14:19:12"));
         Integer id = addTopicStoreyColumn(columnAddRequest).getId();
         List<ColumnContentAddRequest> columnContent = request.getColumnContent();

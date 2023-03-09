@@ -80,7 +80,7 @@ public class ExcelService {
                     Integer status = Integer.valueOf(row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j)));
                     ++j;
                     //导入的排序
-                    Integer sorting = Integer.valueOf(row.getCell(j)==null ? "0" :new DataFormatter().formatCellValue(row.getCell(j)));
+                    Integer sorting = Integer.valueOf(row.getCell(j)==null ? "1" :new DataFormatter().formatCellValue(row.getCell(j)));
                     //构建了一个StudentConsultation对象 用来存储这个学生的信息
                     ColumnContentAddRequest columnContentAddRequest = new ColumnContentAddRequest();
                     columnContentAddRequest.setSpuId(spu);

@@ -36,6 +36,10 @@ public class ColumnAddRequest implements Serializable {
 
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime beginTime;
+
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
