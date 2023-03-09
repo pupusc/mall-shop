@@ -58,7 +58,7 @@ public class MixedComponentTabUpdateRequest implements Serializable {
         ColumnUpdateRequest columnUpdateRequest = new ColumnUpdateRequest();
         columnUpdateRequest.setId(id);
         columnUpdateRequest.setEndTime(endTime);
-        columnUpdateRequest.setCreateTime(startTime);
+        columnUpdateRequest.setBeginTime(startTime);
         columnUpdateRequest.setDropName(dropName);
         columnUpdateRequest.setName(name);
         columnUpdateRequest.setColor(color);

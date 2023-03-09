@@ -63,7 +63,8 @@ public class MixedComponentTabAddRequest implements Serializable {
         columnAddRequest.setLevel(level);
         columnAddRequest.setEndTime(endTime);
         columnAddRequest.setPId(pId);
-        columnAddRequest.setCreateTime(startTime);
+        columnAddRequest.setBeginTime(startTime);
+        columnAddRequest.setCreateTime(LocalDateTime.now());
         columnAddRequest.setDropName(dropName);
         columnAddRequest.setName(name);
         columnAddRequest.setColor(color);
