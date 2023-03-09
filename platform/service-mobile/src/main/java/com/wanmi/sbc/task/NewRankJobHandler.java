@@ -153,8 +153,10 @@ public class NewRankJobHandler extends IJobHandler {
                             map.put("linePrice",g.getLinePrice());
                             map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
                             map.put("stock",g.getStock());
-                            map.put("author",g.getGoodsExtProperties().getAuthor());
-                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
+                            if(null!=g.getGoodsExtProperties()) {
+                                map.put("author", g.getGoodsExtProperties().getAuthor());
+                                map.put("publisher",g.getGoodsExtProperties().getPublisher());
+                            }
                         }
                     });
                 }

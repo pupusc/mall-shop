@@ -33,6 +33,14 @@ public interface EsSpuNewProvider {
     BaseResponse<EsSpuNewAggResp<List<EsSpuNewResp>>> listKeyWorldEsSpu(@Validated @RequestBody EsKeyWordSpuNewQueryProviderReq req);
 
     /**
+     * 包含关键词的搜索
+     * @param req
+     * @return
+     */
+    @PostMapping("/elastic/${application.elastic.version}/spunew/listKeyWorldEsSpuBySpuId")
+    BaseResponse<EsSpuNewAggResp<List<EsSpuNewResp>>> listKeyWorldEsSpuBySpuId(@Validated @RequestBody EsKeyWordSpuNewQueryProviderReq req);
+
+    /**
      * 采集商品信息
      * @return
      */
