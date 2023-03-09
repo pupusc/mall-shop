@@ -12,6 +12,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
@@ -202,6 +203,10 @@ public class BookListModelAndGoodsService {
      */
     public List<GoodsInfoVO> packageGoodsInfoList(List<EsGoodsVO> esGoodsVOList, CustomerVO customer) {
         return this.packageGoodsInfoList(esGoodsVOList, customer, Collections.singletonList(commonUtil.getTerminal().getCode()));
+    }
+
+    public List<GoodsInfoVO> packageGoodsInfoListV2(List<EsGoodsVO> esGoodsVOList, CustomerVO customer) {
+        return this.packageGoodsInfoList(esGoodsVOList, customer, Collections.singletonList(TerminalSource.H5.getCode()));
     }
 
 
@@ -688,7 +693,7 @@ public class BookListModelAndGoodsService {
         if (CollectionUtils.isEmpty(goodsVOList)) {
             return result;
         }
-        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(resultEsGoodsList, new CustomerVO()); //添加客户信息
+        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoListV2(resultEsGoodsList, new CustomerVO()); //添加客户信息
         if (CollectionUtils.isEmpty(goodsInfoVOList)) {
             return result;
         }
