@@ -634,7 +634,7 @@ public class TopicService {
                 r.getRankList().forEach(t -> {
                     Map tMap = (Map) t;
                     if (tMap.get("id").equals(request.getRankId())) {
-                        pageRequest.setTopicStoreySearchId(Integer.parseInt(String.valueOf(tMap.get("id"))));
+                        pageRequest.setTopicStoreySearchId(r.getId());
                         List<Map> rankList = (List<Map>) tMap.get("rankList");
                         rankList.addAll(goodsCustomResponses);
                     }
