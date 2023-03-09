@@ -675,6 +675,33 @@ public class BookListModelAndGoodsService {
         return result;
     }
 
+    /**
+     * 获取根据EsGoodsVo 转化成 GoodsCustomResponse
+     * @return
+     */
+    public List<GoodsCustomResponse> listGoodsCustomV2(List<EsGoodsVO> resultEsGoodsList) {
+        List<GoodsCustomResponse> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(resultEsGoodsList)) {
+            return result;
+        }
+        List<GoodsVO> goodsVOList = this.changeEsGoods2GoodsVo(resultEsGoodsList);
+        if (CollectionUtils.isEmpty(goodsVOList)) {
+            return result;
+        }
+        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(resultEsGoodsList, new CustomerVO()); //添加客户信息
+        if (CollectionUtils.isEmpty(goodsInfoVOList)) {
+            return result;
+        }
+        Map<String, GoodsVO> supId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        for (EsGoodsVO esGoodsVO : resultEsGoodsList) {
+            GoodsVO goodsVO = supId2GoodsVoMap.get(esGoodsVO.getId());
+            if (goodsVO == null){
+                continue;
+            }
+            result.add(this.packageGoodsCustomResponse(supId2GoodsVoMap.get(esGoodsVO.getId()), esGoodsVO, goodsInfoVOList));
+        }
+        return result;
+    }
 
     /**
      * 根据书单获取商品列表
