@@ -494,7 +494,8 @@ public class TopicConfigService {
     public MicroServicePage<TopicStoreyColumnDTO> listTopicStoreyColumn(TopicStoreyColumnQueryRequest request){
         Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
                 .findAll(columnRepository.topicStoreySearch(request), PageRequest.of(request.getPageNum(),
-                request.getPageSize(), Sort.by(Sort.Direction.ASC, "orderNum")));
+                request.getPageSize(), Sort.by(Sort.Direction.ASC, "deleted").and(Sort.by(Sort.Direction.ASC, "orderNum")))  );
+
         List<TopicStoreyColumn> content = topicStoreySearchPage.getContent();
         MicroServicePage<TopicStoreyColumnDTO> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
