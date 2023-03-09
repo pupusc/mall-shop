@@ -1499,6 +1499,14 @@ public class CouponCodeService {
         return CouponCodeWillExpireRequest.converter(query.getResultList());
     }
 
+    /**
+     * 根据发放来源回收优惠券
+     * @param customerId
+     * @param sourceId
+     * @param sourceType
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
     public int recycleCoupon(String customerId, String sourceId, Integer sourceType) {
         return couponCodeRepository.recycleCoupon(customerId, sourceId, sourceType);
     }
