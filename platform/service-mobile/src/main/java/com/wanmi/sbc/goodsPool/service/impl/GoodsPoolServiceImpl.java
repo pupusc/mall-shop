@@ -122,7 +122,11 @@ public class GoodsPoolServiceImpl implements PoolService {
                     tagsDto.setName(String.valueOf(map.get("show_name")));
                     tagsDto.setType((Integer) map.get("order_type"));
                     if (!StringUtils.isEmpty(tagsDto.getName())) {
-                        tagsDtos.add(tagsDto);
+                        if(!StringUtils.isEmpty(tagsDto.getType()) && "20".equals(tagsDto.getType())) {
+                            tagsDtos.add(0, tagsDto);
+                        } else {
+                            tagsDtos.add(tagsDto);
+                        }
                     }
                 });
             }
