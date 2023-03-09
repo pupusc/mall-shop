@@ -194,7 +194,7 @@ public class NewRankJobHandler extends IJobHandler {
 
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
-        List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
+        List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustomV2(esGoodsVOS);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
             Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
             if(goodsCustom.isPresent()) {
