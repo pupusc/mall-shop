@@ -75,7 +75,9 @@ public class TopicController {
         new Thread(new Runnable() {
             public void run() {
                 try {
+                    System.out.println("redis~begin:" + DitaUtil.getCurrentAllDate());
                     topicService.refresRedis();
+                    System.out.println("redis~end  :" + DitaUtil.getCurrentAllDate());
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
