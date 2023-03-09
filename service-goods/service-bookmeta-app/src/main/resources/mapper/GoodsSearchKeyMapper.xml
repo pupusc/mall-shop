@@ -24,7 +24,8 @@
                 and  gsk.name like  concat('%,',#{name},'%,')
             </if>
         </where>
-        limit 10
+        order by gsk.creat_time desc
+        limit 1
     </select>
 
     <select id="getAllGoodsSearchKey" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">

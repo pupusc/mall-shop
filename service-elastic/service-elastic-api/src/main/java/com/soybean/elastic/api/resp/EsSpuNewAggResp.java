@@ -74,6 +74,11 @@ public class EsSpuNewAggResp<S> implements Serializable {
     private CommonPageResp<S> result;
 
     /**
+     * 关键词广告商品
+     */
+    private S keyWordGoods;
+
+    /**
      * 活动信息
      */
     private PromoteInfo promoteInfo;
