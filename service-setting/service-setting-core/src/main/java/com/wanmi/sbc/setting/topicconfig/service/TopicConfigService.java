@@ -711,7 +711,7 @@ public class TopicConfigService {
         return content.stream().map(topicStoreySearch -> {
             TopicStoreyColumnDTO topicStoreyColumnDTO = new TopicStoreyColumnDTO();
             BeanUtils.copyProperties(topicStoreySearch, topicStoreyColumnDTO);
-            topicStoreyColumnDTO.setStartTime(topicStoreySearch.getCreateTime());
+            topicStoreyColumnDTO.setCreateTime(topicStoreySearch.getCreateTime());
             topicStoreyColumnDTO.setSorting(topicStoreySearch.getOrderNum());
             if (now.isBefore(topicStoreySearch.getCreateTime())) {
                 //未开始

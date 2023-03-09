@@ -32,11 +32,15 @@ public class TopicStoreyColumnDTO implements Serializable {
 
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime endTime;
+    private LocalDateTime beginTime;
+
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime createTime;
 
     private Integer deleted;
 
