@@ -40,7 +40,7 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
     @Override
     @Transactional
     public Integer insert(MetaBookRelationAddBO addBO) {
-        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey()                 ;
+        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey();
         List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
         MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
         List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
@@ -102,7 +102,7 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
 
     @Override
     public int updateAll(MetaBookRelationAddBO addBO) {
-        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey()                 ;
+        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey();
         List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
         MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
         List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
