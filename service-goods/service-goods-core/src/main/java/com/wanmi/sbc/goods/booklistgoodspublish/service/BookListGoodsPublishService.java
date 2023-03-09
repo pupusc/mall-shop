@@ -203,7 +203,7 @@ public class BookListGoodsPublishService {
     }
 
     public List<RankGoodsPublishResponse> getIds(List<Integer> ids) {
-        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findByBookListIdIn(ids), RankGoodsPublishResponse.class);
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.collectDistinctByDelFlagAndBookListIdIn(ids), RankGoodsPublishResponse.class);
         return responses;
     }
 

@@ -293,7 +293,8 @@ public class SearchController {
             spuIds.add(goodsNameBySpuIdBO.getSpuId());
             KeyWordSpuQueryReq req=new KeyWordSpuQueryReq();
             req.setSpuIds(spuIds);
-            EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(req).getContext();
+            req.setDelFlag(request.getDelFlag());
+            EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpuBySpuId(req).getContext();
             List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(esSpuNewAggResp.getResult().getContent(), customer);
             if(!CollectionUtils.isEmpty(spuNewBookListResps)){
                 result.setKeyWordGoods(spuNewBookListResps);

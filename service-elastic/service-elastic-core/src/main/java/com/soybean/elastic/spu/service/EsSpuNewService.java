@@ -305,6 +305,35 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         return boolQb;
     }
 
+    private BoolQueryBuilder packageKeyWordQueryBySpuId(EsKeyWordSpuNewQueryProviderReq req) {
+
+
+        BoolQueryBuilder boolQb = super.packageEsSpuNewReq(req);
+
+        if (req.getSearchSpuNewCategory() != null) {
+            boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+        }
+
+        //不展示spu信息
+        if (CollectionUtils.isNotEmpty(req.getUnSpuIds())) {
+            if (req.getUnSpuIds().size() > 1) {
+                boolQb.mustNot(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds()));
+            } else {
+                boolQb.mustNot(termQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds().get(0)));
+            }
+        }
+
+        //指定spu信息
+        if (CollectionUtils.isNotEmpty(req.getSpuIds())) {
+            if (req.getSpuIds().size() > 1) {
+                boolQb.must(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getSpuIds()));
+            } else {
+                boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getSpuIds().get(0)));
+            }
+        }
+        return boolQb;
+    }
+
     /**
      * 自定义权重
      * @param req
@@ -538,6 +567,45 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         return super.packageEsSpuNewAggResp(resultQueryPage, req);
     }
 
+
+    /**
+     * spuId搜索
+     * @param req
+     * @return
+     */
+    public EsSpuNewAggResp<List<EsSpuNewResp>> listKeyWorldEsSpuId(EsKeyWordSpuNewQueryProviderReq req) {
+        NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
+        builder.withIndices(AbstractCollectFactory.INDEX_ES_SPU_NEW);
+
+        //分页 从0开始
+        req.setPageNum(Math.max((req.getPageNum() - 1), 0));
+        builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
+
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryBySpuId(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.MULTIPLY);
+
+
+        //查询 条件
+        builder.withQuery(functionScoreQueryBuilder);
+
+        //聚合
+        for (AbstractAggregationBuilder packageAggregation : this.packageAggregations(/*context*/)) {
+            builder.addAggregation(packageAggregation);
+        }
+
+        //排序
+        for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
+            builder.withSort(fieldSortBuilder);
+        }
+
+
+
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsBookListModelService.listKeyWorldEsSpu DSL: {}", build.getQuery().toString());
+        AggregatedPage<EsSpuNew> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsSpuNew.class);
+
+//        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsSpuNewResp(resultQueryPage.getContent()));
+        return super.packageEsSpuNewAggResp(resultQueryPage, req);
+    }
 
     /**
      * 关键词搜索
