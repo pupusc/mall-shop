@@ -46,19 +46,15 @@ public class RedisKeyUtil {
     public final static String KEY_PAY_CHECK_LOCK = "KEY_PAY_CHECK_LOCK";
 
     /**
-     * 混合组件key
-     */
-    public final static String KEY_COMPONENT_MIXED = "KEY_COMPONENT_MIXED:tab";
-
-    /**
-     * 商品池key
-     */
-    public final static String KEY_POOL_GOODS = "KEY_GOODSPOOL:module";
-
-    /**
-     * 混合组件旧
+     * 混合组件
      */
     public final static String MIXED_COMPONENT = "ELASTIC_SAVE:HOMEPAGE:194:";
+
+    /**
+     * 混合组件
+     */
+    public final static String MIXED_COMPONENT_TAB = "ELASTIC_SAVE:HOMEPAGE:194:tab";
+
 
     /**
      * 首页榜单
