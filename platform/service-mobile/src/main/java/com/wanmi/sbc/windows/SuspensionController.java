@@ -133,7 +133,7 @@ public class SuspensionController {
     @PostMapping("/goodsDetail")
     public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId",required = false) String spuId,@RequestParam(value = "skuId,",required = false) String skuId)  {
         log.info("test10_start");
-        BaseResponse goodsDetialById = goodsProvider.getGoodsDetialById1(spuId, skuId);
+        BaseResponse goodsDetialById = topicService.getGoodsDetialById1(spuId, skuId);
         log.info("test10_end");
         return goodsDetialById;
     }

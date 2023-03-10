@@ -12,6 +12,7 @@ import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -96,6 +97,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1396,5 +1398,269 @@ public class TopicService {
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
             }
         }
+    }
+
+    public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
+
+        Map map=new HashMap<>();
+        String old_json=new String();
+        old_json = getGoodsDetialById(spuId, skuId, "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID");
+        map=JSONObject.parseObject(old_json,Map.class);
+
+        List<String> skuIdList=new ArrayList<>();
+        List<Map> maplist=new ArrayList<>();
+        List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
+        //循环每个推荐人取出skuId,并放入skuIdList
+//        List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
+//        List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
+        skuIdList = getSkuIdByGoodsDetail(old_json);
+        List<String> collect = skuIdList.stream().distinct().collect(Collectors.toList());
+
+        if(null==skuIdList ||skuIdList.size()==0 ){
+            //没有商品信息需要回填
+            return BaseResponse.success(map);
+        }
+
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(collect);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+        //用户信息
+        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+        //价格信息
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+
+        if(null==goodsPriceMap ||goodsPriceMap.size()==0 ){
+            //没有商品信息
+            return BaseResponse.success(map);
+        }
+
+//        if(null!=skuIdByGoodsDetailTableOne && skuIdByGoodsDetailTableOne.size()!=0){
+//            //推荐人有商品需要回填信息
+//            List detailList=goodsService.fillGoodsDetailTableOne(map,goodsPriceMap);
+//            map.put("bookDetail",detailList);
+//        }
+//        if(null!=skuIdByGoodsDetailOtherBook && skuIdByGoodsDetailOtherBook.size()!=0){
+//            //其他书籍有商品需要回填信息
+//            List otherBookList = goodsService.fillGoodsDetailOtherBook(map, goodsPriceMap);
+//            map.put("otherBook",otherBookList);
+//
+//        }
+
+        //table2有商品需要回填信息
+        map= fillGoodsDetail(old_json,goodsPriceMap);
+
+        //榜单
+        Map rankMap = getGoodsDetailRankById(spuId, skuId, "ELASTIC_SAVE:GOODS_TAGS_SPU_ID");
+        map.put("rank",rankMap);
+        return BaseResponse.success(map);
+    }
+
+    /**
+     * 通过spu或者sku取redis获取商详榜单信息
+     * @param spuId、skuId
+     * @return
+     */
+    public Map getGoodsDetailRankById(String spuId, String skuId,String redisTagsConstant) {
+
+        String old_json=null;
+        //优先用spuId去取
+        if(null!=spuId && spuId.isEmpty()==false){
+            old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+        } else{
+//            //spuId为空则通过skuId获取spuId
+//            if(null == skuId || skuId.isEmpty()){
+//                return null;
+//            }else {
+//                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
+//                spuId=goodsInfoMap.get("spuId");
+//                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+//            }
+            return null;
+        }
+
+        if(null==old_json || old_json.isEmpty()){
+            return null;//不去数据库再找了
+        }else {
+
+
+            Map map=JSONObject.parseObject(old_json,Map.class);
+
+            return map;
+        }
+    }
+
+    /**
+     * 通过spu或者sku取redis获取商详信息
+     * @param spuId、skuId
+     * @return
+     */
+    public String getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
+        String old_json=null;
+        //优先用spuId去取
+        if(null!=spuId && spuId.isEmpty()==false){
+            old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+        } else{
+//            //spuId为空则通过skuId获取spuId
+//            if(null == skuId || skuId.isEmpty()){
+//                return null;
+//            }else {
+//                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
+//                spuId=goodsInfoMap.get("spuId");
+//                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+//            }
+            return null;
+        }
+
+        if(null==old_json || old_json.isEmpty()){
+            return null;//不去数据库再找了
+        }else {
+
+            return old_json;
+            //     return old_json;
+        }
+    }
+    /**
+     * 收集商详table2相关信息中的skuId信息
+     * @param  old_json,skuIdList
+     * @return
+     */
+    public List<String> getSkuIdByGoodsDetail(String old_json) {
+
+        if(null==old_json){
+            return null;
+        }
+        return findJsonGetKey(old_json,"sku_id");
+
+    }
+
+    //递归查询,查询所有为key的value
+    public  List<String> findJsonGetKey(String fullResponseJson, String key) {
+
+        List<String> list = new ArrayList<>();
+
+        findValueObjectGetKey(JSONObject.parseObject(fullResponseJson), key, list);
+
+        return list;
+    }
+
+    /**
+     * 从json中查找对象
+     *
+     * @param fullResponse json对象
+     * @param key          json key
+     */
+    private  void findValueObjectGetKey(JSONObject fullResponse, String key,List list) {
+
+        if (fullResponse == null) {
+            return;
+        }
+        fullResponse.keySet().forEach(keyStr -> {
+            Object keyvalue = fullResponse.get((String) keyStr);
+            if (keyvalue instanceof JSONArray) {
+                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
+                    Object obj = ((JSONArray) keyvalue).get(i);
+                    if (obj instanceof JSONObject) {
+                        findValueObjectGetKey(((JSONObject) obj), key,list);
+                    }
+                }
+            } else if (keyvalue instanceof JSONObject) {
+                findValueObjectGetKey((JSONObject) keyvalue,key, list);
+            } else {
+                if (key.equals(keyStr)) {
+                    list.add(keyvalue);
+                }
+            }
+        });
+    }
+
+    public Map fillGoodsDetail(String old_json, Map<String, GoodsInfoVO> goodsPriceMap) {
+        Map mapTemp=new HashMap<>();
+//        String s = map.toString();
+        JSONObject jsonObject = JSONObject.parseObject(old_json);
+        goodsPriceMap.entrySet().stream().forEach(e->{
+            mapTemp.put(e.getKey(),ObjectToMap(e.getValue()));
+        });
+        richJson(jsonObject,"sku_id",mapTemp);
+        return JSONObject.toJavaObject(jsonObject,Map.class);
+    }
+
+    public Map ObjectToMap(Object o) {
+        Map map=new HashMap<>();
+        Class<?> clazz = o.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        Arrays.stream(fields).forEach(f->{
+            f.setAccessible(true);
+            try {
+                map.put(f.getName(),f.get(o));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+        return map;
+    }
+
+    //丰富
+    public  void richJson(JSONObject jsonObject, String key, Map richMap) {
+
+        List list = findJsonGetList(jsonObject,key);
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            String value = String.valueOf(map.get(key));
+
+            Map findMap = (Map)richMap.get(value);
+            if(findMap != null){
+
+                map.put("goodsInfoImg",findMap.get("goodsInfoImg"));
+                map.put("marketPrice",findMap.get("marketPrice"));
+                map.put("salePrice",findMap.get("salePrice"));
+            }
+        }
+
+    }
+
+    //递归查询,查询所有为key的value
+    public  List<Map> findJsonGetList(JSONObject jsonObject, String key) {
+
+        List<Map> list = new ArrayList<>();
+
+        findValueObjectGetList(jsonObject, key, list);
+
+        return list;
+    }
+
+    /**
+     * 从json中查找对象
+     *
+     * @param fullResponse json对象
+     * @param key          json key
+     */
+    private  void findValueObjectGetList(JSONObject fullResponse, String key,List list) {
+
+        if (fullResponse == null) {
+            return;
+        }
+        fullResponse.keySet().forEach(keyStr -> {
+            Object keyvalue = fullResponse.get((String) keyStr);
+            if (keyvalue instanceof JSONArray) {
+                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
+                    Object obj = ((JSONArray) keyvalue).get(i);
+                    if (obj instanceof JSONObject) {
+                        findValueObjectGetList(((JSONObject) obj), key,list);
+                    }
+                }
+            } else if (keyvalue instanceof JSONObject) {
+                findValueObjectGetList((JSONObject) keyvalue,key, list);
+            } else {
+                if (key.equals(keyStr)) {
+                    list.add(fullResponse);
+                }
+            }
+        });
     }
 }

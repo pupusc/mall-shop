@@ -900,6 +900,8 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.success(map);
     }
 
+    //迁移到mobile里面了
+    @Deprecated
     @Override
     public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
 
@@ -912,9 +914,9 @@ public class GoodsController implements GoodsProvider {
         List<Map> maplist=new ArrayList<>();
         List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
         //循环每个推荐人取出skuId,并放入skuIdList
-        List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
-        List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
-        List<String> skuIdByGoodsDetailTableTwo = goodsService.getSkuIdByGoodsDetailTableTwo(old_json, skuIdList);
+//        List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
+//        List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
+        skuIdList = goodsService.getSkuIdByGoodsDetail(old_json);
         List<String> collect = skuIdList.stream().distinct().collect(Collectors.toList());
 
         if(null==skuIdList ||skuIdList.size()==0 ){
@@ -941,22 +943,20 @@ public class GoodsController implements GoodsProvider {
             return BaseResponse.success(map);
         }
 
-        if(null!=skuIdByGoodsDetailTableOne && skuIdByGoodsDetailTableOne.size()!=0){
-            //推荐人有商品需要回填信息
-            List detailList=goodsService.fillGoodsDetailTableOne(map,goodsPriceMap);
-            map.put("bookDetail",detailList);
-        }
-        if(null!=skuIdByGoodsDetailOtherBook && skuIdByGoodsDetailOtherBook.size()!=0){
-            //其他书籍有商品需要回填信息
-            List otherBookList = goodsService.fillGoodsDetailOtherBook(map, goodsPriceMap);
-            map.put("otherBook",otherBookList);
+//        if(null!=skuIdByGoodsDetailTableOne && skuIdByGoodsDetailTableOne.size()!=0){
+//            //推荐人有商品需要回填信息
+//            List detailList=goodsService.fillGoodsDetailTableOne(map,goodsPriceMap);
+//            map.put("bookDetail",detailList);
+//        }
+//        if(null!=skuIdByGoodsDetailOtherBook && skuIdByGoodsDetailOtherBook.size()!=0){
+//            //其他书籍有商品需要回填信息
+//            List otherBookList = goodsService.fillGoodsDetailOtherBook(map, goodsPriceMap);
+//            map.put("otherBook",otherBookList);
+//
+//        }
 
-        }
-        if(null!=skuIdByGoodsDetailTableTwo && skuIdByGoodsDetailTableTwo.size()!=0){
             //table2有商品需要回填信息
-            goodsService.fillGoodsDetailTableTwo(old_json,goodsPriceMap);
-        }
-
+            map= goodsService.fillGoodsDetail(old_json,goodsPriceMap);
 
         //榜单
         Map rankMap = goodsService.getGoodsDetailRankById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID);

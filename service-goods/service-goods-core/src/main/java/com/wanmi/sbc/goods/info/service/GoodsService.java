@@ -3818,7 +3818,7 @@ public class GoodsService {
     }
 
     //递归查询,查询所有为key的value
-    public static List<String> findJsonGetKey(String fullResponseJson, String key) {
+    public  List<String> findJsonGetKey(String fullResponseJson, String key) {
 
         List<String> list = new ArrayList<>();
 
@@ -3833,7 +3833,7 @@ public class GoodsService {
      * @param fullResponse json对象
      * @param key          json key
      */
-    private static void findValueObjectGetKey(JSONObject fullResponse, String key,List list) {
+    private  void findValueObjectGetKey(JSONObject fullResponse, String key,List list) {
 
         if (fullResponse == null) {
             return;
@@ -3858,7 +3858,7 @@ public class GoodsService {
     }
 
     //丰富
-    public static void richJson(JSONObject jsonObject, String key, Map richMap) {
+    public  void richJson(JSONObject jsonObject, String key, Map richMap) {
 
         List list = findJsonGetList(jsonObject,key);
         for(int i=0;i<list.size();i++){
@@ -3877,7 +3877,7 @@ public class GoodsService {
     }
 
     //递归查询,查询所有为key的value
-    public static List<Map> findJsonGetList(JSONObject jsonObject, String key) {
+    public  List<Map> findJsonGetList(JSONObject jsonObject, String key) {
 
         List<Map> list = new ArrayList<>();
 
@@ -3892,7 +3892,7 @@ public class GoodsService {
      * @param fullResponse json对象
      * @param key          json key
      */
-    private static void findValueObjectGetList(JSONObject fullResponse, String key,List list) {
+    private  void findValueObjectGetList(JSONObject fullResponse, String key,List list) {
 
         if (fullResponse == null) {
             return;
@@ -3946,11 +3946,13 @@ public class GoodsService {
 
             return map;
         }
-    }    /**
+    }
+    /**
      * 收集商详table1相关信息中的skuId信息
      * @param  map, skuIdList 商详中的所有sku
      * @return skuIdTableOneList table1中sku
      */
+    @Deprecated
     public List<String> getSkuIdByGoodsDetailTableOne(Map map,List<String> skuIdList) {
         List<String> skuIdTableOneList=new ArrayList<>();
         List detailList=(List)map.get("bookDetail");
@@ -3978,6 +3980,7 @@ public class GoodsService {
      * @param  map,skuIdList
      * @return
      */
+    @Deprecated
     public List<String> getSkuIdByGoodsDetailOtherBook(Map map, List<String> skuIdList) {
         List<String> skuIdOtherBookList=new ArrayList<>();
         List otherBookList=(List)map.get("otherBook");
@@ -3998,17 +4001,16 @@ public class GoodsService {
 
     /**
      * 收集商详table2相关信息中的skuId信息
-     * @param  map,skuIdList
+     * @param  old_json,skuIdList
      * @return
      */
-    public List<String> getSkuIdByGoodsDetailTableTwo(String old_json, List<String> skuIdList) {
+    public List<String> getSkuIdByGoodsDetail(String old_json) {
 
         if(null==old_json){
             return null;
         }
-        List list = findJsonGetKey(old_json,"sku_id");
-        skuIdList.addAll(list);
-        return list;
+       return findJsonGetKey(old_json,"sku_id");
+
     }
 
     /**
@@ -4070,7 +4072,7 @@ public class GoodsService {
 
     }
 
-    public void fillGoodsDetailTableTwo(String old_json, Map<String, GoodsInfoVO> goodsPriceMap) {
+    public Map fillGoodsDetail(String old_json, Map<String, GoodsInfoVO> goodsPriceMap) {
         Map mapTemp=new HashMap<>();
 //        String s = map.toString();
         JSONObject jsonObject = JSONObject.parseObject(old_json);
@@ -4078,6 +4080,7 @@ public class GoodsService {
             mapTemp.put(e.getKey(),ObjectToMap(e.getValue()));
         });
         richJson(jsonObject,"sku_id",mapTemp);
+        return JSONObject.toJavaObject(jsonObject,Map.class);
     }
 
     public Map ObjectToMap(Object o) {

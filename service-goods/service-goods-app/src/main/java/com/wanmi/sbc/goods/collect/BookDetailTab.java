@@ -97,6 +97,8 @@ public class BookDetailTab {
             maptemp.remove("create_time");
             maptemp.remove("is_selected");
             maptemp.remove("biz_time");
+            maptemp.put("sku_id",maptemp.get("goods_info_id"));
+            maptemp.remove("goods_info_id");
             if(null==maptemp.get("biz_type") || null== maptemp.get("biz_id")){
                 return null;
             }
@@ -140,7 +142,7 @@ public class BookDetailTab {
                         }
                         mapTemp.put("goods_id",spu_id);
                         mapTemp.put("goods_info_name",goods_name);
-                        mapTemp.put("goods_info_id",sku_id);
+                        mapTemp.put("sku_id",sku_id);
                         goodsInfoMap.add(mapTemp) ;
                 }});
 
@@ -149,13 +151,13 @@ public class BookDetailTab {
                 }
                 //构建返回类型
                 List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
-                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("goods_info_id")){
+                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("sku_id")){
                         return null;
                     }
                     Map recomentBookVo = new HashMap<>();
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
-                    recomentBookVo.put("goodsInfoId", goodsInfoMapTemp.get("goods_info_id").toString());
+                    recomentBookVo.put("sku_id", goodsInfoMapTemp.get("sku_id").toString());
                     TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(goodsInfoMapTemp.get("goods_id").toString()), TagsDto.class);
                     if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
                         recomentBookVo.put("tagsDto",tagsDto);
