@@ -63,6 +63,20 @@ public class GoodRepository {
         return list;
     }
 
+    //订购须知
+    public Map getOrderDetail(String spuId) {
+        Map map = null;
+
+        String sql = " select order_show_type, order_detail from goods where goods_id = ? " +
+                " and del_flag = 0 ";
+        Object[] obj = new Object[]{spuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            map = (Map)list.get(0);
+        }
+        return map;
+    }
+
     //根据spu获取sku
     public Map getSkuBySpuId(String spu_id) {
         Map skuMap = null;

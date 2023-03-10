@@ -512,6 +512,17 @@ public class TopicConfigController {
      * @status undone
      */
     @ApiOperation("商品池详情")
+    @PostMapping("/storey/v2/goodsPool/preview")
+    public BaseResponse<List<KeyWordDto>> previewGoodsPool(@RequestBody MixedComponentContentRequest request){
+        return BaseResponse.success(topicConfigService.previewGoodsPool(request));
+    }
+
+    /**
+     * @description 瀑布流预览
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("瀑布流预览")
     @PostMapping("/storey/v2/goodsPool/get")
     public BaseResponse<MixedComponentGoodsDto> getGoodsPool(@RequestBody MixedComponentTabQueryRequest request){
         return topicConfigProvider.getGoodsPool(request);

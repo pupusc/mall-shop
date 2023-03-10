@@ -5,7 +5,9 @@ import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.ColumnContentAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.ColumnContentQueryRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentGoodsAddRequest;
+import com.wanmi.sbc.setting.bean.dto.ColumnContentDTO;
 import com.wanmi.sbc.setting.bean.enums.BookType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -69,6 +71,9 @@ public class ExcelService {
                         String NOTSPU = "NO SPU";
                         return "spu编号为必填项!" + NOTSPU;
                     }
+                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+                    columnContentQueryRequest.setSpuId(spu);
+                    List<ColumnContentDTO> context = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
                     ++j;
                     //导入的商品名称
                     String goodsName = row.getCell(j)==null?"":new DataFormatter().formatCellValue(row.getCell(j));
