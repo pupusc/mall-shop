@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting.presetsearch.service;
 
 
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsListResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsQueryResponse;
 import com.wanmi.sbc.setting.bean.vo.PresetSearchTermsVO;
 import com.wanmi.sbc.setting.presetsearch.model.PresetSearchTerms;
@@ -33,6 +34,17 @@ public class PresetSearchTermsService {
         }
         presetSearchTermsRepositoy.save(presetSearchTerms);
         return presetSearchTerms;
+    }
+
+    /**
+     * 新增预置搜索词
+     *
+     * @param presetSearchTerms
+     * @return
+     */
+    public List<PresetSearchTerms> addBatch(List<PresetSearchTerms> presetSearchTerms) {
+        List<PresetSearchTerms> presetSearchTermsList = presetSearchTermsRepositoy.saveAll(presetSearchTerms);
+        return presetSearchTermsList;
     }
 
     /**

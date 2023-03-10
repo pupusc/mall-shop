@@ -2,8 +2,10 @@ package com.wanmi.sbc.setting.api.provider.presetsearch;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsListRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsModifyRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsRequest;
+import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsListResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +29,15 @@ public interface PresetSearchTermsSaveProvider {
      */
     @PostMapping("/setting/${application.setting.version}/preset_search_terms/add")
     BaseResponse<PresetSearchTermsResponse> add(@RequestBody @Valid PresetSearchTermsRequest request);
+
+    /**
+     * 新增预置搜索API
+     * @author weiwenhao
+     * @param request 基本设置新增参数结构 {@link PresetSearchTermsRequest}
+     * @return 新增的基本设置信息 {@link PresetSearchTermsRequest}
+     */
+    @PostMapping("/setting/${application.setting.version}/preset_search_terms/addBatch")
+    BaseResponse<PresetSearchTermsListResponse> addBatch(@RequestBody @Valid PresetSearchTermsListRequest request);
 
     /**
      * 编辑预置搜索API
