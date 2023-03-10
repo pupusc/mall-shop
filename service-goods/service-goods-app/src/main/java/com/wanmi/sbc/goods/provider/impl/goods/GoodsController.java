@@ -833,7 +833,8 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse getGoodsDetialById(String spuId, String skuId) {
 
 
-        Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+        Map map=new HashMap<>();
+       // Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
         //填充会员价
         List detailList=(List)map.get("bookDetail");
         Map medioMap =(Map) detailList.get(0);
@@ -902,16 +903,19 @@ public class GoodsController implements GoodsProvider {
     @Override
     public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
 
-
-        Map map = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+        Map map=new HashMap<>();
+        String old_json=new String();
+        old_json = goodsService.getGoodsDetialById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID);
+        map=JSONObject.parseObject(old_json,Map.class);
 
         List<String> skuIdList=new ArrayList<>();
-
+        List<Map> maplist=new ArrayList<>();
         List<MetaBookRcmmdFigureBO> metaBookRcmmdFigureBOS=new ArrayList<>();
         //循环每个推荐人取出skuId,并放入skuIdList
         List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
         List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
-        List<String> skuIdByGoodsDetailTableTwo = goodsService.getSkuIdByGoodsDetailTableTwo(map, skuIdList);
+        List<String> skuIdByGoodsDetailTableTwo = goodsService.getSkuIdByGoodsDetailTableTwo(old_json, skuIdList);
+        List<String> collect = skuIdList.stream().distinct().collect(Collectors.toList());
 
         if(null==skuIdList ||skuIdList.size()==0 ){
             //没有商品信息需要回填
@@ -919,7 +923,7 @@ public class GoodsController implements GoodsProvider {
         }
 
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
-        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(collect);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
         //用户信息
         String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
@@ -950,7 +954,7 @@ public class GoodsController implements GoodsProvider {
         }
         if(null!=skuIdByGoodsDetailTableTwo && skuIdByGoodsDetailTableTwo.size()!=0){
             //table2有商品需要回填信息
-            goodsService.fillGoodsDetailTableTwo(map,goodsPriceMap);
+            goodsService.fillGoodsDetailTableTwo(old_json,goodsPriceMap);
         }
 
 

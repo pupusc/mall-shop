@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.info.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.soybean.common.util.WebConstantUtil;
@@ -159,6 +160,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -3790,8 +3792,7 @@ public class GoodsService {
      * @param spuId、skuId
      * @return
      */
-    public Map getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
-
+    public String getGoodsDetialById(String spuId, String skuId,String redisTagsConstant) {
         String old_json=null;
         //优先用spuId去取
         if(null!=spuId && spuId.isEmpty()==false){
@@ -3811,12 +3812,109 @@ public class GoodsService {
             return null;//不去数据库再找了
         }else {
 
-            Map map=JSONObject.parseObject(old_json,Map.class);
-
-            return map;
+             return old_json;
+       //     return old_json;
         }
     }
 
+    //递归查询,查询所有为key的value
+    public static List<String> findJsonGetKey(String fullResponseJson, String key) {
+
+        List<String> list = new ArrayList<>();
+
+        findValueObjectGetKey(JSONObject.parseObject(fullResponseJson), key, list);
+
+        return list;
+    }
+
+    /**
+     * 从json中查找对象
+     *
+     * @param fullResponse json对象
+     * @param key          json key
+     */
+    private static void findValueObjectGetKey(JSONObject fullResponse, String key,List list) {
+
+        if (fullResponse == null) {
+            return;
+        }
+        fullResponse.keySet().forEach(keyStr -> {
+            Object keyvalue = fullResponse.get((String) keyStr);
+            if (keyvalue instanceof JSONArray) {
+                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
+                    Object obj = ((JSONArray) keyvalue).get(i);
+                    if (obj instanceof JSONObject) {
+                        findValueObjectGetKey(((JSONObject) obj), key,list);
+                    }
+                }
+            } else if (keyvalue instanceof JSONObject) {
+                findValueObjectGetKey((JSONObject) keyvalue,key, list);
+            } else {
+                if (key.equals(keyStr)) {
+                    list.add(keyvalue);
+                }
+            }
+        });
+    }
+
+    //丰富
+    public static void richJson(JSONObject jsonObject, String key, Map richMap) {
+
+        List list = findJsonGetList(jsonObject,key);
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            String value = String.valueOf(map.get(key));
+
+            Map findMap = (Map)richMap.get(value);
+            if(findMap != null){
+
+                map.put("goodsInfoImg",findMap.get("goodsInfoImg"));
+                map.put("marketPrice",findMap.get("marketPrice"));
+                map.put("salePrice",findMap.get("salePrice"));
+            }
+        }
+
+    }
+
+    //递归查询,查询所有为key的value
+    public static List<Map> findJsonGetList(JSONObject jsonObject, String key) {
+
+        List<Map> list = new ArrayList<>();
+
+        findValueObjectGetList(jsonObject, key, list);
+
+        return list;
+    }
+
+    /**
+     * 从json中查找对象
+     *
+     * @param fullResponse json对象
+     * @param key          json key
+     */
+    private static void findValueObjectGetList(JSONObject fullResponse, String key,List list) {
+
+        if (fullResponse == null) {
+            return;
+        }
+        fullResponse.keySet().forEach(keyStr -> {
+            Object keyvalue = fullResponse.get((String) keyStr);
+            if (keyvalue instanceof JSONArray) {
+                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
+                    Object obj = ((JSONArray) keyvalue).get(i);
+                    if (obj instanceof JSONObject) {
+                        findValueObjectGetList(((JSONObject) obj), key,list);
+                    }
+                }
+            } else if (keyvalue instanceof JSONObject) {
+                findValueObjectGetList((JSONObject) keyvalue,key, list);
+            } else {
+                if (key.equals(keyStr)) {
+                    list.add(fullResponse);
+                }
+            }
+        });
+    }
     /**
      * 通过spu或者sku取redis获取商详榜单信息
      * @param spuId、skuId
@@ -3842,6 +3940,7 @@ public class GoodsService {
         if(null==old_json || old_json.isEmpty()){
             return null;//不去数据库再找了
         }else {
+
 
             Map map=JSONObject.parseObject(old_json,Map.class);
 
@@ -3902,8 +4001,14 @@ public class GoodsService {
      * @param  map,skuIdList
      * @return
      */
-    public List<String> getSkuIdByGoodsDetailTableTwo(Map map, List<String> skuIdList) {
-        return null;
+    public List<String> getSkuIdByGoodsDetailTableTwo(String old_json, List<String> skuIdList) {
+
+        if(null==old_json){
+            return null;
+        }
+        List list = findJsonGetKey(old_json,"sku_id");
+        skuIdList.addAll(list);
+        return list;
     }
 
     /**
@@ -3928,10 +4033,13 @@ public class GoodsService {
                 //循环其推荐列表
                 for(Object o  :recomentBookBoList){
                     Map recomentBookVo=(Map) o;
-                    Object goods_info_id = recomentBookVo.get("goods_info_id");
+                    Object goods_info_id = recomentBookVo.get("goodsInfoId");
                     if(null != goods_info_id && null != goodsPriceMap.get(goods_info_id.toString())){
                         // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
                         BeanUtils.copyProperties(goodsPriceMap.get(goods_info_id.toString()),recomentBookVo);
+                        recomentBookVo.put("goodsInfoImg",goodsPriceMap.get(goods_info_id.toString()).getGoodsInfoImg());
+                        recomentBookVo.put("marketPrice",goodsPriceMap.get(goods_info_id.toString()).getMarketPrice());
+                        recomentBookVo.put("salePrice",goodsPriceMap.get(goods_info_id.toString()).getSalePrice());
                     }
                 }
             }
@@ -3954,12 +4062,36 @@ public class GoodsService {
             if(null != sku_id && null != goodsPriceMap.get(sku_id.toString())){
                 // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
                 otherBookMap.put("sale_price",goodsPriceMap.get(sku_id.toString()).getSalePrice());
+                otherBookMap.put("goods_info_img",goodsPriceMap.get(sku_id.toString()).getGoodsInfoImg());
+                otherBookMap.put("market_price",goodsPriceMap.get(sku_id.toString()).getMarketPrice());
             }
         }
         return otherBookList;
 
     }
 
-    public void fillGoodsDetailTableTwo(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
+    public void fillGoodsDetailTableTwo(String old_json, Map<String, GoodsInfoVO> goodsPriceMap) {
+        Map mapTemp=new HashMap<>();
+//        String s = map.toString();
+        JSONObject jsonObject = JSONObject.parseObject(old_json);
+        goodsPriceMap.entrySet().stream().forEach(e->{
+            mapTemp.put(e.getKey(),ObjectToMap(e.getValue()));
+        });
+        richJson(jsonObject,"sku_id",mapTemp);
+    }
+
+    public Map ObjectToMap(Object o) {
+        Map map=new HashMap<>();
+        Class<?> clazz = o.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        Arrays.stream(fields).forEach(f->{
+            f.setAccessible(true);
+            try {
+                map.put(f.getName(),f.get(o));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+        return map;
     }
 }
