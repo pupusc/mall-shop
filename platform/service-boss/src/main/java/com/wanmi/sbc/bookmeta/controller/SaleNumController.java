@@ -9,6 +9,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -163,5 +164,10 @@ public class SaleNumController {
     @PostMapping("/updateSaleNum")
     public BusinessResponse<Integer> Update(@RequestBody SaleNumBO saleNumBO) {
         return saleNumProvider.updateSaleNum(saleNumBO);
+    }
+
+    @PostMapping("/getSaleNum")
+    public BusinessResponse<List<SaleNumBO>> get(@RequestBody SaleNumBO saleNumBO) {
+        return saleNumProvider.getSaleNum(saleNumBO);
     }
 }

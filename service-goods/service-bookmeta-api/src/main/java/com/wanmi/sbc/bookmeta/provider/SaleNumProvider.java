@@ -25,4 +25,7 @@ public interface SaleNumProvider {
 
     @PostMapping("/goods/${application.goods.version}/saleName/updateSaleNum")
     BusinessResponse<Integer> updateSaleNum(@RequestBody SaleNumBO saleNumBO);
+
+    @PostMapping("/goods/${application.goods.version}/saleName/getSaleNum")
+    BusinessResponse<List<SaleNumBO>> getSaleNum(@RequestBody SaleNumBO saleNumBO);
 }

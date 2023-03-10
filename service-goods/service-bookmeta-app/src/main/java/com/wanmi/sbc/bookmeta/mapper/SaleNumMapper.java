@@ -17,6 +17,7 @@ import java.util.Map;
 @Repository
 public interface SaleNumMapper {
     List<Map> getAllSaleNum();
+    List<SaleNum> getSaleNum(SaleNum saleNum);
 
     int existSpu(String spuId);
     int existSku(String skuId);

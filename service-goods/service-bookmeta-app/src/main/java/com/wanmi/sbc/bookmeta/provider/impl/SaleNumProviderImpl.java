@@ -74,4 +74,12 @@ public class SaleNumProviderImpl implements SaleNumProvider {
     public BusinessResponse<Integer> updateSaleNum(SaleNumBO saleNumBO) {
         return BusinessResponse.success(saleNumMapper.update(KsBeanUtil.convert(saleNumBO, SaleNum.class)));
     }
+
+    @Override
+    public BusinessResponse<List<SaleNumBO>> getSaleNum(SaleNumBO saleNumBO) {
+        SaleNum convert = KsBeanUtil.convert(saleNumBO, SaleNum.class);
+        List<SaleNum> saleNum = saleNumMapper.getSaleNum(convert);
+        List<SaleNumBO> saleNumBOS = KsBeanUtil.convertList(saleNum, SaleNumBO.class);
+        return BusinessResponse.success(saleNumBOS);
+    }
 }
