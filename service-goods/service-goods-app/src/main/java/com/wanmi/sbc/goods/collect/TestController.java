@@ -30,8 +30,12 @@ public class TestController {
     @Autowired
     MarketLabel marketLabel;
 
-    @Autowired
-    CacheService cacheService;
+      @Autowired
+      CacheService cacheService;
+      @Autowired
+      GoodsTestCacheService goodsCacheService;
+      @Autowired
+      BookCacheService bookCacheService;
 
     @GetMapping("/test")
     public BaseResponse test(){
@@ -49,7 +53,10 @@ public class TestController {
 
         marketLabel.doMarket();     //营销标签
 
-        cacheService.clear();       //释放内存
+        bookCacheService.clear();  //释放内存
+        goodsCacheService.clear();
+        cacheService.clear();
+
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());
 

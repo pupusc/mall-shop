@@ -1,11 +1,9 @@
 package com.wanmi.sbc.goods.collect;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.goods.collect.respository.BookRepository;
 import com.wanmi.sbc.goods.collect.respository.GoodRepository;
-import com.wanmi.sbc.goods.jpa.JpaManager;
 import com.wanmi.sbc.goods.redis.RedisService;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +29,10 @@ public class GoodTags {
     @Autowired
     BookTags bookTags;
 
+
+    @Autowired
+    private GoodsTestCacheService goodsCacheService;
+
     public void doGoods(){
 
         List list = goodJpa.getGoodsList();
@@ -53,21 +55,24 @@ public class GoodTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        List tagList = goodJpa.getTagList(spu_id);
+        //List tagList = goodJpa.getTagList(spu_id);
+         List tagList = goodsCacheService.getTagList(spu_id);
         if(tagList !=null && tagList.size() > 0){
             allList.addAll(tagList);
         }
 
         //20. 榜单标签
         if(StringUtil.isNotBlank(spu_no)) {
-            List topList = bookJpa.getTopList(spu_no);
+            //List topList = bookJpa.getTopList(spu_no);
+            List topList = goodsCacheService.getTopList(spu_no);
             if(topList!=null && topList.size() > 0){
                 allList.addAll(topList);
             }
         }
 
         //90. 取商品上关联的静态标签，按标签优先级依次呈现
-        List staticList = goodJpa.getStaticList(spu_id);
+        //List staticList = goodJpa.getStaticList(spu_id);
+        List staticList = goodsCacheService.getStaticList(spu_id);
         if(staticList!=null && staticList.size() > 0){
             allList.addAll(staticList);
         }

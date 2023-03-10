@@ -39,6 +39,9 @@ public class BookDetailTab {
     @Autowired
     GoodTags goodTags;
 
+    @Autowired
+    MarketLabel marketLabel;
+
     //图书tab
     void doBook(Map goodMap) {
 
@@ -85,6 +88,7 @@ public class BookDetailTab {
         if(null==metaBookRcmmdFigureList || metaBookRcmmdFigureList.size()==0){
             return;
         }
+
         //对于每一个推荐人，找到其推荐列表
         List<Map> result =(List<Map>) metaBookRcmmdFigureList.stream().map(bs -> {
             Map maptemp=(Map) bs;
@@ -93,6 +97,8 @@ public class BookDetailTab {
             maptemp.remove("create_time");
             maptemp.remove("is_selected");
             maptemp.remove("biz_time");
+            maptemp.put("sku_id",maptemp.get("goods_info_id"));
+            maptemp.remove("goods_info_id");
             if(null==maptemp.get("biz_type") || null== maptemp.get("biz_id")){
                 return null;
             }
@@ -136,7 +142,7 @@ public class BookDetailTab {
                         }
                         mapTemp.put("goods_id",spu_id);
                         mapTemp.put("goods_info_name",goods_name);
-                        mapTemp.put("goods_info_id",sku_id);
+                        mapTemp.put("sku_id",sku_id);
                         goodsInfoMap.add(mapTemp) ;
                 }});
 
@@ -145,13 +151,13 @@ public class BookDetailTab {
                 }
                 //构建返回类型
                 List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
-                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("goods_info_id")){
+                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("sku_id")){
                         return null;
                     }
                     Map recomentBookVo = new HashMap<>();
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
-                    recomentBookVo.put("goodsInfoId", goodsInfoMapTemp.get("goods_info_id").toString());
+                    recomentBookVo.put("sku_id", goodsInfoMapTemp.get("sku_id").toString());
                     TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(goodsInfoMapTemp.get("goods_id").toString()), TagsDto.class);
                     if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
                         recomentBookVo.put("tagsDto",tagsDto);
@@ -383,23 +389,30 @@ public class BookDetailTab {
     }
 
 
-
     //讲稿中提到的其他书籍
     private void doOtherBooks(Map redisMap, String book_id) {
 
+        List list = bookJpa.getOther(book_id);
+        List ret = getBookList(list);
+
+        redisMap.put("otherBook",ret);
+    }
+
+    //通过书去查找书籍~商品
+    public List getBookList(List bookList){
+
         List ret = new ArrayList();
 
-        List list = bookJpa.getOther(book_id);
-        for(int i=0;i<list.size();i++){
-            Map map = (Map)list.get(i);
+        for(int i=0;i<bookList.size();i++){
+            Map map = (Map)bookList.get(i);
             String isbn = String.valueOf(map.get("isbn"));
             Map goodMap = bookJpa.findSpuByV3(isbn);
             if(goodMap != null && goodMap.size() >0){
                 String spu_no = String.valueOf(goodMap.get("spu_no"));
                 String goods_name = String.valueOf(goodMap.get("goods_name"));
                 String spu_id = String.valueOf(goodMap.get("spu_id"));
-                String sku_id = null;
                 Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                String sku_id = "";
                 if(skuBySpuId != null && skuBySpuId.size() >0){
                     sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
                     map.put("sku_id",sku_id);
@@ -408,16 +421,15 @@ public class BookDetailTab {
                 map.put("spu_no",spu_no);
                 map.put("goods_name",goods_name);
                 if(null!= spu_id) {
-                    TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(spu_id), TagsDto.class);
-                    map.put("tags",tagsDto);
+                    //修改
+                    //TagsDto tagsDto = JSON.parseObject(marketLabel.getRedis_Tags(sku_id), TagsDto.class);
+                    //map.put("tags",tagsDto);
                 }
                 ret.add(map);
             }
         }
-
-        redisMap.put("otherBook",ret);
+        return ret;
     }
-
     //推荐内容~关键词
     private void doSearch(Map redisMap, String book_id) {
         List list = bookJpa.book_search_name(book_id);

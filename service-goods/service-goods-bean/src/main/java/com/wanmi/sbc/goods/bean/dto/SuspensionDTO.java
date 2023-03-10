@@ -36,6 +36,24 @@ public class SuspensionDTO {
      */
     @ApiModelProperty(value = "跳转url")
     private String toHref;
+    /**
+     * 背景颜色
+     */
+    private String backColor;
 
+    /**
+     * 字体颜色
+     */
+    private String wordColor;
+
+    /**
+     * 生效时间
+     */
+    private LocalDateTime startTime;
+
+    /**
+     *结束时间
+     */
+    private LocalDateTime endTime;
 
 }

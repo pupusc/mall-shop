@@ -31,6 +31,9 @@ public class MarketLabel {
     @Autowired
     BookRepository bookJpa;
 
+    @Autowired
+    private CacheService cacheService;
+
     public void doMarket(){
 
         List list = marketJpa.getSkuList();
@@ -54,43 +57,47 @@ public class MarketLabel {
         //sku_id= "2c9a009b86a5b1850186a6ae64c80004";
 
         //10.积分
-        List pointList = marketJpa.getPointList(sku_id);
+        //List pointList = marketJpa.getPointList(sku_id);
+        List pointList = cacheService.getPointList(sku_id);
         if(pointList !=null && pointList.size() > 0){
             allList.addAll(pointList);
         }
 
         //20.榜单
-        List topList = marketJpa.getTopList(sku_id);
+        List topList = cacheService.getTopList(sku_id);
         if(topList !=null && topList.size() > 0){
             allList.addAll(topList);
         }
 
         //30. 满减
-        List markingList1 = marketJpa.getMarking1List(sku_id);
+        //marketJpa.getMarking1List(sku_id);
+        List markingList1 = cacheService.getMarking1List(sku_id);
         if(markingList1 !=null && markingList1.size() > 0){
             allList.addAll(markingList1);
         }
 
         //40. 满折
-        List markingList2 = marketJpa.getMarking2List(sku_id);
+        //List markingList2 = marketJpa.getMarking2List(sku_id);
+        List markingList2 = cacheService.getMarking2List(sku_id);
         if(markingList2 !=null && markingList2.size() > 0){
             allList.addAll(markingList2);
         }
 
         //50. 满49元包邮
-        List list49 = marketJpa.get49List(spu_id);
+        List list49 = cacheService.get49List(spu_id);
         if(list49 !=null && list49.size() > 0){
             allList.addAll(list49);
         }
 
         //60. 大促标签
-        List tagList1 = marketJpa.getTagList1(spu_id);
+        List tagList1 = cacheService.getTagList1(spu_id);
         if(tagList1 !=null && tagList1.size() > 0){
             allList.addAll(tagList1);
         }
 
         //70. 其它标签
-        List tagList2 = marketJpa.getTagList2(spu_id);
+       // List tagList2 = marketJpa.getTagList2(spu_id);
+        List tagList2 = cacheService.getTagList2(spu_id);
         if(tagList2 !=null && tagList2.size() > 0){
             allList.addAll(tagList2);
         }

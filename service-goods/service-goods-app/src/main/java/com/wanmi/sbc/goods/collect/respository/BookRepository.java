@@ -432,7 +432,7 @@ public class BookRepository {
     }
 
 
-    //通过book_id得到出品方名称,且不包含这本书
+    //推荐人列表
     public List RcommdFigureByBookId(String bookId) {
 
         String sql = " select a.*,b.name,b.job_title from meta_book_rcmmd as a left join meta_figure as b on a.biz_id = b.id where a.book_id=? and a.is_selected=1 and a.del_flag=0 ";

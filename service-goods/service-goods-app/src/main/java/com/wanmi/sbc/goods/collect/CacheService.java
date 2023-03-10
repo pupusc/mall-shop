@@ -15,81 +15,300 @@ public class CacheService {
     @Autowired
     JpaManager jpaManager;
 
-    public static Map bookMap = null;
 
-    public static Map tagMap = null;
+    //积分
+    public static Map marketJpaPointMap = null;
+    //其他标签
+    public static Map marketTagMap = null;
 
-    //通过isbn查找book_id缓存
-    public void getBookMap_init() {
+    //49 标签
+    public static Map marketTopMap = null;
 
-        bookMap = new HashMap();
+    // 减满
+    public static Map marketMarkingMap = null;
 
-        String sql = " select id,isbn,trade_id from meta_book where del_flag=0 ";
+    // 减折
+    public static Map marketMarking2Map = null;
 
-        Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql,obj);
-        for(int i=0;i<list.size();i++){
-            Map map = (Map)list.get(i);
-            String isbn =  String.valueOf(map.get("isbn"));
+    //49 满减
+    public static Map market49Map = null;
 
-            Map oldMap = (Map)bookMap.get(isbn);
-            if(oldMap == null || oldMap.size() == 0){       //不存在就放入
-                bookMap.put(isbn,map);
-            }
+    //49 满减
+    public static Map marketTagList1Map = null;
 
-        }
+    //bookJpa 榜单标签
+    public static Map bookJpaTopMap = null;
 
-    }
 
-    //通过isbn查找book_id
-    public Map getBookMap_cache(String isbn) {
-        if(bookMap == null){
-            getBookMap_init();
-        }
+    //10. 返积分_缓存
+    public void getPointList_init() {
 
-        return (Map)bookMap.get(isbn);
-    }
+        marketJpaPointMap = new HashMap();
+        String currentTime = DitaUtil.getCurrentAllDate();
 
-    //10. 大促标签_缓存
-    public void getTagList_init() {
-
-        tagMap = new HashMap();
-
-        String sql = " select a.id,a.name,show_img,show_status,is_static,b.book_id,10 as order_type from meta_label a left join meta_book_label b on a.id = b.label_id " +
-                " where a.del_flag = 0 and a.is_static = 1 order by seq asc ";
-        Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql,obj);
-        for(int i=0;i<list.size();i++){
-            Map map = (Map)list.get(i);
-            String book_id =  String.valueOf(map.get("book_id"));
-
-            if(DitaUtil.isNotBlank(book_id)){
-                List tagList = (List)tagMap.get(book_id);
-                if(tagList == null || tagList.size() == 0){       //不存在就新建一个，放入
+        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.spu_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from `sbc-marketing`.t_normal_activity a left join `sbc-marketing`.t_activity_point_sku b on a.id = b.normal_activity_id " +
+                " where a.del_flag = 0 and a.publish_state = 1 " +
+                " and a.begin_time <= ? and ? <= a.end_time  " +
+                " order by a.id desc,b.num desc ";
+        Object[] obj = new Object[]{currentTime, currentTime};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String sku_id = String.valueOf(map.get("sku_id"));
+            if (DitaUtil.isNotBlank(sku_id)) {
+                List tagList = (List) marketJpaPointMap.get(sku_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
                     tagList.add(map);
-                    tagMap.put(book_id,tagList);
-                }else{
+                    marketJpaPointMap.put(sku_id, tagList);
+                } else {
                     tagList.add(map);                             //存在放入
                 }
             }
-
         }
-
     }
 
-    //10. 大促标签
-    public List getTagList_cache(String book_id) {
-        if(tagMap == null){
-            getTagList_init();
+    //10. 积分
+    public List getPointList(String sku_id) {
+        if (marketJpaPointMap == null) {
+            getPointList_init();
         }
 
-        return (List)tagMap.get(book_id);
+        return (List) marketJpaPointMap.get(sku_id);
     }
 
-    public void clear(){
-        bookMap = null;
-        tagMap = null;
+
+    //70. 其它标签_缓存
+    public void getTagList2_init() {
+
+        marketTagMap = new HashMap();
+
+        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+                " where  a.del_flag = 0 and a.is_static = 2 order by seq asc  ";
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql, obj);
+
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String goods_id = String.valueOf(map.get("goods_id"));
+            if (DitaUtil.isNotBlank(goods_id)) {
+                List tagList = (List) marketTagMap.get(goods_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    marketTagMap.put(goods_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+    //10. 其他标签
+    public List getTagList2(String spu_id) {
+        if (marketTagMap == null) {
+            getTagList2_init();
+        }
+
+        return (List) marketTagMap.get(spu_id);
+    }
+
+
+    //20. 榜单标签
+    public List getTopList_init() {
+        marketTopMap = new HashMap();
+
+        String sql = " select b.id,c.goods_info_id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,b.sku_no,c.goods_info_name,b.spu_no,b.order_num,20 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
+                " left join goods_info c on b.sku_no = c.goods_info_no " +
+                " where a.del_flag = 0 and b.del_flag = 0 and c.del_flag = 0 " +
+                " order by b.order_num desc  ";
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String goods_info_id = String.valueOf(map.get("goods_info_id"));
+            if (DitaUtil.isNotBlank(goods_info_id)) {
+                List tagList = (List) marketTopMap.get(goods_info_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    marketTopMap.put(goods_info_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+        return list;
+    }
+
+    //10.  榜单标签
+    public List getTopList(String spu_id) {
+        if (marketTopMap == null) {
+            getTopList_init();
+        }
+
+        return (List) marketTopMap.get(spu_id);
+    }
+
+
+    //30. 满减
+    public List getMarking1List_init() {
+        marketMarkingMap = new HashMap();
+        String currentTime = DitaUtil.getCurrentAllDate();
+
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id,'满减' as name,30 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+                " where a.del_flag = 0 and a.marketing_type = 0 and a.is_pause = 0 " +
+                " and a.begin_time <= ? and ? <= a.end_time " +
+                " order by a.marketing_id desc ";
+
+        Object[] obj = new Object[]{currentTime, currentTime};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String scope_id = String.valueOf(map.get("scope_id"));
+            if (DitaUtil.isNotBlank(scope_id)) {
+                List tagList = (List) marketMarkingMap.get(scope_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    marketMarkingMap.put(scope_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+        return list;
+    }
+
+    //10.  减满
+    public List getMarking1List(String sku_id) {
+        if (marketMarkingMap == null) {
+            getMarking1List_init();
+        }
+
+        return (List) marketMarkingMap.get(sku_id);
+    }
+
+
+    //40. 满折
+    public void getMarking2List_init() {
+
+        marketMarking2Map = new HashMap();
+        String currentTime = DitaUtil.getCurrentAllDate();
+
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id,'满折' as name,40 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+                " where a.del_flag = 0 and a.marketing_type = 1 and a.is_pause = 0 " +
+                " and a.begin_time <= ? and ? <= a.end_time " +
+                " order by a.marketing_id desc ";
+
+
+        Object[] obj = new Object[]{currentTime, currentTime};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String scope_id = String.valueOf(map.get("scope_id"));
+            if (DitaUtil.isNotBlank(scope_id)) {
+                List tagList = (List) marketMarking2Map.get(scope_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    marketMarking2Map.put(scope_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+    //满折
+    public List getMarking2List(String spu_id) {
+        if (marketMarking2Map == null) {
+            getMarking2List_init();
+        }
+
+        return (List) marketMarking2Map.get(spu_id);
+    }
+
+    //50. 满49元包邮
+    public void get49List_init() {
+        market49Map = new HashMap();
+
+        String sql = " select a.goods_id,a.freight_temp_id,'满49元包邮' as name,50 as order_type from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id " +
+                " where  b.freight_temp_name = '满49元包邮模板' ";
+
+
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String goods_id = String.valueOf(map.get("goods_id"));
+            if (DitaUtil.isNotBlank(goods_id)) {
+                List tagList = (List) market49Map.get(goods_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    market49Map.put(goods_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+    //满49包邮
+    public List get49List(String spu_id) {
+        if (market49Map == null) {
+            get49List_init();
+        }
+
+        return (List) market49Map.get(spu_id);
+    }
+
+    //60. 大促标签
+    public void getTagList1_init() {
+        marketTagList1Map = new HashMap();
+        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,60 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+                " where  a.del_flag = 0 and a.is_static = 1 order by seq asc  ";
+
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String goods_id = String.valueOf(map.get("goods_id"));
+            if (DitaUtil.isNotBlank(goods_id)) {
+                List tagList = (List) marketTagList1Map.get(goods_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    marketTagList1Map.put(goods_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+    //大促商标
+    public List getTagList1(String spu_id) {
+        if (marketTagList1Map == null) {
+            getTagList1_init();
+        }
+
+        return (List) marketTagList1Map.get(spu_id);
+    }
+
+
+    public void clear() {
+
+        marketJpaPointMap = null;
+        marketTagMap = null;
+        marketTopMap = null;
+        marketMarkingMap = null;
+        marketMarking2Map = null;
+        market49Map = null;
+        marketTagList1Map = null;
     }
 
 }
