@@ -1,16 +1,16 @@
 package com.wanmi.sbc.goodsPool.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
-import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
-import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.dto.ColumnContentDTO;
+import com.wanmi.sbc.setting.bean.dto.GoodsDto;
+import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
+import com.wanmi.sbc.setting.bean.dto.MixedComponentTabDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @Description: todo-zh
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * @Date 2023/3/3 16:58
  */
 @Service
-public class GoodsPoolServiceImpl implements PoolService {
+public class AdvertisementPoolServiceImpl implements PoolService {
 
     @Autowired
     private EsSpuNewProvider esSpuNewProvider;
@@ -35,54 +34,48 @@ public class GoodsPoolServiceImpl implements PoolService {
     private BookListModelProvider bookListModelProvider;
 
     @Autowired
-    private GoodsInfoQueryProvider goodsInfoQueryProvider;
-
-    @Autowired
     private MetaLabelProvider metaLabelProvider;
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
             String spuId = columnContentDTO.getSpuId();
-            List<String> spuIds = new ArrayList<>();
-            spuIds.add(spuId);
-            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setSpuIds(spuIds);
-            es.setKeyword(keyword);
-            List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-            if (content.size() != 0) {
-                EsSpuNewResp esSpuNewResp = content.get(0);
-                List<GoodsDto> goods = new ArrayList<>();
-                getGoods(columnContentDTO, goods, esSpuNewResp);
-                GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
+            if (! StringUtils.isEmpty(spuId)) {
+                List<String> spuIds = new ArrayList<>();
+                spuIds.add(spuId);
+                EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
+                es.setSpuIds(spuIds);
+                es.setKeyword(keyword);
+                List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
+                if (content.size() != 0) {
+                    EsSpuNewResp esSpuNewResp = content.get(0);
+                    List<GoodsDto> goods = new ArrayList<>();
+                    getGoods(columnContentDTO, goods,esSpuNewResp);
+                    GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
+                    goodsPoolDtos.add(goodsPoolDto);
+                }
+            } else if (! StringUtils.isEmpty(columnContentDTO.getLinkUrl())) {
+                GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, null);
                 goodsPoolDtos.add(goodsPoolDto);
             }
         }
     }
 
-    //初始化商品
     @Override
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
         SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
-        goodsDto.setGoodsName(skuDetailBO.getSkuName());
-        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
         String score = null;
+        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
         if (isbn != null) {
             goodsDto.setIsbn(isbn);
             List context = bookListModelProvider.getBookRecommend(isbn).getContext();
             if (context.size() != 0) {
                 Map map = (Map) context.get(0);
                 score = map.get("score") != null ? map.get("score").toString() : null;
-                String name = map.get("name") != null ? map.get("name").toString() : null ;
-                goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
-                goodsDto.setRecommendName(name);
-                goodsDto.setReferrer(name == null ? "文喵" : name);
-                goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
             }
         }
-        goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
         Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
         String[] digit = {"十+", "百+", "千+", "万+"};
         if (saleNum >= 300) {
@@ -104,37 +97,14 @@ public class GoodsPoolServiceImpl implements PoolService {
         goods.add(goodsDto);
     }
 
-    //初始化商品池
     @Override
     public GoodsPoolDto getPool(MixedComponentTabDto pool, ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
         GoodsPoolDto goodsPoolDto = new GoodsPoolDto();
         goodsPoolDto.setType(pool.getBookType());
         goodsPoolDto.setSorting(columnContentDTO.getSorting());
+        goodsPoolDto.setImage(columnContentDTO.getImageUrl());
+        goodsPoolDto.setUrl(goods == null ? columnContentDTO.getLinkUrl() : null);
         goodsPoolDto.setGoods(goods);
-        String tagList = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
-        if (JSON.parseObject(tagList) != null) {
-            List<TagsDto> tagsDtos = new ArrayList<>();
-            List tags = (List) JSON.parseObject(tagList).get("tags");
-            if (tags != null) {
-                tags.forEach(s -> {
-                    TagsDto tagsDto = new TagsDto();
-                    Map map = (Map) s;
-                    tagsDto.setName(String.valueOf(map.get("show_name")));
-                    tagsDto.setType((Integer) map.get("order_type"));
-                    if (!StringUtils.isEmpty(tagsDto.getName()) && "null".equals(tagsDto.getName())) {
-                        if(!StringUtils.isEmpty(tagsDto.getType()) && "20".equals(tagsDto.getType())) {
-                            tagsDtos.add(0, tagsDto);
-                        } else {
-                            tagsDtos.add(tagsDto);
-                        }
-                    }
-                });
-            }
-            //获取标签
-            goodsPoolDto.setLabelId(tagsDtos);
-        }
         return goodsPoolDto;
     }
-
-
 }

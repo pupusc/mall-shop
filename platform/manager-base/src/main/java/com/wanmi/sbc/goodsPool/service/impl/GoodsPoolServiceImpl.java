@@ -6,7 +6,6 @@ import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
@@ -18,7 +17,6 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @Description: todo-zh
@@ -39,6 +37,7 @@ public class GoodsPoolServiceImpl implements PoolService {
 
     @Autowired
     private MetaLabelProvider metaLabelProvider;
+
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {

@@ -66,7 +66,7 @@ public class BookDetailTab {
         doTab1(allList,book_id);
         doTab2(allList,book_id,spu_no);
         doTab3(allList);
-        doTab4(allList);
+        doTab4(allList,spu_id);
 
         String saleNum = getSaleNum(spu_id);
         redisMap.put("salenum",saleNum);
@@ -344,8 +344,9 @@ public class BookDetailTab {
 
     }
 
-    private void doTab4(List allList) {
-
+    private void doTab4(List allList, String spuId) {
+        Map orderDetail = goodJpa.getOrderDetail(spuId);
+        allList.add(orderDetail);
     }
 
     private String getSaleNum(String spu_id) {
