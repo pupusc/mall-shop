@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 @Data
 public class GoodsOrBookResponse implements Serializable {
 
@@ -61,10 +63,15 @@ public class GoodsOrBookResponse implements Serializable {
 
 
     /**
-     * 促销标签
+     * 促销标签(弃)
      */
     private List<MarketingLabelVO> marketingLabels = new ArrayList<>();
 
     private TagsDto tagsDto;
+
+    /**
+     * 促销标签
+     */
+    private Map labelMap;
 }
 

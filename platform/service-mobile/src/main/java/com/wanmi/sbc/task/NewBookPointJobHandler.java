@@ -2,6 +2,7 @@ package com.wanmi.sbc.task;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
@@ -131,6 +132,11 @@ public class NewBookPointJobHandler extends IJobHandler {
                 BeanUtils.copyProperties(normalModuleSkuResp, newBookPointResponse);
                 if (null != goodsPointMap.get(normalModuleSkuResp.getSkuId()) && null != goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum()) {
                     newBookPointResponse.setNum(goodsPointMap.get(normalModuleSkuResp.getSkuId()).getNum());
+                }
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + normalModuleSkuResp.getSkuId());
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                    newBookPointResponse.setLabelMap(labelMap);
                 }
                 skuIdList.add(newBookPointResponse.getSkuId());
                 newBookPointResponseList.add(newBookPointResponse);

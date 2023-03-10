@@ -158,10 +158,13 @@ public class BookDetailTab {
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
                     recomentBookVo.put("sku_id", goodsInfoMapTemp.get("sku_id").toString());
-                    TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(goodsInfoMapTemp.get("goods_id").toString()), TagsDto.class);
-                    if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
-                        recomentBookVo.put("tagsDto",tagsDto);
+
+                    String labelJson = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsInfoMapTemp.get("sku_id").toString());
+                    if(null!=labelJson) {
+                        Map labelMap = JSONObject.parseObject(labelJson, Map.class);
+                        recomentBookVo.put("labelMap",labelMap);
                     }
+
                     return recomentBookVo;
                 }).filter(g->null !=g).collect(Collectors.toList());
 
