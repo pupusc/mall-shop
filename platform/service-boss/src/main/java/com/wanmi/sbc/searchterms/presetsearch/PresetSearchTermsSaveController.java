@@ -79,5 +79,17 @@ public class PresetSearchTermsSaveController {
         return presetSearchTermsProvider.listPresetSearchTerms();
     }
 
+    /**
+     * @description 查询预置搜索词
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
+     */
+    @ApiOperation(value = "查询预置搜索词")
+    @PostMapping("/listV2")
+    public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTermsV2() {
+        return presetSearchTermsProvider.listPresetSearchTerms();
+    }
+
 
 }

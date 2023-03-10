@@ -20,4 +20,7 @@ public interface PresetSearchTermsQueryProvider {
     @PostMapping("/setting/${application.setting.version}/preset_search_terms/list")
     BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTerms();
 
+    @PostMapping("/setting/${application.setting.version}/preset_search_terms/listV2")
+    BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTermsV2();
+
 }

@@ -62,4 +62,22 @@ public class PresetSearchTermsService {
         }).collect(Collectors.toList());
         return new PresetSearchTermsQueryResponse(ListSearch);
     }
+
+    /**
+     * 查询预置搜索词
+     * @return
+     */
+    public PresetSearchTermsQueryResponse listPresetSearchTermsV2() {
+        List<PresetSearchTerms> list = presetSearchTermsRepositoy.findAll();
+        List<PresetSearchTermsVO> ListSearch = list.stream().filter(s->s.getPresetChannel().equals(0)).map(search -> {
+            PresetSearchTermsVO presetSearchTermsVO = new PresetSearchTermsVO();
+            presetSearchTermsVO.setId(search.getId());
+            presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
+            presetSearchTermsVO.setPresetSearchKeyword(search.getPresetSearchKeyword());
+            presetSearchTermsVO.setPresetSearchType(search.getPresetSearchType());
+            presetSearchTermsVO.setPresetSearchKeywordPageUrl(search.getPresetSearchKeywordPageUrl());
+            return presetSearchTermsVO;
+        }).collect(Collectors.toList());
+        return new PresetSearchTermsQueryResponse(ListSearch);
+    }
 }
