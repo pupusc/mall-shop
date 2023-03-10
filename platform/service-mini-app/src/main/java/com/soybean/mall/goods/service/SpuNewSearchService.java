@@ -3,6 +3,7 @@ package com.soybean.mall.goods.service;
 import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
+import com.soybean.mall.common.RedisService;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
@@ -22,6 +23,7 @@ import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
@@ -81,6 +83,9 @@ public class SpuNewSearchService {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    @Autowired
+    private RedisService redisService;
 
 
     /**
@@ -163,8 +168,22 @@ public class SpuNewSearchService {
             goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
 
             for (GoodsInfoVO goodsInfoParam : goodsInfos) {
-                if (goodsInfoParam.getSalePrice() == null) {
-                    goodsInfoParam.setSalePrice(goodsInfoParam.getMarketPrice());
+                MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsInfoParam.getGoodsInfoId()).getContext();
+                if(null!=marketingLabel&&null!=marketingLabel.getFix_price()){
+                    if (goodsInfoParam.getSalePrice() == null) {
+                        goodsInfoParam.setSalePrice(marketingLabel.getFix_price());
+                    }else {
+                        if(goodsInfoParam.getSalePrice().compareTo(marketingLabel.getFix_price())==1){
+                            goodsInfoParam.setSalePrice(marketingLabel.getFix_price());
+                        }
+                    }
+                    if(null!=marketingLabel.getSale_num()){
+                        goodsInfoParam.setSaleNum(marketingLabel.getSale_num());
+                    }
+                }else {
+                    if (goodsInfoParam.getSalePrice() == null) {
+                        goodsInfoParam.setSalePrice(goodsInfoParam.getMarketPrice());
+                    }
                 }
                  if (goodsInfoParam.getStock() <= StockUtil.THRESHOLD_STOCK) {
                      goodsInfoParam.setStock(0L); //设置库存为0
@@ -384,6 +403,7 @@ public class SpuNewSearchService {
             }
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
+            spuNewBookListResp.setSaleNum(goodsInfoVO.getSaleNum());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
             spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
             spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));

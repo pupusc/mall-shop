@@ -141,6 +141,11 @@ public class SpuNewBookListResp {
      */
     private List<SubSkuMarketingLabelNew> marketingLabel;
 
+    /**
+     * 销量
+     */
+    private Integer saleNum;
+
     @Data
     public static class SubSpuLabelNew {
 

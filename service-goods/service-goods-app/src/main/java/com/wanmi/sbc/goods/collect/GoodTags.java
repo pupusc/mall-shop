@@ -101,6 +101,14 @@ public class GoodTags {
         return value;
     }
 
+    public String getRedis_MarkingTags(String spu_id){
+        String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_GOODS_MARKING_SKU_ID+":"+spu_id);
+        if(DitaUtil.isBlank(value)){
+            value = "{}";
+        }
+        return value;
+    }
+
     public String getRedis_Book(String spu_id){
         String value = redisService.getString(RedisTagsConstant.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID+":"+spu_id);
         if(DitaUtil.isBlank(value)){

@@ -783,6 +783,10 @@ public class GoodsInfoVO implements Serializable {
      */
     private NormalActivity activity;
 
+    /**
+     * 销量
+     */
+    private Integer saleNum;
 
     /**
      * 活动信息
