@@ -120,26 +120,38 @@ public class BookDetailTab {
             if (null !=isbnList && isbnList.size() != 0) {
                 //说明这个推荐人有其他可推荐的,构建推荐商品的详细信息
 
-                List<Map> goodsInfoMap = bookJpa.goodsInfoByIsbns(isbnList);
+                List<Map> goodsInfoMap = new ArrayList<>();
+
+                isbnList.stream().forEach(isbn->{
+                    Map goodMap = bookJpa.findSpuByV3(isbn);
+                    if(goodMap != null && goodMap.size() >0){
+                        Map mapTemp=new HashMap<>();
+                        String goods_name = String.valueOf(goodMap.get("goods_name"));
+                        String spu_id = String.valueOf(goodMap.get("spu_id"));
+                        String sku_id = null;
+                        Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                        if(skuBySpuId != null && skuBySpuId.size() >0){
+                            sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                            mapTemp.put("sku_id",sku_id);
+                        }
+                        mapTemp.put("goods_id",spu_id);
+                        mapTemp.put("goods_info_name",goods_name);
+                        mapTemp.put("goods_info_id",sku_id);
+                        goodsInfoMap.add(mapTemp) ;
+                }});
 
                 if(null==goodsInfoMap || goodsInfoMap.size()==0){
                     return maptemp;
                 }
                 //构建返回类型
                 List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
-                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("goods_info_no")){
+                    if(null==goodsInfoMapTemp.get("goods_id")||null==goodsInfoMapTemp.get("goods_info_name")||null==goodsInfoMapTemp.get("goods_info_id")){
                         return null;
                     }
                     Map recomentBookVo = new HashMap<>();
                     recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
-                    recomentBookVo.put("goodsInfoNo", goodsInfoMapTemp.get("goods_info_no").toString());
-                    if(null !=  goodsInfoMapTemp.get("goods_info_img")){
-                        recomentBookVo.put("goodsInfoImg", goodsInfoMapTemp.get("goods_info_img").toString());
-                    }
-                    if(null !=  goodsInfoMapTemp.get("market_price")){
-                        recomentBookVo.put("market_price", goodsInfoMapTemp.get("market_price").toString());
-                    }
+                    recomentBookVo.put("goodsInfoId", goodsInfoMapTemp.get("goods_info_id").toString());
                     TagsDto tagsDto = JSON.parseObject(goodTags.getRedis_Tags(goodsInfoMapTemp.get("goods_id").toString()), TagsDto.class);
                     if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
                         recomentBookVo.put("tagsDto",tagsDto);
@@ -222,6 +234,7 @@ public class BookDetailTab {
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
                     Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                    writerBookMap.put("sku_id",null);
                     if(skuBySpuId != null && skuBySpuId.size() >0){
                         String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
                         writerBookMap.put("sku_id",sku_id);
@@ -263,6 +276,7 @@ public class BookDetailTab {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    libraryMap.put("sku_id",null);
                     Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
                     if(skuBySpuId != null && skuBySpuId.size() >0){
                         String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
@@ -305,6 +319,7 @@ public class BookDetailTab {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
                     String goods_name = String.valueOf(goodMap.get("goods_name"));
                     String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    producerMap.put("sku_id",null);
                     Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
                     if(skuBySpuId != null && skuBySpuId.size() >0){
                         String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
@@ -382,9 +397,10 @@ public class BookDetailTab {
                 String spu_no = String.valueOf(goodMap.get("spu_no"));
                 String goods_name = String.valueOf(goodMap.get("goods_name"));
                 String spu_id = String.valueOf(goodMap.get("spu_id"));
+                String sku_id = null;
                 Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
                 if(skuBySpuId != null && skuBySpuId.size() >0){
-                    String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                    sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
                     map.put("sku_id",sku_id);
                 }
                 map.put("spu_id",spu_id);

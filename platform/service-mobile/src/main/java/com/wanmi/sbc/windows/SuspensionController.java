@@ -133,7 +133,7 @@ public class SuspensionController {
     @PostMapping("/goodsDetail")
     public BaseResponse getGoodsDetialById(@RequestParam(value = "spuId",required = false) String spuId,@RequestParam(value = "skuId,",required = false) String skuId)  {
         log.info("test10_start");
-        BaseResponse goodsDetialById = goodsProvider.getGoodsDetialById(spuId, skuId);
+        BaseResponse goodsDetialById = goodsProvider.getGoodsDetialById1(spuId, skuId);
         log.info("test10_end");
         return goodsDetialById;
     }
@@ -164,10 +164,10 @@ public class SuspensionController {
     public BaseResponse goodsOrBookSaveRedis(@RequestParam(value = "topicStoreyId") Integer topicStoreyId)  {
          return topicService.goodsOrBookSaveRedis(topicStoreyId);
     }
-    @PostMapping("/test14")
-    public BaseResponse getGoodsOrBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
-        return BaseResponse.success(topicService.getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
-    }
+//    @PostMapping("/test14")
+//    public BaseResponse getGoodsOrBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
+//        return BaseResponse.success(topicService.getGoodsOrBookSaveByRedis(topicStoreyContentRequest,));
+//    }
     /**
      * 下载模板
      */

@@ -74,7 +74,6 @@ public class MetaTradeProviderImpl implements MetaTradeProvider {
         }
 
         resultList = (List<MetaTradeBO>) nodeResultList.get(0);
-        System.out.println(resultList);
         List<MetaTradeBO> ts = KsBeanUtil.convert(resultList, MetaTradeBO.class);
         List<MetaTradeBO> listSort = new ArrayList<>();
         int size = ts.size();
