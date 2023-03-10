@@ -385,8 +385,17 @@ public class TopicService {
     }
 
     private List<SuspensionDTO> getSearchKey() {
-        List<SuspensionDTO> list = JSONArray.parseArray(refreshConfig.getV2searchKey(), SuspensionDTO.class);
-
+        LocalDateTime now = LocalDateTime.now();
+        List<SuspensionDTO> list =new ArrayList<>();
+        JSONArray.parseArray(refreshConfig.getV2searchKey(), SuspensionDTO.class).forEach(s->{
+            if(null!=s.getStartTime()&&null!=s.getEndTime()){
+                if((now.isAfter(s.getStartTime())||now.isEqual(s.getStartTime()))&&(now.isBefore(s.getEndTime())||now.isEqual(s.getEndTime()))){
+                    list.add(s);
+                }
+            }else {
+                list.add(s);
+            }
+        });
         return list;
     }
 
