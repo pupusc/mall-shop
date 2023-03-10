@@ -72,7 +72,7 @@ public class MixedComponentTabAddRequest implements Serializable {
         columnAddRequest.setSubName(subName);
         columnAddRequest.setOrderNum(sorting);
         columnAddRequest.setTopicStoreyId(topicStoreyId);
-        columnAddRequest.setPId(id != null ? id : null);
+        //columnAddRequest.setPId(id != null ? id : null);
         columnAddRequest.setAttributeInfo(keyWords != null ? JSON.toJSONString(keyWords) : null);
         return columnAddRequest;
     }
