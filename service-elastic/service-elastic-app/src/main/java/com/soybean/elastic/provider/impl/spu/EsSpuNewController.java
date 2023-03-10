@@ -42,6 +42,11 @@ public class EsSpuNewController implements EsSpuNewProvider {
     }
 
     @Override
+    public BaseResponse<EsSpuNewAggResp<List<EsSpuNewResp>>> listKeyWorldEsSpuBySpuId(EsKeyWordSpuNewQueryProviderReq req) {
+        return BaseResponse.success(esSpuNewService.listKeyWorldEsSpuId(req));
+    }
+
+    @Override
     public BaseResponse init(CollectJobReq collectJobReq) {
         collectSpuFactory.init(collectJobReq);
         return BaseResponse.SUCCESSFUL();

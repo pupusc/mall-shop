@@ -285,21 +285,21 @@ public class TopicService {
                 String name = storeyDTO.getName();
                 int storeyType = storeyDTO.getStoreyType();
 
-                if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                 //14, "三本好书"
+                if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                //13.新书速递
                     //writeRedis(topic_store_id);
                     newBookPointJobHandler.execute(null);
-                }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){
+                }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){         //11.榜单组件
                     //writeRedis(topic_store_id);
-                    rankJobHandler.execute(null);
-                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单详情
+                    rankJobHandler.execute("H5");
+                }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单更多
                     rankPageJobHandler.execute(topicKey);
-                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){              //20.混合组件
                     mixedComponentContentJobHandler.execute(null);
-                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){      //14.三本好书
                     threeBookSaveRedis(topic_store_id);
-                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){              //19.商品组件
                    goodsOrBookSaveRedis(topic_store_id);
-                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){
+                }else if(storeyType==TopicStoreyTypeV2.Books.getId()){              //18.图书组件
                     goodsOrBookSaveRedis(topic_store_id);
                 }
 
@@ -356,11 +356,11 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
-                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
+                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
-                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
+                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 //SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 //suspensionByTypeRequest.setType(2L);
@@ -883,7 +883,7 @@ public class TopicService {
     /**
      * 商品组件或图书组件取redis
      */
-    public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ){
+    public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ,CustomerGetByIdResponse customer){
         String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
         List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
         List<String> skuIdList=new ArrayList<>();
@@ -900,8 +900,8 @@ public class TopicService {
         goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
         //用户信息
-        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+//        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+//        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
         //价格信息
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));

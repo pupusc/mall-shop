@@ -24,7 +24,7 @@
                 and  gsk.name like  concat('%,',#{name},'%,')
             </if>
         </where>
-        order by gsk.creat_time desc
+        order by gsk.create_time desc
         limit 1
     </select>
 

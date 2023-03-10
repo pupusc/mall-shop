@@ -164,10 +164,10 @@ public class SuspensionController {
     public BaseResponse goodsOrBookSaveRedis(@RequestParam(value = "topicStoreyId") Integer topicStoreyId)  {
          return topicService.goodsOrBookSaveRedis(topicStoreyId);
     }
-    @PostMapping("/test14")
-    public BaseResponse getGoodsOrBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
-        return BaseResponse.success(topicService.getGoodsOrBookSaveByRedis(topicStoreyContentRequest));
-    }
+//    @PostMapping("/test14")
+//    public BaseResponse getGoodsOrBookSaveByRedis(@RequestBody TopicStoreyContentRequest topicStoreyContentRequest)  {
+//        return BaseResponse.success(topicService.getGoodsOrBookSaveByRedis(topicStoreyContentRequest,));
+//    }
     /**
      * 下载模板
      */

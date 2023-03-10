@@ -6,12 +6,14 @@ import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +121,9 @@ public class GoodsPoolServiceImpl implements PoolService {
                     Map map = (Map) s;
                     tagsDto.setName(String.valueOf(map.get("show_name")));
                     tagsDto.setType((Integer) map.get("order_type"));
-                    tagsDtos.add(tagsDto);
+                    if (!StringUtils.isEmpty(tagsDto.getName())) {
+                        tagsDtos.add(tagsDto);
+                    }
                 });
             }
             //获取标签
