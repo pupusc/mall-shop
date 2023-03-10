@@ -409,7 +409,6 @@ public class BookDetailTab {
                 String spu_no = String.valueOf(goodMap.get("spu_no"));
                 String goods_name = String.valueOf(goodMap.get("goods_name"));
                 String spu_id = String.valueOf(goodMap.get("spu_id"));
-                String sku_id = null;
                 Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
                 String sku_id = "";
                 if(skuBySpuId != null && skuBySpuId.size() >0){
