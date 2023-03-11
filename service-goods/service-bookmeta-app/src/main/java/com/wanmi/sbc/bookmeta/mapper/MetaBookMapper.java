@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
+import com.wanmi.sbc.bookmeta.entity.MetaBookV2;
 import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,8 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      * @return 实例对象
      */
     MetaBook queryById(Integer id);
+
+    MetaBookV2 queryByIdV2(Integer id);
 
     /**
      * 查询指定行数据

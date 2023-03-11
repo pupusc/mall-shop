@@ -33,11 +33,51 @@
         <result property="languageId" column="language_id" jdbcType="INTEGER"/>
         <result property="score" column="score" jdbcType="INTEGER"/>
         <result property="tradeId" column="trade_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookV2" id="MetaBookMapV2">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="isbn" column="isbn" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="subName" column="sub_name" jdbcType="VARCHAR"/>
+        <result property="originName" column="origin_name" jdbcType="VARCHAR"/>
+        <result property="publisherId" column="publisher_id" jdbcType="INTEGER"/>
+        <result property="producerId" column="producer_id" jdbcType="INTEGER"/>
+        <result property="bookGroupId" column="book_group_id" jdbcType="INTEGER"/>
+        <result property="bindId" column="bind_id" jdbcType="INTEGER"/>
+        <result property="paperId" column="paper_id" jdbcType="INTEGER"/>
+        <result property="publishTime" column="publish_time" jdbcType="TIMESTAMP"/>
+        <result property="publishBatch" column="publish_batch" jdbcType="INTEGER"/>
+        <result property="printTime" column="print_time" jdbcType="TIMESTAMP"/>
+        <result property="printBatch" column="print_batch" jdbcType="INTEGER"/>
+        <result property="pageCount" column="page_count" jdbcType="INTEGER"/>
+        <result property="wordCount" column="word_count" jdbcType="INTEGER"/>
+        <result property="price" column="price" jdbcType="NUMERIC"/>
+        <result property="sizeLength" column="size_length" jdbcType="INTEGER"/>
+        <result property="sizeWidth" column="size_width" jdbcType="INTEGER"/>
+        <result property="printSheet" column="print_sheet" jdbcType="INTEGER"/>
+        <result property="fitAgeMin" column="fit_age_min" jdbcType="INTEGER"/>
+        <result property="fitAgeMax" column="fit_age_max" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="bookClumpId" column="book_clump_id" jdbcType="INTEGER"/>
+        <result property="bookGroupDescr" column="book_group_descr" jdbcType="VARCHAR"/>
+        <result property="languageId" column="language_id" jdbcType="INTEGER"/>
+        <result property="score" column="score" jdbcType="INTEGER"/>
+        <result property="tradeId" column="trade_id" jdbcType="INTEGER"/>
         <result property="tradeName" column="trade_name" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookMap">
+        select  id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id ,trade_id
+        from meta_book mb
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <select id="queryByIdV2" resultMap="MetaBookMapV2">
         select mb.* ,mt.name as trade_name
         from meta_book mb
         left join meta_trade  mt on mb.trade_id = mt.id
