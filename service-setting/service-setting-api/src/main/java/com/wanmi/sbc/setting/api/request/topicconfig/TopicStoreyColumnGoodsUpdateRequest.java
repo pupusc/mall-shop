@@ -46,4 +46,10 @@ public class TopicStoreyColumnGoodsUpdateRequest implements Serializable {
     private String numTxt;
 
     private String showLabeTxt;
+
+    private String referrer;
+
+    private String referrerTitle;
+
+    private String recommendName;
 }

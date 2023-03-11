@@ -582,7 +582,7 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     }
     @Override
     public BaseResponse<MarketingLabelNewDTO> getMarketingLabelsBySKu(String skuId) {
-        MarketingLabelNewDTO labelNewDTO = JSON.parseObject(goodTags.getRedis_Tags(skuId), MarketingLabelNewDTO.class);
+        MarketingLabelNewDTO labelNewDTO = JSON.parseObject(goodTags.getRedis_MarkingTags(skuId), MarketingLabelNewDTO.class);
         return BaseResponse.success(labelNewDTO);
     }
 

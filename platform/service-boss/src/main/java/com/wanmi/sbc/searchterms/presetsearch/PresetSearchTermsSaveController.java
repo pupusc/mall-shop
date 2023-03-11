@@ -4,8 +4,10 @@ package com.wanmi.sbc.searchterms.presetsearch;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.provider.presetsearch.PresetSearchTermsQueryProvider;
 import com.wanmi.sbc.setting.api.provider.presetsearch.PresetSearchTermsSaveProvider;
+import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsListRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsModifyRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsRequest;
+import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsListResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsQueryResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsResponse;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -50,6 +52,13 @@ public class PresetSearchTermsSaveController {
         return searchTermsSaveProvider.add(request);
     }
 
+    @ApiOperation(value = "新增预置搜索词")
+    @PostMapping("/addBatch")
+    public BaseResponse<PresetSearchTermsListResponse> addBatch(@RequestBody @Valid PresetSearchTermsListRequest request) {
+        operateLogMQUtil.convertAndSend("预置搜索词","新增预置热门搜索词","新增热门搜索词："+request.toString());
+        return searchTermsSaveProvider.addBatch(request);
+    }
+
     /**
      * @description 编辑预置搜索词
      * @menu  搜索功能
@@ -76,6 +85,18 @@ public class PresetSearchTermsSaveController {
     @ApiOperation(value = "查询预置搜索词")
     @PostMapping("/list")
     public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTerms() {
+        return presetSearchTermsProvider.listPresetSearchTerms();
+    }
+
+    /**
+     * @description 查询预置搜索词
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
+     */
+    @ApiOperation(value = "查询预置搜索词")
+    @PostMapping("/listV2")
+    public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTermsV2() {
         return presetSearchTermsProvider.listPresetSearchTerms();
     }
 

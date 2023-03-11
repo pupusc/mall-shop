@@ -14,98 +14,98 @@ import java.util.Date;
  * @since 2022-05-26 01:25:34
  */
 @Table(name = "meta_book")
-public class MetaBook implements Serializable {
+public class MetaBookV2 implements Serializable {
     private static final long serialVersionUID = -89045210411200591L;
-         
+
     @Id
     @GeneratedValue(generator = "JDBC")
     private Integer id;
-         
+
     @Column(name = "isbn")
     private String isbn;
     /**
      * 名称
-     */     
+     */
     @Column(name = "name")
     private String name;
     /**
      * 副名称
-     */     
+     */
     @Column(name = "sub_name")
     private String subName;
     /**
      * 原作名称
-     */     
+     */
     @Column(name = "origin_name")
     private String originName;
     /**
      * 出版社
-     */     
+     */
     @Column(name = "publisher_id")
     private Integer publisherId;
     /**
      * 出品方
-     */     
+     */
     @Column(name = "producer_id")
     private Integer producerId;
     /**
      * 书组id
-     */     
+     */
     @Column(name = "book_group_id")
     private Integer bookGroupId;
     /**
      * 装帧
-     */     
+     */
     @Column(name = "bind_id")
     private Integer bindId;
     /**
      * 用纸
-     */     
+     */
     @Column(name = "paper_id")
     private Integer paperId;
     /**
      * 出版日期
-     */     
+     */
     @Column(name = "publish_time")
     private Date publishTime;
     /**
      * 出版批次
-     */     
+     */
     @Column(name = "publish_batch")
     private Integer publishBatch;
     /**
      * 印刷日期
-     */     
+     */
     @Column(name = "print_time")
     private Date printTime;
     /**
      * 印刷批次
-     */     
+     */
     @Column(name = "print_batch")
     private Integer printBatch;
     /**
      * 页数
-     */     
+     */
     @Column(name = "page_count")
     private Integer pageCount;
     /**
      * 字数
-     */     
+     */
     @Column(name = "word_count")
     private Integer wordCount;
     /**
      * 定价
-     */     
+     */
     @Column(name = "price")
     private Double price;
     /**
      * 尺寸：长
-     */     
+     */
     @Column(name = "size_length")
     private Integer sizeLength;
     /**
      * 尺寸：宽
-     */     
+     */
     @Column(name = "size_width")
     private Integer sizeWidth;
     /**
@@ -115,47 +115,47 @@ public class MetaBook implements Serializable {
     private String sizeFolio;
     /**
      * 印张
-     */     
+     */
     @Column(name = "print_sheet")
     private Integer printSheet;
     /**
      * 最小阅读年龄
-     */     
+     */
     @Column(name = "fit_age_min")
     private Integer fitAgeMin;
     /**
      * 最大阅读年龄
-     */     
+     */
     @Column(name = "fit_age_max")
     private Integer fitAgeMax;
     /**
      * 创建时间
-     */     
+     */
     @Column(name = "create_time")
     private Date createTime;
     /**
      * 更新时间
-     */     
+     */
     @Column(name = "update_time")
     private Date updateTime;
     /**
      * 删除标识
-     */     
+     */
     @Column(name = "del_flag")
     private Integer delFlag;
     /**
      * 丛书id
-     */     
+     */
     @Column(name = "book_clump_id")
     private Integer bookClumpId;
     /**
      * 书组说明
-     */     
+     */
     @Column(name = "book_group_descr")
     private String bookGroupDescr;
     /**
      * 语言
-     */     
+     */
     @Column(name = "language_id")
     private Integer languageId;
     /**
@@ -174,6 +174,17 @@ public class MetaBook implements Serializable {
 
     @Column(name = "trade_id")
     private Integer tradeId;
+
+    public String getTradeName() {
+        return tradeName;
+    }
+
+    public void setTradeName(String tradeName) {
+        this.tradeName = tradeName;
+    }
+
+    @Column(name = "trade_name")
+    private String tradeName;
 
     public Integer getId() {
         return id;

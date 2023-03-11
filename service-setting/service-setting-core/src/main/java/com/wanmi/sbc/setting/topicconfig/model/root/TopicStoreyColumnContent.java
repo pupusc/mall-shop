@@ -124,7 +124,7 @@ public class TopicStoreyColumnContent {
     @Column(name = "referrer_title")
     private String referrerTitle;
 
-    @Column(name = "recommendName")
+    @Column(name = "recommend_name")
     private String recommendName;
 
 }

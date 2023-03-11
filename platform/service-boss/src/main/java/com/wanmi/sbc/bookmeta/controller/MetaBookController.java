@@ -127,6 +127,9 @@ public class MetaBookController {
         resVO.setName(resBO.getName());
         resVO.setSubName(resBO.getSubName());
         resVO.setOriginName(resBO.getOriginName());
+        resVO.setTradeId(resBO.getTradeId());
+        resVO.setPrice(resBO.getPrice());
+        resVO.setTradeName(resBO.getTradeName());
         resVO.setAuthorList(new ArrayList<>());
         resVO.setPainterList(new ArrayList<>());
         resVO.setTranslatorList(new ArrayList<>());
@@ -204,6 +207,8 @@ public class MetaBookController {
         wrapBookFigure(figures, addReqVO.getTranslatorIdList(), BookFigureTypeEnum.TRANSLATOR.getCode());
         wrapBookFigure(figures, addReqVO.getPainterIdList(), BookFigureTypeEnum.PAINTER.getCode());
         addReqBO.setFigures(figures);
+        addReqBO.setPrice(addReqVO.getPrice());
+        addReqBO.setTradeId(addReqVO.getTradeId());
         return this.metaBookProvider.insert(addReqBO);
     }
 
@@ -224,6 +229,8 @@ public class MetaBookController {
         wrapBookFigure(figures, editReqVO.getTranslatorIdList(), BookFigureTypeEnum.TRANSLATOR.getCode());
         wrapBookFigure(figures, editReqVO.getPainterIdList(), BookFigureTypeEnum.PAINTER.getCode());
         editReqBO.setFigures(figures);
+        editReqBO.setPrice(editReqVO.getPrice());
+        editReqBO.setTradeId(editReqVO.getTradeId());
         return this.metaBookProvider.update(editReqBO);
     }
 

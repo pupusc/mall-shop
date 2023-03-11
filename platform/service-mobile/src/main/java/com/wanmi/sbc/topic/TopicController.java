@@ -1,10 +1,18 @@
 package com.wanmi.sbc.topic;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.order.api.request.stockAppointment.AppointmentRequest;
 import com.wanmi.sbc.order.request.AppointmentStockRequest;
 import com.wanmi.sbc.setting.api.request.RankPageRequest;
@@ -20,18 +28,24 @@ import com.wanmi.sbc.topic.request.GoodsSearchBySpuIdRequest;
 import com.wanmi.sbc.topic.response.GoodsSearchBySpuIdResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.service.TopicService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
+import com.wanmi.sbc.util.RandomUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @menu 专题
@@ -47,7 +61,28 @@ public class TopicController {
 
     @Autowired
     private TopicService topicService;
-    
+
+    @Autowired
+    private RefreshConfig refreshConfig;
+
+    @Autowired
+    private CommonUtil commonUtil;
+
+
+    /**
+     * @description 根据专题id返回页面数据_V2
+     * @menu 专题
+     * @param
+     * @status undone
+     */
+    @ApiOperation(value = "首页路由")
+    @GetMapping(value = "/v2/page")
+    public BaseResponse pageV2(HttpServletResponse response){
+        BaseResponse resp = BaseResponse.SUCCESSFUL();
+        resp.setContext(topicService.routeIndex());
+        return resp;
+    }
+
     /**
      * @description 根据专题id返回页面数据
      * @menu 专题

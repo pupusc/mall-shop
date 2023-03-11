@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Data
 public class NewBookPointResponse implements Serializable {
@@ -63,6 +64,10 @@ public class NewBookPointResponse implements Serializable {
     private BigDecimal salePrice;
 
 
+
+    private BigDecimal fixPrice;
+
+
     /**
      * 图片
      */
@@ -72,4 +77,9 @@ public class NewBookPointResponse implements Serializable {
      * 商品名
      */
     private String goodsInfoName;
+
+    /**
+     * 营销标签
+     */
+    private Map labelMap;
 }

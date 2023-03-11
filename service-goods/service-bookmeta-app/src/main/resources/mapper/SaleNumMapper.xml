@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.SaleNumMapper">
+    <resultMap id="SaleNumMap" type="com.wanmi.sbc.bookmeta.entity.SaleNum">
+        <result property="spuId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="spuName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="skuId" column="goods_info_id" jdbcType="VARCHAR"/>
+        <result property="skuName" column="goods_info_name" jdbcType="VARCHAR"/>
+        <result property="salesNum" column="sales_num" jdbcType="INTEGER"/>
+        <result property="fixPrice" column="fix_price" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <update id="update" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">
+        update goods_info
+        <set>
+            <if test="salesNum !=null and salesNum !=''">
+                sales_num = #{salesNum},
+            </if>
+            <if test="fixPrice !=null and fixPrice !=''">
+            fix_price = #{fixPrice}
+            </if>
+        </set>
+        where goods_info_id = #{skuId} and goods_id = #{spuId}
+    </update>
+
+    <select id="getAllSaleNum" resultType="java.util.Map" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">
+        select g.goods_id  as spu_id,
+               g.goods_name  as spu_name,
+               gi.goods_info_id as sku_id,
+               gi.goods_info_name as sku_name,
+               ifnull(null, gi.sales_num) as sales_num,
+                gi.fix_price
+        from goods g
+                 left join goods_info gi on g.goods_id = gi.goods_id
+            where g.del_flag = 0 and gi.del_flag = 0
+    </select>
+
+    <select id="getSaleNum" resultMap="SaleNumMap" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">
+        select g.goods_id ,
+        g.goods_name ,
+        gi.goods_info_id,
+        gi.goods_info_name,
+        ifnull(null, gi.sales_num),
+        gi.fix_price
+        from goods g
+        left join goods_info gi on g.goods_id = gi.goods_id
+        <where>
+             g.del_flag = 0 and gi.del_flag = 0
+            <if test="spuName != null and spuName != ''">
+                and g.goods_name like concat('%',#{spuName},'%')
+            </if>
+            <if test="skuName != null and skuName != ''">
+                and gi.goods_info_name like concat('%',#{skuName},'%')
+            </if>
+        </where>
+        limit #{limitIndex}, #{limitSize};
+    </select>
+
+    <select id="existSpu" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1)
+        from goods
+        where goods_id = #{spuId}
+    </select>
+
+    <select id="existSku" resultType="java.lang.Integer">
+        select count(1)
+        from goods_info
+        where goods_info_id = #{skuId}
+    </select>
+
+    <select id="getBySpuAndSku" resultMap="SaleNumMap" parameterType="java.lang.String">
+        select g.goods_id,
+               g.goods_name,
+               gi.goods_info_id,
+               gi.goods_info_name,
+               ifnull(null, gi.sales_num) as sales_num,
+               gi.fix_price
+        from goods g
+                 left join goods_info gi on g.goods_id = gi.goods_id
+        where gi.goods_info_id = #{skuId}
+          and g.goods_id = #{spuId}
+    </select>
+    <select id="getSaleNumCount" resultType="java.lang.Integer" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">
+        select count(1)
+        from goods g
+        left join goods_info gi on g.goods_id = gi.goods_id
+        <where>
+            g.del_flag = 0 and gi.del_flag = 0
+            <if test="spuName != null and spuName != ''">
+                and g.goods_name like concat('%',#{spuName},'%')
+                or gi.goods_info_name like concat('%',#{skuName},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

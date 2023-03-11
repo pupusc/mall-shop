@@ -33,4 +33,9 @@ public class TopicStoreyColumnQueryRequest implements Serializable {
     @NotNull
     @ApiModelProperty("楼层ID")
     private Integer topicStoreyId;
+
+    /**
+     * 父级id
+     * */
+    public Integer pId;
 }

@@ -40,4 +40,9 @@ public class TopicStoreyColumnAddRequest implements Serializable {
     private Integer sorting;
 
     private Integer topicStoreyId;
+
+    /**
+     * 父级id
+     * */
+    private Integer pId;
 }

@@ -28,6 +28,7 @@ import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -755,6 +756,17 @@ public class TopicService {
                 newBookPointResponseList.get(i).setMarketPrice(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
                 newBookPointResponseList.get(i).setGoodsInfoName(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoName());
                 newBookPointResponseList.get(i).setGoodsInfoImg(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
+
+                String labelJson = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + newBookPointResponseList.get(i).getSkuId());
+                if(null!=labelJson) {
+                    Map labelMap = JSONObject.parseObject(labelJson, Map.class);
+                    newBookPointResponseList.get(i).setLabelMap(labelMap);
+
+                    if(null!=labelMap.get("fix_price")) {
+                        newBookPointResponseList.get(i).setFixPrice(new BigDecimal(labelMap.get("fix_price").toString()));
+                    }
+                }
+
             }
 
 
@@ -874,9 +886,14 @@ public class TopicService {
             collectTemp.stream().forEach(g -> {
                 GoodsOrBookResponse goodsOrBookResponseTemp = new GoodsOrBookResponse();
                 BeanUtils.copyProperties(g, goodsOrBookResponseTemp);
-                com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
-                if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
-                    goodsOrBookResponseTemp.setTagsDto(tagsDto);
+//                com.wanmi.sbc.goods.bean.dto.TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(goodsOrBookResponseTemp.getSpuId()).getContext();
+//                if(null!=tagsDto.getTags() &&tagsDto.getTags().size()!=0 ) {
+//                    goodsOrBookResponseTemp.setTagsDto(tagsDto);
+//                }
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookResponseTemp.getSkuId());
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                    goodsOrBookResponseTemp.setLabelMap(labelMap);
                 }
                 goodsOrBookResponse.add(goodsOrBookResponseTemp);
             });
@@ -934,6 +951,12 @@ public class TopicService {
                 }
                 if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
                     goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
+                }
+                goodsOrBookMapList.get(j).put("fix_price",null);
+                String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(label, Map.class);
+                    goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
                 }
             }
         }
@@ -1414,7 +1437,7 @@ public class TopicService {
     }
 
     public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
-
+        CustomerGetByIdResponse customer = getCustomer();
         Map map=new HashMap<>();
         String old_json=new String();
         old_json = getGoodsDetialById(spuId, skuId, "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID");
@@ -1437,9 +1460,9 @@ public class TopicService {
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(collect);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
-        //用户信息
-        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
+//        //用户信息
+//        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
+//        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
         //价格信息
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
@@ -1629,9 +1652,15 @@ public class TopicService {
             Map findMap = (Map)richMap.get(value);
             if(findMap != null){
 
-                map.put("goodsInfoImg",findMap.get("goodsInfoImg"));
-                map.put("marketPrice",findMap.get("marketPrice"));
-                map.put("salePrice",findMap.get("salePrice"));
+                map.put("goods_info_img",findMap.get("goodsInfoImg"));
+                map.put("market_price",findMap.get("marketPrice"));
+                map.put("sale_price",findMap.get("salePrice"));
+                map.put("fix_price",null);
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + findMap.get("goods_info_id"));
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                    map.put("fix_price",labelMap.get("fix_price"));
+                }
             }
         }
 
@@ -1675,5 +1704,41 @@ public class TopicService {
                 }
             }
         });
+    }
+
+    public String routeIndex() {
+        //获取NACOS路由配置
+        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        try {
+            //获取当前用户
+            CustomerVO customer = commonUtil.getCustomer();
+            //用户如果未获取到跳转登陆页面
+            if(Objects.isNull(customer)){
+                return object.getString("loginUrl");
+            }
+            //判断模式。0：跳转老版本；1：命中的配置的用户跳转新版本；2：配置的用户通过prod随机规则命中后的用户跳转新版本
+            String status = object.getString("status");
+            //0：跳转老版本
+            if(Constants.PURCHASE_DEFAULT.equals(status)){
+                return object.getString("oldUrl");
+            }
+            //1：命中的配置的用户跳转新版本；
+            String userIds = object.getString("userIds");
+            if(String.valueOf(Constants.ONE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //2：配置的用户通过prod随机规则命中后的用户跳转新版本(例子:0.1在配置的用户中随机选中十分之一人，最高1，即为全部)
+            String proied = object.getString("prod");
+            if(String.valueOf(Constants.PRICETYPE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && DitaUtil.randomList(userIds,proied).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //如果都没命中直接去老版本首页
+            return object.getString("oldUrl");
+        }catch (Exception e){
+            log.error("route page redirect error,cause:{}",e);
+            return object.getString("loginUrl");
+        }
     }
 }

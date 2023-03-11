@@ -111,6 +111,8 @@ public class MetaBookQueryByIdResBO implements Serializable {
      * 语言
      */
     private Integer languageId;
+    private Integer tradeId;
+    private String tradeName;
     /**
      * 标签
      */

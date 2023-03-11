@@ -21,4 +21,9 @@ public class PresetSearchTermsQueryController implements PresetSearchTermsQueryP
     public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTerms() {
         return BaseResponse.success(presetSearchTermsService.listPresetSearchTerms());
     }
+
+    @Override
+    public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTermsV2() {
+        return BaseResponse.success(presetSearchTermsService.listPresetSearchTermsV2());
+    }
 }
