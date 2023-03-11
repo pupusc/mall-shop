@@ -322,7 +322,7 @@ public class TopicConfigController {
      * @param request
      * @status undone
      */
-    @ApiOperation("楼层栏目添加")
+    @ApiOperation("楼层栏目修改")
     @PostMapping("/storey/v2/column/update")
     public BaseResponse updateStoryColumn(@RequestBody TopicStoreyColumnUpdateRequest request){
         return topicConfigProvider.updateStoreyColumn(request);

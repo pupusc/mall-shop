@@ -1,5 +1,7 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
@@ -44,5 +46,6 @@ public class TopicStoreyColumnAddRequest implements Serializable {
     /**
      * 父级id
      * */
+    @JsonProperty
     private Integer pId;
 }
