@@ -169,14 +169,7 @@ public class SpuNewSearchService {
 
             for (GoodsInfoVO goodsInfoParam : goodsInfos) {
                 MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsInfoParam.getGoodsInfoId()).getContext();
-                if(null!=marketingLabel&&null!=marketingLabel.getFix_price()){
-                    if (goodsInfoParam.getSalePrice() == null) {
-                        goodsInfoParam.setSalePrice(marketingLabel.getFix_price());
-                    }else {
-                        if(goodsInfoParam.getSalePrice().compareTo(marketingLabel.getFix_price())==1){
-                            goodsInfoParam.setSalePrice(marketingLabel.getFix_price());
-                        }
-                    }
+                if(null!=marketingLabel){
                     if(null!=marketingLabel.getSale_num()){
                         goodsInfoParam.setSaleNum(marketingLabel.getSale_num());
                     }
