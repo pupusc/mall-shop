@@ -30,6 +30,9 @@ public class TopicStoreyColumnDTO implements Serializable {
     @ApiModelProperty("排序")
     private Integer sorting;
 
+    @ApiModelProperty("父级id")
+    private Integer pId;
+
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
@@ -56,5 +59,8 @@ public class TopicStoreyColumnDTO implements Serializable {
      * 1-未启用 0-启用
      */
     public Integer publishState;
+
+
+
 
 }

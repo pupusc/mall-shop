@@ -50,4 +50,10 @@ public class TopicStoreyColumnGoodsAddRequest implements Serializable {
     private String showLabelTxt;
 
     private String numTxt;
+
+    private String referrer;
+
+    private String referrerTitle;
+
+    private String recommendName;
 }

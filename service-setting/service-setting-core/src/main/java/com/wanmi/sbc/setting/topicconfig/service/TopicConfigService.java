@@ -528,6 +528,7 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
+        topicStoreySearch.setPId(request.getPId());
         topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
         columnRepository.save(topicStoreySearch);
@@ -664,6 +665,9 @@ public class TopicConfigService {
         topicStoreySearchContent.setTopicStoreyId(request.getTopicStoreyId());
         topicStoreySearchContent.setShowLabeTxt(request.getShowLabelTxt());
         topicStoreySearchContent.setNumTxt(request.getNumTxt());
+        topicStoreySearchContent.setReferrer(request.getReferrer());
+        topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
+        topicStoreySearchContent.setRecommendName(request.getRecommendName());
         columnGoodsRepository.save(topicStoreySearchContent);
     }
 
@@ -683,6 +687,9 @@ public class TopicConfigService {
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
         topicStoreySearchContent.setShowLabeTxt(request.getShowLabeTxt());
         topicStoreySearchContent.setNumTxt(request.getNumTxt());
+        topicStoreySearchContent.setReferrer(request.getReferrer());
+        topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
+        topicStoreySearchContent.setRecommendName(request.getRecommendName());
         updateUtil.partialUpdate(topicStoreySearchContent.getId(), topicStoreySearchContent, columnGoodsRepository);
     }
 
@@ -714,7 +721,7 @@ public class TopicConfigService {
             BeanUtils.copyProperties(topicStoreySearch, topicStoreyColumnDTO);
             topicStoreyColumnDTO.setCreateTime(topicStoreySearch.getCreateTime());
             topicStoreyColumnDTO.setSorting(topicStoreySearch.getOrderNum());
-            if (now.isBefore(topicStoreySearch.getCreateTime())) {
+            if (now.isBefore(topicStoreySearch.getBeginTime())) {
                 //未开始
                 topicStoreyColumnDTO.setState(0);
             } else if (now.isAfter(topicStoreySearch.getEndTime())) {
