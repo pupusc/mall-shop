@@ -2,13 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.*;
-import com.wanmi.sbc.bookmeta.entity.MetaBook;
-import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
-import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
-import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
-import com.wanmi.sbc.bookmeta.entity.MetaFigure;
-import com.wanmi.sbc.bookmeta.entity.MetaLabel;
-import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
+import com.wanmi.sbc.bookmeta.entity.*;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
@@ -72,7 +66,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
      */
     @Override
     public BusinessResponse<MetaBookQueryByIdResBO> queryById(Integer id) {
-        MetaBook metaBookDO = this.metaBookMapper.queryById(id);
+        MetaBookV2 metaBookDO = this.metaBookMapper.queryByIdV2(id);
         if (metaBookDO == null) {
             return BusinessResponse.success();
         }
