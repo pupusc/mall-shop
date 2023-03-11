@@ -340,7 +340,7 @@ public class TopicService {
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
-            } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
+            } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件   价格
                 topicResponse.setMixedComponentContent(getMixedComponentContent(request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
@@ -356,11 +356,11 @@ public class TopicService {
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
-            }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
+            }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
-            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
+            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
@@ -931,10 +931,12 @@ public class TopicService {
 //        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
 //        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
         //价格信息
+
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
         filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
         GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+
         if(null== priceContext){
             return goodsOrBookMapList;
         }
@@ -956,7 +958,10 @@ public class TopicService {
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
                 if(null!=old_json) {
                     Map labelMap = JSONObject.parseObject(label, Map.class);
-                    goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
+                    if(labelMap != null){
+                        goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
+                    }
+
                 }
             }
         }
@@ -1296,6 +1301,7 @@ public class TopicService {
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
             for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
