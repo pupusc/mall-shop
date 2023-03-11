@@ -64,6 +64,30 @@ public class RandomUtil {
         return (int) (Math.floor(Math.random() * (max - min)) + min);
     }
 
+    /**
+     * @description: //在给定的范围内随机取出n个不重复数字 start <= number <= end
+     * @param start 开始范围
+     * @param end 结束范围
+     * @param n  取出的数量
+     */
+    public static List<Integer> getNumber(Integer start,Integer end,Integer n){
+        if(start > end){
+            throw new RuntimeException("开始数字不得大于结束数字");
+        }
+        if( (end-start) < n){
+            throw new RuntimeException("范围内的数字个数不得小于取出的数量");
+        }
+        List<Integer> finalNumber = new ArrayList<>();
+        while (finalNumber.size() < n){
+            Random random = new Random();
+            Integer randomNumber = random.nextInt(end-start+1)+start;
+            if (!finalNumber.contains(randomNumber)) {
+                finalNumber.add(randomNumber);
+            }
+        }
+        return  finalNumber;
+    }
+
     public static void main(String[] args) {
         System.out.println(getRandomRange(-10,10));
     }

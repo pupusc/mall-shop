@@ -48,4 +48,7 @@ public class RefreshConfig {
     @Value("${integralActivity.v2searchKey}")
     private volatile String v2searchKey;
 
+    @Value("${integralActivity.v2FilterConfig}")
+    private volatile String v2FilterConfig;
+
 }

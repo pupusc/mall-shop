@@ -1,8 +1,13 @@
 package com.wanmi.sbc.util;
 
+import org.apache.commons.lang3.RandomUtils;
+
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -62,4 +67,22 @@ public class DitaUtil {
         }
     }
 
+    public static List<String> randomList(String userIds, String proied) {
+        String[] ids = userIds.split(",", -1);
+        int len = ids.length;
+        List<String> users = new ArrayList<>();
+        double v = len * Double.valueOf(proied);
+        if(v<1){
+            Integer range = RandomUtil.getRandomRange(0, len - 1);
+            users.add(ids[range]);
+        }else{
+            //四舍五入
+            int round = (int) Math.round(v);
+            List<Integer> number = RandomUtil.getNumber(0, len, round);
+            for (Integer num:number) {
+                users.add(ids[num]);
+            }
+        }
+        return users;
+    }
 }

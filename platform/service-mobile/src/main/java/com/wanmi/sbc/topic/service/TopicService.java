@@ -28,6 +28,7 @@ import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -1703,5 +1704,41 @@ public class TopicService {
                 }
             }
         });
+    }
+
+    public String routeIndex() {
+        //获取NACOS路由配置
+        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        try {
+            //获取当前用户
+            CustomerVO customer = commonUtil.getCustomer();
+            //用户如果未获取到跳转登陆页面
+            if(Objects.isNull(customer)){
+                return object.getString("loginUrl");
+            }
+            //判断模式。0：跳转老版本；1：命中的配置的用户跳转新版本；2：配置的用户通过prod随机规则命中后的用户跳转新版本
+            String status = object.getString("status");
+            //0：跳转老版本
+            if(Constants.PURCHASE_DEFAULT.equals(status)){
+                return object.getString("oldUrl");
+            }
+            //1：命中的配置的用户跳转新版本；
+            String userIds = object.getString("userIds");
+            if(String.valueOf(Constants.ONE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //2：配置的用户通过prod随机规则命中后的用户跳转新版本(例子:0.1在配置的用户中随机选中十分之一人，最高1，即为全部)
+            String proied = object.getString("prod");
+            if(String.valueOf(Constants.PRICETYPE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && DitaUtil.randomList(userIds,proied).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //如果都没命中直接去老版本首页
+            return object.getString("oldUrl");
+        }catch (Exception e){
+            log.error("route page redirect error,cause:{}",e);
+            return object.getString("loginUrl");
+        }
     }
 }
