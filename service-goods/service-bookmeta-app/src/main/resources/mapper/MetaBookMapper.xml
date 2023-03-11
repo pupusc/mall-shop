@@ -32,15 +32,17 @@
         <result property="bookGroupDescr" column="book_group_descr" jdbcType="VARCHAR"/>
         <result property="languageId" column="language_id" jdbcType="INTEGER"/>
         <result property="score" column="score" jdbcType="INTEGER"/>
+        <result property="tradeId" column="trade_id" jdbcType="INTEGER"/>
+        <result property="tradeName" column="trade_name" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookMap">
-        select
-          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id
-        from meta_book
-        where id = #{id}
-            and del_flag = 0
+        select mb.* ,mt.name as trade_name
+        from meta_book mb
+        left join meta_trade  mt on mb.trade_id = mt.id
+        where mb.id = #{id}
+            and mb.del_flag = 0 and mt.del_flag = 0
     </select>
 
     <sql id="entityQueryCondition">
@@ -339,6 +341,9 @@
             </if>
             <if test="languageId != null">
                 language_id = #{languageId},
+            </if>
+            <if test="tradeId != null">
+                trade_id =#{tradeId}
             </if>
         </set>
         where id = #{id}

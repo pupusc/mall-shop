@@ -237,6 +237,8 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         update.setName(metaBook.getName());
         update.setSubName(metaBook.getSubName());
         update.setOriginName(metaBook.getOriginName());
+        update.setPrice(metaBook.getPrice());
+        update.setTradeId(metaBook.getTradeId());
         //标签
         insertBookLabel(metaBook.getId(), metaBook.getLabelIds(), now);
         //人物

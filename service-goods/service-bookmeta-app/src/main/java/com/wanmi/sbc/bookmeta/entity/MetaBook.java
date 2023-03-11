@@ -164,6 +164,27 @@ public class MetaBook implements Serializable {
     @Column(name = "score")
     private Integer score;
 
+    public Integer getTradeId() {
+        return tradeId;
+    }
+
+    public void setTradeId(Integer tradeId) {
+        this.tradeId = tradeId;
+    }
+
+    @Column(name = "trade_id")
+    private Integer tradeId;
+
+    public String getTradeName() {
+        return tradeName;
+    }
+
+    public void setTradeName(String tradeName) {
+        this.tradeName = tradeName;
+    }
+
+    @Column(name = "trade_name")
+    private String tradeName;
 
     public Integer getId() {
         return id;

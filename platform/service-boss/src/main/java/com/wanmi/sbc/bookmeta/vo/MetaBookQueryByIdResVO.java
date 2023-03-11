@@ -30,6 +30,9 @@ public class MetaBookQueryByIdResVO implements Serializable {
      * 原作名称
      */
     private String originName;
+    private Integer tradeId;
+    private String tradeName;
+    private Double price;
     /**
      * 作者列表
      */

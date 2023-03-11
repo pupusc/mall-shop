@@ -30,6 +30,10 @@ public class MetaBookEditReqBO implements Serializable {
      * 原作名称
      */
     private String originName;
+
+    private Double price;
+
+    private int tradeId;
     /**
      * 标签
      */

@@ -111,6 +111,7 @@ public class MetaBookAddReqBO implements Serializable {
      * 语言
      */
     private Integer languageId;
+    private Integer tradeId;
     /**
      * 标签
      */

@@ -3,11 +3,13 @@ package com.wanmi.sbc.bookmeta.controller;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.bookmeta.bo.SaleNumBO;
 import com.wanmi.sbc.bookmeta.provider.SaleNumProvider;
+import com.wanmi.sbc.bookmeta.vo.SalesNumReqVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -167,7 +169,8 @@ public class SaleNumController {
     }
 
     @PostMapping("/getSaleNum")
-    public BusinessResponse<List<SaleNumBO>> get(@RequestBody SaleNumBO saleNumBO) {
-        return saleNumProvider.getSaleNum(saleNumBO);
+    public BusinessResponse<List<SaleNumBO>> get(@RequestBody SalesNumReqVO saleNumVO) {
+        SaleNumBO convert = KsBeanUtil.convert(saleNumVO, SaleNumBO.class);
+        return saleNumProvider.getSaleNum(convert);
     }
 }

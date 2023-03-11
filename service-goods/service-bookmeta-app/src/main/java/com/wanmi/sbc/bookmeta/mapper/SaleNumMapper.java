@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.bo.SaleNumBO;
 import com.wanmi.sbc.bookmeta.entity.SaleNum;
 import org.springframework.stereotype.Repository;
 
@@ -17,13 +18,11 @@ import java.util.Map;
 @Repository
 public interface SaleNumMapper {
     List<Map> getAllSaleNum();
-    List<SaleNum> getSaleNum(SaleNum saleNum);
-
+    List<SaleNum> getSaleNum(SaleNumBO saleNum);
+    int getSaleNumCount(SaleNumBO saleNum);
     int existSpu(String spuId);
     int existSku(String skuId);
-
     List<SaleNum> getBySpuAndSku(String spuId, String skuId);
-
     int update(SaleNum saleNum);
 
 }
