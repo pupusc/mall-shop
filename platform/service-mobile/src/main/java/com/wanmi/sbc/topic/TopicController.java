@@ -70,13 +70,13 @@ public class TopicController {
 
 
     /**
-     * @description 根据专题id返回页面数据_V2
+     * @description 根据JWT TOKEN跳转新老版本首页
      * @menu 专题
      * @param
      * @status undone
      */
     @ApiOperation(value = "首页路由")
-    @GetMapping(value = "/v2/page")
+    @PostMapping(value = "/v2/page")
     public BaseResponse pageV2(HttpServletResponse response){
         BaseResponse resp = BaseResponse.SUCCESSFUL();
         resp.setContext(topicService.routeIndex());
