@@ -185,7 +185,7 @@ public class TopicService {
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         if(!allLoad){
-            response.setStoreyList(response.getStoreyList().subList(0,2));
+            response.setStoreyList(response.getStoreyList().subList(0,4));
         }
         //如果配置有一行两个商品的配置信息，查询商品
         List<String> skuIds = new ArrayList<>();
