@@ -948,13 +948,15 @@ public class TopicService {
                 }
                 goodsOrBookMapList.get(j).put("fixPrice",null);
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
-                if(null!=old_json) {
-                    Map labelMap = JSONObject.parseObject(label, Map.class);
-                    goodsOrBookMapList.get(j).put("fixPrice",labelMap.get("fix_price"));
-                    if(labelMap != null){
-                        goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
-                    }
+                if(null!=label) {
+                    if (null != old_json) {
+                        Map labelMap = JSONObject.parseObject(label, Map.class);
+                        goodsOrBookMapList.get(j).put("fixPrice", labelMap.get("fix_price"));
+                        if (labelMap != null) {
+                            goodsOrBookMapList.get(j).put("fix_price", labelMap.get("fix_price"));
+                        }
 
+                    }
                 }
             }
         }
@@ -970,9 +972,12 @@ public class TopicService {
             return (GoodsInfoListByGoodsInfoResponse)priceCache;
         }
         //获取所有需要查询加的商品数据
-        String old_json = redisService.getString("1234");
-        List<String> skuIdList =JSONObject.parseObject(old_json,List.class);
+//        Map map = redisService.getObj("COLLECT_HOME:SKU", Map.class);
+        String string = redisService.getString("COLLECT_HOME:SKU");
+//        String old_json = redisService.getString("COLLECT_HOME:SKU");
+        Map<String,Object> map =JSONObject.parseObject(string,Map.class);
         //获取商品信息
+        List<String> skuIdList= (List<String>) map.get("skuIds");
         GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();

@@ -21,10 +21,7 @@ import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
-import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
-import com.wanmi.sbc.task.NewBookPointJobHandler;
-import com.wanmi.sbc.task.NewRankJobHandler;
-import com.wanmi.sbc.task.RankPageJobHandler;
+import com.wanmi.sbc.task.*;
 import com.wanmi.sbc.topic.request.GoodsSearchBySpuIdRequest;
 import com.wanmi.sbc.topic.response.GoodsSearchBySpuIdResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
@@ -149,6 +146,9 @@ public class TopicController {
     @Autowired
     private CollectSkuIdFactory collectSkuIdFactory;
 
+    @Autowired
+    private CollectSkuIdJobHandler collectSkuIdJobHandler;
+
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
@@ -158,7 +158,8 @@ public class TopicController {
 //        rankJobHandler.execute("H5");
 //        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
 //        newBookPointJobHandler.execute(null);
-        collectSkuIdFactory.collectId();
+//        collectSkuIdFactory.collectId();
+        collectSkuIdJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 
