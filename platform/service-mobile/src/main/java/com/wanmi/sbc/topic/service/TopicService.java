@@ -591,14 +591,6 @@ public class TopicService {
                     goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
                 }
             }
-            List<GoodsInfoVO> goodsInfos=new ArrayList<>();
-            if(goodsInfoVOList.size()>0){
-                CustomerGetByIdResponse customer = this.getCustomer();
-                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convertList(goodsInfoVOList, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-                goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-            }
             if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
                 request.setTopicStoreySearchId(rankRequestList.get(0).getId());
                 Collection rankList = rankRequestList.get(0).getRankList();
@@ -633,13 +625,6 @@ public class TopicService {
                     goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
             }
-            List<GoodsInfoVO> finalGoodsInfos = goodsInfos;
-            goodsCustomResponses.forEach(g->{
-                Map map=g;
-                finalGoodsInfos.stream().filter(i->i.getGoodsInfoId().equals(map.get("skuId"))).forEach(i->{
-                    map.put("vipPrice",i.getSalePrice());
-                });
-            });
             RankPageRequest pageRequest = new RankPageRequest();
             //初始化榜单树形结构，获取商品详情
             rankRequestList.forEach(r -> {
