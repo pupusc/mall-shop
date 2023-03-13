@@ -1722,22 +1722,35 @@ public class TopicService {
             if(Objects.isNull(customer)){
                 return object.getString("loginUrl");
             }
-            //判断模式。0：跳转老版本；1：命中的配置的用户跳转新版本；2：配置的用户通过prod随机规则命中后的用户跳转新版本
+            /*判断模式
+            * 1：全部跳转老版本；
+            * 2：全部跳转新版本；
+            * 3：白名单跳转新版本
+            * 4：白名单+根据手机号码结尾跳转新版
+            * */
             String status = object.getString("status");
-            //0：跳转老版本
-            if(Constants.PURCHASE_DEFAULT.equals(status)){
+            //1：跳转老版本
+            if(String.valueOf(Constants.ONE).equals(status)){
                 return object.getString("oldUrl");
             }
-            //1：命中的配置的用户跳转新版本；
+            //2：跳转新版本
+            if(String.valueOf(Constants.PRICETYPE).equals(status)){
+                return object.getString("newUrl");
+            }
+            //3：白名单跳转新版；
             String userIds = object.getString("userIds");
-            if(String.valueOf(Constants.ONE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+            if(String.valueOf(Constants.GOODS_LEAF_CATE_GRADE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
                     && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
                 return object.getString("newUrl");
             }
-            //2：配置的用户通过prod随机规则命中后的用户跳转新版本(例子:0.1在配置的用户中随机选中十分之一人，最高1，即为全部)
-            String proied = object.getString("prod");
-            if(String.valueOf(Constants.PRICETYPE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
-                    && DitaUtil.randomList(userIds,proied).contains(customer.getCustomerId())){
+            //4：白名单跳转新版
+            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
+            if("4".equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //4：根据手机号码结尾
+            if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
                 return object.getString("newUrl");
             }
             //如果都没命中直接去老版本首页

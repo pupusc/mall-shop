@@ -1,6 +1,7 @@
 package com.wanmi.sbc.util;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -84,5 +85,17 @@ public class DitaUtil {
             }
         }
         return users;
+    }
+
+    public static boolean isPhoneEndWith(String customerAccount, String proied) {
+       if(StringUtils.isBlank(proied)||StringUtils.isBlank(customerAccount)){
+           return false;
+       }
+        for (String endStr:proied.split(",",-1)) {
+             if(customerAccount.endsWith(endStr)){
+                 return true;
+             }
+        }
+        return false;
     }
 }
