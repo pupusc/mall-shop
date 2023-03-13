@@ -679,6 +679,7 @@ public class TopicConfigService {
     public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
         TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
         topicStoreySearchContent.setId(request.getId());
+        topicStoreySearchContent.setName(request.getName());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
         topicStoreySearchContent.setStartTime(request.getStartTime());
         topicStoreySearchContent.setEndTime(request.getEndTime());
