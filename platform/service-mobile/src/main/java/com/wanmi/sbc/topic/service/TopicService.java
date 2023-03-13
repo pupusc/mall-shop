@@ -85,6 +85,7 @@ import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
+import com.wanmi.sbc.util.ThreadLocalUtil;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +109,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TopicService {
+
+    private static String GOODS_PRICE = "GOODS_PRICE";
 
     @Autowired
     private TopicConfigProvider topicConfigProvider;
@@ -344,7 +347,7 @@ public class TopicService {
                 topicResponse.setMixedComponentContent(getMixedComponentContent(request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
-            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
+            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank();
@@ -374,6 +377,9 @@ public class TopicService {
 
             System.out.println("storeyType:" + storeyType + "~  end:" + DitaUtil.getCurrentAllDate());
         }
+        //清理本地缓存
+        ThreadLocalUtil.remove(GOODS_PRICE);
+        ThreadLocalUtil.remove();
         return BaseResponse.success(response);
     }
 
@@ -763,10 +769,13 @@ public class TopicService {
 //            //获取会员
 //             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
 //        }
-            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            /*MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();*/
+
+            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
+
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
@@ -899,28 +908,26 @@ public class TopicService {
     public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ,CustomerGetByIdResponse customer){
         String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
         List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
-        List<String> skuIdList=new ArrayList<>();
+        //List<String> skuIdList=new ArrayList<>();
         //返回值
         List<Map> goodsOrBookMapList=new ArrayList<>();
         //循环每个商品取出skuId
         for(int i=0;i<goodsOrBookResponseList.size();i++){
             Map goodsOrBookMap= (Map)goodsOrBookResponseList.get(i);
-            skuIdList.add(goodsOrBookMap.get("skuId").toString());
+            //skuIdList.add(goodsOrBookMap.get("skuId").toString());
             goodsOrBookMapList.add(goodsOrBookMap);
         }
 
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        /*GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
-        //用户信息
-//        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-//        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
-        //价格信息
 
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
         filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
         GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+         */
+        GoodsInfoListByGoodsInfoResponse priceContext = this.initGoodsPrice(customer);
 
         if(null== priceContext){
             return goodsOrBookMapList;
@@ -953,6 +960,35 @@ public class TopicService {
         }
         return goodsOrBookMapList;
     }
+
+    /**
+     * 初始化商品价格通用方法
+     */
+    private GoodsInfoListByGoodsInfoResponse initGoodsPrice(CustomerGetByIdResponse customer){
+        Object priceCache = ThreadLocalUtil.get(GOODS_PRICE);
+        if(!Objects.isNull(priceCache)){
+            return (GoodsInfoListByGoodsInfoResponse)priceCache;
+        }
+        //获取所有需要查询加的商品数据
+        String old_json = redisService.getString("1234");
+        List<String> skuIdList =JSONObject.parseObject(old_json,List.class);
+        //获取商品信息
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        ThreadLocalUtil.set(GOODS_PRICE,priceContext);
+        return priceContext;
+
+    }
+
+
+
+
     /**
      * 初始化优惠券信息
      */
@@ -1278,16 +1314,18 @@ public class TopicService {
             goodsPoolDtos.stream().map(GoodsPoolDto::getGoods).collect(Collectors.toList()).forEach(s -> {
                         if (s != null && s.size() != 0) {s.forEach(c -> {skuIdList.add(c.getSkuId());});}});
             //获取商品信息
-            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+           /* GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
             goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
             goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
             goodsInfoByIdRequest.setIsHavSpecText(1);
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-
+            */
+            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
             for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
