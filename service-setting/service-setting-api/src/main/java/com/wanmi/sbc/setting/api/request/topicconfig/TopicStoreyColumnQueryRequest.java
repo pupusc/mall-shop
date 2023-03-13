@@ -37,7 +37,6 @@ public class TopicStoreyColumnQueryRequest implements Serializable {
 
     /**
      * 父级id
-     * */
-    @JsonProperty
-    public Integer pId;
+     */
+    public Integer parentId;
 }

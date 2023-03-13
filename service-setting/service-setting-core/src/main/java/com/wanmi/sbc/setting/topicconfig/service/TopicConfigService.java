@@ -535,7 +535,7 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setPId(request.getPId());
+        topicStoreySearch.setPId(request.getParentId());
         topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
         columnRepository.save(topicStoreySearch);
