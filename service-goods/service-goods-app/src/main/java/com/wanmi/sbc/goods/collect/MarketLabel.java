@@ -34,6 +34,9 @@ public class MarketLabel {
     @Autowired
     private CacheService cacheService;
 
+    @Autowired
+    private BookDetailTab bookDetailTab;
+
     public void doMarket(){
 
         List list = marketJpa.getSkuList();
@@ -55,7 +58,8 @@ public class MarketLabel {
 
         //spu_id = "2c9a00ca86299cda01862a0163e60000";
         //sku_id= "2c9a009b86a5b1850186a6ae64c80004";
-
+        //spu_no = "P735546359";
+        //isbn   = "ISBN_C_T003";
         //10.积分
         //List pointList = marketJpa.getPointList(sku_id);
         List pointList = cacheService.getPointList(sku_id);
@@ -104,6 +108,13 @@ public class MarketLabel {
 
         Map map = new LinkedHashMap();
         map.put("name","营销标签");
+        //销量
+        String saleNum =bookDetailTab.getSaleNum_bySpuID(spu_id);
+        map.put("salenum", saleNum);
+        //定价
+        String fix_price = bookDetailTab.getFixPrice(spu_id);
+        map.put("fix_price", fix_price);
+
         map.put("labels",allList);
 
         setRedis_Label(spu_id,sku_id,map);

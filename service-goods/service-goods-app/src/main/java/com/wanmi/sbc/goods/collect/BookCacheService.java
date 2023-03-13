@@ -26,6 +26,7 @@ public class BookCacheService {
     public static Map bookStaticMap = null;
     public static Map bookTradeMap = null;
     public static Map bookClumpMap = null;
+    public static Map bookSearchNameMap = null;
 
 
     //通过isbn查找book_id缓存
@@ -385,6 +386,46 @@ public class BookCacheService {
         return (List) bookClumpMap.get(book_id);
     }
 
+    //tab2 根据book_id得到关联推荐主副标题
+    public void book_search_name_init() {
+
+        bookSearchNameMap=new HashMap();
+        //String sql = " select id,name,sub_name from meta_book_relation where book_id = ? and del_flag = 0 order by order_num asc limit 0,1 ";
+        String sql = " select book_id,id,name,sub_name from meta_book_relation where  del_flag = 0 order by order_num asc ";
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql,obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_id = String.valueOf(map.get("book_id"));
+
+            if (DitaUtil.isNotBlank(book_id)) {
+                List tagList = (List) bookSearchNameMap.get(book_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    bookSearchNameMap.put(book_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+
+        }
+    }
+
+
+
+    //推荐内容~关键词
+    public List book_search_name(String book_id) {
+        if (bookSearchNameMap == null) {
+            book_search_name_init();
+        }
+
+        return (List) bookSearchNameMap.get(book_id);
+    }
+
+
+
     public void clear() {
         bookMap = null;
         bookTagMap=null;
@@ -396,6 +437,7 @@ public class BookCacheService {
         bookStaticMap=null;
         bookTradeMap=null;
         bookClumpMap=null;
+        bookSearchNameMap=null;
     }
 
 }

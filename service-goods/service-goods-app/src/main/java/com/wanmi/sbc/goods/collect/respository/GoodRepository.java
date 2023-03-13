@@ -1,12 +1,11 @@
 package com.wanmi.sbc.goods.collect.respository;
 
-import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,7 @@ public class GoodRepository {
 
     //根据spu获取sku
     public Map getSkuBySpuId(String spu_id) {
-        Map skuMap = null;
+        Map skuMap = new HashMap();
 
         String sql = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ? and stock > 0 " +
                 " and del_flag = 0 order by market_price asc limit 1 ";
@@ -91,10 +90,42 @@ public class GoodRepository {
             String sql1 = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ?" +
                     " and del_flag = 0 order by market_price asc limit 1 ";
             List list1 = jpaManager.queryForList(sql1,obj);
-            skuMap = (Map)list1.get(0);
+            if(list1 !=null && list1.size()>0) {
+                skuMap = (Map) list1.get(0);
+            }
         }
         return skuMap;
     }
+
+
+    /**通过sku_id取定价**/
+    public Map getfixPricebySku(String skuId) {
+        Map map = new HashMap();
+
+        String sql = " select sales_num,fix_price from goods_info where goods_info_id = ? and del_flag = 0";
+        Object[] obj = new Object[]{skuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            map = (Map)list.get(0);
+        }
+        return map;
+    }
+
+    /**通过spu_id取定价**/
+    public Map getfixPricebySpu(String spuId) {
+        Map map = new HashMap();
+
+        String sql = " select goods_id,prop_value as fix_price from goods_prop_detail_rel where goods_id = ? and prop_id = 4";
+        Object[] obj = new Object[]{spuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            map = (Map)list.get(0);
+        }
+        return map;
+    }
+
+
+
 
 }
 
