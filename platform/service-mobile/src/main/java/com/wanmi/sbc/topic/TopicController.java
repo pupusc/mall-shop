@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
+import com.wanmi.sbc.collectFactory.CollectSkuIdFactory;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.Constants;
@@ -146,24 +147,18 @@ public class TopicController {
     }
 
     @Autowired
-    private HomeIndexGoodsJobHandler homeIndexGoodsJobHandler;
+    private CollectSkuIdFactory collectSkuIdFactory;
 
-    @Autowired
-    private NewRankJobHandler rankJobHandler;
-
-    @Autowired
-    private RankPageJobHandler rankPageJobHandler;
-    @Autowired
-    private NewBookPointJobHandler newBookPointJobHandler;
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
 //        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
-        rankJobHandler.execute("H5");
-        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+//        rankJobHandler.execute("H5");
+//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
 //        newBookPointJobHandler.execute(null);
+        collectSkuIdFactory.collectId();
         return BaseResponse.SUCCESSFUL();
     }
 
