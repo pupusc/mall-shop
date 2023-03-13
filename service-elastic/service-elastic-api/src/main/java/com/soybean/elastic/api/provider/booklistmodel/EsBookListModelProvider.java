@@ -25,6 +25,14 @@ public interface EsBookListModelProvider {
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listKeyWorldEsBookListModel")
     BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordBookListQueryProviderReq request);
 
+    /**
+     * 包含关键词的搜索
+     * @param request
+     * @return
+     */
+    @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listKeyWorldEsBookListModelV2")
+    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModelV2(@RequestBody @Valid EsKeyWordBookListQueryProviderReq request);
+
 
     /**
      * 书单信息搜索

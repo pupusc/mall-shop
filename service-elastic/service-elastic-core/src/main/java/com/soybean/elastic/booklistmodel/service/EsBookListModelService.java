@@ -10,8 +10,11 @@ import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.constant.ConstantMultiMatchField;
+import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.search.SearchWeightProvider;
+import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
+import com.wanmi.sbc.setting.api.request.RankRelResponse;
 import com.wanmi.sbc.setting.api.response.search.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,12 +34,14 @@ import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -60,6 +65,9 @@ public class EsBookListModelService {
 
     @Autowired
     private SearchWeightProvider searchWeightProvider;
+
+    @Autowired
+    private TopicConfigProvider topicConfigProvider;
 
     /**
      * 设置搜索的条件信息 这个是关键词的搜索
@@ -167,8 +175,40 @@ public class EsBookListModelService {
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsBookListModelService.listKeyWorldEsBookListModel DSL: {}", build.getQuery().toString());
         AggregatedPage<EsBookListModel> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsBookListModel.class);
+        long totalElements = resultQueryPage.getTotalElements();
+        List<EsBookListModelResp> esBookListModelResps = this.packageEsBookListModelResp(resultQueryPage.getContent());
+        return new CommonPageResp<>(totalElements, esBookListModelResps);
+    }
 
-        return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsBookListModelResp(resultQueryPage.getContent()));
+    /**
+     * 关键词搜索
+     * @param req
+     * @return
+     */
+    public CommonPageResp<List<EsBookListModelResp>> listKeyWorldEsBookListModelV2(EsKeyWordBookListQueryProviderReq req){
+
+        NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
+        builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
+
+        //分页 从0开始
+        req.setPageNum(Math.max((req.getPageNum() - 1), 0));
+        builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
+        //查询 条件
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryCondition(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.MULTIPLY);
+
+        builder.withQuery(functionScoreQueryBuilder);
+        //排序
+        for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
+            builder.withSort(fieldSortBuilder);
+        }
+
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsBookListModelService.listKeyWorldEsBookListModel DSL: {}", build.getQuery().toString());
+        AggregatedPage<EsBookListModel> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsBookListModel.class);
+        RankRelResponse allRankRel = topicConfigProvider.getAllRankRel();
+        long totalElements = allRankRel.getRelIdList().size();
+        List<EsBookListModelResp> esBookListModelResps = this.packageEsBookListModelResp(resultQueryPage.getContent()).stream().filter(e-> !CollectionUtils.isEmpty(allRankRel.getRelIdList())&&allRankRel.getRelIdList().contains(Integer.parseInt(e.getBookListId().toString()))).collect(Collectors.toList());
+        return new CommonPageResp<>(totalElements, esBookListModelResps);
     }
 
     /**

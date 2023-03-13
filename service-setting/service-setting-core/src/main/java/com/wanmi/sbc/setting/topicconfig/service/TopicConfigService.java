@@ -9,10 +9,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
-import com.wanmi.sbc.setting.api.request.RankPageRequest;
-import com.wanmi.sbc.setting.api.request.RankRequest;
-import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
-import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
+import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
@@ -198,6 +195,16 @@ public class TopicConfigService {
         response.setRankIds(ids);
         response.setRankRequestList(rankRequestList);
         return response;
+    }
+
+    public RankRelResponse getAllRankRel(){
+        List<Integer> idList=new ArrayList<>();
+        relationRepository.findAll().forEach(r->{
+            if(!idList.contains(r.getCRankId())){
+                idList.add(r.getCRankId());
+            }
+        });
+        return new RankRelResponse(idList);
     }
 
     /**
