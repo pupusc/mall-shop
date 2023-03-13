@@ -939,10 +939,11 @@ public class TopicService {
                 if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
                     goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
                 }
-                goodsOrBookMapList.get(j).put("fix_price",null);
+                goodsOrBookMapList.get(j).put("fixPrice",null);
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
                 if(null!=old_json) {
                     Map labelMap = JSONObject.parseObject(label, Map.class);
+                    goodsOrBookMapList.get(j).put("fixPrice",labelMap.get("fix_price"));
                     if(labelMap != null){
                         goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
                     }
