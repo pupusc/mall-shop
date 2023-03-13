@@ -15,6 +15,7 @@ import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
@@ -538,6 +539,20 @@ public class TopicConfigService {
         topicStoreySearch.setPId(request.getParentId());
         topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
+        topicStoreySearch.setBookType(request.getBookType());
+        topicStoreySearch.setDropName(request.getDropName());
+        topicStoreySearch.setRecommend(request.getRecommend());
+        topicStoreySearch.setLabelId(request.getLabelId());
+        Map<String,Object> map = new HashMap<>();
+        if (BookType.VIDEO.toValue().equals(request.getBookType())) {
+            map.put("image", request.getImage());
+            map.put("video", request.getUrl());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
+            map.put("titleImage", request.getTitleImage());
+            map.put("image", request.getImage());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        }
         columnRepository.save(topicStoreySearch);
     }
 
