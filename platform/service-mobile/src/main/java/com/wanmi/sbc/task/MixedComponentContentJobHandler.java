@@ -106,7 +106,8 @@ public class MixedComponentContentJobHandler extends IJobHandler {
                 tab.setChilidList(poolList);
             }
             //存放商品池
-            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tab.getId() + ":keywords"+"&test", JSON.toJSONString(tab));
+            redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tab.getId() + ":keywords"+"&test", poolList);
         }
+
     }
 }
