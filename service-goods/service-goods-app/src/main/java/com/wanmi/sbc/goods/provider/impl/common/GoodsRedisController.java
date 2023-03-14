@@ -46,16 +46,29 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Override
     public BaseResponse refreshRedis() {
 
-        bookTags.doGoods();         //图书商品
+        new Thread(new Runnable() {
+            public void run() {
+                try {
 
-        goodTags.doGoods();         //非书商品
+                    bookTags.doGoods();         //图书商品
 
-        marketLabel.doMarket();     //营销标签
+                    goodTags.doGoods();         //非书商品
 
-        cacheService.clear();       //释放内存
+                    marketLabel.doMarket();     //营销标签
 
-        goodsCacheService.clear();
-        cacheService.clear();
+                    cacheService.clear();       //释放内存
+
+                    goodsCacheService.clear();
+                    cacheService.clear();
+
+
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
+
 
         return BaseResponse.SUCCESSFUL();
 
