@@ -36,7 +36,7 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
         return (Specification<TopicStoreyColumn>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("topicStoreyId"), request.getTopicStoreyId()));
-            //默认查询pid为null的
+            //默认查询pid为0的
             if(request.getParentId() != null && !"".equals(request.getParentId())){
                 conditionList.add(criteriaBuilder.equal(root.get("pId"), request.getParentId()));
             }else{

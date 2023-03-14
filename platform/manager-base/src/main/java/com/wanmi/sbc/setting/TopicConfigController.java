@@ -1,23 +1,36 @@
 package com.wanmi.sbc.setting;
 
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
+import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.vo.MetaLabelQueryByPageReqVO;
+import com.wanmi.sbc.setting.bean.vo.MetaLabelQueryByPageResVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.service.ExcelService;
 import com.wanmi.sbc.setting.service.TopicConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,6 +43,7 @@ import java.util.List;
 @RequestMapping("/topic/config")
 public class TopicConfigController {
 
+    private static final String PATH_SPLIT_SYMBOL = "_";
 
     @Autowired
     private TopicConfigProvider topicConfigProvider;
@@ -39,6 +53,9 @@ public class TopicConfigController {
 
     @Autowired
     private TopicConfigService topicConfigService;
+
+    @Resource
+    private MetaLabelProvider metaLabelProvider;
 
     /**
      * @description 新增专题
@@ -548,6 +565,35 @@ public class TopicConfigController {
     @PostMapping("/storey/v2/tagRule/enable")
     public BaseResponse enableMixedComponentTabRule(@RequestBody ColumnEnableRequest request){
         return topicConfigProvider.enableTopicStoreyColumn(request);
+    }
+
+    /**
+     * 标签-分页查询
+     *
+     * @param pageRequest 分页对象
+     * @return 查询结果
+     */
+    @PostMapping("/queryByPage")
+    public BusinessResponse<List<MetaLabelQueryByPageResVO>> queryByPage(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
+        MetaLabelQueryByPageReqBO pageReqBO = new MetaLabelQueryByPageReqBO();
+        BeanUtils.copyProperties(pageRequest, pageReqBO);
+        pageReqBO.setType(LabelTypeEnum.LABEL.getCode());
+
+        BusinessResponse<List<MetaLabelBO>> boResult = this.metaLabelProvider.queryByPage(pageReqBO);
+        if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {
+            return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
+        }
+
+        List<MetaLabelQueryByPageResVO> voList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(boResult.getContext())) {
+            voList = boResult.getContext().stream().map(item -> {
+                MetaLabelQueryByPageResVO resVO = new MetaLabelQueryByPageResVO();
+                BeanUtils.copyProperties(item, resVO);
+                resVO.setPathList(StringSplitUtil.split(resVO.getPathName(), PATH_SPLIT_SYMBOL));
+                return resVO;
+            }).collect(Collectors.toList());
+        }
+        return BusinessResponse.success(voList, boResult.getPage());
     }
 
 }
