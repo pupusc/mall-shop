@@ -974,6 +974,11 @@ public class TopicService {
         return goodsOrBookMapList;
     }
 
+    /**
+     * 获取展示价格
+     * @param spuIds
+     * @return
+     */
     private List<SpuNewBookListResp> initPrice(List<String> spuIds){
         CustomerGetByIdResponse customer = this.getCustomer();
         KeyWordSpuQueryReq req=new KeyWordSpuQueryReq();
