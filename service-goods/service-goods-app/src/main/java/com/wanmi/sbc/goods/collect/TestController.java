@@ -53,9 +53,9 @@ public class TestController {
 
         marketLabel.doMarket();     //营销标签
 
-   /*     bookCacheService.clear();  //释放内存
+        bookCacheService.clear();  //释放内存
         goodsCacheService.clear();
-        cacheService.clear();*/
+        cacheService.clear();
   //19:01:01~19:16:41    15分钟
 
         System.out.println("end:" + DitaUtil.getCurrentAllDate());

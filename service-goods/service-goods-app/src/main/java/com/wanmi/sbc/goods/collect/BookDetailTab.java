@@ -231,6 +231,11 @@ public class BookDetailTab {
         Map producerMap = getProducer(bookId);
         contentMap.put("producer", producerMap);
 
+
+        //推荐内容~关键词~图书
+        Map mapRecommend = getKeyRecommend(bookId);
+        contentMap.put("recommend", mapRecommend);
+
         map.put("tab2", contentMap);
         allList.add(map);
     }
@@ -377,6 +382,11 @@ public class BookDetailTab {
             map.put("Books", ret);
         }
         return map;
+    }
+
+    public Map getKeyRecommend(String bookId){
+        Map mapRecommend=goodJpa.getKeyRecommend(bookId);
+        return mapRecommend;
     }
 
     private void doTab3(List allList) {
