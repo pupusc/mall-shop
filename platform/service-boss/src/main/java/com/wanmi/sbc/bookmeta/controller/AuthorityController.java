@@ -32,16 +32,16 @@ public class AuthorityController {
     @Resource
     AuthorityProvider authorityProvider;
     @PostMapping("addAuthority")
-    public BusinessResponse<Integer> insert(@RequestBody AuthorityAddReqVO requestVO){
+    public BusinessResponse<String> insert(@RequestBody AuthorityAddReqVO requestVO){
         AuthorityAddReqBO authority = KsBeanUtil.convert(requestVO, AuthorityAddReqBO.class);
-        BusinessResponse<Integer> integerBusinessResponse = this.authorityProvider.addAuthority(authority);
+        BusinessResponse<String> integerBusinessResponse = this.authorityProvider.addAuthority(authority);
         return  integerBusinessResponse;
     }
 
     @PostMapping("updateAuthority")
-    public BusinessResponse<Integer> update(@RequestBody AuthorityAddReqVO requestVO){
+    public BusinessResponse<String> update(@RequestBody AuthorityAddReqVO requestVO){
         AuthorityAddReqBO authority = KsBeanUtil.convert(requestVO, AuthorityAddReqBO.class);
-        BusinessResponse<Integer> integerBusinessResponse = authorityProvider.updateAuthority(authority);
+        BusinessResponse<String> integerBusinessResponse = authorityProvider.updateAuthority(authority);
         return  integerBusinessResponse;
     }
 

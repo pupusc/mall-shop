@@ -28,19 +28,6 @@ public class MetaTradeProviderImpl implements MetaTradeProvider {
     MetaTradeMapper metaTradeMapper;
     @Override
     public MetaTradePageQueryRespBO getMetaTadeTree(MetaTradePageQueryBO pageQueryBO) {
-/*        List<MetaTrade> parents= metaTradeMapper.getMetaTradeTree(parentId);
-        List<MetaTradeBO> metaTradeBOList = KsBeanUtil.convertList(parents, MetaTradeBO.class);
-        for (MetaTradeBO trade:metaTradeBOList) {
-            List<MetaTrade> child = metaTradeMapper.getMetaTradeTree(trade.getId());
-            List<MetaTradeBO> metaTradeBOS = KsBeanUtil.convertList(child, MetaTradeBO.class);
-            for (MetaTradeBO son:metaTradeBOS) {
-                List<MetaTrade> sons = metaTradeMapper.getMetaTradeTree(son.getId());
-                List<MetaTradeBO> tradeBOS = KsBeanUtil.convertList(sons, MetaTradeBO.class);
-                son.setChildrenList(tradeBOS);
-            }
-            trade.setChildrenList(metaTradeBOS);
-        }*/
-
         List<MetaTrade> result = metaTradeMapper.getAllMetaTradeNode();
         HashMap nodeList = new HashMap();
         //最后结果节点列表

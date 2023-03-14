@@ -59,7 +59,14 @@
         <result property="orderShowType" column="order_show_type" jdbcType="VARCHAR"/>
         <result property="orderDetail" column="order_detail" jdbcType="VARCHAR"/>
     </resultMap>
+    <resultMap id="GoodsLabelMap" type="com.wanmi.sbc.bookmeta.entity.GoodsLabelSpu">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="labelId" column="label_id" jdbcType="VARCHAR"/>
+        <result property="labelName" column="label_name" jdbcType="VARCHAR"/>
 
+    </resultMap>
 
 
     <!--查询单个-->
@@ -543,5 +550,20 @@
         </set>
         where goods_id = #{goodsId}
     </update>
+
+    <select id="getGoodsLabel" resultMap="GoodsLabelMap">
+        select mls.*,gs.goods_name,ml.name as label_name from meta_label_spu mls left join goods gs on mls.goods_id = gs.goods_id left join meta_label ml on mls.label_id = ml.id
+    </select>
+    <select id="getGoodsList" resultType="com.wanmi.sbc.goods.bean.vo.GoodsVO">
+        select goods_id as goodsId,goods_name as goodsName from goods where del_flag = 0
+    </select>
+
+    <select id="existGoods" resultType="int">
+        select count(1) from goods where goods_id = #{goodsId} and del_flag = 0
+    </select>
+
+    <select id="getExistGoodsLabel" resultMap="GoodsLabelMap">
+        select * from meta_label_spu where del_flag = 0
+    </select>
 </mapper>
 

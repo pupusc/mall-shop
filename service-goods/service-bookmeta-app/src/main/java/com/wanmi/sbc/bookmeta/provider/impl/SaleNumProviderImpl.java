@@ -1,7 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.wanmi.sbc.bookmeta.bo.SaleNumBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.SaleNum;
 import com.wanmi.sbc.bookmeta.mapper.SaleNumMapper;
 import com.wanmi.sbc.bookmeta.provider.SaleNumProvider;
@@ -38,13 +37,12 @@ public class SaleNumProviderImpl implements SaleNumProvider {
     @Transactional
     public BusinessResponse<String> importSaleNum(SaleNumBO saleNumBO) {
         int updateCount = 0;
-        int addCount = 0;
         Map map = new HashMap<>();
         if (StringUtils.isBlank(saleNumBO.getSpuId())) {
-            return BusinessResponse.error("操作失败,SPU_ID不可为空");
+            return BusinessResponse.error("failed,SPU_ID can't be blank");
         }
         if (StringUtils.isBlank(saleNumBO.getSkuId())) {
-            return BusinessResponse.error("操作失败,SKU_ID不可为空");
+            return BusinessResponse.error("failed,SKU_ID can't be blank");
         }
         boolean spuExit = saleNumMapper.existSpu(saleNumBO.getSpuId()) > 0;
         if (spuExit) {
@@ -58,17 +56,18 @@ public class SaleNumProviderImpl implements SaleNumProvider {
                     updateCount = saleNumMapper.update(saleNum);
                 }
             } else {
-                return BusinessResponse.error("操作失败,不存在该SKU_ID");
+                return BusinessResponse.error("failed,SKU_ID is not exist");
             }
         } else {
-            return BusinessResponse.error("操作失败,不存在该SPU_ID");
+            return BusinessResponse.error("failed,SPU_ID is not exist");
         }
-        return BusinessResponse.success("操作成功,成功更新" + updateCount + "!");
+        return BusinessResponse.success("Success,update" + updateCount + "!");
     }
 
     @Override
     public BusinessResponse<Integer> updateSaleNum(SaleNumBO saleNumBO) {
-        return BusinessResponse.success(saleNumMapper.update(KsBeanUtil.convert(saleNumBO, SaleNum.class)));
+        int update = saleNumMapper.update(KsBeanUtil.convert(saleNumBO, SaleNum.class));
+        return BusinessResponse.success(update);
     }
 
     @Override
@@ -82,6 +81,6 @@ public class SaleNumProviderImpl implements SaleNumProvider {
         saleNumBO.setLimitSize(page.getPageSize());
         List<SaleNum> saleNum = saleNumMapper.getSaleNum(saleNumBO);
         List<SaleNumBO> saleNumBOS = KsBeanUtil.convertList(saleNum, SaleNumBO.class);
-        return BusinessResponse.success(saleNumBOS);
+        return BusinessResponse.success(saleNumBOS,page);
     }
 }

@@ -23,10 +23,10 @@ import java.util.List;
 public interface AuthorityProvider {
 
     @PostMapping("/goods/${application.goods.version}/authorityV2/addAuthority")
-    BusinessResponse<Integer> addAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
+    BusinessResponse<String> addAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
 
     @PostMapping("/goods/${application.goods.version}/authorityV2/updateAuthority")
-    BusinessResponse<Integer> updateAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
+    BusinessResponse<String> updateAuthority(@RequestBody @Valid AuthorityAddReqBO pageReqBO);
 
     @PostMapping("/goods/${application.goods.version}/authorityV2/deleteAuthority")
     BusinessResponse<Integer> deleteAuthority(@RequestBody @Valid String authorityId);

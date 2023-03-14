@@ -16,7 +16,9 @@ import java.util.Date;
 public class GoodsLabelSpuReqBO implements Serializable {
     private int id;
     private String goodsId;
+    private String goodsName;
     private int labelId;
+    private String labelName;
     private Date createTime;
     private Date updateTime;
     private int firstId;

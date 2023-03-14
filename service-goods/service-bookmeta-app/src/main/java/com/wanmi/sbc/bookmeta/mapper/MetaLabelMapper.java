@@ -4,6 +4,7 @@ import com.wanmi.sbc.bookmeta.bo.AuthorityBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.entity.*;
 import com.wanmi.sbc.bookmeta.entity.*;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
@@ -138,6 +139,12 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     String getSaleNumSkuId(@Param("goodsId") String goodsId);
     GoodsOtherDetail getGoodsOtherDetail(@Param("goodsId") String goodsId);
-
     Integer updateGoodsOtherDetail(GoodsOtherDetail goodsOtherDetail);
+    List<GoodsLabelSpu> getGoodsLabel();
+    List<GoodsVO> getGoodsList();
+
+    int existGoods(@Param("goodsId")String goodsId);
+
+    List<GoodsLabelSpu> getExistGoodsLabel(@Param("goodsId") String goodsId,@Param("LabelId")int LabelId);
+
 }

@@ -13,10 +13,10 @@
     <update id="update" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">
         update goods_info
         <set>
-            <if test="salesNum !=null and salesNum !=''">
+            <if test="salesNum !=null">
                 sales_num = #{salesNum},
             </if>
-            <if test="fixPrice !=null and fixPrice !=''">
+            <if test="fixPrice !=null">
             fix_price = #{fixPrice}
             </if>
         </set>
@@ -28,8 +28,8 @@
                g.goods_name  as spu_name,
                gi.goods_info_id as sku_id,
                gi.goods_info_name as sku_name,
-               ifnull(null, gi.sales_num) as sales_num,
-                gi.fix_price
+               ifnull(gi.sales_num,0 ) as sales_num,
+                ifnull(gi.fix_price,0) as fix_price
         from goods g
                  left join goods_info gi on g.goods_id = gi.goods_id
             where g.del_flag = 0 and gi.del_flag = 0
@@ -40,8 +40,8 @@
         g.goods_name ,
         gi.goods_info_id,
         gi.goods_info_name,
-        ifnull(null, gi.sales_num),
-        gi.fix_price
+        ifnull(gi.sales_num,0) as sales_num,
+        ifnull(gi.fix_price,0) as fix_price
         from goods g
         left join goods_info gi on g.goods_id = gi.goods_id
         <where>
@@ -73,8 +73,8 @@
                g.goods_name,
                gi.goods_info_id,
                gi.goods_info_name,
-               ifnull(null, gi.sales_num) as sales_num,
-               gi.fix_price
+               ifnull(gi.sales_num,0) as sales_num,
+                ifnull(gi.fix_price,0) as fix_price
         from goods g
                  left join goods_info gi on g.goods_id = gi.goods_id
         where gi.goods_info_id = #{skuId}

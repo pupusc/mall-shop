@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.controller;
 
+import com.wanmi.sbc.bookmeta.bo.GoodsBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
@@ -62,6 +63,13 @@ public class GoodsSearchKeyController {
         GoodsNameBySpuIdBO convert = KsBeanUtil.convert(pageRequest, GoodsNameBySpuIdBO.class);
         int i = goodsSearchKeyProvider.deleteGoodsSearchKey(convert);
         return BusinessResponse.success(i);
+    }
+
+    @PostMapping("goodsList")
+    public BusinessResponse<List<GoodsBO>> getGoodsList(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
+        GoodsNameBySpuIdBO convert = KsBeanUtil.convert(pageRequest, GoodsNameBySpuIdBO.class);
+        BusinessResponse<List<GoodsBO>> goodsList = goodsSearchKeyProvider.getGoodsList(convert);
+        return goodsList;
     }
 
 }
