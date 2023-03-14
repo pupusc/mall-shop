@@ -68,10 +68,6 @@ public class BookTags {
         }
     }
 
-    public  void doOne(String book_id){
-
-    }
-
     private void doData(Map map) {
 
         doGoods(map);                 //卖点标签&&营销标签

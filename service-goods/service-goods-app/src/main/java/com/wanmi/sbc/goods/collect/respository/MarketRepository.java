@@ -19,7 +19,7 @@ public class MarketRepository {
     @Autowired
     JpaManager jpaManager;
 
-    //所有商品sku_id
+    //所有商品sku_id,b.stock > 0 也查出没有库存的商品
     public List getSkuList(){
 
         String sql = " select b.goods_id as spu_id,b.goods_info_id as sku_id,b.goods_info_no as sku_no from goods a left join goods_info b on a.goods_id = b.goods_id " +

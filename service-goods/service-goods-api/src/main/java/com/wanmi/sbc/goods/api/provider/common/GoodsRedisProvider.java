@@ -15,6 +15,9 @@ public interface GoodsRedisProvider {
     @PostMapping("/goods/${application.goods.version}/refreshBook")
     BaseResponse refreshBook(@RequestBody @Valid SpuRequest spuRequest);
 
+    @PostMapping("/goods/${application.goods.version}/refreshGoods")
+    BaseResponse refreshGoods(@RequestBody @Valid SpuRequest spuRequest);
+
     @PostMapping("/goods/${application.goods.version}/refreshRedis")
     BaseResponse refreshRedis();
 

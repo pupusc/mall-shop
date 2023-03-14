@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.collect.respository;
 
+import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,6 +142,29 @@ public class GoodRepository {
             map = (Map)list.get(0);
         }
         return map;
+    }
+
+    /**通过spu_id查询黑名单**/
+    public List getBlackBySpuId(String spuId) {
+
+        String sql = " select * from t_goods_blacklist where del_flag = 0 and business_category = 6 and business_id = ? ";
+        Object[] obj = new Object[]{spuId};
+        List list = jpaManager.queryForList(sql,obj);
+        return list;
+    }
+
+    /**通过sku_id查询参加积分兑换活动**/
+    public List getByMarketSkuId(String skuId) {
+
+        String currentTime = DitaUtil.getCurrentAllDate();
+
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id  " +
+                " where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0 " +
+                " and a.begin_time <= ? and ? <= a.end_time  " +
+                " and b.scope_id = ? ";
+        Object[] obj = new Object[]{currentTime,currentTime,skuId};
+        List list = jpaManager.queryForList(sql,obj);
+        return list;
     }
 
 }
