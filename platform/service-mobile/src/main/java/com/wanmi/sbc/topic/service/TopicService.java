@@ -6,14 +6,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.gson.Gson;
+import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.soybean.elastic.api.resp.SpuNewBookListResp;
 import com.soybean.marketing.api.provider.activity.NormalActivityPointSkuProvider;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdFigureBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
+import com.wanmi.sbc.classify.request.KeyWordSpuQueryReq;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -24,12 +28,15 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.configure.SpringUtil;
 import com.wanmi.sbc.customer.CustomerBaseController;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerPointsAvailableByCustomerIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -40,12 +47,14 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SuspensionByTypeRequest;
 import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
 import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goodsPool.PoolFactory;
 import com.wanmi.sbc.goodsPool.service.PoolService;
@@ -175,6 +184,9 @@ public class TopicService {
 
     @Autowired
     private PoolFactory poolFactory;
+
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     @Autowired
     private RefreshConfig refreshConfig;
@@ -962,9 +974,169 @@ public class TopicService {
         return goodsOrBookMapList;
     }
 
-    public void initPrice(List<String> spuIds){
-
+    private List<SpuNewBookListResp> initPrice(List<String> spuIds){
+        CustomerGetByIdResponse customer = this.getCustomer();
+        KeyWordSpuQueryReq req=new KeyWordSpuQueryReq();
+        req.setSpuIds(spuIds);
+        req.setDelFlag(0);
+        EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpuBySpuId(req).getContext();
+        List<SpuNewBookListResp> spuNewBookListResps = this.packageSpuNewBookListResp(esSpuNewAggResp.getResult().getContent(),customer, false, new ArrayList<>());
+        return spuNewBookListResps;
     }
+
+    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus, List<String> showSkuIds){
+        if (org.springframework.util.CollectionUtils.isEmpty(esSpuNewRespList)) {
+            return new ArrayList<>();
+        }
+        //获取商品对应的书单信息
+        List<String> spuIdList = esSpuNewRespList.stream().map(EsSpuNewResp::getSpuId).collect(Collectors.toList());
+        //获取goodsInfo信息
+//        BigDecimal salePrice = new BigDecimal("9999");
+        Map<String, GoodsInfoVO> spuId2HasStockGoodsInfoVoMap = new HashMap<>();
+        Map<String, GoodsInfoVO> spuId2UnHasStockGoodsInfoVoMap = new HashMap<>();
+        //指定showSkuId信息
+        Map<String, GoodsInfoVO> skuId2DirectGoodsInfoVoMap = new HashMap<>();
+
+        boolean hasCustomerVip = false;
+
+        GoodsInfoListByConditionRequest request = new GoodsInfoListByConditionRequest();
+        request.setGoodsIds(spuIdList);
+        request.setAuditStatus(CheckStatus.CHECKED);
+        request.setDelFlag(DeleteFlag.NO.toValue());
+        request.setAddedFlag(AddedFlag.YES.toValue());
+        request.setShowSpecFlag(true);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(request).getContext().getGoodsInfos();
+        if (!org.springframework.util.CollectionUtils.isEmpty(goodsInfos)) {
+            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            List<GoodsInfoDTO> goodsInfoDTOS = new ArrayList<>();
+            for (GoodsInfoVO goodsInfo : goodsInfos) {
+                GoodsInfoDTO goodsInfoDTO = KsBeanUtil.convert(goodsInfo, GoodsInfoDTO.class);
+                goodsInfoDTO.setPriceType(GoodsPriceType.MARKET.toValue()); //此处强制设置为市场价来计算折扣
+                goodsInfoDTOS.add(goodsInfoDTO);
+            }
+            filterRequest.setGoodsInfos(goodsInfoDTOS);
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+                //获取vip信息
+                MaxDiscountPaidCardRequest maxDiscountPaidCardRequest = new MaxDiscountPaidCardRequest();
+                maxDiscountPaidCardRequest.setCustomerId(customer.getCustomerId());
+                List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(maxDiscountPaidCardRequest).getContext();
+                hasCustomerVip = !org.springframework.util.CollectionUtils.isEmpty(paidCardVOList);
+            }
+            goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+
+            for (GoodsInfoVO goodsInfoParam : goodsInfos) {
+                MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsInfoParam.getGoodsInfoId()).getContext();
+                if(null!=marketingLabel){
+                    if(null!=marketingLabel.getSale_num()){
+                        goodsInfoParam.setSaleNum(marketingLabel.getSale_num());
+                    }
+                }else {
+                    if (goodsInfoParam.getSalePrice() == null) {
+                        goodsInfoParam.setSalePrice(goodsInfoParam.getMarketPrice());
+                    }
+                }
+                if (goodsInfoParam.getStock() <= StockUtil.THRESHOLD_STOCK) {
+                    goodsInfoParam.setStock(0L); //设置库存为0
+                }
+
+                //如果制定skuId则使用对应的skuid
+                if (!org.springframework.util.CollectionUtils.isEmpty(showSkuIds) && showSkuIds.contains(goodsInfoParam.getGoodsInfoId())) {
+                    skuId2DirectGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                    continue;
+                }
+
+                //存在库存 规格：如果有库存则取库存里面价格最低的商品，如果没有商品则获取 库存最低里面价格最低的商品 skuInfo 设置skuid
+                if (goodsInfoParam.getStock() > 0) {
+                    GoodsInfoVO goodsInfoHasStock = spuId2HasStockGoodsInfoVoMap.get(goodsInfoParam.getGoodsId());
+                    //如果map中没有，则添加到
+                    if (goodsInfoHasStock == null) {
+                        spuId2HasStockGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                        spuId2UnHasStockGoodsInfoVoMap.remove(goodsInfoParam.getGoodsId()); //如果无库存中存在，则移除掉数据
+                    } else {
+                        if (goodsInfoParam.getSalePrice().compareTo(goodsInfoHasStock.getSalePrice()) < 0) {
+                            spuId2HasStockGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                            spuId2UnHasStockGoodsInfoVoMap.remove(goodsInfoParam.getGoodsId()); //如果无库存中存在，则移除掉数据
+                        }
+                    }
+                } else {
+                    //如果有库存，则继续
+                    GoodsInfoVO goodsInfoHasStock = spuId2HasStockGoodsInfoVoMap.get(goodsInfoParam.getGoodsId());
+                    if (goodsInfoHasStock != null) {
+                        continue;
+                    }
+
+                    GoodsInfoVO goodsInfoUnHasStock = spuId2UnHasStockGoodsInfoVoMap.get(goodsInfoParam.getGoodsId());
+                    if (goodsInfoUnHasStock == null) {
+                        spuId2UnHasStockGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                    } else {
+                        if (goodsInfoParam.getSalePrice().compareTo(goodsInfoUnHasStock.getSalePrice()) < 0) {
+                            spuId2UnHasStockGoodsInfoVoMap.put(goodsInfoParam.getGoodsId(), goodsInfoParam);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        List<SpuNewBookListResp> result = new ArrayList<>();
+
+        for (EsSpuNewResp esSpuNewRespParam : esSpuNewRespList) {
+            GoodsInfoVO goodsInfoVOShow = skuId2DirectGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+            GoodsInfoVO goodsInfoVO = null;
+            if (goodsInfoVOShow == null) {
+                GoodsInfoVO goodsInfoVOTmp = spuId2HasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+                goodsInfoVO = goodsInfoVOTmp != null ? goodsInfoVOTmp
+                        : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId()) == null
+                        ? null : spuId2UnHasStockGoodsInfoVoMap.get(esSpuNewRespParam.getSpuId());
+            } else {
+                goodsInfoVO = goodsInfoVOShow;
+            }
+
+            if (goodsInfoVO == null) {
+                continue;
+            }
+            SpuNewBookListResp spuNewBookListResp = new SpuNewBookListResp();
+            spuNewBookListResp.setSpuId(esSpuNewRespParam.getSpuId());
+            spuNewBookListResp.setSkuId(goodsInfoVO.getGoodsInfoId());
+            spuNewBookListResp.setSpuName(esSpuNewRespParam.getSpuName());
+            spuNewBookListResp.setSpuSubName(esSpuNewRespParam.getSpuSubName());
+            spuNewBookListResp.setSpuCategory(esSpuNewRespParam.getSpuCategory());
+            if (!org.springframework.util.CollectionUtils.isEmpty(goodsInfoVO.getCouponLabels())) {
+                List<SpuNewBookListResp.CouponLabel> cpnLabels = goodsInfoVO.getCouponLabels().stream().map(i -> {
+                    SpuNewBookListResp.CouponLabel cpnLabel = new SpuNewBookListResp.CouponLabel();
+                    BeanUtils.copyProperties(i, cpnLabel);
+                    return cpnLabel;
+                }).collect(Collectors.toList());
+                spuNewBookListResp.setCouponLabels(cpnLabels);
+            }
+            if (esSpuNewRespParam.getBook() != null) {
+                EsSpuNewResp.Book book = esSpuNewRespParam.getBook();
+                SpuNewBookListResp.Book resultBook = new SpuNewBookListResp.Book();
+                resultBook.setAuthorNames(book.getAuthorNames());
+                resultBook.setScore(book.getScore());
+                resultBook.setPublisher(book.getPublisher());
+                resultBook.setFixPrice(book.getFixPrice());
+                spuNewBookListResp.setBook(resultBook);
+            }
+            spuNewBookListResp.setStock(goodsInfoVO.getStock());
+            spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
+            spuNewBookListResp.setSaleNum(goodsInfoVO.getSaleNum());
+            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null? BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :(goodsInfoVO.getMarketPrice()!=null?goodsInfoVO.getMarketPrice():null)));
+            spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
+            spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
+            spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
+            spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
+            result.add(spuNewBookListResp);
+        }
+
+        if (fetchSkus && !org.springframework.util.CollectionUtils.isEmpty(goodsInfos)) {
+            Map<String, List<GoodsInfoVO>> spuId2skus = goodsInfos.stream().collect(Collectors.groupingBy(GoodsInfoVO::getGoodsId));
+            result.forEach(spu -> spu.setSkus(spuId2skus.getOrDefault(spu.getSpuId(), new ArrayList<>())));
+        }
+        return result;
+    }
+
 
     /**
      * 初始化商品价格通用方法
