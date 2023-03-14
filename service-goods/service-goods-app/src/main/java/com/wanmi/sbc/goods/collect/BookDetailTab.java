@@ -42,10 +42,14 @@ public class BookDetailTab {
     @Autowired
     private BookCacheService bookCacheService;
 
+    @Autowired
+    private BookDetailTab bookDetailTab;
+
     //图书tab
     void doBook(Map goodMap) {
 
         Map redisMap = new LinkedHashMap();
+
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
@@ -84,7 +88,12 @@ public class BookDetailTab {
         redisMap.put("salenum", saleNum);
         //定价
         String fix_price = getFixPrice(spu_id);
-        redisMap.put("fix_price", fix_price);
+        // redisMap.put("fix_price", fix_price);
+
+        //根据spu 找到sku
+        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
+        //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
+        redisMap.put("isShowIntegral",bookDetailTab.isShowIntegral(spu_id,sku_id));
 
         redisMap.put("bookDetail", allList);
 
@@ -383,8 +392,8 @@ public class BookDetailTab {
         return map;
     }
 
-    public Map getKeyRecommend(String bookId){
-        Map mapRecommend=goodJpa.getKeyRecommend(bookId);
+    public Map getKeyRecommend(String bookId) {
+        Map mapRecommend = goodJpa.getKeyRecommend(bookId);
         return mapRecommend;
     }
 
@@ -495,7 +504,7 @@ public class BookDetailTab {
 
     //推荐内容~关键词
     private void doSearch(Map redisMap, String book_id) {
-         List list = bookJpa.book_search_name(book_id);
+        List list = bookJpa.book_search_name(book_id);
         //List list = bookCacheService.book_search_name(book_id);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
@@ -533,6 +542,17 @@ public class BookDetailTab {
         return DitaUtil.isBlank(getFixPrice) ? null : getFixPrice; //排除“null”
     }
 
+    //是否显示积分全额抵扣
+    public boolean isShowIntegral(String spuId, String sku_id) {
+        boolean flag = true;//默认都显示
+        List blackList = goodJpa.getBlackBySpuId(spuId);//查询积分黑名单
+        List makertList = goodJpa.getByMarketSkuId(sku_id);//查询参加积分兑换活动
 
+        //参加积分兑换活动 或者 加入黑名单 都不显示 积分全额抵扣
+        if (blackList.size() > 0 || makertList.size() > 0) {
+            flag = false;
+        }
+        return flag;
+    }
 }
 

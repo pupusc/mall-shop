@@ -299,10 +299,10 @@ public class BossGoodsController {
     }
 
     //刷新单个sku_id
-    //@RequestMapping(value = "/refreshGoods", method = RequestMethod.POST)
-    //public BaseResponse refreshGoods(@RequestBody SpuRequest spuRequest){
-    //    return goodsRedisProvider.refreshGoods(spuRequest);
-    //}
+    @RequestMapping(value = "/refreshGoods", method = RequestMethod.POST)
+    public BaseResponse refreshGoods(@RequestBody SpuRequest spuRequest){
+        return goodsRedisProvider.refreshGoods(spuRequest);
+    }
 
     //刷新单个isbn
     @RequestMapping(value = "/refreshBook", method = RequestMethod.POST)
@@ -311,10 +311,12 @@ public class BossGoodsController {
     }
 
     //刷新所有
+    @ApiOperation(value = "刷新所有商品")
     @RequestMapping(value = "/refreshRedis", method = RequestMethod.POST)
     public BaseResponse refreshRedis(){
         return goodsRedisProvider.refreshRedis();
     }
+
 
     @Autowired
     private CollectSpuNewJobHandler collectSpuNewJobHandler;

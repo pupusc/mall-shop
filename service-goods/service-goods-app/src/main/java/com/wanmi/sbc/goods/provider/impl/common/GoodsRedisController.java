@@ -13,6 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @Slf4j
 public class GoodsRedisController implements GoodsRedisProvider {
@@ -32,13 +35,39 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Autowired
     GoodsTestCacheService goodsCacheService;
 
-    //单个
+    //单个图书商品isbn查询
     @Override
     public BaseResponse refreshBook(SpuRequest spuRequest) {
 
         String isbn = spuRequest.getIsbn();
-        System.out.println("isbn"+ isbn);
+        String spu_id = spuRequest.getSpu_id();
+        String spu_no = spuRequest.getSpu_no();
 
+        Map map=new HashMap<>();
+
+        map.put("isbn",isbn);
+        map.put("spu_id",spu_id);
+        map.put("spu",spu_no);
+
+        bookTags.doGoods(map);
+        System.out.println("isbn"+ isbn);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    //单个sku商品查询
+    @Override
+    public BaseResponse refreshGoods(SpuRequest spuRequest) {
+
+        String spu_id = spuRequest.getSpu_id();
+        String sku_id = spuRequest.getSku_id();
+
+        Map map=new HashMap<>();
+
+        map.put("spu_id",spu_id);//商品spu
+        map.put("sku_id",sku_id);//商品sku
+
+        marketLabel.doData(map);
+        System.out.println("isbn"+ sku_id);
         return BaseResponse.SUCCESSFUL();
     }
 

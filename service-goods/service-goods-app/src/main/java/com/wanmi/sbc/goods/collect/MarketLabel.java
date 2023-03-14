@@ -49,7 +49,7 @@ public class MarketLabel {
 
     }
 
-    private void doData(Map skuMap) {
+    public void doData(Map skuMap) {
 
         List allList = new ArrayList();
 
@@ -112,8 +112,12 @@ public class MarketLabel {
         String saleNum =bookDetailTab.getSaleNum_bySpuID(spu_id);
         map.put("salenum", saleNum);
         //定价
-        String fix_price = bookDetailTab.getFixPrice(spu_id);
-        map.put("fix_price", fix_price);
+        //String fix_price = bookDetailTab.getFixPrice(spu_id);
+        //map.put("fix_price", fix_price);
+
+        //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
+        map.put("isShowIntegral",bookDetailTab.isShowIntegral(spu_id,sku_id));
+
 
         map.put("labels",allList);
 

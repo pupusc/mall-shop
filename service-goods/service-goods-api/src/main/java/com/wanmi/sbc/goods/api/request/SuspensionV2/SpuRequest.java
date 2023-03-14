@@ -32,4 +32,7 @@ public class SpuRequest extends BaseRequest {
     @ApiModelProperty(value = "type")
     private String isbn;
 
+    @ApiModelProperty(value = "type")
+    private String spu_no;
+
 }
