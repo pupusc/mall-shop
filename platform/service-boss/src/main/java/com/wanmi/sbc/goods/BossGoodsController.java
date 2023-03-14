@@ -298,13 +298,19 @@ public class BossGoodsController {
         return  riskVerifyProvider.verifyImageCallBack(imageVerifyRequest);
     }
 
-    //单个
+    //刷新单个sku_id
+    //@RequestMapping(value = "/refreshGoods", method = RequestMethod.POST)
+    //public BaseResponse refreshGoods(@RequestBody SpuRequest spuRequest){
+    //    return goodsRedisProvider.refreshGoods(spuRequest);
+    //}
+
+    //刷新单个isbn
     @RequestMapping(value = "/refreshBook", method = RequestMethod.POST)
     public BaseResponse refreshBook(@RequestBody SpuRequest spuRequest){
         return goodsRedisProvider.refreshBook(spuRequest);
     }
 
-    //所有
+    //刷新所有
     @RequestMapping(value = "/refreshRedis", method = RequestMethod.POST)
     public BaseResponse refreshRedis(){
         return goodsRedisProvider.refreshRedis();
