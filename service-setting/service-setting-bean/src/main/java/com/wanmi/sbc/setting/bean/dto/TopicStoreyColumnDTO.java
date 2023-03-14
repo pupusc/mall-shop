@@ -50,6 +50,14 @@ public class TopicStoreyColumnDTO implements Serializable {
     @ApiModelProperty("1动态，2静态")
     private Integer showType;
 
+    private Integer bookType;
+
+    private String dropName;
+
+    private String labelId;
+
+    private String attributeInfo;
+
     /**
      * 0-未开始 1-进行中 2-已结束
      */
