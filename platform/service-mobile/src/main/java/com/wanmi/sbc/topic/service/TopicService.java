@@ -640,11 +640,23 @@ public class TopicService {
             }
             List<Map> goodsCustomResponses = new ArrayList<>();
             List<JSONObject> goodsInfoList = redisListService.findByRange(key, start, end);
+            List<String> spuIds=new ArrayList<>();
             if (!CollectionUtils.isEmpty(goodsInfoList)) {
                 for (JSONObject goodStr : goodsInfoList) {
+                    Map map = JSONObject.toJavaObject(goodStr, Map.class);
+                    if(!spuIds.contains(map.get("spuId"))){
+                        spuIds.add(String.valueOf(map.get("spuId")));
+                    }
                     goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
             }
+            List<SpuNewBookListResp> spuNewBookListResps = this.initPrice(spuIds);
+            goodsCustomResponses.forEach(g->{
+                spuNewBookListResps.stream().filter(s->s.getSpuId().equals(String.valueOf(g.get("spuId")))).forEach(s->{
+                    g.put("salePrice",s.getSalesPrice());
+                    g.put("marketPrice",s.getMarketPrice());
+                });
+            });
             RankPageRequest pageRequest = new RankPageRequest();
             //初始化榜单树形结构，获取商品详情
             rankRequestList.forEach(r -> {
@@ -1127,7 +1139,7 @@ public class TopicService {
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setSaleNum(goodsInfoVO.getSaleNum());
-            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null? BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :(goodsInfoVO.getMarketPrice()!=null?goodsInfoVO.getMarketPrice():null)));
+            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null&&!(goodsInfoVO.getFixPrice().compareTo(BigDecimal.ZERO)==0)?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null? BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :goodsInfoVO.getMarketPrice()));
             spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
             spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());

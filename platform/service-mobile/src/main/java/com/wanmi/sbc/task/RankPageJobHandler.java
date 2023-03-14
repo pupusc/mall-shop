@@ -171,8 +171,6 @@ public class RankPageJobHandler extends IJobHandler {
                         }
                         map.put("sorting",b.getOrderNum());
                         map.put("goodsName",esSpuNewResp.getSpuName());
-                        map.put("linePrice",g.getLinePrice());
-                        map.put("showPrice",g.getShowPrice());
                         if(null!=b.getSaleNum()) {
                             if (b.getSaleNum() >= 10000) {
                                 String num = String.valueOf(b.getSaleNum() / 10000) + "万";
