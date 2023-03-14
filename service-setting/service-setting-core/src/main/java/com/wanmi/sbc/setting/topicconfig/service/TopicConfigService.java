@@ -511,6 +511,11 @@ public class TopicConfigService {
         return microServicePage;
     }
 
+    public List<TopicStoreyColumnDTO> listStoryColumnAll(TopicStoreyColumnQueryRequest request){
+        List<TopicStoreyColumn> content = columnRepository.findAll(columnRepository.topicStoreySearch(request));
+        return changeTopicStoreyColumn(content);
+    }
+
     public MicroServicePage<RankListDTO> listRankList(TopicStoreyColumnQueryRequest request){
         Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
                 .findAll(columnRepository.topicStoreyRankLevel0Search(request), PageRequest.of(request.getPageNum(),
@@ -654,6 +659,11 @@ public class TopicConfigService {
         microServicePage.setTotal(topicStoreySearchGoodsPage.getTotalElements());
         microServicePage.setContent(changeTopicStoreyColumnGoods(content));
         return microServicePage;
+    }
+
+    public List<TopicStoreyColumnGoodsDTO> listStoryColumnGoodsId(TopicStoreyColumnGoodsQueryRequest request){
+        List<TopicStoreyColumnContent> list = columnGoodsRepository.findAll(columnGoodsRepository.topicStoreySearchContent(request));
+        return changeTopicStoreyColumnGoods(list);
     }
 
     public List<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoodsByIdAndSpu(TopicStoreyColumnGoodsQueryRequest request) {

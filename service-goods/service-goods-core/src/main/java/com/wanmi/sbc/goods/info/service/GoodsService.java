@@ -3927,14 +3927,15 @@ public class GoodsService {
         if(null!=spuId && spuId.isEmpty()==false){
             old_json = redisService.getString(redisTagsConstant + ":" + spuId);
         } else{
-            //spuId为空则通过skuId获取spuId
-            if(null == skuId || skuId.isEmpty()){
-                return null;
-            }else {
-                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
-                spuId=goodsInfoMap.get("spuId");
-                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
-            }
+//            //spuId为空则通过skuId获取spuId
+//            if(null == skuId || skuId.isEmpty()){
+//                return null;
+//            }else {
+//                Map<String, String> goodsInfoMap = goodsInfoService.goodsInfoBySkuId(skuId);
+//                spuId=goodsInfoMap.get("spuId");
+//                old_json = redisService.getString(redisTagsConstant + ":" + spuId);
+//            }
+            return null;
         }
 
         if(null==old_json || old_json.isEmpty()){
@@ -4018,6 +4019,7 @@ public class GoodsService {
      * @param  map 待处理商详, goodsPriceMap 商详中的所有sku相关信息
      * @return skuIdTableOneList 回填后的table1
      */
+    @Deprecated
     public List fillGoodsDetailTableOne(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
         List<String> skuIdTableOneList=new ArrayList<>();
         List detailList=(List)map.get("bookDetail");
@@ -4051,6 +4053,7 @@ public class GoodsService {
         return detailList;
     }
 
+    @Deprecated
     public List fillGoodsDetailOtherBook(Map map, Map<String, GoodsInfoVO> goodsPriceMap) {
         List<String> skuIdOtherBookList=new ArrayList<>();
         List otherBookList=(List)map.get("otherBook");
@@ -4096,5 +4099,14 @@ public class GoodsService {
             }
         });
         return map;
+    }
+
+    public List getFreightTempAreaBySpu(String spuId) {
+        List<Map<String, Object>> freightTempIdMap = goodsRepository.collectFreightTempBySpu(spuId);
+        if(null==freightTempIdMap||freightTempIdMap.size()==0){
+            return null;//商品没有配运费模板
+        }
+        List<Map<String, Object>> freightTempArea = goodsRepository.collectAreaByFreightTemp((BigInteger) freightTempIdMap.get(0).get("freight_temp_id"));
+        return freightTempArea;
     }
 }

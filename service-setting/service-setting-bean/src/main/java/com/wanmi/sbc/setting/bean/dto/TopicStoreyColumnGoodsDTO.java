@@ -58,6 +58,8 @@ public class TopicStoreyColumnGoodsDTO implements Serializable {
 
     private Integer topicStoreyId;
 
+    private Integer topicStoreyColumnId;
+
     @ApiModelProperty("推荐人")
     public String referrer;
 

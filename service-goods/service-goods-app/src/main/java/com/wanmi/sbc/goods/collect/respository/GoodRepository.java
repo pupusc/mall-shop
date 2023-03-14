@@ -125,7 +125,23 @@ public class GoodRepository {
     }
 
 
-
+    /**通过book_id取关键词和推荐图书**/
+    public Map getKeyRecommend(String bookId) {
+        Map map = new HashMap();
+        /* meta_book_relation_book:推荐图书    isbn,bookName 图书名称
+           meta_book_relation 关联推荐 name ：主标题   sub_name 副标题  开始时间  结束时间
+           meta_book_relation_key 搜索关键词  keyName：关键词  */
+        String sql = " select a.book_id,a.id,a.name,a.sub_name,a.start_time,a.end_time,b.isbn,b.name as bookName,c.name as keyName from meta_book_relation a " +
+                " LEFT JOIN meta_book_relation_book b ON b.relation_id=a.id " +
+                " LEFT JOIN meta_book_relation_key c ON c.relation_id=a.id " +
+                " WHERE book_id=? and a.del_flag = 0 AND b.del_flag=0 AND c.del_flag=0 order by a.order_num,b.order_num,c.order_num asc limit 0,1";
+        Object[] obj = new Object[]{bookId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            map = (Map)list.get(0);
+        }
+        return map;
+    }
 
 }
 

@@ -358,4 +358,20 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/get_goods-detial-by-id1")
     BaseResponse getGoodsDetialById1(@RequestParam(value = "spuId" ,required = false) String spuId,@RequestParam(value = "skuId",required = false) String skuId);
+
+    /**
+     * 通过spu获取商品49包邮模板地区
+     * @param spuId、skuId
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/getFreightTempAreaBySpu")
+    BaseResponse getFreightTempAreaBySpu(@RequestParam(value = "spuId" ,required = false) String spuId);
+
+    /**
+     * 通过spu获取sku
+     * @param spuId、skuId
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/getSkuBySpu")
+    BaseResponse getSkuBySpu(@RequestParam(value = "spuId" ,required = false) String spuId);
 }

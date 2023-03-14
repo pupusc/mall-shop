@@ -47,6 +47,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.collect.RedisTagsConstant;
+import com.wanmi.sbc.goods.collect.respository.GoodRepository;
 import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
@@ -178,6 +179,8 @@ public class GoodsController implements GoodsProvider {
 
     @Autowired
     private SiteSearchService siteSearchService;
+    @Autowired
+    GoodRepository goodJpa;
 
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();
@@ -962,5 +965,15 @@ public class GoodsController implements GoodsProvider {
         Map rankMap = goodsService.getGoodsDetailRankById(spuId, skuId, RedisTagsConstant.ELASTIC_SAVE_GOODS_TAGS_SPU_ID);
         map.put("rank",rankMap);
         return BaseResponse.success(map);
+    }
+
+    @Override
+    public BaseResponse getFreightTempAreaBySpu(String spuId) {
+        return BaseResponse.success(goodsService.getFreightTempAreaBySpu(spuId));
+    }
+
+    @Override
+    public BaseResponse getSkuBySpu(String spuId) {
+        return BaseResponse.success(goodJpa.getSkuBySpuId(spuId));
     }
 }

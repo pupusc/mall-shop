@@ -6,10 +6,7 @@ import com.wanmi.sbc.goods.api.provider.common.GoodsRedisProvider;
 import com.wanmi.sbc.goods.api.provider.common.RiskVerifyProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SpuRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
-import com.wanmi.sbc.goods.collect.BookTags;
-import com.wanmi.sbc.goods.collect.CacheService;
-import com.wanmi.sbc.goods.collect.GoodTags;
-import com.wanmi.sbc.goods.collect.MarketLabel;
+import com.wanmi.sbc.goods.collect.*;
 import com.wanmi.sbc.goods.common.RiskVerifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,12 +29,15 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Autowired
     CacheService cacheService;
 
+    @Autowired
+    GoodsTestCacheService goodsCacheService;
+
     //单个
     @Override
     public BaseResponse refreshBook(SpuRequest spuRequest) {
 
         String isbn = spuRequest.getIsbn();
-
+        System.out.println("isbn"+ isbn);
 
         return BaseResponse.SUCCESSFUL();
     }
@@ -46,13 +46,29 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Override
     public BaseResponse refreshRedis() {
 
-        bookTags.doGoods();         //图书商品
+        new Thread(new Runnable() {
+            public void run() {
+                try {
 
-        goodTags.doGoods();         //非书商品
+                    bookTags.doGoods();         //图书商品
 
-        marketLabel.doMarket();     //营销标签
+                    goodTags.doGoods();         //非书商品
 
-        cacheService.clear();       //释放内存
+                    marketLabel.doMarket();     //营销标签
+
+                    cacheService.clear();       //释放内存
+
+                    goodsCacheService.clear();
+                    cacheService.clear();
+
+
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
+
 
         return BaseResponse.SUCCESSFUL();
 

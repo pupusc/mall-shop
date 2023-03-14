@@ -20,6 +20,7 @@ import com.wanmi.sbc.setting.api.request.RankPageRequest;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
 import com.wanmi.sbc.task.*;
 import com.wanmi.sbc.topic.request.GoodsSearchBySpuIdRequest;

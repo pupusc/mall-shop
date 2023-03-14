@@ -139,6 +139,11 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public List<TopicStoreyColumnDTO> listStoryColumnAll(TopicStoreyColumnQueryRequest request) {
+        return topicConfigService.listStoryColumnAll(request);
+    }
+
+    @Override
     public BaseResponse<MicroServicePage<RankListDTO>> listRankList(TopicStoreyColumnQueryRequest request) {
         return BaseResponse.success(topicConfigService.listRankList(request));
     }
@@ -194,6 +199,11 @@ public class TopicConfigController implements TopicConfigProvider {
     @Override
     public BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(TopicStoreyColumnGoodsQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopicStoreyColumnGoods(request));
+    }
+
+    @Override
+    public List<TopicStoreyColumnGoodsDTO> listStoryColumnGoodsId(TopicStoreyColumnGoodsQueryRequest request) {
+        return topicConfigService.listStoryColumnGoodsId(request);
     }
 
     @Override

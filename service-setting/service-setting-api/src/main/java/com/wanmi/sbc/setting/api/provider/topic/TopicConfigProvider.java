@@ -90,6 +90,9 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/list")
     BaseResponse<MicroServicePage<TopicStoreyColumnDTO>> listStoryColumn(@RequestBody TopicStoreyColumnQueryRequest request);
 
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/listAll")
+    List<TopicStoreyColumnDTO> listStoryColumnAll(@RequestBody TopicStoreyColumnQueryRequest request);
+
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/list")
     BaseResponse<MicroServicePage<RankListDTO>> listRankList(@RequestBody TopicStoreyColumnQueryRequest request);
 
@@ -104,6 +107,9 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/list")
     BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsQueryRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goodsId/list")
+    List<TopicStoreyColumnGoodsDTO> listStoryColumnGoodsId(@RequestBody TopicStoreyColumnGoodsQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/column/goods/listByIdAndSpu")
     BaseResponse<List<TopicStoreyColumnGoodsDTO>> listStoryColumnGoodsByIdAndSpu(@RequestBody TopicStoreyColumnGoodsQueryRequest request);
