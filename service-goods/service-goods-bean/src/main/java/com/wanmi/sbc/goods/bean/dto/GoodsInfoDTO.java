@@ -111,6 +111,12 @@ public class GoodsInfoDTO implements Serializable {
     private BigDecimal costPrice;
 
     /**
+     * 商品sku定价
+     */
+    @ApiModelProperty(value = "商品sku定价")
+    private BigDecimal fixPrice;
+
+    /**
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")

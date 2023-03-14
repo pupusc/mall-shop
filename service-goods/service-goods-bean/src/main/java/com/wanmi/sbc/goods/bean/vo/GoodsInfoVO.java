@@ -94,6 +94,12 @@ public class GoodsInfoVO implements Serializable {
     private BigDecimal marketPrice;
 
     /**
+     * 商品市场价
+     */
+    @ApiModelProperty(value = "商品sku定价")
+    private BigDecimal fixPrice;
+
+    /**
      * 供货价
      */
     @ApiModelProperty(value = "供货价")

@@ -311,6 +311,12 @@ public class GoodsInfo implements Serializable {
     private Long providerId;
 
     /**
+     * sku定价
+     */
+    @Column(name = "fix_price")
+    private BigDecimal fixPrice;
+
+    /**
      * 是否允许独立设价 0:不允许, 1:允许
      */
     @Transient
