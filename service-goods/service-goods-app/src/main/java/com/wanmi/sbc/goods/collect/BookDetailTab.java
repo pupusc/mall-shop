@@ -231,7 +231,6 @@ public class BookDetailTab {
         Map producerMap = getProducer(bookId);
         contentMap.put("producer", producerMap);
 
-
         //推荐内容~关键词~图书
         Map mapRecommend = getKeyRecommend(bookId);
         contentMap.put("recommend", mapRecommend);
@@ -394,8 +393,10 @@ public class BookDetailTab {
     }
 
     private void doTab4(List allList, String spuId) {
+        Map<String, Object> map = new HashMap<>();
         Map orderDetail = goodJpa.getOrderDetail(spuId);
-        allList.add(orderDetail);
+        map.put("tab4", orderDetail);
+        allList.add(map);
     }
 
     //sku 查询销量
