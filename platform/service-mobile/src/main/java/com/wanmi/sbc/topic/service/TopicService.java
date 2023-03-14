@@ -26,6 +26,7 @@ import com.wanmi.sbc.customer.CustomerBaseController;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerPointsAvailableByCustomerIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
@@ -195,14 +196,11 @@ public class TopicService {
             return BaseResponse.success(response);
         }
         //轮播图要加载
-        if(!allLoad) {
-            int index = response.getStoreyList().size() > 1 ? 2 : 1;
-            for (int i= index ;i<response.getStoreyList().size();i++){
-                if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
-                    response.getStoreyList().get(i).setContents(null);
-                }
-            }
-        }
+//        for (int i= 0 ;i<response.getStoreyList().size();i++){
+//            if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
+//                response.getStoreyList().get(i).setContents(null);
+//            }
+//        }
         //商品属性
         response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.TWOGOODS.getId())).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
@@ -246,7 +244,8 @@ public class TopicService {
                 if(null!=map.get("text")){
                     pointsResponse.setPoints_text(map.get("text").toString());
                 }
-                pointsResponse.setPoints_available(customer.getPointsAvailable());
+                CustomerPointsAvailableByCustomerIdResponse context = customerBaseController.getPointsAvailable().getContext();
+                pointsResponse.setPoints_available(context.getPointsAvailable());
                 pointsResponse.setCustomer_id(customer.getCustomerId());
                 pointsResponse.setCustomer_name(StringUtil.isNotBlank(customer.getCustomerDetail().getCustomerName())?customer.getCustomerDetail().getCustomerName():customer.getCustomerDetail().getCustomerId());
                 return pointsResponse;
