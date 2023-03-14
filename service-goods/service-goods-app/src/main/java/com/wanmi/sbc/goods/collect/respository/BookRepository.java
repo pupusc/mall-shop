@@ -301,8 +301,8 @@ public class BookRepository {
     //图书简介的第一位作家
     public List getFirstWriter(String bookId, String figureType) {
 
-        String sql = " SELECT id,type,name,introduce from meta_figure where ((del_flag = 0 " +
-                "and id in (select c.figure_id from meta_book_figure c where  c.book_id = ? and c.del_flag = 0 and c.figure_type = ?))) limit 0,1";
+        String sql = " SELECT m.id,m.name,m.introduce,c.figure_type from meta_figure m, meta_book_figure c " +
+                " where m.del_flag = 0 and m.id = c.figure_id and c.book_id = ? and c.del_flag = 0 and c.figure_type = ? limit 0,1 ";
         Object[] obj = new Object[]{bookId, figureType};
 
         List list = jpaManager.queryForList(sql,obj);

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -460,4 +461,17 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     List<Map<String, Object>> collectSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId,  Integer pageSize);
 
 
+    /**
+     * 采集49包邮模板id
+     * @return
+     */
+    @Query(value = "select a.freight_temp_id from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id where a.goods_id = ?1 and b.freight_temp_name = '满49元包邮模板'", nativeQuery = true)
+    List<Map<String, Object>> collectFreightTempBySpu(String spuId);
+
+    /**
+     * 根据包邮模板id获取地区
+     * @return
+     */
+    @Query(value = "select destination_area,destination_area_name from freight_template_goods_free where freight_temp_id = ?1", nativeQuery = true)
+    List<Map<String, Object>> collectAreaByFreightTemp(BigInteger freightTempId);
 }

@@ -210,8 +210,8 @@ public class BookDetailTab {
 
         //简介目录原文摘要
         List content = bookJpa.getContent(bookId);
-        Map contents = content.size() != 0 ? (Map) content.get(0) : null;
-        contentMap.put("content", contents);
+        //Map contents = content.size() != 0 ? (Map) content.get(0) : null;
+        contentMap.put("content", content);
 
         //图文详情
         List goodsDetail = goodJpa.getGoodsDetail(spuNo);
@@ -231,6 +231,11 @@ public class BookDetailTab {
         Map producerMap = getProducer(bookId);
         contentMap.put("producer", producerMap);
 
+
+        //推荐内容~关键词~图书
+        Map mapRecommend = getKeyRecommend(bookId);
+        contentMap.put("recommend", mapRecommend);
+
         map.put("tab2", contentMap);
         allList.add(map);
     }
@@ -242,7 +247,7 @@ public class BookDetailTab {
         Map map = new HashMap();
         for (int i = 0; i < firstWriter.size(); i++) {
             //作家
-            map = (Map) firstWriter.get(0);
+            map = (Map) firstWriter.get(i);
             String writerId = String.valueOf(map.get("id"));
             //获得的奖项
             List writerAwards = bookJpa.getWriterAwards(writerId);
@@ -377,6 +382,11 @@ public class BookDetailTab {
             map.put("Books", ret);
         }
         return map;
+    }
+
+    public Map getKeyRecommend(String bookId){
+        Map mapRecommend=goodJpa.getKeyRecommend(bookId);
+        return mapRecommend;
     }
 
     private void doTab3(List allList) {

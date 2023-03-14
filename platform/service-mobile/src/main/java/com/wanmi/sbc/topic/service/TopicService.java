@@ -179,6 +179,9 @@ public class TopicService {
     @Autowired
     private RefreshConfig refreshConfig;
 
+    @Autowired
+    private TopicConfigProvider columnRepository;
+
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
@@ -947,15 +950,12 @@ public class TopicService {
                 }
                 goodsOrBookMapList.get(j).put("fixPrice",null);
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
-                if(null!=label) {
-                    if (null != old_json) {
-                        Map labelMap = JSONObject.parseObject(label, Map.class);
-                        goodsOrBookMapList.get(j).put("fixPrice", labelMap.get("fix_price"));
-                        if (labelMap != null) {
-                            goodsOrBookMapList.get(j).put("fix_price", labelMap.get("fix_price"));
-                        }
-
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(label, Map.class);
+                    if(labelMap != null){
+                        goodsOrBookMapList.get(j).put("fixPrice",labelMap.get("fix_price"));
                     }
+
                 }
             }
         }
@@ -1418,55 +1418,47 @@ public class TopicService {
     public void saveMixedComponentContent() {
         //栏目信息
         Integer topicStoreyId = 194;
-        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
+        TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
         request.setState(1);
-        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
-        //存redis
-        //redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
-        // tab
-        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
-            return new MixedComponentDto(c);
-        }).collect(Collectors.toList());
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB, JSON.toJSONString(mixedComponentDtos));
-        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
-            Integer tabId = mixedComponentDto.getId();
-            // 获取所有关键字
-            List<KeyWordDto> keywords = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
-            // 获取规则
-            List<String> rules = new ArrayList<>();
-            mixedComponentTab.stream().filter(c -> MixedComponentLevel.THREE.toValue().equals(c.getLevel()) && tabId.equals(c.getPId()))
-                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-                    .forEach(c -> {c.forEach(s -> {rules.add(s.getName());});});
-            //获取商品池
-            List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> MixedComponentLevel.FOUR.toValue().equals(c.getLevel()) && rules.contains(c.getDropName())).collect(Collectors.toList());
-            //前台透出关键词
-            List<KeyWordDto> showKeyword = new ArrayList<>();
-            for (KeyWordDto keyword : keywords) {
-                String keyWordId = keyword.getId();
-                String keyWord = keyword.getName();
-                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
-                for (MixedComponentTabDto pool : pools) {
-                    Integer id = pool.getId();
-                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
-                    columnContentQueryRequest.setTopicStoreySearchId(id);
-                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
-                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
-                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
+        request.setParentId(0);
+        List<TopicStoreyColumnDTO> list = columnRepository.listStoryColumnAll(request);
+        //获取tab
+        List<TopicStoreyColumnDTO> tabLists = new ArrayList<>();
+        for(TopicStoreyColumnDTO dto:list){
+            TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
+            param.setTopicStoreyId(topicStoreyId);
+            param.setParentId(dto.getId());
+            List<TopicStoreyColumnDTO> tabList = columnRepository.listStoryColumnAll(param);
+            if(!tabList.isEmpty()){
+                for(TopicStoreyColumnDTO tab:tabList){
+                    tabLists.add(tab);
                 }
-                //排序
-                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
-                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
-                        .collect(Collectors.toList());
-                if(goodsPools.size() != 0 && goodsPools != null) {showKeyword.add(new KeyWordDto(keyWordId, keyWord));}
-                //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tabId + ":" + keyWordId, goodsPools);
+                dto.setChilidList(tabList);
             }
-            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tabId + ":keywords", JSON.toJSONString(showKeyword));
+        }
+        //存放关键词
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+"&test", JSON.toJSONString(list));
+        //循环关键词取出对应的商品池
+        List<TopicStoreyColumnDTO> pools = new ArrayList<>();
+        for(TopicStoreyColumnDTO tab:tabLists){
+            TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
+            param.setTopicStoreyId(topicStoreyId);
+            param.setParentId(tab.getId());
+            List<TopicStoreyColumnDTO> poolList = columnRepository.listStoryColumnAll(param);
+            if(!poolList.isEmpty()){
+                for(TopicStoreyColumnDTO pool:poolList){
+                    param.setParentId(pool.getId());
+                    List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
+                    //存放商品
+                    redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tab.getId() + ":" + pool.getId()+"&test", goodsPools);
+                    pools.add(pool);
+                }
+                tab.setChilidList(poolList);
+            }
+            //存放商品池
+            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tab.getId() + ":keywords"+"&test", JSON.toJSONString(tab));
         }
     }
 
@@ -1522,7 +1514,7 @@ public class TopicService {
 //
 //        }
 
-        //table2有商品需要回填信息
+        //回填商品的价格信息
         map= fillGoodsDetail(old_json,goodsPriceMap);
 
         //榜单

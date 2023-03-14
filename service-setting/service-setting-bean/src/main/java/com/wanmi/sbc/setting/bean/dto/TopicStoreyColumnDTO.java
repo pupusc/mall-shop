@@ -11,6 +11,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @ApiModel
@@ -68,7 +69,7 @@ public class TopicStoreyColumnDTO implements Serializable {
      */
     public Integer publishState;
 
-
+    public List<TopicStoreyColumnDTO> chilidList;
 
 
 }
