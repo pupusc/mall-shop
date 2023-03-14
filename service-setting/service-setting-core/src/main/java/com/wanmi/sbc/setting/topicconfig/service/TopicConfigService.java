@@ -661,6 +661,11 @@ public class TopicConfigService {
         return microServicePage;
     }
 
+    public List<TopicStoreyColumnGoodsDTO> listStoryColumnGoodsId(TopicStoreyColumnGoodsQueryRequest request){
+        List<TopicStoreyColumnContent> list = columnGoodsRepository.findAll(columnGoodsRepository.topicStoreySearchContent(request));
+        return changeTopicStoreyColumnGoods(list);
+    }
+
     public List<TopicStoreyColumnGoodsDTO> listTopicStoreyColumnGoodsByIdAndSpu(TopicStoreyColumnGoodsQueryRequest request) {
         List<TopicStoreyColumnGoodsDTO> topicStoreyColumnGoodsDTOList=new ArrayList<>();
         columnGoodsRepository.getById(request.getTopicStoreyId(), request.getSpuNo()).stream().forEach(o->{

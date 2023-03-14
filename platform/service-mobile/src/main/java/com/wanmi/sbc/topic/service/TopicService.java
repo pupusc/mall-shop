@@ -1449,8 +1449,11 @@ public class TopicService {
             List<TopicStoreyColumnDTO> poolList = columnRepository.listStoryColumnAll(param);
             if(!poolList.isEmpty()){
                 for(TopicStoreyColumnDTO pool:poolList){
-                    param.setParentId(pool.getId());
-                    List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
+                    TopicStoreyColumnGoodsQueryRequest params = new TopicStoreyColumnGoodsQueryRequest();
+                    params.setTopicStoreySearchId(pool.getId());
+                    params.setTopicStoreyId(topicStoreyId);
+                    List<TopicStoreyColumnGoodsDTO> goodsPools = columnRepository.listStoryColumnGoodsId(params);
+                    //List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
                     //存放商品
                     redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tab.getId() + ":" + pool.getId()+"&test", goodsPools);
                     pools.add(pool);

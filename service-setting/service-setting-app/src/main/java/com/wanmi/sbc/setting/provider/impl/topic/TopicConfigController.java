@@ -202,6 +202,11 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public List<TopicStoreyColumnGoodsDTO> listStoryColumnGoodsId(TopicStoreyColumnGoodsQueryRequest request) {
+        return topicConfigService.listStoryColumnGoodsId(request);
+    }
+
+    @Override
     public BaseResponse<List<TopicStoreyColumnGoodsDTO>> listStoryColumnGoodsByIdAndSpu(TopicStoreyColumnGoodsQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopicStoreyColumnGoodsByIdAndSpu(request));
     }

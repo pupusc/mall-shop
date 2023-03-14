@@ -1,6 +1,7 @@
 package com.wanmi.sbc.task;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -12,10 +13,7 @@ import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
-import com.wanmi.sbc.setting.api.request.topicconfig.ColumnContentQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.ColumnQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentTabQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyColumnQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.util.CommonUtil;
@@ -55,13 +53,16 @@ public class MixedComponentContentJobHandler extends IJobHandler {
 
     @Override
     public ReturnT<String> execute(String param) throws Exception {
-        this.saveMixedComponentContent();
+        int topicStoreyId = 194;
+        if(param != null && !param.equals("")){
+            topicStoreyId = Integer.parseInt(param);
+        }
+        this.saveMixedComponentContent(topicStoreyId);
         return SUCCESS;
     }
 
-    public void saveMixedComponentContent() {
+    public void saveMixedComponentContent(int topicStoreyId) {
         //栏目信息
-        Integer topicStoreyId = 194;
         TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
@@ -93,8 +94,11 @@ public class MixedComponentContentJobHandler extends IJobHandler {
             List<TopicStoreyColumnDTO> poolList = columnRepository.listStoryColumnAll(param);
             if(!poolList.isEmpty()){
                 for(TopicStoreyColumnDTO pool:poolList){
-                    param.setParentId(pool.getId());
-                    List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
+                    TopicStoreyColumnGoodsQueryRequest params = new TopicStoreyColumnGoodsQueryRequest();
+                    params.setTopicStoreySearchId(pool.getId());
+                    params.setTopicStoreyId(topicStoreyId);
+                    List<TopicStoreyColumnGoodsDTO> goodsPools = columnRepository.listStoryColumnGoodsId(params);
+                    //List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
                     //存放商品
                     redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tab.getId() + ":" + pool.getId()+"&test", goodsPools);
                     pools.add(pool);
