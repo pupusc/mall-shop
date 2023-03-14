@@ -3,6 +3,7 @@ package com.wanmi.sbc.customer;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.EnableStatus;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -54,6 +55,11 @@ import com.wanmi.sbc.customer.response.CustomerBaseInfoResponse;
 import com.wanmi.sbc.customer.response.CustomerCenterResponse;
 import com.wanmi.sbc.customer.response.CustomerSafeResponse;
 import com.wanmi.sbc.customer.response.IsCounselorVo;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
+import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsListRequest;
+import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsPageRequest;
 import com.wanmi.sbc.mq.producer.WebBaseProducerService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.systemconfig.SystemConfigQueryProvider;
@@ -66,6 +72,7 @@ import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +80,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -131,7 +141,10 @@ public class CustomerBaseController {
     private WebBaseProducerService webBaseProducerService;
     @Autowired
     private ExternalProvider externalProvider;
-
+    @Autowired
+    private PointsGoodsQueryProvider pointsGoodsQueryProvider;
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
     /**
      * 查询会员基本信息数据
      *
@@ -301,6 +314,51 @@ public class CustomerBaseController {
 //       String customerId = commonUtil.getOperatorId();
 //        return customerQueryProvider.getPointsAvailable(new CustomerPointsAvailableByIdRequest
 //                (customerId));
+        String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
+        Long currentPoint = externalProvider.
+                getByUserNoPoint(FanDengPointRequest.builder().
+                        userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
+        CustomerPointsAvailableByCustomerIdResponse  customerIdResponse = new CustomerPointsAvailableByCustomerIdResponse();
+        customerIdResponse.setPointsAvailable(currentPoint);
+        return BaseResponse.success(customerIdResponse);
+    }
+
+    /**
+     * 查询可用积分
+     *
+     * @return
+     */
+    @ApiOperation(value = "查询可用积分")
+    @RequestMapping(value = "/getPointsAvailableV2", method = RequestMethod.GET)
+    public BaseResponse<CustomerPointsAvailableByCustomerIdResponse> getPointsAvailableV2(@Valid @RequestParam(value = "spuId") String spuId) {
+//       String customerId = commonUtil.getOperatorId();
+//        return customerQueryProvider.getPointsAvailable(new CustomerPointsAvailableByIdRequest
+//                (customerId));
+        PointsGoodsListRequest pointsGoodsListRequest=new PointsGoodsListRequest();
+        pointsGoodsListRequest.setDelFlag(DeleteFlag.NO);
+        pointsGoodsListRequest.setStatus(EnableStatus.DISABLE);
+        pointsGoodsListRequest.setGoodsId(spuId);
+        pointsGoodsListRequest.setBeginTimeBegin(LocalDateTime.now());
+        pointsGoodsListRequest.setBeginTimeEnd(LocalDateTime.now());
+        int pointActivitySize = pointsGoodsQueryProvider.list(pointsGoodsListRequest).getContext().getPointsGoodsVOList().size();
+
+        GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest=new GoodsBlackListCacheProviderRequest();
+        goodsBlackListCacheProviderRequest.setDelFlag(0);
+        //设置查询类型
+        Collection<Integer> categoryCollection=new ArrayList<>();
+        categoryCollection.add(6);
+        goodsBlackListCacheProviderRequest.setBusinessCategoryColl(categoryCollection);
+        //设置查询spuId
+        Collection<String> idCollection=new ArrayList<>();
+        idCollection.add(spuId);
+        goodsBlackListCacheProviderRequest.setBusinessIdColl(idCollection);
+        int blackListSize = goodsBlackListProvider.list(goodsBlackListCacheProviderRequest).getContext().getContent().size();
+
+        if(blackListSize!=0 || pointActivitySize!=0 ){
+            //在积分兑换列表或者黑名单列表，就不显示抵扣（商详用）
+            return null;
+        }
+
         String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
         Long currentPoint = externalProvider.
                 getByUserNoPoint(FanDengPointRequest.builder().

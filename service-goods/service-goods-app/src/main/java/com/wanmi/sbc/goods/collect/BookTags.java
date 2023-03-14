@@ -94,9 +94,11 @@ public class BookTags {
 
         //spu_id = "2c9a00ca86299cda01862a0163e60000";
         //spu_no = "P735546359";
+        //sku_id = "2c9a009b86a5b1850186a6ae64c80004";
         //isbn   = "ISBN_C_T003";
 
-        //Map bookMap = bookJpa.getBookMap(isbn);               //1.读数据库
+
+       // Map bookMap = bookJpa.getBookMap(isbn);               //1.读数据库
         Map bookMap = bookCacheService.getBookMap_cache(isbn);      //2.读缓存
 
         if(bookMap == null || bookMap.size() == 0){

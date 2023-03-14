@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.api.provider.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.RankRelResponse;
 import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
 import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -50,6 +51,10 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/add/storey")
     BaseResponse addStorey(@RequestBody TopicStoreyAddRequest request);
+
+
+    @PostMapping("/setting/${application.setting.version}/topic/getAllRankRel")
+    RankRelResponse getAllRankRel();
 
     @PostMapping("/setting/${application.setting.version}/topic/enable/storey")
     BaseResponse enableStorey(@RequestBody EnableTopicStoreyRequest request);

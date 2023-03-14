@@ -215,8 +215,22 @@ public class SearchController {
      */
     @PostMapping("/keyword/keywordBookListSearch")
     public BaseResponse<CommonPageResp<List<BookListSpuResp>>> keywordBookListSearch(@Validated @RequestBody KeyWordBookListQueryReq request) {
-
         CommonPageResp<List<EsBookListModelResp>> context = esBookListModelProvider.listKeyWorldEsBookListModel(request).getContext();
+        List<BookListSpuResp> bookListSpuResps = bookListSearchService.listBookListSearch(context.getContent(), request.getSpuNum());
+        CommonPageResp<List<BookListSpuResp>> commonPageResp = new CommonPageResp<>(context.getTotal(), bookListSpuResps);
+        return BaseResponse.success(commonPageResp);
+    }
+
+    /**
+     * 前端 获取书单/榜单
+     * @menu 搜索功能
+     * @param request
+     * @return
+     */
+    @PostMapping("/keyword/keywordBookListSearchV2")
+    public BaseResponse<CommonPageResp<List<BookListSpuResp>>> keywordBookListSearchV2(@Validated @RequestBody KeyWordBookListQueryReq request) {
+
+        CommonPageResp<List<EsBookListModelResp>> context = esBookListModelProvider.listKeyWorldEsBookListModelV2(request).getContext();
         List<BookListSpuResp> bookListSpuResps = bookListSearchService.listBookListSearch(context.getContent(), request.getSpuNum());
         CommonPageResp<List<BookListSpuResp>> commonPageResp = new CommonPageResp<>(context.getTotal(), bookListSpuResps);
         return BaseResponse.success(commonPageResp);

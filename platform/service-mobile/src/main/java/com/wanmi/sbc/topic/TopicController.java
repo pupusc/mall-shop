@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
+import com.wanmi.sbc.collectFactory.CollectSkuIdFactory;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.Constants;
@@ -20,10 +21,7 @@ import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.MixedComponentContentRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentDto;
-import com.wanmi.sbc.task.HomeIndexGoodsJobHandler;
-import com.wanmi.sbc.task.NewBookPointJobHandler;
-import com.wanmi.sbc.task.NewRankJobHandler;
-import com.wanmi.sbc.task.RankPageJobHandler;
+import com.wanmi.sbc.task.*;
 import com.wanmi.sbc.topic.request.GoodsSearchBySpuIdRequest;
 import com.wanmi.sbc.topic.response.GoodsSearchBySpuIdResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
@@ -70,13 +68,13 @@ public class TopicController {
 
 
     /**
-     * @description 根据专题id返回页面数据_V2
+     * @description 根据JWT TOKEN跳转新老版本首页
      * @menu 专题
      * @param
      * @status undone
      */
     @ApiOperation(value = "首页路由")
-    @GetMapping(value = "/v2/page")
+    @PostMapping(value = "/v2/page")
     public BaseResponse pageV2(HttpServletResponse response){
         BaseResponse resp = BaseResponse.SUCCESSFUL();
         resp.setContext(topicService.routeIndex());
@@ -146,24 +144,22 @@ public class TopicController {
     }
 
     @Autowired
-    private HomeIndexGoodsJobHandler homeIndexGoodsJobHandler;
+    private CollectSkuIdFactory collectSkuIdFactory;
 
     @Autowired
-    private NewRankJobHandler rankJobHandler;
+    private CollectSkuIdJobHandler collectSkuIdJobHandler;
 
-    @Autowired
-    private RankPageJobHandler rankPageJobHandler;
-    @Autowired
-    private NewBookPointJobHandler newBookPointJobHandler;
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
 //        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
-        rankJobHandler.execute("H5");
-        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+//        rankJobHandler.execute("H5");
+//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
 //        newBookPointJobHandler.execute(null);
+//        collectSkuIdFactory.collectId();
+        collectSkuIdJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 

@@ -171,7 +171,7 @@ public class SuspensionController {
     /**
      * 下载模板
      */
-    @PostMapping("/test5")
+    @PostMapping("/exportExcel")
     public void exportBookListModelById(@RequestParam(value = "id") Integer id)  {
             InputStream is = null;
             org.springframework.core.io.Resource file=templateFile;

@@ -35,6 +35,11 @@ public class EsBookListModelController implements EsBookListModelProvider {
         return BaseResponse.success(esBookListModelService.listKeyWorldEsBookListModel(request));
     }
 
+    @Override
+    public BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModelV2(EsKeyWordBookListQueryProviderReq request) {
+        return BaseResponse.success(esBookListModelService.listKeyWorldEsBookListModelV2(request));
+    }
+
 
     @Override
     public BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listEsBookListModel(EsBookListQueryProviderReq request) {

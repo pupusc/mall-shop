@@ -9,15 +9,13 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
-import com.wanmi.sbc.setting.api.request.RankPageRequest;
-import com.wanmi.sbc.setting.api.request.RankRequest;
-import com.wanmi.sbc.setting.api.request.RankRequestListResponse;
-import com.wanmi.sbc.setting.api.request.RankStoreyRequest;
+import com.wanmi.sbc.setting.api.request.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.RankPageResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.api.response.TopicStoreySearchContentRequest;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.enums.BookType;
 import com.wanmi.sbc.setting.bean.enums.MixedComponentLevel;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyTypeV2;
@@ -198,6 +196,16 @@ public class TopicConfigService {
         response.setRankIds(ids);
         response.setRankRequestList(rankRequestList);
         return response;
+    }
+
+    public RankRelResponse getAllRankRel(){
+        List<Integer> idList=new ArrayList<>();
+        relationRepository.findAll().forEach(r->{
+            if(!idList.contains(r.getCRankId())){
+                idList.add(r.getCRankId());
+            }
+        });
+        return new RankRelResponse(idList);
     }
 
     /**
@@ -528,9 +536,23 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setPId(request.getPId());
+        topicStoreySearch.setPId(request.getParentId());
         topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
+        topicStoreySearch.setBookType(request.getBookType());
+        topicStoreySearch.setDropName(request.getDropName());
+        topicStoreySearch.setRecommend(request.getRecommend());
+        topicStoreySearch.setLabelId(request.getLabelId());
+        Map<String,Object> map = new HashMap<>();
+        if (BookType.VIDEO.toValue().equals(request.getBookType())) {
+            map.put("image", request.getImage());
+            map.put("video", request.getUrl());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
+            map.put("titleImage", request.getTitleImage());
+            map.put("image", request.getImage());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        }
         columnRepository.save(topicStoreySearch);
     }
 
@@ -679,6 +701,7 @@ public class TopicConfigService {
     public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
         TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
         topicStoreySearchContent.setId(request.getId());
+        topicStoreySearchContent.setName(request.getName());
         topicStoreySearchContent.setImageUrl(request.getImageUrl());
         topicStoreySearchContent.setStartTime(request.getStartTime());
         topicStoreySearchContent.setEndTime(request.getEndTime());

@@ -85,6 +85,7 @@ import com.wanmi.sbc.topic.response.*;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
+import com.wanmi.sbc.util.ThreadLocalUtil;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +109,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TopicService {
+
+    private static String GOODS_PRICE = "GOODS_PRICE";
 
     @Autowired
     private TopicConfigProvider topicConfigProvider;
@@ -182,7 +185,7 @@ public class TopicService {
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         if(!allLoad){
-            response.setStoreyList(response.getStoreyList().subList(0,2));
+            response.setStoreyList(response.getStoreyList().subList(0,4));
         }
         //如果配置有一行两个商品的配置信息，查询商品
         List<String> skuIds = new ArrayList<>();
@@ -340,11 +343,11 @@ public class TopicService {
                 topicResponse.setNotes(homePageService.notice());
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
-            } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件
+            } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件   价格
                 topicResponse.setMixedComponentContent(getMixedComponentContent(request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
-            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递
+            }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank();
@@ -356,11 +359,11 @@ public class TopicService {
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
-            }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件
+            }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
-            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件
+            }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
                 topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
@@ -374,6 +377,9 @@ public class TopicService {
 
             System.out.println("storeyType:" + storeyType + "~  end:" + DitaUtil.getCurrentAllDate());
         }
+        //清理本地缓存
+        ThreadLocalUtil.remove(GOODS_PRICE);
+        ThreadLocalUtil.remove();
         return BaseResponse.success(response);
     }
 
@@ -591,14 +597,6 @@ public class TopicService {
                     goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
                 }
             }
-            List<GoodsInfoVO> goodsInfos=new ArrayList<>();
-            if(goodsInfoVOList.size()>0){
-                CustomerGetByIdResponse customer = this.getCustomer();
-                MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-                filterRequest.setGoodsInfos(KsBeanUtil.convertList(goodsInfoVOList, GoodsInfoDTO.class));
-                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-                goodsInfos = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-            }
             if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
                 request.setTopicStoreySearchId(rankRequestList.get(0).getId());
                 Collection rankList = rankRequestList.get(0).getRankList();
@@ -633,13 +631,6 @@ public class TopicService {
                     goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
             }
-            List<GoodsInfoVO> finalGoodsInfos = goodsInfos;
-            goodsCustomResponses.forEach(g->{
-                Map map=g;
-                finalGoodsInfos.stream().filter(i->i.getGoodsInfoId().equals(map.get("skuId"))).forEach(i->{
-                    map.put("vipPrice",i.getSalePrice());
-                });
-            });
             RankPageRequest pageRequest = new RankPageRequest();
             //初始化榜单树形结构，获取商品详情
             rankRequestList.forEach(r -> {
@@ -778,10 +769,13 @@ public class TopicService {
 //            //获取会员
 //             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
 //        }
-            MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+            /*MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
-            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();*/
+
+            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
+
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
@@ -914,27 +908,27 @@ public class TopicService {
     public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ,CustomerGetByIdResponse customer){
         String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
         List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
-        List<String> skuIdList=new ArrayList<>();
+        //List<String> skuIdList=new ArrayList<>();
         //返回值
         List<Map> goodsOrBookMapList=new ArrayList<>();
         //循环每个商品取出skuId
         for(int i=0;i<goodsOrBookResponseList.size();i++){
             Map goodsOrBookMap= (Map)goodsOrBookResponseList.get(i);
-            skuIdList.add(goodsOrBookMap.get("skuId").toString());
+            //skuIdList.add(goodsOrBookMap.get("skuId").toString());
             goodsOrBookMapList.add(goodsOrBookMap);
         }
 
-        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        /*GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
         goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
-        //用户信息
-//        String c = "{\"checkState\":\"CHECKED\",\"createTime\":\"2023-02-03T15:07:27\",\"customerAccount\":\"15618961858\",\"customerDetail\":{\"contactName\":\"书友_izw9\",\"contactPhone\":\"15618961858\",\"createTime\":\"2023-02-03T15:07:27\",\"customerDetailId\":\"2c9a00d184efa38001861619fbd60235\",\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerName\":\"书友_izw9\",\"customerStatus\":\"ENABLE\",\"delFlag\":\"NO\",\"employeeId\":\"2c9a00027f1f3e36017f202dfce40002\",\"isDistributor\":\"NO\",\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"},\"customerId\":\"2c9a00d184efa38001861619fbd60234\",\"customerLevelId\":3,\"customerPassword\":\"a8568f6a11ca32de1429db6450278bfd\",\"customerSaltVal\":\"64f88c8c7b53457f55671acc856bf60b7ffffe79ba037b8753c005d1265444ad\",\"customerType\":\"PLATFORM\",\"delFlag\":\"NO\",\"enterpriseCheckState\":\"INIT\",\"fanDengUserNo\":\"600395394\",\"growthValue\":0,\"loginErrorCount\":0,\"loginIp\":\"192.168.56.108\",\"loginTime\":\"2023-02-17T10:37:58\",\"payErrorTime\":0,\"pointsAvailable\":0,\"pointsUsed\":0,\"safeLevel\":20,\"storeCustomerRelaListByAll\":[],\"updatePerson\":\"2c90e863786d2a4c01786dd80bc0000a\",\"updateTime\":\"2023-02-11T11:18:23\"}\n";
-//        CustomerGetByIdResponse customer = JSON.parseObject(c, CustomerGetByIdResponse.class);
-        //价格信息
+
         MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
         filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
         filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
         GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+         */
+        GoodsInfoListByGoodsInfoResponse priceContext = this.initGoodsPrice(customer);
+
         if(null== priceContext){
             return goodsOrBookMapList;
         }
@@ -952,16 +946,54 @@ public class TopicService {
                 if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
                     goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
                 }
-                goodsOrBookMapList.get(j).put("fix_price",null);
+                goodsOrBookMapList.get(j).put("fixPrice",null);
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
-                if(null!=old_json) {
-                    Map labelMap = JSONObject.parseObject(label, Map.class);
-                    goodsOrBookMapList.get(j).put("fix_price",labelMap.get("fix_price"));
+                if(null!=label) {
+                    if (null != old_json) {
+                        Map labelMap = JSONObject.parseObject(label, Map.class);
+                        goodsOrBookMapList.get(j).put("fixPrice", labelMap.get("fix_price"));
+                        if (labelMap != null) {
+                            goodsOrBookMapList.get(j).put("fix_price", labelMap.get("fix_price"));
+                        }
+
+                    }
                 }
             }
         }
         return goodsOrBookMapList;
     }
+
+    /**
+     * 初始化商品价格通用方法
+     */
+    private GoodsInfoListByGoodsInfoResponse initGoodsPrice(CustomerGetByIdResponse customer){
+        Object priceCache = ThreadLocalUtil.get(GOODS_PRICE);
+        if(!Objects.isNull(priceCache)){
+            return (GoodsInfoListByGoodsInfoResponse)priceCache;
+        }
+        //获取所有需要查询加的商品数据
+//        Map map = redisService.getObj("COLLECT_HOME:SKU", Map.class);
+        String string = redisService.getString("COLLECT_HOME:SKU");
+//        String old_json = redisService.getString("COLLECT_HOME:SKU");
+        Map<String,Object> map =JSONObject.parseObject(string,Map.class);
+        //获取商品信息
+        List<String> skuIdList= (List<String>) map.get("skuIds");
+        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
+        goodsInfoViewByIdsRequest.setGoodsInfoIds(skuIdList);
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listSimpleView(goodsInfoViewByIdsRequest).getContext().getGoodsInfos();
+
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        ThreadLocalUtil.set(GOODS_PRICE,priceContext);
+        return priceContext;
+
+    }
+
+
+
+
     /**
      * 初始化优惠券信息
      */
@@ -1287,15 +1319,18 @@ public class TopicService {
             goodsPoolDtos.stream().map(GoodsPoolDto::getGoods).collect(Collectors.toList()).forEach(s -> {
                         if (s != null && s.size() != 0) {s.forEach(c -> {skuIdList.add(c.getSkuId());});}});
             //获取商品信息
-            GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
+           /* GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
             goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
             goodsInfoByIdRequest.setGoodsInfoIds(skuIdList);
             goodsInfoByIdRequest.setIsHavSpecText(1);
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
+
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
+            */
+            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
             Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
             for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
@@ -1716,22 +1751,35 @@ public class TopicService {
             if(Objects.isNull(customer)){
                 return object.getString("loginUrl");
             }
-            //判断模式。0：跳转老版本；1：命中的配置的用户跳转新版本；2：配置的用户通过prod随机规则命中后的用户跳转新版本
+            /*判断模式
+            * 1：全部跳转老版本；
+            * 2：全部跳转新版本；
+            * 3：白名单跳转新版本
+            * 4：白名单+根据手机号码结尾跳转新版
+            * */
             String status = object.getString("status");
-            //0：跳转老版本
-            if(Constants.PURCHASE_DEFAULT.equals(status)){
+            //1：跳转老版本
+            if(String.valueOf(Constants.ONE).equals(status)){
                 return object.getString("oldUrl");
             }
-            //1：命中的配置的用户跳转新版本；
+            //2：跳转新版本
+            if(String.valueOf(Constants.PRICETYPE).equals(status)){
+                return object.getString("newUrl");
+            }
+            //3：白名单跳转新版；
             String userIds = object.getString("userIds");
-            if(String.valueOf(Constants.ONE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+            if(String.valueOf(Constants.GOODS_LEAF_CATE_GRADE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
                     && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
                 return object.getString("newUrl");
             }
-            //2：配置的用户通过prod随机规则命中后的用户跳转新版本(例子:0.1在配置的用户中随机选中十分之一人，最高1，即为全部)
-            String proied = object.getString("prod");
-            if(String.valueOf(Constants.PRICETYPE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
-                    && DitaUtil.randomList(userIds,proied).contains(customer.getCustomerId())){
+            //4：白名单跳转新版
+            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
+            if("4".equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
+                return object.getString("newUrl");
+            }
+            //4：根据手机号码结尾
+            if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
                 return object.getString("newUrl");
             }
             //如果都没命中直接去老版本首页

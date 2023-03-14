@@ -1,5 +1,6 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.models.auth.In;
@@ -36,6 +37,6 @@ public class TopicStoreyColumnQueryRequest implements Serializable {
 
     /**
      * 父级id
-     * */
-    public Integer pId;
+     */
+    public Integer parentId;
 }

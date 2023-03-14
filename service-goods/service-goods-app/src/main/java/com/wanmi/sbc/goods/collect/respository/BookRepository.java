@@ -490,15 +490,6 @@ public class BookRepository {
         return list;
     }
 
-    public List<Map> getSkuBySpu(String spu_id) {
-        String sql = "select goods_id from goods_info  where goods_id = ? and del_flag = 0 order by goods_info_id asc";
-        Object[] obj = new Object[]{spu_id};
-
-        List<Map> list = jpaManager.queryForList(sql,obj);
-
-        return list;
-    }
-
     public  List<Map> getSaleNum(String goods_id) {
         String sql = "select sku_id,sale_num,rank_text from t_book_list_goods_publish where sku_id = ? and del_flag = 0";
         Object[] obj = new Object[]{goods_id};
@@ -508,8 +499,18 @@ public class BookRepository {
         return list;
 
     }
+     //根据商品sku 查询销量
+    public  List<Map> getSkuSaleNum(String goods_id) {
+        String sql = " select sales_num from goods_info where goods_info_id = ? and del_flag = 0 ";
+        Object[] obj = new Object[]{goods_id};
 
-    public List<Map> getComentPoint(String spu_id) {
+        List<Map> list = jpaManager.queryForList(sql,obj);
+
+        return list;
+
+    }
+
+    public List<Map> getComentPointV2(String spu_id) {
         String sql = "select sku_id,sale_num,rank_text from t_book_list_goods_publish where sku_id = ? and del_flag = 0";
         Object[] obj = new Object[]{spu_id};
 

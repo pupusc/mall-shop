@@ -71,18 +71,46 @@
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookMap">
-        select  id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id ,trade_id
+        select id,
+               isbn,
+               name,
+               sub_name,
+               origin_name,
+               publisher_id,
+               producer_id,
+               book_group_id,
+               bind_id,
+               paper_id,
+               publish_time,
+               publish_batch,
+               print_time,
+               print_batch,
+               page_count,
+               word_count,
+               price,
+               size_length,
+               size_width,
+               print_sheet,
+               fit_age_min,
+               fit_age_max,
+               create_time,
+               update_time,
+               del_flag,
+               book_clump_id,
+               book_group_descr,
+               language_id,
+               trade_id
         from meta_book mb
         where id = #{id}
-            and del_flag = 0
+          and del_flag = 0
     </select>
 
     <select id="queryByIdV2" resultMap="MetaBookMapV2">
-        select mb.* ,mt.name as trade_name
+        select mb.*, mt.name as trade_name
         from meta_book mb
-        left join meta_trade  mt on mb.trade_id = mt.id
+                 left join (select * from meta_trade where del_flag = 0) mt on mb.trade_id = mt.id
         where mb.id = #{id}
-            and mb.del_flag = 0 and mt.del_flag = 0
+          and mb.del_flag = 0
     </select>
 
     <sql id="entityQueryCondition">
@@ -176,10 +204,13 @@
     <!--查询指定行数据-->
     <select id="queryAllByLimit" resultMap="MetaBookMap">
         select
-          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id
+        id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id,
+        publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width,
+        print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr,
+        language_id
         from meta_book t1
         <where>
-            <include refid="entityQueryCondition" />
+            <include refid="entityQueryCondition"/>
         </where>
         ORDER BY t1.create_time DESC
         limit #{limitIndex}, #{limitSize}
@@ -190,26 +221,26 @@
         FROM meta_book w1
         JOIN
         (
-            SELECT
-                DISTINCT t1.id
-            FROM
-                meta_book t1
-                LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
-                LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
-                LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
-            <where>
-                <include refid="entityQueryCondition" />
+        SELECT
+        DISTINCT t1.id
+        FROM
+        meta_book t1
+        LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
+        LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
+        LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
+        <where>
+            <include refid="entityQueryCondition"/>
 
-                <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
-                    and t1.name like concat('%', #{metaBook.nameLike}, '%')
-                </if>
-                <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
-                    and t4.name like concat('%', #{metaBook.authorLike}, '%')
-                </if>
-                <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
-                    and t2.name like concat('%', #{metaBook.publisherLike}, '%')
-                </if>
-            </where>
+            <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
+                and t1.name like concat('%', #{metaBook.nameLike}, '%')
+            </if>
+            <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
+                and t4.name like concat('%', #{metaBook.authorLike}, '%')
+            </if>
+            <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
+                and t2.name like concat('%', #{metaBook.publisherLike}, '%')
+            </if>
+        </where>
         ) w2 ON w2.id = w1.id
         ORDER BY w1.create_time DESC
         limit #{limitIndex}, #{limitSize}
@@ -220,20 +251,20 @@
         select count(1)
         from meta_book t1
         <where>
-            <include refid="entityQueryCondition" />
+            <include refid="entityQueryCondition"/>
         </where>
     </select>
 
     <select id="countExt" resultType="java.lang.Integer">
         SELECT
-            count(DISTINCT t1.id)
+        count(DISTINCT t1.id)
         FROM
-            meta_book t1
-            LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
-            LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
-            LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
+        meta_book t1
+        LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
+        LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
+        LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
         <where>
-            <include refid="entityQueryCondition" />
+            <include refid="entityQueryCondition"/>
 
             <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
                 and t1.name like concat('%', #{metaBook.nameLike}, '%')
@@ -249,23 +280,45 @@
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id)
-        values (#{isbn}, #{name}, #{subName}, #{originName}, #{publisherId}, #{producerId}, #{bookGroupId}, #{bindId}, #{paperId}, #{publishTime}, #{publishBatch}, #{printTime}, #{printBatch}, #{pageCount}, #{wordCount}, #{price}, #{sizeLength}, #{sizeWidth}, #{printSheet}, #{fitAgeMin}, #{fitAgeMax}, #{createTime}, #{updateTime}, #{delFlag}, #{bookClumpId}, #{bookGroupDescr}, #{languageId})
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id,
+                              paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count,
+                              price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time,
+                              update_time, del_flag, book_clump_id, book_group_descr, language_id)
+        values (#{isbn}, #{name}, #{subName}, #{originName}, #{publisherId}, #{producerId}, #{bookGroupId}, #{bindId},
+                #{paperId}, #{publishTime}, #{publishBatch}, #{printTime}, #{printBatch}, #{pageCount}, #{wordCount},
+                #{price}, #{sizeLength}, #{sizeWidth}, #{printSheet}, #{fitAgeMin}, #{fitAgeMax}, #{createTime},
+                #{updateTime}, #{delFlag}, #{bookClumpId}, #{bookGroupDescr}, #{languageId})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id)
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id,
+        paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length,
+        size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id,
+        book_group_descr, language_id)
         values
         <foreach collection="entities" item="entity" separator=",">
-        (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId}, #{entity.bookGroupDescr}, #{entity.languageId})
+            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId},
+            #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime},
+            #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount},
+            #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.fitAgeMin},
+            #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId},
+            #{entity.bookGroupDescr}, #{entity.languageId})
         </foreach>
     </insert>
 
     <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id)
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id,
+        paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length,
+        size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id,
+        book_group_descr, language_id)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId}, #{entity.bookGroupDescr}, #{entity.languageId})
+            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId},
+            #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime},
+            #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount},
+            #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.fitAgeMin},
+            #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId},
+            #{entity.bookGroupDescr}, #{entity.languageId})
         </foreach>
         on duplicate key update
         isbn = values(isbn),
@@ -391,35 +444,49 @@
 
     <!--通过主键删除-->
     <delete id="deleteById">
-        update meta_book set del_flag = 1 where id = #{id}
+        update meta_book
+        set del_flag = 1
+        where id = #{id}
     </delete>
 
     <!--删除关联丛书-->
     <update id="removeBookClumpId">
-        update meta_book set book_clump_id = null where book_clump_id = #{id}
+        update meta_book
+        set book_clump_id = null
+        where book_clump_id = #{id}
     </update>
 
     <!--删除关联书组-->
     <update id="removeBookGroupId">
-        update meta_book set book_group_id = null where book_group_id = #{id}
+        update meta_book
+        set book_group_id = null
+        where book_group_id = #{id}
     </update>
 
     <!--删除关联出品方-->
     <update id="removeProducerId">
-        update meta_book set producer_id = null where producer_id = #{id}
+        update meta_book
+        set producer_id = null
+        where producer_id = #{id}
     </update>
 
     <!--删除关联出品方-->
     <update id="removePublisherId">
-        update meta_book set publisher_id = null where publisher_id = #{id}
+        update meta_book
+        set publisher_id = null
+        where publisher_id = #{id}
     </update>
 
     <!--  搜索所有isbn商品  -->
     <select id="collectMetaBookByTime" resultMap="MetaBookMap">
-        select * from meta_book book where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
-                                       and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+        select *
+        from meta_book book
+        where update_time <![CDATA[ >  ]]> #{beginTime}
+          and update_time <![CDATA[ <=  ]]> #{endTime}
+          and id <![CDATA[ >  ]]> #{fromId}
+        ORDER BY id asc limit #{pageSize}
     </select>
-    
+
     <select id="collectMetaBookByIds" resultMap="MetaBookMap">
         select * from meta_book book where id in
         <foreach collection="bookIds" item="bookId" open="(" close=")" separator=",">
@@ -459,22 +526,29 @@
         </foreach>
     </select>
 
-    <update id="updateDelflag" >
-        update meta_book set update_time = #{date} where id = #{id}
+    <update id="updateDelflag">
+        update meta_book
+        set update_time = #{date}
+        where id = #{id}
     </update>
 
     <select id="getAllBook" resultType="Map">
-        select id,name from meta_book book
+        select id, name
+        from meta_book book
     </select>
 
     <select id="getBookInfoBySpu" resultType="Map">
-        select c.id as book_id,c.isbn
-        from goods a left join goods_prop_detail_rel b
-                               on a.goods_id = b.goods_id
-                     left join meta_book c on b.prop_value = c.isbn
-        where
-            b.prop_id = 5 and c.id is not null and a.del_flag=0 and c.del_flag=0 and b.del_flag=0 and
-            a.goods_id = #{spuId}
+        select c.id as book_id, c.isbn
+        from goods a
+                 left join goods_prop_detail_rel b
+                           on a.goods_id = b.goods_id
+                 left join meta_book c on b.prop_value = c.isbn
+        where b.prop_id = 5
+          and c.id is not null
+          and a.del_flag = 0
+          and c.del_flag = 0
+          and b.del_flag = 0
+          and a.goods_id = #{spuId}
     </select>
 </mapper>
 
