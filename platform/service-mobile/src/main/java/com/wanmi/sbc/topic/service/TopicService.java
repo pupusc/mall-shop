@@ -950,15 +950,12 @@ public class TopicService {
                 }
                 goodsOrBookMapList.get(j).put("fixPrice",null);
                 String label = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + goodsOrBookMapList.get(j).get("skuId").toString());
-                if(null!=label) {
-                    if (null != old_json) {
-                        Map labelMap = JSONObject.parseObject(label, Map.class);
-                        goodsOrBookMapList.get(j).put("fixPrice", labelMap.get("fix_price"));
-                        if (labelMap != null) {
-                            goodsOrBookMapList.get(j).put("fix_price", labelMap.get("fix_price"));
-                        }
-
+                if(null!=old_json) {
+                    Map labelMap = JSONObject.parseObject(label, Map.class);
+                    if(labelMap != null){
+                        goodsOrBookMapList.get(j).put("fixPrice",labelMap.get("fix_price"));
                     }
+
                 }
             }
         }
@@ -1517,7 +1514,7 @@ public class TopicService {
 //
 //        }
 
-        //table2有商品需要回填信息
+        //回填商品的价格信息
         map= fillGoodsDetail(old_json,goodsPriceMap);
 
         //榜单
