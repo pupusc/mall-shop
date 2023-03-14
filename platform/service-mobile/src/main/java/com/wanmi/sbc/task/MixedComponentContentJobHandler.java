@@ -72,6 +72,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         List<TopicStoreyColumnDTO> tabLists = new ArrayList<>();
         for(TopicStoreyColumnDTO dto:list){
             TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
+            param.setTopicStoreyId(topicStoreyId);
             param.setParentId(dto.getId());
             List<TopicStoreyColumnDTO> tabList = columnRepository.listStoryColumnAll(param);
             if(!tabList.isEmpty()){
@@ -87,6 +88,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         List<TopicStoreyColumnDTO> pools = new ArrayList<>();
         for(TopicStoreyColumnDTO tab:tabLists){
             TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
+            param.setTopicStoreyId(topicStoreyId);
             param.setParentId(tab.getId());
             List<TopicStoreyColumnDTO> poolList = columnRepository.listStoryColumnAll(param);
             if(!poolList.isEmpty()){
