@@ -511,6 +511,11 @@ public class TopicConfigService {
         return microServicePage;
     }
 
+    public List<TopicStoreyColumnDTO> listStoryColumnAll(TopicStoreyColumnQueryRequest request){
+        List<TopicStoreyColumn> content = columnRepository.findAll(columnRepository.topicStoreySearch(request));
+        return changeTopicStoreyColumn(content);
+    }
+
     public MicroServicePage<RankListDTO> listRankList(TopicStoreyColumnQueryRequest request){
         Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
                 .findAll(columnRepository.topicStoreyRankLevel0Search(request), PageRequest.of(request.getPageNum(),

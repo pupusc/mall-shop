@@ -139,6 +139,11 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public List<TopicStoreyColumnDTO> listStoryColumnAll(TopicStoreyColumnQueryRequest request) {
+        return topicConfigService.listStoryColumnAll(request);
+    }
+
+    @Override
     public BaseResponse<MicroServicePage<RankListDTO>> listRankList(TopicStoreyColumnQueryRequest request) {
         return BaseResponse.success(topicConfigService.listRankList(request));
     }
