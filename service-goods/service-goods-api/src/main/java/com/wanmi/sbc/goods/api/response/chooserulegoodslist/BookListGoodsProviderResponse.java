@@ -75,4 +75,8 @@ public class BookListGoodsProviderResponse implements Serializable {
 
     private Date updateTime;
 
+    private Integer saleNum;
+
+    private String rankText;
+
 }
