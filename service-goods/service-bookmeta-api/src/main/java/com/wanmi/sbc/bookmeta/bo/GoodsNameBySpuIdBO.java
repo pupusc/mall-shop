@@ -14,6 +14,7 @@ import lombok.Data;
 public class GoodsNameBySpuIdBO {
     private int id;
     private String name;
+    private String goodsName;
     private String spuId;
     private int delFlag;
     private Integer status;

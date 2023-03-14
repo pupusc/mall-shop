@@ -21,8 +21,12 @@ public class GoodsLabelSpu implements Serializable {
     private int id;
     @Column(name ="goods_id" )
     private String goodsId;
+    @Column(name ="goods_name" )
+    private String goodsName;
     @Column(name ="label_id" )
     private int labelId;
+    @Column(name ="label_name" )
+    private int labelName;
     @Column(name ="create_time" )
     private Date createTime;
     @Column(name ="update_time" )

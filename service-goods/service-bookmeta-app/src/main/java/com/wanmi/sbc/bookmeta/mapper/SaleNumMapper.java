@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.bo.SaleNumBO;
 import com.wanmi.sbc.bookmeta.entity.SaleNum;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public interface SaleNumMapper {
     int getSaleNumCount(SaleNumBO saleNum);
     int existSpu(String spuId);
     int existSku(String skuId);
-    List<SaleNum> getBySpuAndSku(String spuId, String skuId);
+    List<SaleNum> getBySpuAndSku(@Param("spuId") String spuId,@Param("skuId") String skuId);
     int update(SaleNum saleNum);
 
 }

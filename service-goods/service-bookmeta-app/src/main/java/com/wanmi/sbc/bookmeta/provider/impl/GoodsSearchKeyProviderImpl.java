@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
+import com.wanmi.sbc.bookmeta.bo.GoodsBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
 import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
@@ -9,6 +10,7 @@ import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,12 +51,12 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
         GoodSearchKey convert = KsBeanUtil.convert(bo, GoodSearchKey.class);
-        List<GoodSearchKey> allGoodsSearchKey = goodsSearchKeyMapper.getAllGoodsSearchKey(bo.getSpuId(), page.getOffset(), page.getPageSize());
+        List<GoodSearchKey> allGoodsSearchKey = goodsSearchKeyMapper.getAllGoodsSearchKey(bo.getName(), page.getOffset(), page.getPageSize());
         List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
         if (allGoodsSearchKey.size() > 0) {
             goodsNameBySpuIdBOS = KsBeanUtil.convertList(allGoodsSearchKey, GoodsNameBySpuIdBO.class);
         }
-        return BusinessResponse.success(goodsNameBySpuIdBOS);
+        return BusinessResponse.success(goodsNameBySpuIdBOS,page);
     }
 
     @Override
@@ -75,5 +77,20 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
     @Override
     public int deleteGoodsSearchKey(GoodsNameBySpuIdBO goodsNameBySpuIdBO) {
         return goodsSearchKeyMapper.deleteGoodsSearchKey(goodsNameBySpuIdBO.getId());
+    }
+
+    @Override
+    public BusinessResponse<List<GoodsBO>> getGoodsList(GoodsNameBySpuIdBO bo) {
+        Page page = bo.getPage();
+        page.setTotalCount((int) goodsSearchKeyMapper.getAllGoodsCount(bo.getName()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<GoodsVO> allGoodsSearchKey = goodsSearchKeyMapper.getGoodsList(bo.getName(), page.getOffset(), page.getPageSize());
+        List<GoodsBO> allGoods = new ArrayList<GoodsBO>();
+        if (allGoodsSearchKey.size() > 0){
+            allGoods=KsBeanUtil.convertList(allGoodsSearchKey,GoodsBO.class);
+        }
+        return BusinessResponse.success(allGoods,page);
     }
 }

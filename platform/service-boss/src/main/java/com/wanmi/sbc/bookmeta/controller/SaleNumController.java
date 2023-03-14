@@ -10,6 +10,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -142,7 +143,11 @@ public class SaleNumController {
                 saleNumBO.setSkuId((cells[2]));
                 saleNumBO.setSkuName((cells[3]));
                 saleNumBO.setSalesNum(Integer.parseInt(cells[4]));
-                saleNumBO.setFixPrice(Double.parseDouble(cells[5]));
+                if (lastCellNum>5 && StringUtils.isNotBlank(cells[5])){
+                    saleNumBO.setFixPrice(Double.parseDouble(cells[5]));
+                }else {
+                    saleNumBO.setFixPrice(0);
+                }
                 res = saleNumProvider.importSaleNum(saleNumBO).getContext();
             }
         } catch (Exception e) {
@@ -156,7 +161,7 @@ public class SaleNumController {
             }
         }
         if (null != res) {
-            if (res.contains("失败")){
+            if (res.contains("failed")){
             return BusinessResponse.error(res);
             }
         }

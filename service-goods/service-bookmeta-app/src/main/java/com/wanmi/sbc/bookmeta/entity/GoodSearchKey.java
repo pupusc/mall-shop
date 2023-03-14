@@ -20,6 +20,8 @@ public class GoodSearchKey {
     private int id;
     @Column(name = "name")
     private String name;
+    @Column(name = "goods_name")
+    private String goodsName;
     @Column(name = "spu_id")
     private String spuId;
     @Column(name = "del_flag")

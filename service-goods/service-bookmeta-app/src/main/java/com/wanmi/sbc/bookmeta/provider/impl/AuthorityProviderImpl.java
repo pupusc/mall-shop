@@ -9,6 +9,8 @@ import com.wanmi.sbc.bookmeta.provider.AuthorityProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,24 +32,24 @@ public class AuthorityProviderImpl implements AuthorityProvider {
     AuthorityMapper authorityMapper;
 
     @Override
-    public BusinessResponse<Integer> addAuthority(AuthorityAddReqBO pageReqBO) {
+    public BusinessResponse<String> addAuthority(AuthorityAddReqBO pageReqBO) {
         Authority authority = KsBeanUtil.convert(pageReqBO, Authority.class);
         authority.setCreateTime(new Date());
         int i = authorityMapper.insertAuthority(authority);
         if (i < 0) {
             return BusinessResponse.error("Invalid entity");
         }
-        return BusinessResponse.success(Integer.parseInt(authority.getAuthorityId()));
+        return BusinessResponse.success(authority.getAuthorityId());
     }
 
     @Override
-    public BusinessResponse<Integer> updateAuthority(AuthorityAddReqBO pageReqBO) {
+    public BusinessResponse<String> updateAuthority(AuthorityAddReqBO pageReqBO) {
         Authority authority = KsBeanUtil.convert(pageReqBO, Authority.class);
         int i = authorityMapper.updateAuthority(authority);
         if (i < 0) {
             return BusinessResponse.error("Invalid");
         }
-        return BusinessResponse.success(Integer.parseInt(authority.getAuthorityId()));
+        return BusinessResponse.success(authority.getAuthorityId());
     }
 
     @Override

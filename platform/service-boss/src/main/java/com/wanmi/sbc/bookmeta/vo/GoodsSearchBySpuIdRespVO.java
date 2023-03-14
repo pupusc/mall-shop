@@ -13,6 +13,7 @@ import lombok.Data;
 public class GoodsSearchBySpuIdRespVO {
     private int id;
     private String name;
+    private String goodsName;
     private String spuId;
     private int status;
 }
