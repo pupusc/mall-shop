@@ -962,6 +962,10 @@ public class TopicService {
         return goodsOrBookMapList;
     }
 
+    public void initPrice(List<String> spuIds){
+
+    }
+
     /**
      * 初始化商品价格通用方法
      */
