@@ -84,11 +84,11 @@ public class MixedComponentTabDto implements Serializable {
         this.attributeInfo = columnDTO.getAttributeInfo();
         this.color = JSON.parseObject(columnDTO.getColor(), SelectDto.class);
         this.image = JSON.parseObject(columnDTO.getImage(), SelectDto.class);
-        if (!MixedComponentLevel.FOUR.toValue().equals(level)) {
-            List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);
-            this.keywords = keyWordsDtos != null ? keyWordsDtos.stream().sorted(Comparator.comparing(KeyWordsDto::getSort))
-                    .collect(Collectors.toList()) : null;
-        }
+//        if (!MixedComponentLevel.FOUR.toValue().equals(level)) {
+//            List<KeyWordsDto> keyWordsDtos = JSON.parseArray(columnDTO.getAttributeInfo(), KeyWordsDto.class);
+//            this.keywords = keyWordsDtos != null ? keyWordsDtos.stream().sorted(Comparator.comparing(KeyWordsDto::getSort))
+//                    .collect(Collectors.toList()) : null;
+//        }
     }
 
     public MixedComponentTabDto() {

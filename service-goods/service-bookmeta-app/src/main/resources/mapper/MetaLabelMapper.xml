@@ -425,6 +425,11 @@
           and del_flag = 0 order by market_price asc limit 1;
     </select>
 
+    <select id="getSkuIdBySkuId" resultType="java.util.Map" parameterType="java.lang.String">
+        select goods_id,goods_info_img,goods_info_name,market_price from goods_info
+        where goods_info_id = #{goodsInfoId} and del_flag = 0 limit 0,1;
+    </select>
+
     <select id="getScoreBySkuId" resultType="java.lang.String">
 
         select prop_value

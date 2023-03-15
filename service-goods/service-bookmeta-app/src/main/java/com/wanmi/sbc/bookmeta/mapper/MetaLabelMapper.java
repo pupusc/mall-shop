@@ -133,6 +133,8 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     Map<String,Object> getSkuIdBySpuId1(@Param("goodsId") String goodsId);
 
+    Map<String,Object> getSkuIdBySkuId(@Param("goodsInfoId") String goodsInfoId);
+
     String getScoreBySkuId(@Param("goodsId") String goodsId);
 
     String getIsbnBySkuId(@Param("goodsId") String goodsId);

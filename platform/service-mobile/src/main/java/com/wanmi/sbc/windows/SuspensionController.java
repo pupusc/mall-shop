@@ -168,6 +168,21 @@ public class SuspensionController {
         return BaseResponse.success(map);
     }
 
+    @PostMapping("/getTagsLabel")
+    public BaseResponse getTagsLabel(@RequestParam(value = "spuId,",required = false) String spuId)  {
+        Map map=new HashMap<>();
+        if(null!=spuId){
+            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_TAGS_SPU_ID"+ ":" + spuId);
+            if(null==old_json){
+                return null;
+            }
+            map= JSONObject.parseObject(old_json,Map.class);
+        }else {
+            return null;
+        }
+        return BaseResponse.success(map);
+    }
+
     @PostMapping("/test7")
     public BusinessResponse<MetaBookRecommentKeyBo> getRecommentKey(@RequestParam(value = "spuId") String spuId)  {
         return metaBookProvider.getRecommentKey(spuId);

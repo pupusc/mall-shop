@@ -119,8 +119,8 @@ public class BookDetailTab {
             maptemp.remove("create_time");
             maptemp.remove("is_selected");
             maptemp.remove("biz_time");
-            maptemp.put("sku_id", maptemp.get("goods_info_id"));
-            maptemp.remove("goods_info_id");
+            maptemp.put("sku_id", null);
+            maptemp.put("spu_id", null);
             if (null == maptemp.get("biz_type") || null == maptemp.get("biz_id")) {
                 return null;
             }
@@ -162,7 +162,7 @@ public class BookDetailTab {
                             sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
                             mapTemp.put("sku_id", sku_id);
                         }
-                        mapTemp.put("goods_id", spu_id);
+                        mapTemp.put("spu_id", spu_id);
                         mapTemp.put("goods_info_name", goods_name);
                         mapTemp.put("sku_id", sku_id);
                         goodsInfoMap.add(mapTemp);
@@ -174,11 +174,11 @@ public class BookDetailTab {
                 }
                 //构建返回类型
                 List<Map> recomentBookVoMap = goodsInfoMap.stream().map(goodsInfoMapTemp -> {
-                    if (null == goodsInfoMapTemp.get("goods_id") || null == goodsInfoMapTemp.get("goods_info_name") || null == goodsInfoMapTemp.get("sku_id")) {
+                    if (null == goodsInfoMapTemp.get("spu_id") || null == goodsInfoMapTemp.get("goods_info_name") || null == goodsInfoMapTemp.get("sku_id")) {
                         return null;
                     }
                     Map recomentBookVo = new HashMap<>();
-                    recomentBookVo.put("goodsId", goodsInfoMapTemp.get("goods_id").toString());
+                    recomentBookVo.put("spu_id", goodsInfoMapTemp.get("spu_id").toString());
                     recomentBookVo.put("goodsInfoName", goodsInfoMapTemp.get("goods_info_name").toString());
                     String sku_id = goodsInfoMapTemp.get("sku_id").toString();
                     recomentBookVo.put("sku_id", sku_id);
@@ -188,7 +188,6 @@ public class BookDetailTab {
                     if (null != old_json) {
                         Map labelMap = JSONObject.parseObject(old_json, Map.class);
                         recomentBookVo.put("labelMap", labelMap);
-                        recomentBookVo.put("sku_id", goodsInfoMapTemp.get("sku_id").toString());
                     }
                     return recomentBookVo;
                 }).filter(g -> null != g).collect(Collectors.toList());

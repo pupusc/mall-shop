@@ -347,6 +347,31 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
+    public SkuDetailBO getGoodsInfoBySkuId(String skuId) {
+        SkuDetailBO bo = new SkuDetailBO();
+        Map map = metaLabelMapper.getSkuIdBySkuId(skuId);
+        String spuId = (String) map.get("goods_id");
+        String img = (String) map.get("goods_info_img");
+        String SkuName = (String) map.get("goods_info_name");
+        BigDecimal price = (BigDecimal) map.get("market_price");
+        String score = metaLabelMapper.getScoreBySkuId(spuId);
+        String Isbn = metaLabelMapper.getIsbnBySkuId(spuId);
+        String saleNum = metaLabelMapper.getSaleNumSkuId(skuId);
+        bo.setSpuId(spuId);
+        bo.setSkuId(skuId);
+        bo.setImg(img);
+        bo.setSkuId(skuId);
+        bo.setScore(score);
+        if (StringUtils.isNotBlank(Isbn)) {
+            bo.setIsbn(Isbn);
+        }
+        bo.setSaleNum(saleNum);
+        bo.setSkuName(SkuName);
+        bo.setPrice(price);
+        return bo;
+    }
+
+    @Override
     public GoodDetailOtherRespBO getGoodsDetailAndOther(String GoodsId) {
         GoodsOtherDetail goodsOtherDetail = metaLabelMapper.getGoodsOtherDetail(GoodsId);
         GoodDetailOtherRespBO convert = KsBeanUtil.convert(goodsOtherDetail, GoodDetailOtherRespBO.class);
