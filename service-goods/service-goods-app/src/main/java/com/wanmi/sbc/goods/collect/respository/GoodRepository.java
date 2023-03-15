@@ -54,6 +54,16 @@ public class GoodRepository {
         return list;
     }
 
+    //通过spu_id得到goodsMap
+    public Map getGoodsMap(String spu_id) {
+
+        String sql = " select goods_id,goods_no as spu_no from goods where goods_id = ? ";
+        Object[] obj = new Object[]{spu_id};
+
+        Map goodsMap = jpaManager.queryForMap(sql,obj);
+        return goodsMap;
+    }
+
     //图文详情
     public List getGoodsDetail(String spu_no) {
         String sql = " select goods_detail from goods where goods_no = ? ";
@@ -98,6 +108,33 @@ public class GoodRepository {
         return skuMap;
     }
 
+    /**通过sku_id取spu_id**/
+    public String getSpuIdBySku(String skuId) {
+
+        String spuId = "";
+        String sql = " select goods_id from goods_info where goods_info_id = ? limit 0,1 ";
+        Object[] obj = new Object[]{skuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            Map map = (Map)list.get(0);
+            spuId = String.valueOf(map.get("goods_id"));
+        }
+        return spuId;
+    }
+
+    /**通过spu_id取isbn**/
+    public String getIsbnBySpuId(String spuId) {
+
+        String isbn = "";
+        String sql = " select prop_value as isbn from goods_prop_detail_rel where goods_id = ? and prop_id = 5 ";
+        Object[] obj = new Object[]{spuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if(list !=null && list.size() >0){
+            Map map = (Map)list.get(0);
+            isbn = String.valueOf(map.get("isbn"));
+        }
+        return isbn;
+    }
 
     /**通过sku_id取定价**/
     public Map getfixPricebySku(String skuId) {
@@ -166,6 +203,7 @@ public class GoodRepository {
         List list = jpaManager.queryForList(sql,obj);
         return list;
     }
+
 
 }
 
