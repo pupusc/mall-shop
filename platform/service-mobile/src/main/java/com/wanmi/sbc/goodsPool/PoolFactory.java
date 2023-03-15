@@ -1,10 +1,7 @@
 package com.wanmi.sbc.goodsPool;
 
 import com.wanmi.sbc.goodsPool.service.PoolService;
-import com.wanmi.sbc.goodsPool.service.impl.AdvertisementPoolServiceImpl;
-import com.wanmi.sbc.goodsPool.service.impl.AssignPoolServiceImpl;
-import com.wanmi.sbc.goodsPool.service.impl.GoodsPoolServiceImpl;
-import com.wanmi.sbc.goodsPool.service.impl.VideoPoolServiceImpl;
+import com.wanmi.sbc.goodsPool.service.impl.*;
 import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentTabDto;
 import com.wanmi.sbc.setting.bean.enums.BookType;
@@ -41,6 +38,7 @@ public class PoolFactory extends ApplicationObjectSupport {
         if (BookType.ADVERTISEMENT.toValue().equals(bookType)) {return beanFactoryHelper.getBean(AdvertisementPoolServiceImpl.class);}
         if (BookType.VIDEO.toValue().equals(bookType)) {return beanFactoryHelper.getBean(VideoPoolServiceImpl.class);}
         if (BookType.ASSIGN.toValue().equals(bookType)) {return beanFactoryHelper.getBean(AssignPoolServiceImpl.class);}
+        if (BookType.SKIP.toValue().equals(bookType)) {return beanFactoryHelper.getBean(SkipAdvertPoolServiceImpl.class);}
         throw new RuntimeException("不存在的商品池类型");
     }
 }

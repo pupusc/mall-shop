@@ -19,7 +19,8 @@ import java.util.List;
 public class SkipAdvertPoolServiceImpl implements PoolService {
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
-
+        GoodsPoolDto goodsPoolDto = getPool(pool, null, null);
+        goodsPoolDtos.add(goodsPoolDto);
     }
 
     @Override
