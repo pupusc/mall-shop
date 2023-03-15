@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting.presetsearch.service;
 
 
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsListResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsQueryResponse;
 import com.wanmi.sbc.setting.bean.vo.PresetSearchTermsVO;
@@ -10,7 +11,10 @@ import com.wanmi.sbc.setting.presetsearch.repositoy.PresetSearchTermsRepositoy;
 import com.wanmi.sbc.setting.util.error.SearchTermsErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,15 +85,29 @@ public class PresetSearchTermsService {
      */
     public PresetSearchTermsQueryResponse listPresetSearchTermsV2() {
         List<PresetSearchTerms> list = presetSearchTermsRepositoy.findAll();
-        List<PresetSearchTermsVO> ListSearch = list.stream().filter(s->s.getPresetChannel().equals(0)).map(search -> {
-            PresetSearchTermsVO presetSearchTermsVO = new PresetSearchTermsVO();
-            presetSearchTermsVO.setId(search.getId());
-            presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
-            presetSearchTermsVO.setPresetSearchKeyword(search.getPresetSearchKeyword());
-            presetSearchTermsVO.setPresetSearchType(search.getPresetSearchType());
-            presetSearchTermsVO.setPresetSearchKeywordPageUrl(search.getPresetSearchKeywordPageUrl());
-            return presetSearchTermsVO;
-        }).collect(Collectors.toList());
+        List<PresetSearchTermsVO> ListSearch = new ArrayList<>();
+        list.stream().filter(s->s.getPresetChannel()==0).forEach(search -> {
+            if(search.getPresetSearchKeyword().contains(",")){
+                String[] split = search.getPresetSearchKeyword().split(",");
+                for (int i=0;i<split.length;i++) {
+                    PresetSearchTermsVO presetSearchTermsVO = new PresetSearchTermsVO();
+                    presetSearchTermsVO.setId(search.getId());
+                    presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
+                    presetSearchTermsVO.setPresetSearchKeyword(split[i]);
+                    presetSearchTermsVO.setPresetSearchType(search.getPresetSearchType());
+                    presetSearchTermsVO.setPresetSearchKeywordPageUrl(search.getPresetSearchKeywordPageUrl());
+                    ListSearch.add(presetSearchTermsVO);
+                }
+            }else {
+                PresetSearchTermsVO presetSearchTermsVO = new PresetSearchTermsVO();
+                presetSearchTermsVO.setId(search.getId());
+                presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
+                presetSearchTermsVO.setPresetSearchKeyword(search.getPresetSearchKeyword());
+                presetSearchTermsVO.setPresetSearchType(search.getPresetSearchType());
+                presetSearchTermsVO.setPresetSearchKeywordPageUrl(search.getPresetSearchKeywordPageUrl());
+                ListSearch.add(presetSearchTermsVO);
+            }
+        });
         return new PresetSearchTermsQueryResponse(ListSearch);
     }
 }

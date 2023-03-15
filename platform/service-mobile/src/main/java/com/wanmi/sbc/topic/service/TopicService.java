@@ -657,12 +657,13 @@ public class TopicService {
                     goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
             }
-            List<SpuNewBookListResp> spuNewBookListResps = this.initPrice(spuIds);
+            Map<String, SpuNewBookListResp> map = this.initPrice(spuIds);
             goodsCustomResponses.forEach(g->{
-                spuNewBookListResps.stream().filter(s->s.getSpuId().equals(String.valueOf(g.get("spuId")))).forEach(s->{
-                    g.put("salePrice",s.getSalesPrice());
-                    g.put("marketPrice",s.getMarketPrice());
-                });
+                if(map.containsKey(String.valueOf(g.get("spuId")))){
+                    SpuNewBookListResp resp = map.get(String.valueOf(g.get("spuId")));
+                    g.put("salePrice",resp.getSalesPrice());
+                    g.put("marketPrice",resp.getMarketPrice());
+                }
             });
             RankPageRequest pageRequest = new RankPageRequest();
             //初始化榜单树形结构，获取商品详情
@@ -998,14 +999,15 @@ public class TopicService {
      * @param spuIds
      * @return
      */
-    private List<SpuNewBookListResp> initPrice(List<String> spuIds){
+    private Map<String, SpuNewBookListResp> initPrice(List<String> spuIds){
         CustomerGetByIdResponse customer = this.getCustomer();
         KeyWordSpuQueryReq req=new KeyWordSpuQueryReq();
         req.setSpuIds(spuIds);
         req.setDelFlag(0);
         EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpuBySpuId(req).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = this.packageSpuNewBookListResp(esSpuNewAggResp.getResult().getContent(),customer, false, new ArrayList<>());
-        return spuNewBookListResps;
+        Map<String, SpuNewBookListResp> map = this.packageSpuNewBookListResp(esSpuNewAggResp.getResult().getContent(),customer, false, new ArrayList<>())
+                .stream().collect(Collectors.toMap(SpuNewBookListResp::getSpuId, Function.identity()));
+        return map;
     }
 
     private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer, boolean fetchSkus, List<String> showSkuIds){
