@@ -59,7 +59,7 @@ public class BookTags {
         //7分41秒
         for(int i=0;i<list.size();i++){
             Map map = (Map)list.get(i);
-            doGoods(map);                 //卖点标签&&营销标签
+            doGoods(map);                 //卖点标签
         }
 
         for(int i=0;i<list.size();i++){
@@ -68,21 +68,17 @@ public class BookTags {
         }
     }
 
-    private void doData(Map map) {
+
+    public void doData(Map map) {
 
         doGoods(map);                 //卖点标签&&营销标签
         bookDetailTab.doBook(map);    //图书tab
     }
 
     //单条记录
-    public void doGoods(String isbn){
-
-        List goodList = bookJpa.findSpuByV2(isbn);
-        if(goodList != null && goodList.size() > 0){
-            Map goodMap = (Map)goodList.get(0);
-            doData(goodMap);
-        }
-
+    public void doData(String isbn){
+        Map goodMap = bookJpa.getGoodsMap(isbn);
+        doData(goodMap);
     }
 
 
@@ -110,54 +106,52 @@ public class BookTags {
 
         List allList = new ArrayList();
 
-        //10. 大促标签
-        /*List tagList1 = bookJpa.getTagList(book_id);*/
-
         //10. 大促标签_缓存
-        List tagList1 = bookCacheService.getTagList_cache(book_id);
+        List tagList1 = bookJpa.getTagList(book_id);
+        //List tagList1 = bookCacheService.getTagList_cache(book_id);
         if(tagList1!=null && tagList1.size() > 0){
             allList.addAll(tagList1);
         }
 
         //20. 榜单标签
         if(StringUtil.isNotBlank(spu_no)) {
-           // List topList = bookJpa.getTopList(spu_no);
-              List topList = bookCacheService.getTopList(spu_no);
+            List topList = bookJpa.getTopList(spu_no);
+            //List topList = bookCacheService.getTopList(spu_no);
             if(topList!=null && topList.size() > 0){
                 allList.addAll(topList);
             }
         }
 
         //30. 书本身有奖项，显示第一个奖项名称
-       // List awardList = bookJpa.getAwardList(book_id);
-        List awardList = bookCacheService.getAwardList(book_id);
+        List awardList = bookJpa.getAwardList(book_id);
+        //List awardList = bookCacheService.getAwardList(book_id);
         if(awardList!=null && awardList.size() > 0){
             allList.addAll(awardList);
         }
 
         //40. 图书作者有获奖，显示『奖项名称+获得者（作者）』
-        //List authorList = bookJpa.getAutherList(book_id);
-        List authorList = bookCacheService.getAutherList(book_id);
+        List authorList = bookJpa.getAutherList(book_id);
+        //List authorList = bookCacheService.getAutherList(book_id);
         if(authorList!=null && authorList.size() > 0){
             allList.addAll(authorList);
         }
 
         //50. 当有指定的打标媒体、名家、专业机构推荐时，显示『媒体名称/名家名称/专业机构名称推荐』
-        //List mediaList = getMediaListList(book_id);
+        //List mediaList = bookJpa.getMediaListList(book_id);
         //if(mediaList!=null && mediaList.size() > 0){
         //    allList.addAll(mediaList);
         //}
 
         //60. 有图书库-推荐信息，显示『X位名家，X家媒体，X家专业机构推荐』
-        //List mediaList = bookJpa.getMediaList(book_id);
-        List mediaList = bookCacheService.getMediaList(book_id);
+        List mediaList = bookJpa.getMediaList(book_id);
+        //List mediaList = bookCacheService.getMediaList(book_id);
         if(mediaList!=null && mediaList.size() > 0){
             allList.addAll(mediaList);
         }
 
         //70. 书中提到的人物，有数据则显示：人物名称
-        //List nameList = bookJpa.getNameList(book_id);
-        List nameList = bookCacheService.getNameList(book_id);
+        List nameList = bookJpa.getNameList(book_id);
+        //List nameList = bookCacheService.getNameList(book_id);
         if(nameList!=null && nameList.size() > 0){
             allList.addAll(nameList);
         }
@@ -169,16 +163,16 @@ public class BookTags {
         }
 
         //90. 适读对象：当数对像有数据，则全量显示(先取静态标签)
-        //List staticList = bookJpa.getStaticList(book_id);
-        List staticList = bookCacheService.getStaticList(book_id);
+        List staticList = bookJpa.getStaticList(book_id);
+        //List staticList = bookCacheService.getStaticList(book_id);
         if(staticList!=null && staticList.size() > 0){
             allList.addAll(staticList);
         }
 
         //100. 行业类类目：（本次新加字段），显示图书所在行业类目，按类目树结构显示，一级名称>二级名称>三级名称
         if(DitaUtil.isNotBlank(trade_id)){
-           // List tradeList = bookJpa.getTradeList(trade_id);
-            List tradeList = bookCacheService.getTradeList(trade_id);
+            List tradeList = bookJpa.getTradeList(trade_id);
+            //List tradeList = bookCacheService.getTradeList(trade_id);
             if(tradeList!=null && tradeList.size() > 0){
                 allList.addAll(tradeList);
             }
@@ -186,8 +180,8 @@ public class BookTags {
 
 
         //110. 图书被包含在某丛书，显示「丛书」名称
-        //List clumpList = bookJpa.getClumpList(book_id);
-        List clumpList = bookCacheService.getClumpList(book_id);
+        List clumpList = bookJpa.getClumpList(book_id);
+        //List clumpList = bookCacheService.getClumpList(book_id);
         if(clumpList!=null && clumpList.size() > 0){
             allList.addAll(clumpList);
         }

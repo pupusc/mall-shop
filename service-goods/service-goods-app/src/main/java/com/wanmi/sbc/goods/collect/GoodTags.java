@@ -44,6 +44,15 @@ public class GoodTags {
 
     }
 
+    public Map doGoods(String spu_id){
+
+        Map goodMap = goodJpa.getGoodsMap(spu_id);
+
+        doGoods(goodMap);
+
+        return goodMap;
+    }
+
     public void doGoods(Map goodMap){
 
         String spu_no = String.valueOf(goodMap.get("spu_no"));
@@ -55,24 +64,24 @@ public class GoodTags {
         List allList = new ArrayList();
 
         //10. 大促标签
-        //List tagList = goodJpa.getTagList(spu_id);
-         List tagList = goodsCacheService.getTagList(spu_id);
+        List tagList = goodJpa.getTagList(spu_id);
+        //List tagList = goodsCacheService.getTagList(spu_id);
         if(tagList !=null && tagList.size() > 0){
             allList.addAll(tagList);
         }
 
         //20. 榜单标签
         if(StringUtil.isNotBlank(spu_no)) {
-            //List topList = bookJpa.getTopList(spu_no);
-            List topList = goodsCacheService.getTopList(spu_no);
+            List topList = bookJpa.getTopList(spu_no);
+            //List topList = goodsCacheService.getTopList(spu_no);
             if(topList!=null && topList.size() > 0){
                 allList.addAll(topList);
             }
         }
 
         //90. 取商品上关联的静态标签，按标签优先级依次呈现
-        //List staticList = goodJpa.getStaticList(spu_id);
-        List staticList = goodsCacheService.getStaticList(spu_id);
+        List staticList = goodJpa.getStaticList(spu_id);
+        //List staticList = goodsCacheService.getStaticList(spu_id);
         if(staticList!=null && staticList.size() > 0){
             allList.addAll(staticList);
         }

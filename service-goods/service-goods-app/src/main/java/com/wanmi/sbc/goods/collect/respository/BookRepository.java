@@ -225,7 +225,7 @@ public class BookRepository {
     //order by b.order_num desc limit 0,1
     public List getTopList(String spu_no) {
 
-        String sql = " select b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,b.sku_no,c.goods_info_name,b.spu_no,b.order_num,20 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
+        String sql = " select b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,c.goods_info_name,b.order_num,20 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
                 " left join goods_info c on b.sku_no = c.goods_info_no " +
                 " where a.del_flag = 0 and b.del_flag = 0 and c.del_flag = 0 " +
                 " and b.spu_no=? order by b.order_num desc limit 0,1 ";
@@ -268,6 +268,21 @@ public class BookRepository {
         List list = jpaManager.queryForList(sql,obj);
 
         return list;
+
+    }
+
+    //所有商品,spu和isbn关联并且不为空
+    public Map getGoodsMap(String isbn){
+
+        String sql = " select a.goods_no as spu,b.prop_value as isbn,c.id,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id " +
+                " left join meta_book c on b.prop_value = c.isbn " +
+                " where b.prop_id = 5 and c.id is not null and c.isbn = ? ";
+
+        //and c.id = 7836
+        Object[] obj = new Object[]{isbn};
+        Map ret = jpaManager.queryForMap(sql,obj);
+
+        return ret;
 
     }
 
