@@ -14,6 +14,7 @@ import java.math.BigDecimal;
  */
 @Data
 public class SkuDetailBO implements Serializable {
+    private String spuId;
     private String skuId;
     private String img;
     private String score;

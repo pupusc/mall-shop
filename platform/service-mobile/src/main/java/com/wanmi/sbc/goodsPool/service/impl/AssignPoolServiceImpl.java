@@ -41,13 +41,18 @@ public class AssignPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         List<GoodsDto> goods = new ArrayList<>();
         for (ColumnContentDTO columnContentDTO : poolCollect) {
+            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String spuId = skuDetailBO.getSpuId();
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-            es.setIsbn(columnContentDTO.getIsbn());
-            es.setKeyword(keyword);
+            List<String> spuIds = new ArrayList<>();
+            spuIds.add(skuDetailBO.getSpuId());
+            es.setSpuIds(spuIds);
+            //es.setIsbn(columnContentDTO.getIsbn());
+            //es.setKeyword(keyword);
             List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (content.size() != 0) {
                 EsSpuNewResp esSpuNewResp = content.get(0);
-                getGoods(columnContentDTO, goods, esSpuNewResp);
+                getGoods(columnContentDTO, goods, esSpuNewResp, skuDetailBO);
             }
         }
         if (goods.size() != 0) {
@@ -57,10 +62,10 @@ public class AssignPoolServiceImpl implements PoolService {
     }
 
     @Override
-    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
+    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res ,SkuDetailBO skuDetailBO) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(res.getSpuId());
-        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
+        //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         goodsDto.setGoodsName(skuDetailBO.getSkuName());
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
@@ -137,6 +142,11 @@ public class AssignPoolServiceImpl implements PoolService {
         //获取标签
         goodsPoolDto.setLabelId(tabs);
         return goodsPoolDto;
+    }
+
+    private SkuDetailBO getSpuBySkuId(String skuId) {
+        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
+        return skuDetailBO;
     }
 
 }
