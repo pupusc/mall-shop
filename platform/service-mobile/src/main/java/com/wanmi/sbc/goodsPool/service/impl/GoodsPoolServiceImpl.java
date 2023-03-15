@@ -97,26 +97,17 @@ public class GoodsPoolServiceImpl implements PoolService {
         }
         goodsDto.setScore(score);
         goodsDto.setRetailPrice(skuDetailBO.getPrice());
-        //商品标签
-        List<String> tags = new ArrayList<>();
+        //营销标签
+        List<String> tagList = new ArrayList<>();
         if (res.getLabels() != null) {
-            res.getLabels().forEach(label -> tags.add(label.getLabelName()));
+            res.getLabels().forEach(label -> tagList.add(label.getLabelName()));
         }
-        goodsDto.setTags(tags);
-        goods.add(goodsDto);
-    }
-
-    //初始化商品池
-    @Override
-    public GoodsPoolDto getPool(MixedComponentTabDto pool, ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
-        GoodsPoolDto goodsPoolDto = new GoodsPoolDto();
-        goodsPoolDto.setType(pool.getBookType());
-        goodsPoolDto.setSorting(columnContentDTO.getSorting());
-        goodsPoolDto.setGoods(goods);
-        String tagList = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
-        if (JSON.parseObject(tagList) != null) {
+        goodsDto.setTags(tagList);
+        //买点标签
+        String tagJson = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
+        if (JSON.parseObject(tagJson) != null) {
             List<TagsDto> tagsDtos = new ArrayList<>();
-            List tags = (List) JSON.parseObject(tagList).get("tags");
+            List tags = (List) JSON.parseObject(tagJson).get("tags");
             if (tags != null) {
                 tags.forEach(s -> {
                     TagsDto tagsDto = new TagsDto();
@@ -133,8 +124,18 @@ public class GoodsPoolServiceImpl implements PoolService {
                 });
             }
             //获取标签
-            goodsPoolDto.setLabelId(tagsDtos);
+            goodsDto.setLabelId(tagsDtos);
         }
+        goods.add(goodsDto);
+    }
+
+    //初始化商品池
+    @Override
+    public GoodsPoolDto getPool(MixedComponentTabDto pool, ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
+        GoodsPoolDto goodsPoolDto = new GoodsPoolDto();
+        goodsPoolDto.setType(pool.getBookType());
+        goodsPoolDto.setSorting(columnContentDTO.getSorting());
+        goodsPoolDto.setGoods(goods);
         return goodsPoolDto;
     }
 

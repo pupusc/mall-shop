@@ -1532,7 +1532,6 @@ public class TopicService {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
     private Map<String, String> getUrlParams(String url) {
         Map<String, String> map = new HashMap<>();

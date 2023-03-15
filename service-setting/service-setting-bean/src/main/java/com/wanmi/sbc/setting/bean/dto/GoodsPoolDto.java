@@ -34,7 +34,5 @@ public class GoodsPoolDto implements Serializable {
 
     private Integer sorting;
 
-    private List<TagsDto> labelId;
-
     private List<GoodsDto> goods;
 }

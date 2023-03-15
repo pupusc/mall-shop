@@ -13,6 +13,7 @@ import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,12 +104,35 @@ public class AssignPoolServiceImpl implements PoolService {
                 });
             }
         }
-        //商品标签
-        List<String> tags = new ArrayList<>();
+        //营销标签
+        List<String> tagList = new ArrayList<>();
         if (res.getLabels() != null) {
-            res.getLabels().forEach(label -> tags.add(label.getLabelName()));
+            res.getLabels().forEach(label -> tagList.add(label.getLabelName()));
         }
-        goodsDto.setTags(tags);
+        goodsDto.setTags(tagList);
+        //买点标签
+        String tagJson = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
+        if (JSON.parseObject(tagJson) != null) {
+            List<TagsDto> tagsDtos = new ArrayList<>();
+            List tags = (List) JSON.parseObject(tagJson).get("tags");
+            if (tags != null) {
+                tags.forEach(s -> {
+                    TagsDto tagsDto = new TagsDto();
+                    Map map = (Map) s;
+                    tagsDto.setName(String.valueOf(map.get("show_name")));
+                    tagsDto.setType((Integer) map.get("order_type"));
+                    if (!StringUtils.isEmpty(tagsDto.getName()) && !"null".equals(tagsDto.getName())) {
+                        if(!StringUtils.isEmpty(tagsDto.getType()) && "20".equals(tagsDto.getType())) {
+                            tagsDtos.add(0, tagsDto);
+                        } else {
+                            tagsDtos.add(tagsDto);
+                        }
+                    }
+                });
+            }
+            //获取标签
+            goodsDto.setLabelId(tagsDtos);
+        }
         if (goods.size() <= 5) {
             goods.add(goodsDto);
         } else {
@@ -127,20 +151,20 @@ public class AssignPoolServiceImpl implements PoolService {
         goodsPoolDto.setTitleImage(JSON.parseObject(pool.getAttributeInfo()).get("titleImage").toString());
         goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
         goodsPoolDto.setGoods(goods);
-        List<TagsDto> tabs = new ArrayList<>();
-        if (pool.getLabelId() != null && !"".equals(pool.getLabelId())) {
-            for (Integer s : pool.getLabelId()) {
-                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(s).getContext();
-                TagsDto tagsDto = new TagsDto();
-                tagsDto.setName(metaLabelBO.getName());
-                tagsDto.setShowStatus(metaLabelBO.getStatus());
-                tagsDto.setShowImg(metaLabelBO.getShowImg());
-                tagsDto.setType(metaLabelBO.getType());
-                tabs.add(tagsDto);
-            }
-        }
-        //获取标签
-        goodsPoolDto.setLabelId(tabs);
+//        List<TagsDto> tabs = new ArrayList<>();
+//        if (pool.getLabelId() != null && !"".equals(pool.getLabelId())) {
+//            for (Integer s : pool.getLabelId()) {
+//                MetaLabelBO metaLabelBO = metaLabelProvider.queryById(s).getContext();
+//                TagsDto tagsDto = new TagsDto();
+//                tagsDto.setName(metaLabelBO.getName());
+//                tagsDto.setShowStatus(metaLabelBO.getStatus());
+//                tagsDto.setShowImg(metaLabelBO.getShowImg());
+//                tagsDto.setType(metaLabelBO.getType());
+//                tabs.add(tagsDto);
+//            }
+//        }
+//        //获取标签
+//        goodsPoolDto.setLabelId(tabs);
         return goodsPoolDto;
     }
 
