@@ -71,6 +71,8 @@ public class TopicStoreyColumnDTO implements Serializable {
 
     private String subName;
 
+    private String recommend;
+
     public List<TopicStoreyColumnDTO> chilidList;
 
 
