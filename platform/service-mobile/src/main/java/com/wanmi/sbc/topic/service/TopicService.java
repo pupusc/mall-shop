@@ -1620,11 +1620,12 @@ public class TopicService {
         request.setState(1);
         List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
         //存redis
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
+        //redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
         // tab
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB, JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
             // 获取关键字
@@ -1655,6 +1656,7 @@ public class TopicService {
                 //存redis
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, goodsPools);
             }
+            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tabId + ":keywords", JSON.toJSONString(keywords));
         }
     }
 
