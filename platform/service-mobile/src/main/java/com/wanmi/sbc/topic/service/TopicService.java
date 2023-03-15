@@ -663,6 +663,8 @@ public class TopicService {
                     SpuNewBookListResp resp = map.get(String.valueOf(g.get("spuId")));
                     g.put("salePrice",resp.getSalesPrice());
                     g.put("marketPrice",resp.getMarketPrice());
+                    g.put("stock",resp.getStock());
+                    g.put("book",resp.getBook());
                 }
             });
             RankPageRequest pageRequest = new RankPageRequest();
