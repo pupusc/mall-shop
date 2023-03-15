@@ -1525,6 +1525,19 @@ public class TopicService {
                         }
                         goodsDtos.get(i).setPaidCardPrice(goodsVipPriceMap.get(goodsDtos.get(i).getSkuId()).getSalePrice());
                         goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
+                        //获取数量
+                        String json = redisService.getString(RedisKeyUtil.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + goodsDtos.get(i).getSpuId());
+                        if (json != null) {
+                            Map map = JSONObject.parseObject(json, Map.class);
+                            Integer saleNum = map.get("salenum") != null ? Integer.parseInt(String.valueOf(map.get("salenum"))) : 0;
+                            String[] digit = {"十+", "百+", "千+", "万+"};
+                            if (saleNum >= 300) {
+                                String num = String.valueOf(saleNum / 100);
+                                String score = num.length() == 1 ? saleNum.toString() : (num.length() == 2 ? num.substring(0,1) + digit[num.length()]
+                                        : num.substring(0, num.length()-2) + digit[3]);
+                                goodsDtos.get(i).setScore(score);
+                            }
+                        }
                     }
                 }
                 goodsPoolDto.setGoods(goodsDtos);

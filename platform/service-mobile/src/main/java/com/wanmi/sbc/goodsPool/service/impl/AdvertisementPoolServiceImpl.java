@@ -75,16 +75,17 @@ public class AdvertisementPoolServiceImpl implements PoolService {
                 score = map.get("score") != null ? map.get("score").toString() : null;
             }
         }
-        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
-        String[] digit = {"十+", "百+", "千+", "万+"};
-        if (saleNum >= 300) {
-            String num = String.valueOf(saleNum / 100);
-            score = num.length() == 1 ? saleNum.toString() : (num.length() == 2 ? num.substring(0,1) + digit[num.length()]
-                    : num.substring(0, num.length()-2) + digit[3]);
-        } else {
-            //当图书库评分为空取商城商品评分
-            score = score != null ? score : skuDetailBO.getScore();
-        }
+        //当图书库评分为空取商城商品评分
+        score = score != null ? score : skuDetailBO.getScore();
+//        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
+//        String[] digit = {"十+", "百+", "千+", "万+"};
+//        if (saleNum >= 300) {
+//            String num = String.valueOf(saleNum / 100);
+//            score = num.length() == 1 ? saleNum.toString() : (num.length() == 2 ? num.substring(0,1) + digit[num.length()]
+//                    : num.substring(0, num.length()-2) + digit[3]);
+//        } else {
+//
+//        }
         goodsDto.setScore(score);
         goodsDto.setRetailPrice(skuDetailBO.getPrice());
         //商品标签

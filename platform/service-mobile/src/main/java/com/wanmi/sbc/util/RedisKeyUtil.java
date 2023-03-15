@@ -70,4 +70,7 @@ public class RedisKeyUtil {
      * 榜单聚合页
      */
     public final static String RANK_PAGE = "ELASTIC_SAVE:RANK_PAGE:";
+
+    //图书详情
+    public static final String ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID = "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID:";   //spu_id && isbn
 }
