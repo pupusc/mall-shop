@@ -775,11 +775,12 @@ public class TopicService {
             Map<String, GoodsInfoVO> goodsPriceMap = goodsInfos
                     .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
 
-
+            List<String> spuIds=new ArrayList<>();
             for (int i = 0; i < newBookPointResponseList.size(); i++) {
                 if(null==goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId())){
                     continue;
                 }
+                spuIds.add(newBookPointResponseList.get(i).getSpuId());
                 newBookPointResponseList.get(i).setGoodsInfoName(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoName());
                 newBookPointResponseList.get(i).setGoodsInfoImg(goodsPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getGoodsInfoImg());
 
@@ -799,17 +800,17 @@ public class TopicService {
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();*/
 
-            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
-
-            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
-                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, Function.identity()));
-
+//            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
+//
+//            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+//                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, Function.identity()));
+            Map<String, SpuNewBookListResp> stringSpuNewBookListRespMap = this.initPrice(spuIds);
             for (int i = 0; i < newBookPointResponseList.size(); i++) {
-                if(null==goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId())){
+                if(null==stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId())){
                     continue;
                 }
-                newBookPointResponseList.get(i).setSalePrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getSalePrice());
-                newBookPointResponseList.get(i).setMarketPrice(goodsVipPriceMap.get(newBookPointResponseList.get(i).getSkuId()).getMarketPrice());
+                newBookPointResponseList.get(i).setSalePrice(stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId()).getSalesPrice());
+                newBookPointResponseList.get(i).setMarketPrice(stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId()).getMarketPrice());
             }
 
             return newBookPointResponseList;
@@ -933,13 +934,13 @@ public class TopicService {
     public List<Map> getGoodsOrBookSaveByRedis(TopicStoreyContentRequest topicStoreyContentRequest ,CustomerGetByIdResponse customer){
         String old_json = redisService.getString("ELASTIC_SAVE:HOMEPAGE" + ":" + topicStoreyContentRequest.getStoreyId().toString());
         List goodsOrBookResponseList=JSONObject.parseObject(old_json,List.class);
-        //List<String> skuIdList=new ArrayList<>();
+        List<String> spuIdList=new ArrayList<>();
         //返回值
         List<Map> goodsOrBookMapList=new ArrayList<>();
         //循环每个商品取出skuId
         for(int i=0;i<goodsOrBookResponseList.size();i++){
             Map goodsOrBookMap= (Map)goodsOrBookResponseList.get(i);
-            //skuIdList.add(goodsOrBookMap.get("skuId").toString());
+            spuIdList.add(goodsOrBookMap.get("spuId").toString());
             goodsOrBookMapList.add(goodsOrBookMap);
         }
 
@@ -952,24 +953,25 @@ public class TopicService {
         filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
         GoodsInfoListByGoodsInfoResponse priceContext = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
          */
-        GoodsInfoListByGoodsInfoResponse priceContext = this.initGoodsPrice(customer);
+//        GoodsInfoListByGoodsInfoResponse priceContext = this.initGoodsPrice(customer);
 
-        if(null== priceContext){
-            return goodsOrBookMapList;
-        }
-        List<GoodsInfoVO> goodsInfoVOList = priceContext.getGoodsInfoVOList();
-        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
-                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, Function.identity()));
+//        if(null== priceContext){
+//            return goodsOrBookMapList;
+//        }
+//        List<GoodsInfoVO> goodsInfoVOList = priceContext.getGoodsInfoVOList();
+//        Map<String, GoodsInfoVO> goodsPriceMap = goodsInfoVOList
+//                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, Function.identity()));
+        Map<String, SpuNewBookListResp> initPrice = this.initPrice(spuIdList);
 
         //循环每个商品
         for(int j=0;j<goodsOrBookMapList.size();j++){
-            if(null != goodsPriceMap && null != goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString())){
+            if(null != initPrice && null != initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString())){
                 // recomentBookVo.setSalePrice(goodsPriceMap.get(recomentBookVo.getGoodsInfoId()).getSalePrice());
-                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice()) {
-                    goodsOrBookMapList.get(j).put("salePrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getSalePrice());
+                if(null!=initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getSalesPrice()) {
+                    goodsOrBookMapList.get(j).put("salePrice", initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getSalesPrice());
                 }
-                if(null!=goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice()) {
-                    goodsOrBookMapList.get(j).put("marketPrice", goodsPriceMap.get(goodsOrBookMapList.get(j).get("skuId").toString()).getMarketPrice());
+                if(null!=initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getMarketPrice()) {
+                    goodsOrBookMapList.get(j).put("marketPrice", initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getMarketPrice());
                 }
             }
         }
@@ -1470,17 +1472,18 @@ public class TopicService {
             String finalKeyWord = keyWord;
             String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
             MicroServicePage<GoodsPoolDto> goodsPoolPage = new MicroServicePage<>();
+            List<String> spuIds=new ArrayList<>();
             List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, pageNum * pageSize, pageNum * pageSize + 9);
             List<GoodsPoolDto> goodsPoolDtos = byRange.stream().map(s -> {return JSON.toJavaObject(s, GoodsPoolDto.class);}).collect(Collectors.toList());
-            //初始化会员价
-            if (customer == null) {
-                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-                customer =new CustomerGetByIdResponse();
-                Map customerMap = ( Map ) request.getAttribute("claims");
-                if(null!=customerMap && null!=customerMap.get("customerId")) {
-                    customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-                }
-            }
+//            //初始化会员价
+//            if (customer == null) {
+//                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//                customer =new CustomerGetByIdResponse();
+//                Map customerMap = ( Map ) request.getAttribute("claims");
+//                if(null!=customerMap && null!=customerMap.get("customerId")) {
+//                    customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+//                }
+//            }
             initVipPrice(goodsPoolDtos, customer);
             goodsPoolPage.setContent(goodsPoolDtos);
             goodsPoolPage.setTotal(redisListService.getSize(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId));
@@ -1498,9 +1501,9 @@ public class TopicService {
     //获取会员价
     public void initVipPrice(List<GoodsPoolDto> goodsPoolDtos, CustomerGetByIdResponse customer) {
         try {
-            List<String> skuIdList = new ArrayList<>();
+            List<String> spuIdList = new ArrayList<>();
             goodsPoolDtos.stream().map(GoodsPoolDto::getGoods).collect(Collectors.toList()).forEach(s -> {
-                        if (s != null && s.size() != 0) {s.forEach(c -> {skuIdList.add(c.getSkuId());});}});
+                        if (s != null && s.size() != 0) {s.forEach(c -> {if(null!=c.getSpuId()){spuIdList.add(c.getSpuId());}});}});
             //获取商品信息
            /* GoodsInfoViewByIdsRequest goodsInfoByIdRequest = new GoodsInfoViewByIdsRequest();
             goodsInfoByIdRequest.setDeleteFlag(DeleteFlag.NO);
@@ -1513,18 +1516,21 @@ public class TopicService {
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
             */
-            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
-            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
-                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+//            List<GoodsInfoVO> goodsInfoVOList = this.initGoodsPrice(customer).getGoodsInfoVOList();
+//            Map<String, GoodsInfoVO> goodsVipPriceMap = goodsInfoVOList
+//                    .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+            Map<String, SpuNewBookListResp> respMap = this.initPrice(spuIdList);
             for (GoodsPoolDto goodsPoolDto : goodsPoolDtos) {
                 List<GoodsDto> goodsDtos = goodsPoolDto.getGoods();
                 if(goodsDtos.size() != 0) {
                     for (int i = 0; i < goodsDtos.size(); i++) {
-                        if(null==goodsVipPriceMap.get(goodsDtos.get(i).getSkuId())){
+                        if(null==respMap.get(goodsDtos.get(i).getSpuId())){
                             continue;
                         }
-                        goodsDtos.get(i).setPaidCardPrice(goodsVipPriceMap.get(goodsDtos.get(i).getSkuId()).getSalePrice());
-                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
+//                        goodsDtos.get(i).setPaidCardPrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
+                        goodsDtos.get(i).setSalePrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
+                        goodsDtos.get(i).setMarketPrice(respMap.get(goodsDtos.get(i).getSpuId()).getMarketPrice());
+//                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
                         //获取数量
                         String json = redisService.getString(RedisKeyUtil.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + goodsDtos.get(i).getSpuId());
                         if (json != null) {
@@ -1692,13 +1698,13 @@ public class TopicService {
 //        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
 //        filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
 //        List<GoodsInfoVO> goodsInfoVOList = marketingPluginProvider.goodsListFilter(filterRequest).getContext().getGoodsInfoVOList();
-        Map<String, GoodsInfoVO> goodsPriceMap = this.initGoodsPrice(customer).getGoodsInfoVOList()
-                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
-
-        if(null==goodsPriceMap ||goodsPriceMap.size()==0 ){
-            //没有商品信息
-            return BaseResponse.success(map);
-        }
+//        Map<String, GoodsInfoVO> goodsPriceMap = this.initGoodsPrice(customer).getGoodsInfoVOList()
+//                .stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+//
+//        if(null==goodsPriceMap ||goodsPriceMap.size()==0 ){
+//            //没有商品信息
+//            return BaseResponse.success(map);
+//        }
 
 //        if(null!=skuIdByGoodsDetailTableOne && skuIdByGoodsDetailTableOne.size()!=0){
 //            //推荐人有商品需要回填信息
@@ -1712,8 +1718,9 @@ public class TopicService {
 //
 //        }
 
+        Map<String, SpuNewBookListResp> initPrice = this.initPrice(spuIdList);
         //回填商品的价格信息
-        map= fillGoodsDetail(old_json,goodsPriceMap);
+        map= fillGoodsDetail(old_json,initPrice);
 
         //榜单
         Map rankMap = getGoodsDetailRankById(spuId, skuId, "ELASTIC_SAVE:GOODS_TAGS_SPU_ID");
@@ -1839,7 +1846,7 @@ public class TopicService {
         });
     }
 
-    public Map fillGoodsDetail(String old_json, Map<String, GoodsInfoVO> goodsPriceMap) {
+    public Map fillGoodsDetail(String old_json, Map<String, SpuNewBookListResp> goodsPriceMap) {
         Map mapTemp=new HashMap<>();
 //        String s = map.toString();
         JSONObject jsonObject = JSONObject.parseObject(old_json);
