@@ -42,17 +42,19 @@ public class GoodsPoolServiceImpl implements PoolService {
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
-            String spuId = columnContentDTO.getSpuId();
+            //String spuId = columnContentDTO.getSpuId();
+            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String spuId = skuDetailBO.getSpuId();
             List<String> spuIds = new ArrayList<>();
             spuIds.add(spuId);
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             es.setSpuIds(spuIds);
-            es.setKeyword(keyword);
+            //es.setKeyword(keyword);
             List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (content.size() != 0) {
                 EsSpuNewResp esSpuNewResp = content.get(0);
                 List<GoodsDto> goods = new ArrayList<>();
-                getGoods(columnContentDTO, goods, esSpuNewResp);
+                getGoods(columnContentDTO, goods, esSpuNewResp, skuDetailBO);
                 GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
                 goodsPoolDtos.add(goodsPoolDto);
             }
@@ -61,10 +63,10 @@ public class GoodsPoolServiceImpl implements PoolService {
 
     //初始化商品
     @Override
-    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res) {
+    public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res ,SkuDetailBO skuDetailBO) {
         GoodsDto goodsDto = new GoodsDto();
         goodsDto.setSpuId(columnContentDTO.getSpuId());
-        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
+        //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         goodsDto.setGoodsName(skuDetailBO.getSkuName());
         String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
@@ -136,5 +138,9 @@ public class GoodsPoolServiceImpl implements PoolService {
         return goodsPoolDto;
     }
 
+    private SkuDetailBO getSpuBySkuId(String skuId) {
+        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
+        return skuDetailBO;
+    }
 
 }
