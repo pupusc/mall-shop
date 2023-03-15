@@ -36,4 +36,10 @@ public class CouponCacheListForGoodsListResponse implements Serializable {
     @ApiModelProperty(value = "店铺名称map<key为店铺id，value为店铺名称>")
     private Map<Long, String> storeMap;
 
+    /**
+     * 营销标签，积分，包邮等信息
+     */
+    @ApiModelProperty(value = "营销标签，积分，包邮等信息")
+    private Map labelMap;
+
 }
