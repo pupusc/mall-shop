@@ -128,6 +128,7 @@ public class GoodsPoolServiceImpl implements PoolService {
         goodsPoolDto.setType(pool.getBookType());
         goodsPoolDto.setSorting(columnContentDTO.getSorting());
         goodsPoolDto.setGoods(goods);
+
         return goodsPoolDto;
     }
 
