@@ -163,4 +163,6 @@ public class VideoPoolServiceImpl implements PoolService {
         SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
         return skuDetailBO;
     }
+
+
 }
