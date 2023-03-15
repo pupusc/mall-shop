@@ -35,8 +35,10 @@ public class SkipAdvertPoolServiceImpl implements PoolService {
         GoodsPoolDto goodsPoolDto = new GoodsPoolDto();
         goodsPoolDto.setType(pool.getBookType());
         goodsPoolDto.setSorting(pool.getSorting());
-        goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
-        goodsPoolDto.setUrl(JSON.parseObject(pool.getAttributeInfo()).get("url").toString());
+        if(pool.getAttributeInfo() != null){
+            goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
+            goodsPoolDto.setUrl(JSON.parseObject(pool.getAttributeInfo()).get("url").toString());
+        }
         goodsPoolDto.setGoods(goods);
         return goodsPoolDto;
     }
