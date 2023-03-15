@@ -250,7 +250,16 @@ public class TopicConfigService {
         if(CollectionUtils.isEmpty(rankRelations)){
             return null;
         }
-        rankRelations.forEach(r->cIds.add(r.getCRankId()));
+        LocalDateTime now= LocalDateTime.now();
+        rankRelations.forEach(r->{
+            if(null!=r.getStartTime()&&null!=r.getEndTime()) {
+                if ((now.isAfter(r.getStartTime()) || now.isEqual(r.getStartTime())) && (now.isBefore(r.getEndTime()) || now.isEqual(r.getEndTime()))) {
+                    cIds.add(r.getCRankId());
+                }else {
+                    relationRepository.enableRank(1,r.getId());
+                }
+            }
+        });
         cIds.add(storeyRequest.getRankId());
         List<RankRequest> rankRequests=new ArrayList<>();
         list.forEach(l->{
@@ -606,6 +615,22 @@ public class TopicConfigService {
     public void deleteRankrelation(TopicRalationRequest request) {
         TopicRankRelation rankRelation =KsBeanUtil.convert(request, TopicRankRelation.class);
         relationRepository.deleteById(rankRelation.getId());
+    }
+
+    /**
+     * 启用/停用二级榜单列表
+     * @param request
+     */
+    @SneakyThrows
+    public void enableRankrelation(TopicRalationRequest request) {
+        TopicRankRelation rankRelation =KsBeanUtil.convert(request, TopicRankRelation.class);
+        Integer delFlag= rankRelation.getDelFlag();
+        if(delFlag==1){
+            relationRepository.enableRank(0,rankRelation.getId());
+        }else {
+            relationRepository.enableRank(1,rankRelation.getId());
+        }
+
     }
 
     /**

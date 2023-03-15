@@ -1,9 +1,14 @@
 package com.wanmi.sbc.setting.topicconfig.model.root;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @Table(name = "topic_rank_relation")
@@ -32,4 +37,17 @@ public class TopicRankRelation {
 
     @Column(name = "topic_rank_sorting")
     private Integer topicRankSorting;
+
+    @Column(name = "start_time")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime endTime;
+
+    @Column(name = "del_flag")
+    private Integer delFlag;
 }

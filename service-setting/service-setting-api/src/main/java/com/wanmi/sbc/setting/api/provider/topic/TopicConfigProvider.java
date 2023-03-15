@@ -156,6 +156,15 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/update")
     BaseResponse updateRankrelation(@RequestBody TopicRalationRequest request);
 
+
+    /**
+     * @Description 启用/停用二级榜单
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/relation/enableRank")
+    BaseResponse enableRankrelation(@RequestBody TopicRalationRequest request);
+
     /**
      * @Description 二级榜单删除
      * @Author
