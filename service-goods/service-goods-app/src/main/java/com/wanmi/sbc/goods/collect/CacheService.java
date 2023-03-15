@@ -167,13 +167,13 @@ public class CacheService {
         List list = jpaManager.queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
-            String scope_id = String.valueOf(map.get("scope_id"));
-            if (DitaUtil.isNotBlank(scope_id)) {
-                List tagList = (List) marketMarkingMap.get(scope_id);
+            String sku_id = String.valueOf(map.get("sku_id"));
+            if (DitaUtil.isNotBlank(sku_id)) {
+                List tagList = (List) marketMarkingMap.get(sku_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
                     tagList.add(map);
-                    marketMarkingMap.put(scope_id, tagList);
+                    marketMarkingMap.put(sku_id, tagList);
                 } else {
                     tagList.add(map);                             //存在放入
                 }
@@ -208,13 +208,13 @@ public class CacheService {
         List list = jpaManager.queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
-            String scope_id = String.valueOf(map.get("scope_id"));
-            if (DitaUtil.isNotBlank(scope_id)) {
-                List tagList = (List) marketMarking2Map.get(scope_id);
+            String sku_id = String.valueOf(map.get("sku_id"));
+            if (DitaUtil.isNotBlank(sku_id)) {
+                List tagList = (List) marketMarking2Map.get(sku_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
                     tagList.add(map);
-                    marketMarking2Map.put(scope_id, tagList);
+                    marketMarking2Map.put(sku_id, tagList);
                 } else {
                     tagList.add(map);                             //存在放入
                 }

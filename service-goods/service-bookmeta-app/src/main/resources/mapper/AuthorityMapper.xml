@@ -135,6 +135,7 @@
                 and authority_url like concat('%',#{authorityUrl},'%')
             </if>
         </where>
+        order by create_time desc
         limit #{limitIndex}, #{limitSize};
     </select>
 

@@ -16,6 +16,7 @@ public class MetaLabelQueryByPageReqBO implements Serializable {
     private static final long serialVersionUID = 764749601528938596L;
     
     private Integer id;
+    private Integer labelId;
     /**
      * 名称
      */

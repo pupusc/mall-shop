@@ -63,51 +63,49 @@ public class MixedComponentContentJobHandler extends IJobHandler {
 
     public void saveMixedComponentContent(int topicStoreyId) {
         //栏目信息
-        TopicStoreyColumnQueryRequest request = new TopicStoreyColumnQueryRequest();
+        MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
         request.setState(1);
-        request.setParentId(0);
-        List<TopicStoreyColumnDTO> list = columnRepository.listStoryColumnAll(request);
-        //获取tab
-        List<TopicStoreyColumnDTO> tabLists = new ArrayList<>();
-        for(TopicStoreyColumnDTO dto:list){
-            TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
-            param.setTopicStoreyId(topicStoreyId);
-            param.setParentId(dto.getId());
-            List<TopicStoreyColumnDTO> tabList = columnRepository.listStoryColumnAll(param);
-            if(!tabList.isEmpty()){
-                for(TopicStoreyColumnDTO tab:tabList){
-                    tabLists.add(tab);
+        List<MixedComponentTabDto> mixedComponentTab = topicConfigProvider.listMixedComponentTab(request).getContext();
+        //存redis
+        //redisService.setString(RedisKeyUtil.MIXED_COMPONENT + "details", JSON.toJSONString(mixedComponentTab));
+        // tab
+        List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
+            return new MixedComponentDto(c);
+        }).collect(Collectors.toList());
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB, JSON.toJSONString(mixedComponentDtos));
+        for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
+            Integer tabId = mixedComponentDto.getId();
+            // 获取关键字
+            List<KeyWordDto> keywords = mixedComponentTab.stream().filter(c -> tabId.equals(c.getPId()))
+                    .map(c -> {
+                        return new KeyWordDto(String.valueOf(c.getId()), c.getName());
+                    }).collect(Collectors.toList());
+            for (KeyWordDto keyword : keywords) {
+                String keyWordId = keyword.getId();
+                String keyWord = keyword.getName();
+                //获取商品池
+                List<MixedComponentTabDto> pools = mixedComponentTab.stream().filter(c -> keyWordId.equals(String.valueOf(c.getPId()))).collect(Collectors.toList());
+                List<GoodsPoolDto> goodsPoolDtos = new ArrayList<>();
+                for (MixedComponentTabDto pool : pools) {
+                    Integer id = pool.getId();
+                    ColumnContentQueryRequest columnContentQueryRequest = new ColumnContentQueryRequest();
+                    columnContentQueryRequest.setTopicStoreySearchId(id);
+                    request.setPublishState(0);
+                    request.setState(1);
+                    List<ColumnContentDTO> columnContent = topicConfigProvider.ListTopicStoreyColumnContent(columnContentQueryRequest).getContext();
+                    PoolService poolService = poolFactory.getPoolService(pool.getBookType());
+                    poolService.getGoodsPool(goodsPoolDtos, columnContent, pool, keyWord);
                 }
-                dto.setChilidList(tabList);
+                //排序
+                List<GoodsPoolDto> goodsPools = goodsPoolDtos.stream().sorted(Comparator.comparing(GoodsPoolDto::getSorting)
+                                .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
+                        .collect(Collectors.toList());
+                //存redis
+                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, goodsPools);
             }
+            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tabId + ":keywords", JSON.toJSONString(keywords));
         }
-        //存放关键词
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+"&test", JSON.toJSONString(list));
-        //循环关键词取出对应的商品池
-        List<TopicStoreyColumnDTO> pools = new ArrayList<>();
-        for(TopicStoreyColumnDTO tab:tabLists){
-            TopicStoreyColumnQueryRequest param = new TopicStoreyColumnQueryRequest();
-            param.setTopicStoreyId(topicStoreyId);
-            param.setParentId(tab.getId());
-            List<TopicStoreyColumnDTO> poolList = columnRepository.listStoryColumnAll(param);
-            if(!poolList.isEmpty()){
-                for(TopicStoreyColumnDTO pool:poolList){
-                    TopicStoreyColumnGoodsQueryRequest params = new TopicStoreyColumnGoodsQueryRequest();
-                    params.setTopicStoreySearchId(pool.getId());
-                    params.setTopicStoreyId(topicStoreyId);
-                    List<TopicStoreyColumnGoodsDTO> goodsPools = columnRepository.listStoryColumnGoodsId(params);
-                    //List<TopicStoreyColumnDTO> goodsPools = columnRepository.listStoryColumnAll(param);
-                    //存放商品
-                    redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+ tab.getId() + ":" + pool.getId()+"&test", goodsPools);
-                    pools.add(pool);
-                }
-                tab.setChilidList(poolList);
-            }
-            //存放商品池
-            redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tab.getId() + ":keywords"+"&test", poolList);
-        }
-
     }
 }

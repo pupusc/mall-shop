@@ -18,5 +18,6 @@ public class MetaLabelGetAllByNameRespVO implements Serializable {
     private String name;
     private Integer isStatic;
     private String goodsId;
+    private int labelId;
     private String goodsName;
 }

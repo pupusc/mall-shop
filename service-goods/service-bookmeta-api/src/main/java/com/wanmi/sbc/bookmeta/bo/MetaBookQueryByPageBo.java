@@ -23,6 +23,8 @@ public class MetaBookQueryByPageBo implements Serializable {
 
     private Integer totalCount;
 
+    private Page page = new Page(0,10);
+
     private List<MetaBookQueryByPageBo.MetaBookQueryByPageVo> metaBookQueryByPageVos=new ArrayList<>();
 
     @Data

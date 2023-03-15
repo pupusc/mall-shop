@@ -2,6 +2,8 @@ package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageBo;
 import com.wanmi.sbc.bookmeta.provider.MetaBookLabelProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelAddReqVO;
@@ -96,5 +98,16 @@ public class MetaBookLabelController {
         return this.metaBookLabelProvider.deleteById(id.getId());
     }
 
+
+    @PostMapping("/bookAll")
+    public BusinessResponse<List<MetaBookLabelReqBO>> bookAllByPage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo) {
+        BusinessResponse<List<MetaBookLabelReqBO>> listBusinessResponse = metaBookLabelProvider.bookAllByPage(metaBookQueryByPageBo);
+        return listBusinessResponse;
+    }
+    @PostMapping("/bookLabelAll")
+    public BusinessResponse<List<MetaBookLabelReqBO>> bookLabelAllByPage(@RequestBody MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
+        BusinessResponse<List<MetaBookLabelReqBO>> listBusinessResponse = metaBookLabelProvider.bookLabelAllByPage(metaBookQueryByPageBo);
+        return listBusinessResponse;
+    }
 }
 
