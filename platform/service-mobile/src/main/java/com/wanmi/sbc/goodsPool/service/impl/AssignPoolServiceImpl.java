@@ -143,6 +143,7 @@ public class AssignPoolServiceImpl implements PoolService {
         goodsPoolDto.setTitleImage(JSON.parseObject(pool.getAttributeInfo()).get("titleImage").toString());
         goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
         goodsPoolDto.setGoods(goods);
+
 //        List<TagsDto> tabs = new ArrayList<>();
 //        if (pool.getLabelId() != null && !"".equals(pool.getLabelId())) {
 //            for (Integer s : pool.getLabelId()) {

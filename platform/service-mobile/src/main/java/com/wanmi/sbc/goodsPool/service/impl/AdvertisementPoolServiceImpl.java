@@ -105,6 +105,7 @@ public class AdvertisementPoolServiceImpl implements PoolService {
         goodsPoolDto.setImage(columnContentDTO.getImageUrl());
         goodsPoolDto.setUrl(goods == null ? columnContentDTO.getLinkUrl() : null);
         goodsPoolDto.setGoods(goods);
+
         return goodsPoolDto;
     }
 
