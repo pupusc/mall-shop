@@ -33,6 +33,6 @@ public class PresetSearchTermsQueryController {
     @ApiOperation(value = "查询预置搜索词")
     @PostMapping("/list")
     public BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTerms() {
-        return presetSearchTermsProvider.listPresetSearchTerms();
+        return presetSearchTermsProvider.listPresetSearchTermsV2();
     }
 }
