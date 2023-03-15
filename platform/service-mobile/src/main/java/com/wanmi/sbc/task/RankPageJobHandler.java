@@ -128,6 +128,13 @@ public class RankPageJobHandler extends IJobHandler {
         if(redisListService.getSize(key)>0){
             redisService.delete(key);
         }
+        Iterator<RankRequest> iterator = contentList.iterator();
+        while (iterator.hasNext()){
+            RankRequest next = iterator.next();
+            if(org.apache.commons.collections4.CollectionUtils.isEmpty(next.getRankList())){
+                iterator.remove();
+            }
+        }
         redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":table",contentList);
         //初始化榜单树形结构，获取商品详情
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(skus);

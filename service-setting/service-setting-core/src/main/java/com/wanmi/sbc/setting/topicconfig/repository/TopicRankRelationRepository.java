@@ -24,6 +24,6 @@ public interface TopicRankRelationRepository extends JpaRepository<TopicRankRela
     List<TopicRankRelation> collectOrderByTopicRankSortingAsc();
 
     @Modifying
-    @Query(value = "update topic_rank_relation set del_flag=?1 where id=?2")
+    @Query(value = "update TopicRankRelation t set t.delFlag=?1 where t.id=?2")
     List<TopicRankRelation> enableRank(Integer delFlag, Integer id);
 }
