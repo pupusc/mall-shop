@@ -3,6 +3,8 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageBo;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
@@ -13,6 +15,7 @@ import com.wanmi.sbc.bookmeta.provider.MetaBookLabelProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -127,5 +130,29 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
             }
         }
         return BusinessResponse.success(updateCount+","+addCount);
+    }
+
+    @Override
+    public BusinessResponse<List<MetaBookLabelReqBO>> bookAllByPage(MetaBookQueryByPageBo metaBookQueryByPageBo) {
+        Page page = metaBookQueryByPageBo.getPage();
+        page.setTotalCount((int) metaBookLabelMapper.getAllBookCount(metaBookQueryByPageBo.getQueryBookName()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBook(metaBookQueryByPageBo.getQueryBookName(), page.getOffset(), page.getPageSize());
+        List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+        return BusinessResponse.success(metaLabelBOS, page);
+    }
+
+    @Override
+    public BusinessResponse<List<MetaBookLabelReqBO>> bookLabelAllByPage(MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
+        Page page = metaBookQueryByPageBo.getPage();
+        page.setTotalCount((int) metaBookLabelMapper.getAllBookLabelCount(metaBookQueryByPageBo));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBookLabel(metaBookQueryByPageBo, page.getOffset(), page.getPageSize());
+        List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+        return BusinessResponse.success(metaLabelBOS, page);
     }
 }

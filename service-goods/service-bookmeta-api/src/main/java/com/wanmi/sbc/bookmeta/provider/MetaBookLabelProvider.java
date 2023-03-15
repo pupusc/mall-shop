@@ -2,6 +2,8 @@ package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageBo;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -72,5 +74,11 @@ public interface MetaBookLabelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/importBookLabel")
     BusinessResponse<String> importBookLabel(@RequestBody @Valid MetaBookLabelBO metaBookLabel);
+
+    @PostMapping("/goods/${application.goods.version}/metaBook/bookAllByPage")
+    BusinessResponse<List<MetaBookLabelReqBO>> bookAllByPage(@RequestBody MetaBookQueryByPageBo metaBookQueryByPageBo);
+
+    @PostMapping("/goods/${application.goods.version}/metaBook/bookLabelAllByPage")
+    BusinessResponse<List<MetaBookLabelReqBO>> bookLabelAllByPage(@RequestBody MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo);
 
 }

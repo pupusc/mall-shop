@@ -60,7 +60,11 @@ public class GoodsRedisController implements GoodsRedisProvider {
     public BaseResponse refreshGoods(SpuRequest spuRequest) {
 
         String sku_id = spuRequest.getSku_id();
+        boolean isExistSku = goodRepository.isExistSku(sku_id);
 
+        if (!isExistSku){
+            return BaseResponse.FAILED();
+        }
         String spu_id = goodRepository.getSpuIdBySku(sku_id);
 
         String isbn = goodRepository.getIsbnBySpuId(spu_id);

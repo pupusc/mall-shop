@@ -121,6 +121,16 @@ public class GoodRepository {
         return spuId;
     }
 
+    public boolean isExistSku(String skuId) {
+        String sql = " select * from goods_info where goods_info_id = ?";
+        Object[] obj = new Object[]{skuId};
+        List list = jpaManager.queryForList(sql,obj);
+        if (list!=null&&list.size()>0){
+            return true;
+        }
+        return false;
+    }
+
     /**通过spu_id取isbn**/
     public String getIsbnBySpuId(String spuId) {
 

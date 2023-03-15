@@ -112,5 +112,7 @@ public class MetaLabelV2 implements Serializable {
     @Column(name = "goods_name")
     private String goodsName;
 
+    @Column(name = "label_id")
+    private int labelId;
 }
 

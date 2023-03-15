@@ -21,5 +21,6 @@ public class MetaBookExt extends MetaBook {
      * 出版社
      */
     private String publisherLike;
+//    private String isbn;
 }
 

@@ -28,6 +28,45 @@
             and del_flag = 0
     </select>
 
+    <select id="getAllBook" resultMap="MetaBookQueryByPageVoMap" parameterType="java.lang.String">
+        select mb.id,mb.name from meta_book_label mtl
+        left join meta_book mb on mtl.book_id = mb.id
+        left join meta_label ml on mtl.label_id = ml.id
+        where mtl.del_flag = 0
+        <if test="name != null and name != ''">
+         and  mb.name like concat('%',#{name},'%')
+        </if>
+        GROUP BY mtl.book_id
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+
+    <select id="getAllBookCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1) from meta_book_label mtl
+        left join meta_book mb on mtl.book_id = mb.id
+        left join meta_label ml on mtl.label_id = ml.id
+        where mtl.del_flag = 0
+        <if test="name != null and name != ''">
+            mb.name like concat('%',#{name},'%')
+        </if>
+        GROUP BY mtl.book_id
+    </select>
+
+
+    <select id="getAllBookLabel" parameterType="com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO" resultMap="MetaBookQueryByPageVoMap">
+        select mtl.id as id,mtl.label_id as label_id,ml.name as label_name,mtl.book_id as book_id,mb.name as book_name
+        from meta_book_label mtl
+        left join meta_book mb on mtl.book_id = mb.id
+        left join meta_label ml on mtl.label_id = ml.id
+        where mtl.del_flag = 0
+        <if test="bo.bookId !=null and bo.bookId !=''">
+            and mtl.book_id = #{bo.bookId}
+        </if>
+        <if test="bo.labelId != null and bo.labelId != ''">
+            and mtl.label_id = #{bo.labelId}
+        </if>
+        limit #{limitIndex}, #{limitSize}
+    </select>
 
     <!--查询图书标签关系是否存在-->
     <select id="queryExitByBookAndLabelId" resultMap="MetaBookLabelMap">
@@ -224,6 +263,20 @@
         <foreach collection="labelIds" item="labelId" open="(" close=")" separator=",">
             #{labelId}
         </foreach>
+    </select>
+
+    <select id="getAllBookLabelCount" resultType="java.lang.Integer">
+        select count(1)
+        from meta_book_label mtl
+        left join meta_book mb on mtl.book_id = mb.id
+        left join meta_label ml on mtl.label_id = ml.id
+        where mtl.del_flag = 0
+        <if test="bookId !=null and bookId !=''">
+          and  mtl.book_id = #{bookId}
+        </if>
+        <if test="labelId != null and labelId != ''">
+          and  mtl.label_id = #{labelId}
+        </if>
     </select>
 </mapper>
 
