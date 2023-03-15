@@ -8,6 +8,7 @@ import com.wanmi.sbc.setting.bean.dto.ColumnContentDTO;
 import com.wanmi.sbc.setting.bean.dto.GoodsDto;
 import com.wanmi.sbc.setting.bean.dto.GoodsPoolDto;
 import com.wanmi.sbc.setting.bean.dto.MixedComponentTabDto;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * @Author zh
  * @Date 2023/3/15 16:15
  */
+@Service
 public class SkipAdvertPoolServiceImpl implements PoolService {
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
