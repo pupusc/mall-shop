@@ -567,6 +567,10 @@ public class TopicConfigService {
             map.put("titleImage", request.getTitleImage());
             map.put("image", request.getImage());
             topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
+            map.put("url", request.getUrl());
+            map.put("image", request.getImage());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
         }
         columnRepository.save(topicStoreySearch);
     }

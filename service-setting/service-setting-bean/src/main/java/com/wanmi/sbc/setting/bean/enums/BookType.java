@@ -22,7 +22,10 @@ public enum BookType {
     ADVERTISEMENT,
 
     @ApiEnumProperty("5：指定内容投放")
-    ASSIGN;
+    ASSIGN,
+
+    @ApiEnumProperty("6：跳转广告")
+    SKIP;
 
     @JsonCreator
     public static BookType fromValue(int value) {
