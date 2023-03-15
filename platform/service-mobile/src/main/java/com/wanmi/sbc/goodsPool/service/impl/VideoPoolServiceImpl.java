@@ -152,6 +152,7 @@ public class VideoPoolServiceImpl implements PoolService {
 //                tagsDto.setShowImg(metaLabelBO.getShowImg());
 //                tagsDto.setType(metaLabelBO.getType());
 //                tabs.add(tagsDto);
+
 //            }
 //        }
         //获取标签
