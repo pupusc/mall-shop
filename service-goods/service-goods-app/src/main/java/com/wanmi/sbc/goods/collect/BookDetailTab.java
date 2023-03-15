@@ -80,20 +80,20 @@ public class BookDetailTab {
         List allList = new ArrayList();
         doTab1(allList, book_id);
         doTab2(allList, book_id, spu_no);
-        doTab3(allList);
+        doTab3(allList,book_id);
         doTab4(allList, spu_id);
 
         //销量
         String saleNum = getSaleNum_bySpuID(spu_id);
         redisMap.put("salenum", saleNum);
         //定价
-        String fix_price = getFixPrice(spu_id);
+        //String fix_price = getFixPrice(spu_id);
         // redisMap.put("fix_price", fix_price);
 
         //根据spu 找到sku
         String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
         //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
-        redisMap.put("isShowIntegral",bookDetailTab.isShowIntegral(spu_id,sku_id));
+        redisMap.put("isShowIntegral", bookDetailTab.isShowIntegral(spu_id, sku_id));
 
         redisMap.put("bookDetail", allList);
 
@@ -396,8 +396,11 @@ public class BookDetailTab {
         return mapRecommend;
     }
 
-    private void doTab3(List allList) {
+    private void doTab3(List allList,String bookId) {
 
+        Map map=this.BookIdBySingle(bookId);
+        map.put("tab3", map);
+        allList.add(map);
     }
 
     private void doTab4(List allList, String spuId) {
@@ -436,7 +439,6 @@ public class BookDetailTab {
         //通过spu_查找sku_id
         // String sku_id = goodJpa.getSkuBySpuId(spu_id);
         String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
-
         return getSaleNum_byskuID(sku_id);
 
        /* if(Integer.parseInt(sale_num)<300){
@@ -553,5 +555,63 @@ public class BookDetailTab {
         }
         return flag;
     }
+
+
+    //名家>媒体>编辑>机构
+    //通过book_id取推荐人职称、推荐语
+    public Map BookIdBySingle(String book_id) {
+
+        //根据book_id 获取名家>媒体>编辑>机构 推荐人职称、推荐语
+        Map map = goodJpa.getPublicBookId(book_id);
+
+        String isbn = String.valueOf(map.get("isbn"));
+        String name = String.valueOf(map.get("name")); //取推荐人名称
+        String score = String.valueOf(map.get("score")); //取图书库-评分
+
+        //当维护的推荐语对应推荐人为空，默认为文喵推荐
+        if (DitaUtil.isBlank(name)) {
+            map.put("name", "文喵");
+        }
+
+        //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
+        Map spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
+        String spu_id = String.valueOf(spuMap.get("goods_id"));
+        String prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
+
+        String saleNum = getSaleNum_bySpuID(spu_id); //获取销售额
+
+        map.put("score", getSaleNumScore(saleNum, score, prop_value));//评分
+
+        //根据spu_id 找sku_id
+        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
+        map.put("sku_id",sku_id);
+
+        //标签
+        if (DitaUtil.isNotBlank(sku_id)) {
+            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
+            if (null != old_json) {
+                Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                map.put("labelMap", labelMap);
+            }
+        }
+        return map;
+    }
+
+    //销售大于300 判断销售显示
+    /*score  评分*/
+    public String getSaleNumScore(String saleNum, String score, String prop_value) {
+
+        String[] digit = {"十+", "百+", "千+", "万+"};
+        if (!DitaUtil.isBlank(saleNum) && Integer.parseInt(saleNum) >= 300) {
+            String num = String.valueOf(Integer.parseInt(saleNum) / 100);
+            score = num.length() == 1 ? saleNum.toString() : (num.length() == 2 ? num.substring(0, 1) + digit[num.length()]
+                    : num.substring(0, num.length() - 2) + digit[3]);
+        } else {
+            //取图书库-评分，当图书库评分为空取商城商品评分
+            score = score != null ? score : prop_value;
+        }
+        return score;
+    }
+
 }
 

@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,7 @@ public class GoodRepository {
     JpaManager jpaManager;
 
     //非书商品
-    public List getGoodsList(){
+    public List getGoodsList() {
 
         String sql = " select * from ( " +
                 " select a.goods_id,a.goods_no as spu_no,concat (b.cate_path, b.cate_id) as cate_path  from goods a left join goods_cate b on a.cate_id = b.cate_id " +
@@ -28,7 +27,7 @@ public class GoodRepository {
                 " )c where cate_path not like '%1190%' ";
 
         Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql,obj);
+        List list = jpaManager.queryForList(sql, obj);
         return list;
 
     }
@@ -40,7 +39,7 @@ public class GoodRepository {
                 " where a.del_flag = 0 and a.is_static = 1 and b.goods_id = ? order by order_num ASC ";
         Object[] obj = new Object[]{spu_id};
 
-        List list = jpaManager.queryForList(sql,obj);
+        List list = jpaManager.queryForList(sql, obj);
         return list;
     }
 
@@ -50,7 +49,7 @@ public class GoodRepository {
                 " where a.del_flag = 0 and a.is_static = 2 and b.goods_id = ? order by order_num ASC ";
         Object[] obj = new Object[]{spu_id};
 
-        List list = jpaManager.queryForList(sql,obj);
+        List list = jpaManager.queryForList(sql, obj);
         return list;
     }
 
@@ -69,7 +68,7 @@ public class GoodRepository {
         String sql = " select goods_detail from goods where goods_no = ? ";
         Object[] obj = new Object[]{spu_no};
 
-        List list = jpaManager.queryForList(sql,obj);
+        List list = jpaManager.queryForList(sql, obj);
         return list;
     }
 
@@ -80,9 +79,9 @@ public class GoodRepository {
         String sql = " select order_show_type, order_detail from goods where goods_id = ? " +
                 " and del_flag = 0 ";
         Object[] obj = new Object[]{spuId};
-        List list = jpaManager.queryForList(sql,obj);
-        if(list !=null && list.size() >0){
-            map = (Map)list.get(0);
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
         }
         return map;
     }
@@ -94,14 +93,14 @@ public class GoodRepository {
         String sql = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ? and stock > 0 " +
                 " and del_flag = 0 order by market_price asc limit 1 ";
         Object[] obj = new Object[]{spu_id};
-        List list = jpaManager.queryForList(sql,obj);
-        if(list !=null && list.size() >0){
-            skuMap = (Map)list.get(0);
-        }else{
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            skuMap = (Map) list.get(0);
+        } else {
             String sql1 = " select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info where goods_id = ?" +
                     " and del_flag = 0 order by market_price asc limit 1 ";
-            List list1 = jpaManager.queryForList(sql1,obj);
-            if(list1 !=null && list1.size()>0) {
+            List list1 = jpaManager.queryForList(sql1, obj);
+            if (list1 != null && list1.size() > 0) {
                 skuMap = (Map) list1.get(0);
             }
         }
@@ -136,34 +135,40 @@ public class GoodRepository {
         return isbn;
     }
 
-    /**通过sku_id取定价**/
+    /**
+     * 通过sku_id取定价
+     **/
     public Map getfixPricebySku(String skuId) {
         Map map = new HashMap();
 
         String sql = " select sales_num,fix_price from goods_info where goods_info_id = ? and del_flag = 0";
         Object[] obj = new Object[]{skuId};
-        List list = jpaManager.queryForList(sql,obj);
-        if(list !=null && list.size() >0){
-            map = (Map)list.get(0);
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
         }
         return map;
     }
 
-    /**通过spu_id取定价**/
+    /**
+     * 通过spu_id取定价
+     **/
     public Map getfixPricebySpu(String spuId) {
         Map map = new HashMap();
 
         String sql = " select goods_id,prop_value as fix_price from goods_prop_detail_rel where goods_id = ? and prop_id = 4";
         Object[] obj = new Object[]{spuId};
-        List list = jpaManager.queryForList(sql,obj);
-        if(list !=null && list.size() >0){
-            map = (Map)list.get(0);
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
         }
         return map;
     }
 
 
-    /**通过book_id取关键词和推荐图书**/
+    /**
+     * 通过book_id取关键词和推荐图书
+     **/
     public Map getKeyRecommend(String bookId) {
         Map map = new HashMap();
         /* meta_book_relation_book:推荐图书    isbn,bookName 图书名称
@@ -174,23 +179,27 @@ public class GoodRepository {
                 " LEFT JOIN meta_book_relation_key c ON c.relation_id=a.id " +
                 " WHERE book_id=? and a.del_flag = 0 AND b.del_flag=0 AND c.del_flag=0 order by a.order_num,b.order_num,c.order_num asc limit 0,1";
         Object[] obj = new Object[]{bookId};
-        List list = jpaManager.queryForList(sql,obj);
-        if(list !=null && list.size() >0){
-            map = (Map)list.get(0);
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
         }
         return map;
     }
 
-    /**通过spu_id查询黑名单**/
+    /**
+     * 通过spu_id查询黑名单
+     **/
     public List getBlackBySpuId(String spuId) {
 
         String sql = " select * from t_goods_blacklist where del_flag = 0 and business_category = 6 and business_id = ? ";
         Object[] obj = new Object[]{spuId};
-        List list = jpaManager.queryForList(sql,obj);
+        List list = jpaManager.queryForList(sql, obj);
         return list;
     }
 
-    /**通过sku_id查询参加积分兑换活动**/
+    /**
+     * 通过sku_id查询参加积分兑换活动
+     **/
     public List getByMarketSkuId(String skuId) {
 
         String currentTime = DitaUtil.getCurrentAllDate();
@@ -199,11 +208,46 @@ public class GoodRepository {
                 " where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0 " +
                 " and a.begin_time <= ? and ? <= a.end_time  " +
                 " and b.scope_id = ? ";
-        Object[] obj = new Object[]{currentTime,currentTime,skuId};
-        List list = jpaManager.queryForList(sql,obj);
+        Object[] obj = new Object[]{currentTime, currentTime, skuId};
+        List list = jpaManager.queryForList(sql, obj);
         return list;
     }
 
 
+
+     /* 通过book_id查询
+        名家>媒体>编辑>机构 取推荐人职称、推荐语 */
+    public Map getPublicBookId(String bookId) {
+
+        Map map = new HashMap();
+
+        String sql = "select a.id,a.name,a.job_title,b.descr,b.book_id ,b.is_selected ,case b.biz_type when 5 then 0 when 3 then 1  when 2 then 2  when 4 then 3   when 9 then 4   when 10  then 5  end biz_type,c.score,c.isbn from meta_figure a " +
+                " left join meta_book_rcmmd b on a.id = b.biz_id " +
+                " left join meta_book c ON c.id=b.book_id " +
+                " where  b.biz_type in(5,3,2,4,9,10)  AND b.book_id= ? and b.is_selected = 1  and a.del_flag=0 and b.del_flag=0 and c.del_flag=0  " +
+                " GROUP BY b.biz_type  ORDER BY biz_type asc LIMIT 0,1";
+        Object[] obj = new Object[]{bookId};
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
+        }
+        return map;
+    }
+
+   ///**当图书库评分为空取商城商品评分**/
+   //通过isbn 查找spu_id 和商城商品评分
+   public Map getIsbnBySpuIdScore(String isbn){
+       Map map = new HashMap();
+
+       String sql = "SELECT prop_value, goods_id from goods_prop_detail_rel " +
+               " where prop_id = 3 AND goods_id=(" +
+               " select goods_id  from goods_prop_detail_rel where prop_value =?  and prop_id = 5 ) and del_flag=0";
+       Object[] obj = new Object[]{isbn};
+       List list = jpaManager.queryForList(sql, obj);
+       if (list != null && list.size() > 0) {
+           map = (Map) list.get(0);
+       }
+       return map;
+   }
 }
 
