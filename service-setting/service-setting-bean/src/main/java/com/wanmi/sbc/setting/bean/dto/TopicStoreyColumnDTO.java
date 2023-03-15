@@ -69,6 +69,8 @@ public class TopicStoreyColumnDTO implements Serializable {
      */
     public Integer publishState;
 
+    private String subName;
+
     public List<TopicStoreyColumnDTO> chilidList;
 
 

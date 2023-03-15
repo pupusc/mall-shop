@@ -63,4 +63,6 @@ public class TopicStoreyColumnAddRequest implements Serializable {
     private String labelId;
 
     private String attributeInfo;
+
+    private String subName;
 }
