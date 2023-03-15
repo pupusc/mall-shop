@@ -111,7 +111,7 @@ public class VideoPoolServiceImpl implements PoolService {
         }
         goodsDto.setTags(tagList);
         //买点标签
-        String tagJson = goodsInfoQueryProvider.getRedis(columnContentDTO.getSpuId()).getContext();
+        String tagJson = goodsInfoQueryProvider.getRedis(res.getSpuId()).getContext();
         if (JSON.parseObject(tagJson) != null) {
             List<TagsDto> tagsDtos = new ArrayList<>();
             List tags = (List) JSON.parseObject(tagJson).get("tags");
