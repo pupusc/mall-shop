@@ -604,6 +604,13 @@ public class TopicService {
                     rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
                 }
             }
+            Iterator<RankRequest> iterator = rankRequestList.iterator();
+            while (iterator.hasNext()){
+                RankRequest next = iterator.next();
+                if(CollectionUtils.isEmpty(next.getRankList())){
+                    iterator.remove();
+                }
+            }
             List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>();
             List<JSONObject> infoObjectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE+request.getTopicStoreyId()+":goodsInfoList");
             if (!CollectionUtils.isEmpty(infoObjectList)) {
@@ -1139,7 +1146,7 @@ public class TopicService {
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setSaleNum(goodsInfoVO.getSaleNum());
-            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null&&!(goodsInfoVO.getFixPrice().compareTo(BigDecimal.ZERO)==0)?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null? BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :goodsInfoVO.getMarketPrice()));
+            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null&&!(goodsInfoVO.getFixPrice().compareTo(BigDecimal.ZERO)==0)?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null?(null!=spuNewBookListResp.getBook().getFixPrice()?BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :goodsInfoVO.getMarketPrice()):goodsInfoVO.getMarketPrice()));
             spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
             spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
