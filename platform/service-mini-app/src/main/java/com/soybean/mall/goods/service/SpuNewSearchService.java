@@ -397,7 +397,7 @@ public class SpuNewSearchService {
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setSaleNum(goodsInfoVO.getSaleNum());
-            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null? BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :(goodsInfoVO.getMarketPrice()!=null?goodsInfoVO.getMarketPrice():null)));
+            spuNewBookListResp.setMarketPrice(goodsInfoVO.getFixPrice()!=null&&!(goodsInfoVO.getFixPrice().compareTo(BigDecimal.ZERO)==0)?goodsInfoVO.getFixPrice():(spuNewBookListResp.getBook()!=null?(null!=spuNewBookListResp.getBook().getFixPrice()?BigDecimal.valueOf(spuNewBookListResp.getBook().getFixPrice()) :goodsInfoVO.getMarketPrice()):goodsInfoVO.getMarketPrice()));
             spuNewBookListResp.setHasVip(hasCustomerVip ? 1 : 0);
             spuNewBookListResp.setSpecMore(!StringUtils.isEmpty(goodsInfoVO.getSpecText()));
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
