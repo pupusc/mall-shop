@@ -223,6 +223,7 @@ public class MetaBookRcmmdController {
             bo.setBizId(vo.getBizId());
             bo.setBizType(type);
             bo.setBizTime(vo.getBizTime());
+            bo.setIsSelected(vo.getIsSelected());
             boList.add(bo);
         }
     }

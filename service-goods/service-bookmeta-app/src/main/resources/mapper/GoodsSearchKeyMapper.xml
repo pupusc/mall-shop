@@ -116,4 +116,18 @@
             where goods_name like concat('%',#{name},'%')
         </if>
     </select>
+
+    <select id="downLoadQuery" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
+        select
+        gsk.id,
+        gsk.name,
+        gsk.spu_id,
+        gsk.del_flag,
+        gsk.create_time,
+        gsk.update_time,
+        gsk.del_flag as status,
+        gs.goods_name
+        from goods_search_key gsk left join goods gs on gsk.spu_id = gs.goods_id
+        where gs.del_flag =0 and gsk.del_flag=0
+    </select>
 </mapper>

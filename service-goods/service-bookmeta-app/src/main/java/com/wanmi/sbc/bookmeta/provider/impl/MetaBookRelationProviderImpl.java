@@ -1,9 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
-import com.wanmi.sbc.bookmeta.bo.MetaBookRelationAddBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRelationBookAddBo;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRelationDelBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRelationKeyAddBo;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRelation;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRelationBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRelationKey;
@@ -39,21 +36,49 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
 
     @Override
     @Transactional
-    public Integer insert(MetaBookRelationAddBO addBO) {
-        List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey();
-        List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
-        MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
-        List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
-        List<MetaBookRelationKey> convertKey = KsBeanUtil.convertList(metaBookRelationKeyAddBo, MetaBookRelationKey.class);
-        int i = metaBookRelationMapper.insertSelective(convert);
-        int id = convert.getId();
-        for (MetaBookRelationBook book:convertBook) {
-            book.setRelationId(id);
-            metaBookRelationBookMapper.insertMetaBookRelationBook(book);
+    public Integer insert(RelationAddBO BO) {
+        List<MetaBookRelation> metaBookRelation = metaBookRelationMapper.getMetaBookRelation(BO.getBookId());
+        if (metaBookRelation.size() > 0) {
+            for (MetaBookRelation relation : metaBookRelation) {
+                List<MetaBookRelationBook> metaBookRelationBook = metaBookRelationBookMapper.getMetaBookRelationBook(relation.getId());
+                List<MetaBookRelationKey> metaBookRelationKeys = metaBookRelationKeyMapper.getKeyById(relation.getId());
+                if (metaBookRelationBook.size() > 0) {
+                    for (MetaBookRelationBook book : metaBookRelationBook) {
+                        metaBookRelationBookMapper.deleteMetaBookRelationBook(book.getId());
+                    }
+                }
+                if (metaBookRelationKeys.size() > 0) {
+                    for (MetaBookRelationKey key : metaBookRelationKeys) {
+                        metaBookRelationKeyMapper.deleteSelective(key.getId());
+                    }
+                }
+            }
         }
-        for (MetaBookRelationKey key:convertKey) {
-            key.setRelationId(id);
-            metaBookRelationKeyMapper.insertSelective(key);
+        int i = 0;
+        List<MetaBookRelationAddBO> list = BO.getList();
+        if (list.size() > 0) {
+            for (MetaBookRelationAddBO addBO : list) {
+                List<MetaBookRelationBookAddBo> metaBookRelationBookBo = addBO.getMetaBookRelationBook();
+                MetaBookRelation convert = KsBeanUtil.convert(addBO, MetaBookRelation.class);
+                metaBookRelationMapper.insertSelective(convert);
+                i++;
+                int id = convert.getId();
+                List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
+                if (convertBook.size() > 0) {
+                    for (MetaBookRelationBook book : convertBook) {
+                        book.setRelationId(id);
+                        metaBookRelationBookMapper.insertMetaBookRelationBook(book);
+                    }
+                }
+                List<MetaBookRelationKeyAddBo> metaBookRelationKeyAddBo = addBO.getMetaBookRelationKey();
+                if (metaBookRelationKeyAddBo.size() > 0) {
+                    List<MetaBookRelationKey> convertKey = KsBeanUtil.convertList(metaBookRelationKeyAddBo, MetaBookRelationKey.class);
+                    for (MetaBookRelationKey key : convertKey) {
+                        key.setRelationId(id);
+                        metaBookRelationKeyMapper.insertSelective(key);
+                    }
+                }
+            }
         }
         return i;
     }
@@ -66,10 +91,10 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
         List<MetaBookRelationBook> convertBook = KsBeanUtil.convertList(metaBookRelationBookBo, MetaBookRelationBook.class);
         List<MetaBookRelationKey> convertKey = KsBeanUtil.convertList(metaBookRelationKeyAddBo, MetaBookRelationKey.class);
         int i = metaBookRelationMapper.deleteSelective(convert.getId());
-        for (MetaBookRelationBook book:convertBook) {
+        for (MetaBookRelationBook book : convertBook) {
             metaBookRelationBookMapper.deleteMetaBookRelationBook(book.getId());
         }
-        for (MetaBookRelationKey key:convertKey) {
+        for (MetaBookRelationKey key : convertKey) {
             metaBookRelationKeyMapper.deleteSelective(key.getId());
         }
         return i;
@@ -88,13 +113,13 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
     @Override
     public List<MetaBookRelationAddBO> selectAll(MetaBookRelationDelBO addBO) {
         List<MetaBookRelation> metaBookRelation = metaBookRelationMapper.getMetaBookRelation(addBO.getBookId());
-        List<MetaBookRelationAddBO> list =new ArrayList<>();
+        List<MetaBookRelationAddBO> list = new ArrayList<>();
         for (MetaBookRelation temp : metaBookRelation) {
             List<MetaBookRelationBook> metaBookRelationBook = metaBookRelationBookMapper.getMetaBookRelationBook(temp.getId());
             List<MetaBookRelationKey> metaBookRelationKeys = metaBookRelationKeyMapper.getKeyById(temp.getId());
             MetaBookRelationAddBO convert = KsBeanUtil.convert(temp, MetaBookRelationAddBO.class);
-            convert.setMetaBookRelationBook(KsBeanUtil.convert(metaBookRelationBook,MetaBookRelationBookAddBo.class));
-            convert.setMetaBookRelationKey(KsBeanUtil.convert(metaBookRelationKeys,MetaBookRelationKeyAddBo.class));
+            convert.setMetaBookRelationBook(KsBeanUtil.convert(metaBookRelationBook, MetaBookRelationBookAddBo.class));
+            convert.setMetaBookRelationKey(KsBeanUtil.convert(metaBookRelationKeys, MetaBookRelationKeyAddBo.class));
             list.add(convert);
         }
         return list;
@@ -109,10 +134,10 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
         List<MetaBookRelationKey> convertKey = KsBeanUtil.convertList(metaBookRelationKeyAddBo, MetaBookRelationKey.class);
         int i = metaBookRelationMapper.updateMetaBookRelation(convert);
         int id = convert.getId();
-        for (MetaBookRelationBook book:convertBook) {
+        for (MetaBookRelationBook book : convertBook) {
             metaBookRelationBookMapper.updateMetaBookRelationBook(book);
         }
-        for (MetaBookRelationKey key:convertKey) {
+        for (MetaBookRelationKey key : convertKey) {
             metaBookRelationKeyMapper.updateSelective(key);
         }
         return i;

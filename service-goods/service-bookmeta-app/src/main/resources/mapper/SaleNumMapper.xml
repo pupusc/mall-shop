@@ -20,7 +20,7 @@
             fix_price = #{fixPrice}
             </if>
         </set>
-        where goods_info_id = #{skuId} and goods_id = #{spuId}
+        where goods_info_id = #{skuId}
     </update>
 
     <select id="getAllSaleNum" resultType="java.util.Map" parameterType="com.wanmi.sbc.bookmeta.entity.SaleNum">

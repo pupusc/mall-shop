@@ -37,30 +37,19 @@ public class SaleNumProviderImpl implements SaleNumProvider {
     @Transactional
     public BusinessResponse<String> importSaleNum(SaleNumBO saleNumBO) {
         int updateCount = 0;
-        Map map = new HashMap<>();
-        if (StringUtils.isBlank(saleNumBO.getSpuId())) {
-            return BusinessResponse.error("failed,SPU_ID can't be blank");
-        }
         if (StringUtils.isBlank(saleNumBO.getSkuId())) {
             return BusinessResponse.error("failed,SKU_ID can't be blank");
         }
-        boolean spuExit = saleNumMapper.existSpu(saleNumBO.getSpuId()) > 0;
-        if (spuExit) {
             boolean skuExit = saleNumMapper.existSku(saleNumBO.getSkuId()) > 0;
             if (skuExit) {
-                List<SaleNum> saleNums = saleNumMapper.getBySpuAndSku(saleNumBO.getSpuId(), saleNumBO.getSkuId());
-                if (null != saleNums && saleNums.size() > 0) {//该数据已存在，更新该条数据
-                    SaleNum saleNum = saleNums.get(0);
+                    SaleNum saleNum = new SaleNum();
+                    saleNum.setSkuId(saleNum.getSkuId());
                     saleNum.setSalesNum(StringUtils.isBlank(String.valueOf(saleNumBO.getSalesNum())) ? 0 : saleNumBO.getSalesNum());
                     saleNum.setFixPrice(saleNumBO.getFixPrice());
                     updateCount = saleNumMapper.update(saleNum);
-                }
             } else {
                 return BusinessResponse.error("failed,SKU_ID is not exist");
             }
-        } else {
-            return BusinessResponse.error("failed,SPU_ID is not exist");
-        }
         return BusinessResponse.success("Success,update" + updateCount + "!");
     }
 

@@ -62,23 +62,17 @@ public class SaleNumController {
             AtomicInteger rowCount = new AtomicInteger(1);
             for (Map map : bookMap) {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
-                if (map.containsKey("spu_id")) {
-                    row.createCell(0).setCellValue(map.get("spu_id").toString());
-                }
-                if (map.containsKey("spu_name")) {
-                    row.createCell(1).setCellValue(map.get("spu_name").toString());
-                }
                 if (map.containsKey("sku_id")) {
-                    row.createCell(2).setCellValue(map.get("sku_id").toString());
+                    row.createCell(0).setCellValue(map.get("sku_id").toString());
                 }
                 if (map.containsKey("sku_name")) {
-                    row.createCell(3).setCellValue(map.get("sku_name").toString());
+                    row.createCell(1).setCellValue(map.get("sku_name").toString());
                 }
                 if (map.containsKey("sales_num")) {
-                    row.createCell(4).setCellValue(map.get("sales_num").toString());
+                    row.createCell(2).setCellValue(map.get("sales_num").toString());
                 }
                 if (map.containsKey("fix_price")) {
-                    row.createCell(5).setCellValue(map.get("fix_price").toString());
+                    row.createCell(3).setCellValue(map.get("fix_price").toString());
                 }
             }
             wk.write(outputStream);
@@ -138,13 +132,11 @@ public class SaleNumController {
                     cells[cellNum] = cell.getStringCellValue();
                 }
                 SaleNumBO saleNumBO = new SaleNumBO();
-                saleNumBO.setSpuId(String.valueOf(cells[0]));
-                saleNumBO.setSpuName((cells[1]));
-                saleNumBO.setSkuId((cells[2]));
-                saleNumBO.setSkuName((cells[3]));
-                saleNumBO.setSalesNum(Integer.parseInt(cells[4]));
-                if (lastCellNum>5 && StringUtils.isNotBlank(cells[5])){
-                    saleNumBO.setFixPrice(Double.parseDouble(cells[5]));
+                saleNumBO.setSkuId((cells[0]));
+                saleNumBO.setSkuName((cells[1]));
+                saleNumBO.setSalesNum(Integer.parseInt(cells[2]));
+                if (lastCellNum>5 && StringUtils.isNotBlank(cells[3])){
+                    saleNumBO.setFixPrice(Double.parseDouble(cells[3]));
                 }else {
                     saleNumBO.setFixPrice(0);
                 }
