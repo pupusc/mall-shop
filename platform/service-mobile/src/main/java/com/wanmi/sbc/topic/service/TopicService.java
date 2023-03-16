@@ -1438,6 +1438,19 @@ public class TopicService {
     public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         try {
 
+            //获取楼层id
+            if(topicStoreyId == null) {
+                List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
+                if(list != null && list.size() > 0){
+                    V2tabConfigResponse response = list.get(0);
+                    String topicKey = response.getParamsId();
+                    TopicQueryRequest request = new TopicQueryRequest();
+                    request.setTopicKey(topicKey);
+                    BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+                    List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
+                    topicStoreyId = tpList.stream().filter(s -> s.getStoreyType() == TopicStoreyTypeV2.MIXED.getId()).map(TopicStoreyDTO::getId).findFirst().get();
+                }
+            }
             //详情
 //            String mixed = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ "details");
 //            List<MixedComponentTabDto> mixedComponentTab = new ArrayList<>();
