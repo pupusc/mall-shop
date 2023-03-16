@@ -550,7 +550,13 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setPId(request.getParentId());
+
+        if(request.getParentId() == null){
+            topicStoreySearch.setPId(0);
+        }else{
+            topicStoreySearch.setPId(request.getParentId());
+        }
+
         topicStoreySearch.setUpdateTime(now());
         topicStoreySearch.setDeleted(0);
         topicStoreySearch.setBookType(request.getBookType());
