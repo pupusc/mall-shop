@@ -1,6 +1,8 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
+import com.google.common.collect.Lists;
 import com.wanmi.sbc.bookmeta.bo.GoodsBO;
+import com.wanmi.sbc.bookmeta.bo.GoodsKeyWordsDownLoadBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
 import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
@@ -54,7 +56,11 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
         List<GoodSearchKey> allGoodsSearchKey = goodsSearchKeyMapper.getAllGoodsSearchKey(bo.getName(), page.getOffset(), page.getPageSize());
         List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
         if (allGoodsSearchKey.size() > 0) {
-            goodsNameBySpuIdBOS = KsBeanUtil.convertList(allGoodsSearchKey, GoodsNameBySpuIdBO.class);
+            for (GoodSearchKey g: allGoodsSearchKey) {
+                GoodsNameBySpuIdBO convert1 = KsBeanUtil.convert(g, GoodsNameBySpuIdBO.class);
+                convert1.setName(g.getName().substring(1,g.getName().length()-1));
+                goodsNameBySpuIdBOS.add(convert1);
+            }
         }
         return BusinessResponse.success(goodsNameBySpuIdBOS,page);
     }
@@ -92,5 +98,12 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
             allGoods=KsBeanUtil.convertList(allGoodsSearchKey,GoodsBO.class);
         }
         return BusinessResponse.success(allGoods,page);
+    }
+
+    @Override
+    public List<GoodsKeyWordsDownLoadBO> downloadQuery() {
+        List<GoodSearchKey> goodSearchKeys = goodsSearchKeyMapper.downLoadQuery();
+        List<GoodsKeyWordsDownLoadBO> goodsBOS = KsBeanUtil.convertList(goodSearchKeys, GoodsKeyWordsDownLoadBO.class);
+        return goodsBOS;
     }
 }

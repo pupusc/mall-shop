@@ -1,5 +1,7 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -20,4 +22,5 @@ public class MetaLabelGetAllByNameRespVO implements Serializable {
     private String goodsId;
     private int labelId;
     private String goodsName;
+
 }
