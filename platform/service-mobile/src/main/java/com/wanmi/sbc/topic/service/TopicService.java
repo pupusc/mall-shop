@@ -200,6 +200,53 @@ public class TopicService {
             return BaseResponse.success(null);
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
+        //如果配置有一行两个商品的配置信息，查询商品
+        List<String> skuIds = new ArrayList<>();
+        //图片+链接解析spuId
+        initSpuId(response);
+        if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
+            return BaseResponse.success(response);
+        }
+        //轮播图要加载
+        for (int i= 0 ;i<response.getStoreyList().size();i++){
+            if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
+                response.getStoreyList().get(i).setContents(null);
+            }
+        }
+        //商品属性
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.TWOGOODS.getId())).forEach(p->{
+            if(CollectionUtils.isNotEmpty(p.getContents())) {
+                skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
+            } });
+        if(CollectionUtils.isNotEmpty(skuIds)){
+            List<GoodsCustomResponse> list = initGoods(skuIds);
+            response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
+                if(CollectionUtils.isEmpty(p.getContents())){
+                    return;
+                }
+                List<TopicStoreyContentReponse> contents = new ArrayList<>(p.getContents().size());
+                p.getContents().stream().filter(g -> g.getType().equals(1)).forEach(g -> {
+                    if (CollectionUtils.isNotEmpty(list) && list.stream().anyMatch(l -> l.getGoodsInfoId().equals(g.getSkuId()))) {
+                        GoodsCustomResponse goodsCustomResponse = list.stream().filter(l -> l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
+                        g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
+                        contents.add(g);
+                    }
+                });
+                contents.addAll(p.getContents().stream().filter(o->o.getType().equals(2)).collect(Collectors.toList()));
+                p.setContents(contents);
+            });
+
+        }
+        initCoupon(response.getStoreyList());
+        return BaseResponse.success(response);
+    }
+
+    public BaseResponse<TopicResponse> baseDetail(TopicQueryRequest request,Boolean allLoad){
+        BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+        if(activityVO == null || activityVO.getContext() ==null){
+            return BaseResponse.success(null);
+        }
+        TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         if(!allLoad){
             response.setStoreyList(response.getStoreyList().subList(0,4));
         }
@@ -339,7 +386,7 @@ public class TopicService {
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
         CustomerGetByIdResponse customer = getCustomer();
         //调用老版首页入口加载老版组件
-        BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
+        BaseResponse<TopicResponse> detail = this.baseDetail(request, allLoad);
         if(null==detail||null==detail.getContext()){
             return BaseResponse.success(null);
         }
