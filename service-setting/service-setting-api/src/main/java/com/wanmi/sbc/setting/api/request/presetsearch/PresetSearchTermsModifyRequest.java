@@ -38,7 +38,7 @@ public class PresetSearchTermsModifyRequest extends SettingBaseRequest {
      * 预置搜索词
      */
     @ApiModelProperty(value = "预置搜索词")
-    @Length(max = 10)
+    @Length(max = 255)
     private String presetSearchKeyword;
 
     /**
