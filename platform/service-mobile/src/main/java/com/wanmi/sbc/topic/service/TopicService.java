@@ -364,7 +364,7 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
-                List<RankRequest> rank = rank();
+                List<RankRequest> rank = rank(String.valueOf(topicResponse.getId()));
                 topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单更多
                 RankPageRequest rankPage = rankPage(topicResponse);
@@ -427,9 +427,9 @@ public class TopicService {
      * @param
      * @return
      */
-    public List<RankRequest> rank(){
+    public List<RankRequest> rank(String topicStoreyId){
         try {
-            RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK), RankRedisListResponse.class);
+            RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK+topicStoreyId), RankRedisListResponse.class);
 //        List<Integer> idList = response.getRankIds();
 //        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
 //        idsRequest.setIds(idList);
