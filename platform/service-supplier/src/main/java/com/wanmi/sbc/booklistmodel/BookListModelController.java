@@ -300,8 +300,8 @@ public class BookListModelController {
     /**
      * 下载模板
      */
-    @GetMapping("/exportExcel")
-    public void exportBookListModelById(@RequestParam(value = "id") Integer id)  {
+    @GetMapping("/exportExcel/{id}/{encrypted}")
+    public void exportBookListModelById(@PathVariable(name = "id") Integer id)  {
         InputStream is = null;
         org.springframework.core.io.Resource file=templateFile;
         try{

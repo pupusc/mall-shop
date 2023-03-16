@@ -354,7 +354,7 @@ public class CustomerBaseController {
         goodsBlackListCacheProviderRequest.setBusinessIdColl(idCollection);
         int blackListSize = goodsBlackListProvider.list(goodsBlackListCacheProviderRequest).getContext().getContent().size();
 
-        if(blackListSize!=0 || pointActivitySize!=0 ){
+        if(blackListSize==0 || pointActivitySize==0 ){
             //在积分兑换列表或者黑名单列表，就不显示抵扣（商详用）
             return null;
         }
