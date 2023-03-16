@@ -365,7 +365,9 @@ public class TopicService {
                 topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank(String.valueOf(topicResponse.getId()));
-                topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
+                if (CollectionUtils.isNotEmpty(rank)) {
+                    topicResponse.setRankList(KsBeanUtil.convertList(rank,RankResponse.class));
+                }
             }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){//榜单更多
                 RankPageRequest rankPage = rankPage(topicResponse);
                 topicResponse.setRankPageRequest(rankPage);
