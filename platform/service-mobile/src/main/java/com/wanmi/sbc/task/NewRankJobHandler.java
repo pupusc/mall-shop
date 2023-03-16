@@ -80,12 +80,12 @@ public class NewRankJobHandler extends IJobHandler {
     public ReturnT<String> execute(String param) throws Exception {
         //获取首页榜单
         RankRedisListResponse rank = new RankRedisListResponse();
-        rank.setRankRequestList(this.rank(param));
-        redisService.setString(RedisKeyUtil.HOME_RANK, JSON.toJSONString(rank));
+        rank.setRankRequestList(this.rank());
+        redisService.setString(RedisKeyUtil.HOME_RANK+param, JSON.toJSONString(rank));
         return SUCCESS;
     }
 
-    public List<RankRequest> rank(String param){
+    public List<RankRequest> rank(){
         RankRequestListResponse response = topicConfigProvider.rank();
         List<Integer> idList = response.getRankIds();
         GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
@@ -115,7 +115,7 @@ public class NewRankJobHandler extends IJobHandler {
             response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
         });
         //初始化榜单商品
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,param);
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,"H5");
         goodsCustomResponses.forEach(g->{
             EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
             List<String> spuid=new ArrayList<>();

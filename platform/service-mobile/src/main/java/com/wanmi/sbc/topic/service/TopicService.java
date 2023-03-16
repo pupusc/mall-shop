@@ -310,11 +310,11 @@ public class TopicService {
                     newBookPointJobHandler.execute(null);
                 }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){         //11.榜单组件
                     //writeRedis(topic_store_id);
-                    rankJobHandler.execute("H5");
+                    rankJobHandler.execute(String.valueOf(topic_store_id));
                 }else if(storeyType==TopicStoreyTypeV2.RANKDETAIL.getId()){         //21.榜单更多
                     rankPageJobHandler.execute(topicKey);
                 }else if(storeyType==TopicStoreyTypeV2.MIXED.getId()){              //20.混合组件
-                    mixedComponentContentJobHandler.execute(null);
+                    mixedComponentContentJobHandler.execute(String.valueOf(topic_store_id));
                 }else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){      //14.三本好书
                     threeBookSaveRedis(topic_store_id);
                 }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){              //19.商品组件

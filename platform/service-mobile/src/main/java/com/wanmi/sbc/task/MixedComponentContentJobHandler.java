@@ -53,7 +53,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
 
     @Override
     public ReturnT<String> execute(String param) throws Exception {
-        int topicStoreyId = 194;
+        int topicStoreyId=0;
         if(param != null && !param.equals("")){
             topicStoreyId = Integer.parseInt(param);
         }
