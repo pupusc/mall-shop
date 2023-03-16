@@ -358,7 +358,7 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.VOUCHER.getId()) {//抵扣券
                 initCouponV2(storeyList);
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件   价格
-                topicResponse.setMixedComponentContent(getMixedComponentContent(request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
+                //topicResponse.setMixedComponentContent(getMixedComponentContent(request.request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
@@ -1435,8 +1435,9 @@ public class TopicService {
 
     }
 
-    public List<MixedComponentDto> getMixedComponentContent(Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
+    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         try {
+
             //详情
 //            String mixed = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ "details");
 //            List<MixedComponentTabDto> mixedComponentTab = new ArrayList<>();
@@ -1446,7 +1447,7 @@ public class TopicService {
 //
 //            List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
             // tab
-            String tabJSON = redisService.getString(RedisKeyUtil.MIXED_COMPONENT_TAB);
+            String tabJSON = redisService.getString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab");
             List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
             if (!StringUtils.isEmpty(tabJSON)) {
                 mixedComponentDtos = JSON.parseArray(tabJSON, MixedComponentDto.class);
@@ -1460,7 +1461,7 @@ public class TopicService {
             Integer finalTabId = tabId;
             // 获取关键字
             List<KeyWordDto> keywords = new ArrayList<>();
-            String keywordJSON = redisService.getString(RedisKeyUtil.MIXED_COMPONENT + finalTabId + ":keywords");
+            String keywordJSON = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords");
             if (!StringUtils.isEmpty(keywordJSON)) {
                 keywords = JSON.parseArray(keywordJSON, KeyWordDto.class);
             }
@@ -1475,20 +1476,11 @@ public class TopicService {
             String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
             MicroServicePage<GoodsPoolDto> goodsPoolPage = new MicroServicePage<>();
             List<String> spuIds=new ArrayList<>();
-            List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, pageNum * pageSize, pageNum * pageSize + 9);
+            List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, pageNum * pageSize, pageNum * pageSize + 9);
             List<GoodsPoolDto> goodsPoolDtos = byRange.stream().map(s -> {return JSON.toJavaObject(s, GoodsPoolDto.class);}).collect(Collectors.toList());
-//            //初始化会员价
-//            if (customer == null) {
-//                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-//                customer =new CustomerGetByIdResponse();
-//                Map customerMap = ( Map ) request.getAttribute("claims");
-//                if(null!=customerMap && null!=customerMap.get("customerId")) {
-//                    customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-//                }
-//            }
             initVipPrice(goodsPoolDtos, customer);
             goodsPoolPage.setContent(goodsPoolDtos);
-            goodsPoolPage.setTotal(redisListService.getSize(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId));
+            goodsPoolPage.setTotal(redisListService.getSize(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId));
             if(keywords.size() != 0) {keywords.forEach(s -> {if(finalKeyWord.equals(s.getName())) {s.setGoodsPoolPage(goodsPoolPage);}});}
             if(mixedComponentDtos.size() != 0) {
                 List<KeyWordDto> finalKeywords = keywords;
@@ -1622,6 +1614,7 @@ public class TopicService {
     public void saveMixedComponentContent(MixedComponentContentRequest req) {
         //栏目信息
         Integer topicStoreyId = req.getTopicStoreyId();
+        //栏目信息
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
@@ -1633,7 +1626,7 @@ public class TopicService {
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB, JSON.toJSONString(mixedComponentDtos));
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab", JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
             // 获取关键字
@@ -1662,9 +1655,9 @@ public class TopicService {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, goodsPools);
+                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
-            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tabId + ":keywords", JSON.toJSONString(keywords));
+            redisService.setString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords", JSON.toJSONString(keywords));
         }
     }
 

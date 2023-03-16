@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 public class MixedComponentContentRequest implements Serializable{
 
-    private Integer topicStoreyId = new Integer(194);
+    private Integer topicStoreyId;
 
     private String keyWord;
 
