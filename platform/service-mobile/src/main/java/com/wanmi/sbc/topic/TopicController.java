@@ -174,8 +174,8 @@ public class TopicController {
     }
 
     @PostMapping(value = "/v2/saveMixedComponentContent")
-    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent() {
-        topicService.saveMixedComponentContent();
+    public BaseResponse<List<MixedComponentDto>> saveMixedComponentContent(@RequestBody MixedComponentContentRequest request) {
+        topicService.saveMixedComponentContent(request);
         return BaseResponse.SUCCESSFUL();
     }
 
