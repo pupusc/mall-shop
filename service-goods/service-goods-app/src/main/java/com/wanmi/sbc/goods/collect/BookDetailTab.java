@@ -570,23 +570,39 @@ public class BookDetailTab {
         String isbn = String.valueOf(map.get("isbn"));
         String name = String.valueOf(map.get("name")); //取推荐人名称
         String score = String.valueOf(map.get("score")); //取图书库-评分
+        String desrc=String.valueOf(map.get("desrc"));//标语
 
         //当维护的推荐语对应推荐人为空，默认为文喵推荐
         if (DitaUtil.isBlank(name)) {
             map.put("name", "文喵");
         }
 
-        //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
-        Map spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
-        String spu_id = String.valueOf(spuMap.get("goods_id"));
-        String prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
 
-        String saleNum = getSaleNum_bySpuID(spu_id); //获取销售额
+        Map spuMap = new HashMap() ;
+        String spu_id = "";
+        String prop_value = "";//商城商品评分
+        String goods_subtitle = "";//商城商品评分
+        String saleNum = ""; //获取销售额
 
-        map.put("score", getSaleNumScore(saleNum, score, prop_value));//评分
+        //如果isbn 为空
+        if(!DitaUtil.isBlank(isbn)){
+            //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
+             spuMap = goodJpa.getIsbnBySpuIdScore(isbn) ;
+             spu_id = String.valueOf(spuMap.get("goods_id"));
+             prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
+             goods_subtitle = String.valueOf(spuMap.get("goods_subtitle"));//商城商品评分
+             saleNum = getSaleNum_bySpuID(spu_id); //获取销售额
+        }
+
+        //当无推荐信息，取商城商品副标题
+        if (DitaUtil.isBlank(desrc)) {
+            map.put("desrc",goods_subtitle);
+        }
+        //评分
+        map.put("score", getSaleNumScore(saleNum, score, prop_value));
 
         //根据spu_id 找sku_id
-        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
+        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(DitaUtil.isBlank(spu_id) ? null : spu_id).get("goods_info_id"));
         map.put("sku_id",sku_id);
 
         //标签
@@ -615,6 +631,8 @@ public class BookDetailTab {
         }
         return score;
     }
+
+
 
 }
 

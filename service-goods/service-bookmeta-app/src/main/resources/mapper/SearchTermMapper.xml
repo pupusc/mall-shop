@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.SearchTermMapper">
+    <resultMap id="SearchTermMap" type="com.wanmi.sbc.bookmeta.entity.SearchTerm">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="defaultChannel" column="default_channel" jdbcType="INTEGER"/>
+        <result property="defaultSearchKeyword" column="default_search_keyword" jdbcType="VARCHAR"/>
+        <result property="relatedLandingPage" column="related_landing_page" jdbcType="VARCHAR"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="isParent" column="is_parent" jdbcType="INTEGER"/>
+        <result property="imgBefore" column="img_before" jdbcType="VARCHAR"/>
+        <result property="imgAfter" column="img_after" jdbcType="VARCHAR"/>
+        <result property="sortNumber" column="sort_number" jdbcType="INTEGER"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="DATE"/>
+        <result property="createPerson" column="create_person" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="DATE"/>
+        <result property="updatePerson" column="update_person" jdbcType="VARCHAR"/>
+    </resultMap>
+    <insert id="insert" parameterType="com.wanmi.sbc.bookmeta.entity.SearchTerm">
+        insert into  sbc-setting.default_search_terms
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="defaultChannel != null and defaultChannel!=''">
+                default_channel,
+            </if>
+            <if test="defaultSearchKeyword!= null and defaultSearchKeyword!=''">
+                default_search_keyword,
+            </if>
+            <if test="relatedLandingPage!= null and relatedLandingPage!=''">
+                related_landing_page,
+            </if>
+            <if test="parentId!= null and parentId!=''">
+                parent_id,
+            </if>
+            <if test="isParent!= null and isParent!=''">
+                is_parent,
+            </if>
+            <if test="imgBefore!= null and imgBefore!=''">
+                img_before,
+            </if>
+            <if test="imgAfter!= null and imgAfter!=''">
+                img_after,
+            </if>
+            <if test="sortNumber!= null and sortNumber!=''">
+                sort_number,
+            </if>
+            <if test="createPerson!= null and createPerson!=''">
+                create_person,
+            </if>
+            <if test="updatePerson!= null and updatePerson!=''">
+                update_person
+            </if>
+        </trim>
+
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="defaultChannel != null and defaultChannel!=''">
+                {defaultChannel},
+            </if>
+            <if test="defaultSearchKeyword!= null and defaultSearchKeyword!=''">
+                {defaultSearchKeyword},
+            </if>
+            <if test="relatedLandingPage!= null and relatedLandingPage!=''">
+                {relatedLandingPage},
+            </if>
+            <if test="parentId!= null and parentId!=''">
+                {parentId},
+            </if>
+            <if test="isParent!= null and isParent!=''">
+                {isParent},
+            </if>
+            <if test="imgBefore!= null and imgBefore!=''">
+                {imgBefore},
+            </if>
+            <if test="imgAfter!= null and imgAfter!=''">
+               {imgAfter},
+            </if>
+            <if test="sortNumber!= null and sortNumber!=''">
+                {sortNumber},
+            </if>
+            <if test="createPerson!= null and createPerson!=''">
+               {createPerson},
+            </if>
+            <if test="updatePerson!= null and updatePerson!=''">
+                {updatePerson}
+            </if>
+        </trim>
+    </insert>
+    <update id="update" parameterType="com.wanmi.sbc.bookmeta.entity.SearchTerm">
+        update sbc-setting.default_search_terms
+        <set>
+            <if test="defaultChannel != null and defaultChannel!=''">
+                default_channel ={defaultChannel},
+            </if>
+            <if test="defaultSearchKeyword!= null and defaultSearchKeyword!=''">
+                default_search_keyword={defaultSearchKeyword},
+            </if>
+            <if test="relatedLandingPage!= null and relatedLandingPage!=''">
+                related_landing_page={relatedLandingPage},
+            </if>
+            <if test="parentId!= null and parentId!=''">
+                parent_id={parentId},
+            </if>
+            <if test="isParent!= null and isParent!=''">
+                is_parent={isParent},
+            </if>
+            <if test="imgBefore!= null and imgBefore!=''">
+                img_before={imgBefore},
+            </if>
+            <if test="imgAfter!= null and imgAfter!=''">
+                img_after={imgAfter},
+            </if>
+            <if test="sortNumber!= null and sortNumber!=''">
+                sort_number={sortNumber},
+            </if>
+            <if test="createPerson!= null and createPerson!=''">
+                create_person={createPerson},
+            </if>
+            <if test="updatePerson!= null and updatePerson!=''">
+                update_person={updatePerson}
+            </if>
+        </set>
+      where id = #{id}
+    </update>
+    <delete id="delete" parameterType="java.lang.Integer">
+        update sbc-setting.default_search_terms set del_flag =1 where id = #{id}
+    </delete>
+    <select id="getTree" resultMap="SearchTermMap" parameterType="java.lang.Integer">
+        select * from sbc-setting.default_search_terms where del_flag = 0
+        <choose>
+            <when test="parentId !=null and parentId !=''">
+                and parent_id = #{parentId}
+            </when>
+            <otherwise>
+                and parent_id = 0
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

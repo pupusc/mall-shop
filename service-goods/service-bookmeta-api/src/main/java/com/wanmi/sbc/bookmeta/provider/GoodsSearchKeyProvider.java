@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.GoodsBO;
+import com.wanmi.sbc.bookmeta.bo.GoodsKeyWordsDownLoadBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
 import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
 import com.wanmi.sbc.common.base.BusinessResponse;
@@ -38,4 +39,6 @@ public interface GoodsSearchKeyProvider {
 
     @PostMapping("/goods/${application.goods.version}/goodsSearchKey/goodsList")
     BusinessResponse<List<GoodsBO>> getGoodsList(@RequestBody @NotNull GoodsNameBySpuIdBO goodsNameBySpuIdBO);
+    @PostMapping("/goods/${application.goods.version}/goodsSearchKey/downloadQuery")
+    List<GoodsKeyWordsDownLoadBO> downloadQuery();
 }

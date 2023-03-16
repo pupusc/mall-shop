@@ -315,7 +315,7 @@ public class BookListModelController {
             AtomicInteger rowCount= new AtomicInteger(1);
             context.stream().forEach(res -> {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
-                row.createCell(0).setCellValue(res.getSkuNo());
+                row.createCell(0).setCellValue(res.getSkuId());
                 row.createCell(1).setCellValue(res.getName());
                 if(null!=res.getSaleNum()){
                     row.createCell(2).setCellValue(res.getSaleNum().toString());

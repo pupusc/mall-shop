@@ -24,6 +24,7 @@ public interface GoodsSearchKeyMapper {
 
     int deleteGoodsSearchKey(int id);
     List<GoodSearchKey> getAllGoodsSearchKey(@Param("name")String name, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+    List<GoodSearchKey> downLoadQuery();
 
     List<GoodSearchKey> getGoodsNameBySpuId(@Param("name") String name);
 

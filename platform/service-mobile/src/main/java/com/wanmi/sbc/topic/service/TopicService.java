@@ -1485,6 +1485,19 @@ public class TopicService {
     public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
         try {
 
+            //获取楼层id
+            if(topicStoreyId == null) {
+                List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
+                if(list != null && list.size() > 0){
+                    V2tabConfigResponse response = list.get(0);
+                    String topicKey = response.getParamsId();
+                    TopicQueryRequest request = new TopicQueryRequest();
+                    request.setTopicKey(topicKey);
+                    BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+                    List<TopicStoreyDTO> tpList = activityVO.getContext().getStoreyList();
+                    topicStoreyId = tpList.stream().filter(s -> s.getStoreyType() == TopicStoreyTypeV2.MIXED.getId()).map(TopicStoreyDTO::getId).findFirst().get();
+                }
+            }
             //详情
 //            String mixed = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ "details");
 //            List<MixedComponentTabDto> mixedComponentTab = new ArrayList<>();
@@ -1673,6 +1686,7 @@ public class TopicService {
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
+        redisService.delete(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab");
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab", JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
@@ -1702,8 +1716,10 @@ public class TopicService {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
+                redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId);
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
+            redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords");
             redisService.setString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords", JSON.toJSONString(keywords));
         }
     }
