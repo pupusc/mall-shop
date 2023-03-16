@@ -69,7 +69,7 @@ public class GoodsPoolServiceImpl implements PoolService {
         //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         goodsDto.setGoodsName(skuDetailBO.getSkuName());
-        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : res.getBook().getIsbn();
+        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : (res.getBook() != null ? res.getBook().getIsbn() : null);
         String score = null;
         if (isbn != null) {
             goodsDto.setIsbn(isbn);
