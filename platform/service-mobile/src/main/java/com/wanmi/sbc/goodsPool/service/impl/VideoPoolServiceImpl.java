@@ -65,7 +65,7 @@ public class VideoPoolServiceImpl implements PoolService {
     @Override
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res ,SkuDetailBO skuDetailBO) {
         GoodsDto goodsDto = new GoodsDto();
-        goodsDto.setSpuId(res.getSpuId());
+        goodsDto.setSpuId(skuDetailBO.getSpuId());
         //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         goodsDto.setGoodsName(skuDetailBO.getSkuName());

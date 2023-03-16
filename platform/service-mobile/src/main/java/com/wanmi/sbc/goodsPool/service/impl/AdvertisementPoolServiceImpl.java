@@ -62,7 +62,7 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     @Override
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res ,SkuDetailBO skuDetailBO) {
         GoodsDto goodsDto = new GoodsDto();
-        goodsDto.setSpuId(columnContentDTO.getSpuId());
+        goodsDto.setSpuId(skuDetailBO.getSpuId());
         //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         String score = null;
