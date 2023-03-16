@@ -140,7 +140,7 @@ public class VideoPoolServiceImpl implements PoolService {
         goodsPoolDto.setRecommend(pool.getRecommend());
         goodsPoolDto.setSorting(pool.getSorting());
         goodsPoolDto.setImage(JSON.parseObject(pool.getAttributeInfo()).get("image").toString());
-        goodsPoolDto.setVideo(JSON.parseObject(pool.getAttributeInfo()).get("video").toString());
+        goodsPoolDto.setVideo(JSON.parseObject(pool.getAttributeInfo()).get("url").toString());
         goodsPoolDto.setGoods(goods);
 //        List<TagsDto> tabs = new ArrayList<>();
 //        if (pool.getLabelId() != null && !"".equals(pool.getLabelId())) {

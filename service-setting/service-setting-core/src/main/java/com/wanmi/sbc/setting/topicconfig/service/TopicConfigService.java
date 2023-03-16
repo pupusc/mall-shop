@@ -561,7 +561,7 @@ public class TopicConfigService {
         Map<String,Object> map = new HashMap<>();
         if (BookType.VIDEO.toValue().equals(request.getBookType())) {
             map.put("image", request.getImage());
-            map.put("video", request.getUrl());
+            map.put("url", request.getUrl());
             topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
         } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
             map.put("titleImage", request.getTitleImage());
