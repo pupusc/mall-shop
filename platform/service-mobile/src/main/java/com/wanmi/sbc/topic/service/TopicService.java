@@ -1945,7 +1945,7 @@ public class TopicService {
             * 1：全部跳转老版本；
             * 2：全部跳转新版本；
             * 3：白名单跳转新版本
-            * 4：白名单+根据手机号码结尾跳转新版
+            * 4: 根据手机号码结尾跳转新版
             * */
             String status = object.getString("status");
             //1：跳转老版本
@@ -1962,13 +1962,8 @@ public class TopicService {
                     && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
                 return true;
             }
-            //4：白名单跳转新版
-            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
-            if("4".equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
-                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
-                return true;
-            }
             //4：根据手机号码结尾
+            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
             if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
                 return true;
             }
