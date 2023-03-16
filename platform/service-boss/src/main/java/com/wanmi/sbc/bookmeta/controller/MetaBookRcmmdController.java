@@ -153,17 +153,15 @@ public class MetaBookRcmmdController {
             } else if (BookRcmmdTypeEnum.MENTION.getCode().equals(item.getBizType())) {
                 voResult.getMentionList().add(rcmmdVO);
             } else if (BookRcmmdTypeEnum.WENMIAO.getCode().equals(item.getBizType())) { //文喵推荐
-                if(rcmmdVO.getBizId() == null || "".equals(rcmmdVO.getBizId())) {
-                    voResult.getWenMiao().setId(rcmmdVO.getId());
-                    voResult.getWenMiao().setBizType(rcmmdVO.getBizType());
-                    voResult.getWenMiao().setBizTime(rcmmdVO.getBizTime());
-                    voResult.getWenMiao().setDescr(rcmmdVO.getDescr());
-                    voResult.getWenMiao().setIsSelected(rcmmdVO.getIsSelected());
-                } else {
-                    voResult.getWenMiao().setBizId(rcmmdVO.getBizId());
-                    voResult.getWenMiao().setName(rcmmdVO.getName());
-                    voResult.getWenMiao().setRecommend(rcmmdVO.getDescr());
-                }
+                voResult.getWenMiao().setId(rcmmdVO.getId());
+                voResult.getWenMiao().setBizType(rcmmdVO.getBizType());
+                voResult.getWenMiao().setBizTime(rcmmdVO.getBizTime());
+                voResult.getWenMiao().setDescr(rcmmdVO.getDescr());
+                voResult.getWenMiao().setIsSelected(rcmmdVO.getIsSelected());
+            } else if (BookRcmmdTypeEnum.XUANSHUREN.getCode().equals(item.getBizType())) { //选书人
+                voResult.getWenMiao().setBizId(rcmmdVO.getBizId());
+                voResult.getWenMiao().setName(rcmmdVO.getName());
+                voResult.getWenMiao().setRecommend(rcmmdVO.getDescr());
             }
             else {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());
@@ -202,6 +200,8 @@ public class MetaBookRcmmdController {
                 MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO boRec = new MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO();
                 BeanUtils.copyProperties(bo, boRec);
                 boRec.setDescr(editReqVO.getWenMiao().getRecommend());
+                boRec.setBizType(BookRcmmdTypeEnum.XUANSHUREN.getCode());
+                boList.add(boRec);
                 bo.setBizId(null);
             }
             bo.setBizType(BookRcmmdTypeEnum.WENMIAO.getCode());
