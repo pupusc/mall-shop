@@ -103,7 +103,7 @@ public class SuspensionController {
     @PostMapping("/test")
     public List<NewBookPointResponse> newBookPoint(@RequestBody @Valid BaseQueryRequest baseQueryRequest)  {
         CustomerGetByIdResponse customer=new CustomerGetByIdResponse();
-        return topicService.newBookPoint(baseQueryRequest,customer);
+        return topicService.newBookPoint(baseQueryRequest,customer, baseQueryRequest.getSortType());
     }
 
     @PostMapping("/test1")

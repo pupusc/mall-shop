@@ -362,7 +362,7 @@ public class TopicService {
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
                 topicResponse.setPoints(this.getPoints(customer));
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
-                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer));
+                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer,String.valueOf(topicResponse.getId())));
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank(String.valueOf(topicResponse.getId()));
                 if (CollectionUtils.isNotEmpty(rank)) {
@@ -765,10 +765,10 @@ public class TopicService {
     /**
      * 商品信息及赠送积分信息
      */
-    public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest,CustomerGetByIdResponse customer) {
+    public List<NewBookPointResponse> newBookPoint(BaseQueryRequest baseQueryRequest,CustomerGetByIdResponse customer,String storeyId) {
 
         try {
-            String string = redisService.getString(RedisKeyUtil.NEW_BOOK_POINT);
+            String string = redisService.getString(RedisKeyUtil.NEW_BOOK_POINT+storeyId);
             GoodsInfosRedisResponse response = JSON.parseObject(string, GoodsInfosRedisResponse.class);
             List<NewBookPointRedisResponse> pointResponseList = response.getNewBookPointResponseList();
             List<NewBookPointResponse> newBookPointResponseList = KsBeanUtil.convertList(pointResponseList, NewBookPointResponse.class);
