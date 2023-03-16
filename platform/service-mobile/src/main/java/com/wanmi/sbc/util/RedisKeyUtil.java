@@ -48,12 +48,12 @@ public class RedisKeyUtil {
     /**
      * 混合组件
      */
-    public final static String MIXED_COMPONENT = "ELASTIC_SAVE:HOMEPAGE:194:";
+    public final static String MIXED_COMPONENT = "ELASTIC_SAVE:HOMEPAGE:";
 
     /**
      * 混合组件
      */
-    public final static String MIXED_COMPONENT_TAB = "ELASTIC_SAVE:HOMEPAGE:194:tab";
+    public final static String MIXED_COMPONENT_TAB = "ELASTIC_SAVE:HOMEPAGE:";
 
 
     /**

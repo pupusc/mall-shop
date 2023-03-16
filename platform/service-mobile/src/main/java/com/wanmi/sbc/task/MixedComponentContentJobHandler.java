@@ -74,7 +74,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB, JSON.toJSONString(mixedComponentDtos));
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab:", JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
             // 获取关键字
@@ -103,9 +103,9 @@ public class MixedComponentContentJobHandler extends IJobHandler {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT + tabId + ":" + keyWordId, goodsPools);
+                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
-            redisService.setString(RedisKeyUtil.MIXED_COMPONENT + tabId + ":keywords", JSON.toJSONString(keywords));
+            redisService.setString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords", JSON.toJSONString(keywords));
         }
     }
 }
