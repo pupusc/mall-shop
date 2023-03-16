@@ -30,7 +30,11 @@ public interface MarketingQueryProvider {
     @PostMapping("/marketing/${application.marketing.version}/query-exists-sku-by-marketingtype")
     BaseResponse<List<String>> queryExistsSkuByMarketingType(@RequestBody @Valid ExistsSkuByMarketingTypeRequest request);
 
-
+    /**
+     * 查询指定sku是否有返积分类型的营销
+     * @param skuId*/
+    @GetMapping("/marketing/${application.marketing.version}/is-sku-in-marketing-point")
+    Boolean isSkuInMarketingPoint(@RequestParam(value = "skuId") String skuId);
     /**
      * 分页查询营销数据
      * @param marketingPageRequest 分页查询参数 {@link MarketingPageRequest}

@@ -402,7 +402,7 @@
          <if test="bo.goodsId !=null and bo.goodsId!= '' ">
              and a.goods_id = #{bo.goodsId}
          </if>
-       <if test="id !=null and id!= '' ">
+       <if test="bo.id !=null and bo.id!= '' ">
            and a.label_id = #{bo.id}
        </if>
        limit #{limitIndex}, #{limitSize}

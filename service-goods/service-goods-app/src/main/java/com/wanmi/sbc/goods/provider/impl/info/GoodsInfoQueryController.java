@@ -76,6 +76,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -583,6 +584,16 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
     @Override
     public BaseResponse<MarketingLabelNewDTO> getMarketingLabelsBySKu(String skuId) {
         MarketingLabelNewDTO labelNewDTO = JSON.parseObject(goodTags.getRedis_MarkingTags(skuId), MarketingLabelNewDTO.class);
+        List<MarketingLabelNewDTO.Labels> collect=labelNewDTO.getLabels();
+        if(CollectionUtils.isNotEmpty(collect)){
+            Iterator<MarketingLabelNewDTO.Labels> iterator = collect.iterator();
+            while (iterator.hasNext()){
+                MarketingLabelNewDTO.Labels next = iterator.next();
+                if(next.getOrder_type()==60||next.getOrder_type()==20){
+                    iterator.remove();
+                }
+            }
+        }
         return BaseResponse.success(labelNewDTO);
     }
 

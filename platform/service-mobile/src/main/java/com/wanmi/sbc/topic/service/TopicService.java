@@ -200,6 +200,53 @@ public class TopicService {
             return BaseResponse.success(null);
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
+        //如果配置有一行两个商品的配置信息，查询商品
+        List<String> skuIds = new ArrayList<>();
+        //图片+链接解析spuId
+        initSpuId(response);
+        if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
+            return BaseResponse.success(response);
+        }
+        //轮播图要加载
+        for (int i= 0 ;i<response.getStoreyList().size();i++){
+            if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
+                response.getStoreyList().get(i).setContents(null);
+            }
+        }
+        //商品属性
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.TWOGOODS.getId())).forEach(p->{
+            if(CollectionUtils.isNotEmpty(p.getContents())) {
+                skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
+            } });
+        if(CollectionUtils.isNotEmpty(skuIds)){
+            List<GoodsCustomResponse> list = initGoods(skuIds);
+            response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
+                if(CollectionUtils.isEmpty(p.getContents())){
+                    return;
+                }
+                List<TopicStoreyContentReponse> contents = new ArrayList<>(p.getContents().size());
+                p.getContents().stream().filter(g -> g.getType().equals(1)).forEach(g -> {
+                    if (CollectionUtils.isNotEmpty(list) && list.stream().anyMatch(l -> l.getGoodsInfoId().equals(g.getSkuId()))) {
+                        GoodsCustomResponse goodsCustomResponse = list.stream().filter(l -> l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
+                        g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
+                        contents.add(g);
+                    }
+                });
+                contents.addAll(p.getContents().stream().filter(o->o.getType().equals(2)).collect(Collectors.toList()));
+                p.setContents(contents);
+            });
+
+        }
+        initCoupon(response.getStoreyList());
+        return BaseResponse.success(response);
+    }
+
+    public BaseResponse<TopicResponse> baseDetail(TopicQueryRequest request,Boolean allLoad){
+        BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
+        if(activityVO == null || activityVO.getContext() ==null){
+            return BaseResponse.success(null);
+        }
+        TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         if(!allLoad){
             response.setStoreyList(response.getStoreyList().subList(0,4));
         }
@@ -339,7 +386,7 @@ public class TopicService {
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
         CustomerGetByIdResponse customer = getCustomer();
         //调用老版首页入口加载老版组件
-        BaseResponse<TopicResponse> detail = this.detail(request, allLoad);
+        BaseResponse<TopicResponse> detail = this.baseDetail(request, allLoad);
         if(null==detail||null==detail.getContext()){
             return BaseResponse.success(null);
         }
@@ -1534,10 +1581,12 @@ public class TopicService {
                         if(null==respMap.get(goodsDtos.get(i).getSpuId())){
                             continue;
                         }
-//                        goodsDtos.get(i).setPaidCardPrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
-                        goodsDtos.get(i).setSalePrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
-                        goodsDtos.get(i).setMarketPrice(respMap.get(goodsDtos.get(i).getSpuId()).getMarketPrice());
-//                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
+                        BigDecimal salesPrice = respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice();
+                        BigDecimal retailPrice = respMap.get(goodsDtos.get(i).getSpuId()).getMarketPrice();
+                        goodsDtos.get(i).setPaidCardPrice(salesPrice == null ? retailPrice : salesPrice);
+//                        goodsDtos.get(i).setSalePrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
+                        goodsDtos.get(i).setRetailPrice(retailPrice);
+                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
                         //获取数量
                         String json = redisService.getString(RedisKeyUtil.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + goodsDtos.get(i).getSpuId());
                         if (json != null) {
@@ -1639,6 +1688,7 @@ public class TopicService {
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
+        redisService.delete(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab");
         redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab", JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
@@ -1668,8 +1718,10 @@ public class TopicService {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
+                redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId);
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
+            redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords");
             redisService.setString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords", JSON.toJSONString(keywords));
         }
     }

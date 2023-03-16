@@ -174,19 +174,17 @@ public class MetaLabelController {
     }
 
     @PostMapping("getLabelsByName")
-    public BusinessResponse<List<MetaLabelGetAllByNameRespVO>> getLabels(@RequestBody MetaLabelQueryByIdResVO resVO) {
+    public BusinessResponse<List<MetaLabelBO>> getLabels(@RequestBody MetaLabelQueryByIdResVO resVO) {
         MetaLabelQueryByPageReqBO convert = KsBeanUtil.convert(resVO, MetaLabelQueryByPageReqBO.class);
         BusinessResponse<List<MetaLabelBO>> labels = this.metaLabelProvider.getLabels(convert);
-        List<MetaLabelGetAllByNameRespVO> metaLabelQueryByIdResVOS = KsBeanUtil.convertList(labels.getContext(), MetaLabelGetAllByNameRespVO.class);
-        return BusinessResponse.success(metaLabelQueryByIdResVOS);
+        return labels;
     }
 
     @PostMapping("getLabelsByGoods")
-    public BusinessResponse<List<MetaLabelGetAllByNameRespVO>> getLabelsByGood(@RequestBody MetaLabelQueryByIdResVO resVO) {
+    public BusinessResponse<List<MetaLabelBO>> getLabelsByGood(@RequestBody MetaLabelQueryByIdResVO resVO) {
         MetaLabelQueryByPageReqBO convert = KsBeanUtil.convert(resVO, MetaLabelQueryByPageReqBO.class);
         BusinessResponse<List<MetaLabelBO>> labels = this.metaLabelProvider.getLabelByGoodsId(convert);
-        List<MetaLabelGetAllByNameRespVO> metaLabelQueryByIdResVOS = KsBeanUtil.convertList(labels.getContext(), MetaLabelGetAllByNameRespVO.class);
-        return BusinessResponse.success(metaLabelQueryByIdResVOS);
+        return labels;
     }
 
     /**

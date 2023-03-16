@@ -115,10 +115,10 @@
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book_rcmmd(biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id)
+        insert into meta_book_rcmmd(biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id,is_selected)
         values
         <foreach collection="entities" item="entity" separator=",">
-        (#{entity.bizId}, #{entity.bizType}, #{entity.bizTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.bookId})
+        (#{entity.bizId}, #{entity.bizType}, #{entity.bizTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.bookId},#{entity.isSelected})
         </foreach>
     </insert>
 
