@@ -1617,9 +1617,9 @@ public class TopicService {
         return stockAppointmentProvider.findCustomerAppointment(appointmentRequest);
     }
 
-    public void saveMixedComponentContent() {
+    public void saveMixedComponentContent(MixedComponentContentRequest req) {
         //栏目信息
-        Integer topicStoreyId = 194;
+        Integer topicStoreyId = req.getTopicStoreyId();
         MixedComponentTabQueryRequest request = new MixedComponentTabQueryRequest();
         request.setTopicStoreyId(topicStoreyId);
         request.setPublishState(0);
