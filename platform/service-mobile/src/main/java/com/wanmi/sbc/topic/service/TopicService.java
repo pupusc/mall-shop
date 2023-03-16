@@ -1931,7 +1931,7 @@ public class TopicService {
         });
     }
 
-    public String routeIndex() {
+    public Boolean routeIndex() {
         //获取NACOS路由配置
         JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
         try {
@@ -1939,7 +1939,7 @@ public class TopicService {
             CustomerVO customer = commonUtil.getCustomer();
             //用户如果未获取到跳转登陆页面
             if(Objects.isNull(customer)){
-                return object.getString("loginUrl");
+                return false;
             }
             /*判断模式
             * 1：全部跳转老版本；
@@ -1950,33 +1950,33 @@ public class TopicService {
             String status = object.getString("status");
             //1：跳转老版本
             if(String.valueOf(Constants.ONE).equals(status)){
-                return object.getString("oldUrl");
+                return false;
             }
             //2：跳转新版本
             if(String.valueOf(Constants.PRICETYPE).equals(status)){
-                return object.getString("newUrl");
+                return true;
             }
             //3：白名单跳转新版；
             String userIds = object.getString("userIds");
             if(String.valueOf(Constants.GOODS_LEAF_CATE_GRADE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
                     && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
-                return object.getString("newUrl");
+                return true;
             }
             //4：白名单跳转新版
             String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
             if("4".equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
                     && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
-                return object.getString("newUrl");
+                return true;
             }
             //4：根据手机号码结尾
             if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
-                return object.getString("newUrl");
+                return true;
             }
             //如果都没命中直接去老版本首页
-            return object.getString("oldUrl");
+            return false;
         }catch (Exception e){
             log.error("route page redirect error,cause:{}",e);
-            return object.getString("loginUrl");
         }
+        return false;
     }
 }

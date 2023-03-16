@@ -294,7 +294,9 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
                 bookList.add(item);
             } else if (BookRcmmdTypeEnum.DRAFT.getCode().equals(item.getBizType())) {
                 bookList.add(item);
-            } else if (BookRcmmdTypeEnum.WENMIAO.getCode().equals(item.getBizType()) && item.getBizId() != null) {
+            } else if (BookRcmmdTypeEnum.WENMIAO.getCode().equals(item.getBizType())) {
+                figureList.add(item);
+            } else if (BookRcmmdTypeEnum.XUANSHUREN.getCode().equals(item.getBizType())) {
                 figureList.add(item);
             } else {
                 log.error("书籍错误的推荐类型，type={}", item.getBizType());

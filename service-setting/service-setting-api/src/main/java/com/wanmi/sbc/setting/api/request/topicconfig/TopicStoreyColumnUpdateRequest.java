@@ -36,4 +36,24 @@ public class TopicStoreyColumnUpdateRequest implements Serializable {
     private String name;
 
     private Integer sorting;
+
+    private Integer bookType;
+
+    private String dropName;
+
+    private Integer orderWay;
+
+    private String image;
+
+    private String titleImage;
+
+    private String url;
+
+    private String recommend;
+
+    private String labelId;
+
+    private String attributeInfo;
+
+    private String subName;
 }
