@@ -78,12 +78,12 @@ public class CacheService {
     }
 
 
-    //70. 其它标签_缓存
+    //80. 其它标签_缓存
     public void getTagList2_init() {
 
         marketTagMap = new HashMap();
 
-        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,80 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                 " where  a.del_flag = 0 and a.is_static = 2 order by seq asc  ";
         Object[] obj = new Object[]{};
 
@@ -115,11 +115,11 @@ public class CacheService {
     }
 
 
-    //20. 榜单标签
+    //60. 榜单标签
     public List getTopList_init() {
         marketTopMap = new HashMap();
 
-        String sql = " select b.id,c.goods_info_id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,b.sku_no,c.goods_info_name,b.spu_no,b.order_num,20 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
+        String sql = " select b.id,c.goods_info_id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,b.sku_no,c.goods_info_name,b.spu_no,b.order_num,60 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
                 " left join goods_info c on b.sku_no = c.goods_info_no " +
                 " where a.del_flag = 0 and b.del_flag = 0 and c.del_flag = 0 " +
                 " order by b.order_num desc  ";
@@ -143,7 +143,7 @@ public class CacheService {
         return list;
     }
 
-    //10.  榜单标签
+    //60.  榜单标签
     public List getTopList(String spu_id) {
         if (marketTopMap == null) {
             getTopList_init();
@@ -269,7 +269,7 @@ public class CacheService {
     //60. 大促标签
     public void getTagList1_init() {
         marketTagList1Map = new HashMap();
-        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,60 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = " select a.id,a.name,b.goods_id,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                 " where  a.del_flag = 0 and a.is_static = 1 order by seq asc  ";
 
         Object[] obj = new Object[]{};

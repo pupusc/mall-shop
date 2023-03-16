@@ -245,13 +245,15 @@ public class GoodRepository {
     }
 
    ///**当图书库评分为空取商城商品评分**/
-   //通过isbn 查找spu_id 和商城商品评分
+   //通过isbn 查找spu_id 和商城商品评分,副标题
    public Map getIsbnBySpuIdScore(String isbn){
        Map map = new HashMap();
 
-       String sql = "SELECT prop_value, goods_id from goods_prop_detail_rel " +
-               " where prop_id = 3 AND goods_id=(" +
-               " select goods_id  from goods_prop_detail_rel where prop_value =?  and prop_id = 5 ) and del_flag=0";
+       String sql = " SELECT a.prop_value, a.goods_id,b.goods_subtitle from goods_prop_detail_rel a " +
+               " LEFT JOIN goods b ON b.goods_id=a.goods_id  " +
+               "  where a.prop_id = 3 AND a.goods_id =(" +
+               "  select goods_id  from goods_prop_detail_rel where prop_value = ?  and prop_id = 5  ) " +
+               "  and a.del_flag=0 AND b.del_flag=0 ";
        Object[] obj = new Object[]{isbn};
        List list = jpaManager.queryForList(sql, obj);
        if (list != null && list.size() > 0) {
