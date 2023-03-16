@@ -150,6 +150,9 @@ public class TopicController {
     @Autowired
     private CollectSkuIdJobHandler collectSkuIdJobHandler;
 
+    @Autowired
+    private RankPageJobHandler rankPageJobHandler;
+
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
     public BaseResponse<RankPageRequest> rankPage(@RequestBody RankStoreyRequest request) throws Exception {
@@ -157,10 +160,10 @@ public class TopicController {
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
 //        rankJobHandler.execute("H5");
-//        rankPageJobHandler.execute("7ffffe79993e3126263cc6748988bd83");
+        rankPageJobHandler.execute("7ffffe79444084fa6c7ce890988eb95b");
 //        newBookPointJobHandler.execute(null);
 //        collectSkuIdFactory.collectId();
-        collectSkuIdJobHandler.execute(null);
+//        collectSkuIdJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
     }
 

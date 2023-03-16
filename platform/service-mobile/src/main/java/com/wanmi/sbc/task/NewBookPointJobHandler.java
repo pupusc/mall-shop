@@ -104,10 +104,10 @@ public class NewBookPointJobHandler extends IJobHandler {
         GoodsInfosRedisResponse goodsInfoVOS = this.newBookPoint(new BaseQueryRequest());
 //        redisService.setString(RedisKeyUtil.HOME_RANK, JSON.toJSONString(rank));
 //        redisListService.putAll(RedisKeyUtil.NEW_BOOK_POINT,goodsInfoVOS);
-        if(redisService.hasKey(RedisKeyUtil.NEW_BOOK_POINT)){
-            redisService.delete(RedisKeyUtil.NEW_BOOK_POINT);
+        if(redisService.hasKey(RedisKeyUtil.NEW_BOOK_POINT+param)){
+            redisService.delete(RedisKeyUtil.NEW_BOOK_POINT+param);
         }
-        redisService.setString(RedisKeyUtil.NEW_BOOK_POINT,JSON.toJSONString(goodsInfoVOS));
+        redisService.setString(RedisKeyUtil.NEW_BOOK_POINT+param,JSON.toJSONString(goodsInfoVOS));
         return SUCCESS;
     }
 
