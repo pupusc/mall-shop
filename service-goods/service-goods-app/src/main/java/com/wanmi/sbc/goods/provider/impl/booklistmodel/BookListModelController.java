@@ -212,12 +212,12 @@ public class BookListModelController implements BookListModelProvider {
     public String importById(RankGoodsPublishResponse response) {
         int updateCount=0;
         int addCount=0;
-        List<RankGoodsPublishResponse> publishGoodsBySkuNo = bookListGoodsPublishService.getPublishGoodsBySkuNo(response.getSkuNo());
-        if(null != publishGoodsBySkuNo && publishGoodsBySkuNo.size()!=0){
+        List<RankGoodsPublishResponse> publishGoodsBySkuId = bookListGoodsPublishService.getPublishGoodsBySkuId(response.getSkuId());
+        if(null != publishGoodsBySkuId && publishGoodsBySkuId.size()!=0){
             //有就更新
-            publishGoodsBySkuNo.get(0).setSaleNum(response.getSaleNum());
-            publishGoodsBySkuNo.get(0).setRankText(response.getRankText());
-            updateCount=bookListGoodsPublishService.updateBookListGoodsPublish(publishGoodsBySkuNo.get(0));
+            publishGoodsBySkuId.get(0).setSaleNum(response.getSaleNum());
+            publishGoodsBySkuId.get(0).setRankText(response.getRankText());
+            updateCount=bookListGoodsPublishService.updateBookListGoodsPublish(publishGoodsBySkuId.get(0));
             ;
         }else{
             //没有就新增
