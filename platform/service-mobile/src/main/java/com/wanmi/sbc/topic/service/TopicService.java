@@ -1581,10 +1581,12 @@ public class TopicService {
                         if(null==respMap.get(goodsDtos.get(i).getSpuId())){
                             continue;
                         }
-//                        goodsDtos.get(i).setPaidCardPrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
-                        goodsDtos.get(i).setSalePrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
-                        goodsDtos.get(i).setMarketPrice(respMap.get(goodsDtos.get(i).getSpuId()).getMarketPrice());
-//                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
+                        BigDecimal salesPrice = respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice();
+                        BigDecimal retailPrice = respMap.get(goodsDtos.get(i).getSpuId()).getMarketPrice();
+                        goodsDtos.get(i).setPaidCardPrice(salesPrice == null ? retailPrice : salesPrice);
+//                        goodsDtos.get(i).setSalePrice(respMap.get(goodsDtos.get(i).getSpuId()).getSalesPrice());
+                        goodsDtos.get(i).setRetailPrice(retailPrice);
+                        goodsDtos.get(i).setDiscount(goodsDtos.get(i).getRetailPrice().compareTo(BigDecimal.ZERO) != 0 ? String.valueOf((goodsDtos.get(i).getPaidCardPrice().divide(goodsDtos.get(i).getRetailPrice())).multiply(new BigDecimal(100))) : null);
                         //获取数量
                         String json = redisService.getString(RedisKeyUtil.ELASTIC_SAVE_BOOKS_DETAIL_SPU_ID + goodsDtos.get(i).getSpuId());
                         if (json != null) {

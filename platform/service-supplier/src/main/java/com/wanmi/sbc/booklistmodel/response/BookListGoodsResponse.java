@@ -74,4 +74,9 @@ public class BookListGoodsResponse {
     private Date createTime;
 
     private Date updateTime;
+
+
+    private Integer saleNum;
+
+    private String rankText;
 }
