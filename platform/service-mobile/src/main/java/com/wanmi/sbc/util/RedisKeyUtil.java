@@ -64,7 +64,7 @@ public class RedisKeyUtil {
     /**
      * 新书速递（返积分）
      */
-    public final static String NEW_BOOK_POINT = "ELASTIC_SAVE:HOMEPAGE:187";
+    public final static String NEW_BOOK_POINT = "ELASTIC_SAVE:HOMEPAGE:";
 
     /**
      * 榜单聚合页

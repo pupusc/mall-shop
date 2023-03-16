@@ -307,7 +307,7 @@ public class TopicService {
 
                 if(storeyType == TopicStoreyTypeV2.NEWBOOK.getId()){                //13.新书速递
                     //writeRedis(topic_store_id);
-                    newBookPointJobHandler.execute(null);
+                    newBookPointJobHandler.execute(String.valueOf(topic_store_id));
                 }else if(storeyType == TopicStoreyTypeV2.RANKLIST.getId()){         //11.榜单组件
                     //writeRedis(topic_store_id);
                     rankJobHandler.execute(String.valueOf(topic_store_id));
