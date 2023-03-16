@@ -169,7 +169,7 @@ public class TopicController {
 
     @PostMapping(value = "/v2/getMixedComponentContent")
     public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(@RequestBody MixedComponentContentRequest request) {
-        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent( request.getTabId(), request.getKeyWord(), null, request.getPageNum(), request.getPageSize());
+        List<MixedComponentDto> mixedComponentContent = topicService.getMixedComponentContent(request.getTopicStoreyId(), request.getTabId(), request.getKeyWord(), null, request.getPageNum(), request.getPageSize());
         return BaseResponse.success(mixedComponentContent);
     }
 

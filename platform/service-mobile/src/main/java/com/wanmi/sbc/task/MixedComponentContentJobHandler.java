@@ -74,7 +74,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
         List<MixedComponentDto> mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getPId())).map(c -> {
             return new MixedComponentDto(c);
         }).collect(Collectors.toList());
-        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab:", JSON.toJSONString(mixedComponentDtos));
+        redisService.setString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab", JSON.toJSONString(mixedComponentDtos));
         for (MixedComponentDto mixedComponentDto : mixedComponentDtos) {
             Integer tabId = mixedComponentDto.getId();
             // 获取关键字
