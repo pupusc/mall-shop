@@ -32,7 +32,7 @@ public class NewBookPointCollect extends AbstractCollect {
             context.stream().forEach(normalModuleSkuResp -> {
                 NewBookPointResponse newBookPointResponse = new NewBookPointResponse();
                 BeanUtils.copyProperties(normalModuleSkuResp, newBookPointResponse);
-                skuIdList.add(newBookPointResponse.getSkuId());
+                skuIdList.add(newBookPointResponse.getSpuId());
             });
             return skuIdList;
         }

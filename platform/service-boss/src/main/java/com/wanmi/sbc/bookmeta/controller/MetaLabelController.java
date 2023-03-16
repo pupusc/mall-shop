@@ -43,8 +43,9 @@ import java.util.stream.Collectors;
 
 /**
  * 标签(MetaLabel)表控制层
- * @menu 图书基础库
+ *
  * @author Liang Jun
+ * @menu 图书基础库
  * @since 2022-05-17 11:38:03
  */
 @RestController
@@ -94,8 +95,6 @@ public class MetaLabelController {
 
         return BusinessResponse.success(list);
     }
-
-
 
 
     /**
@@ -190,12 +189,12 @@ public class MetaLabelController {
         return BusinessResponse.success(metaLabelQueryByIdResVOS);
     }
 
-        /**
-         * 标签-新增数据
-         *
-         * @param addReqVO 实体
-         * @return 新增结果
-         */
+    /**
+     * 标签-新增数据
+     *
+     * @param addReqVO 实体
+     * @return 新增结果
+     */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaLabelAddReqVO addReqVO) {
         addReqVO.setPath(StringSplitUtil.join(addReqVO.getPathList(), PATH_SPLIT_SYMBOL));
@@ -242,7 +241,7 @@ public class MetaLabelController {
      */
     @PostMapping("editStatus")
     public BusinessResponse<Boolean> editStatus(@RequestBody @Valid MetaLabelEditStatusReqVO editReqVO) {
-        MetaLabelUpdateStatusReqBO reqBO =  new MetaLabelUpdateStatusReqBO();
+        MetaLabelUpdateStatusReqBO reqBO = new MetaLabelUpdateStatusReqBO();
         reqBO.setId(editReqVO.getId());
         reqBO.setEnable(Integer.valueOf(1).equals(editReqVO.getStatus()));
         return this.metaLabelProvider.updateStatus(reqBO);
@@ -265,8 +264,8 @@ public class MetaLabelController {
     @PostMapping("/templateLabel")
     public void templateLabel() {
         InputStream is = null;
-        org.springframework.core.io.Resource file=templateLabelFile;
-        try{
+        org.springframework.core.io.Resource file = templateLabelFile;
+        try {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             is = file.getInputStream();
@@ -274,7 +273,7 @@ public class MetaLabelController {
 
             Sheet expressCompanySheet = wk.getSheetAt(0);
             List<Map> bookMap = metaLabelProvider.queryAllLabel();
-            AtomicInteger rowCount= new AtomicInteger(1);
+            AtomicInteger rowCount = new AtomicInteger(1);
             bookMap.stream().forEach(map -> {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
                 row.createCell(0).setCellValue(map.get("id").toString());
@@ -282,12 +281,12 @@ public class MetaLabelController {
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("lable.xlsx", "UTF-8");
-            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
-        }finally {
+        } finally {
             try {
                 is.close();
             } catch (IOException e) {
@@ -297,9 +296,9 @@ public class MetaLabelController {
     }
 
     @PostMapping("addGoodsLabel")
-    public BusinessResponse<Integer> addGoodsLabel(@RequestBody GoodsLabelAddReqVO reqVO) {
+    public BusinessResponse<String> addGoodsLabel(@RequestBody GoodsLabelAddReqVO reqVO) {
         GoodsLabelSpuReqBO convert = KsBeanUtil.convert(reqVO, GoodsLabelSpuReqBO.class);
-        BusinessResponse<Integer> integerBusinessResponse = metaLabelProvider.insertGoodsLabel(convert);
+        BusinessResponse<String> integerBusinessResponse = metaLabelProvider.insertGoodsLabel(convert);
         return integerBusinessResponse;
     }
 
@@ -316,6 +315,11 @@ public class MetaLabelController {
         return BusinessResponse.success(metaLabelProvider.deleteGoodsLabel(convert));
     }
 
+    @PostMapping("getList")
+    public List<MetaLabelBO> getList(@RequestBody  LabelListReqVO reqVO){
+        List<MetaLabelBO> type2Label = metaLabelProvider.getType2Label(reqVO);
+        return type2Label;
+    }
 
     @PostMapping("importGoodsLabel")
     public BusinessResponse<String> importGoodsLabel(MultipartFile multipartFile) {
@@ -354,8 +358,9 @@ public class MetaLabelController {
                 //循环当前行
                 for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
                     Cell cell = row.getCell(cellNum);
-                    cell.setCellType(CellType.STRING);
-                    cells[cellNum] = cell.getStringCellValue();
+                    DataFormatter dataFormatter = new DataFormatter();
+                    String s = dataFormatter.formatCellValue(cell);
+                    cells[cellNum] = s;
                 }
                 GoodsLabelSpuReqBO goodsLabelSpuReqBO = new GoodsLabelSpuReqBO();
                 goodsLabelSpuReqBO.setGoodsId(String.valueOf(cells[0]));
@@ -363,6 +368,15 @@ public class MetaLabelController {
                 goodsLabelSpuReqBO.setLabelId(Integer.parseInt(cells[2]));
                 goodsLabelSpuReqBO.setLabelName((cells[3]));
                 goodsLabelSpuReqBO.setId(Integer.parseInt(cells[4]));
+                if (lastCellNum > 5) {
+                    goodsLabelSpuReqBO.setFirstId(Integer.parseInt(cells[5]));
+                }
+                if (lastCellNum > 6) {
+                    goodsLabelSpuReqBO.setSecondId(Integer.parseInt(cells[6]));
+                }
+                if (lastCellNum > 7) {
+                    goodsLabelSpuReqBO.setId(Integer.parseInt(cells[7]));
+                }
                 res = metaLabelProvider.importGoodsLabel(goodsLabelSpuReqBO).getContext();
             }
         } catch (Exception e) {
@@ -376,7 +390,7 @@ public class MetaLabelController {
             }
         }
         if (null != res) {
-            if (res.contains("failed")){
+            if (res.contains("failed")) {
                 return BusinessResponse.error(res);
             }
         }
@@ -386,8 +400,8 @@ public class MetaLabelController {
     @PostMapping("exportGoodsLabel")
     public void exportGoodsLabel() {
         InputStream is = null;
-        org.springframework.core.io.Resource file=goodsLabelFile;
-        try{
+        org.springframework.core.io.Resource file = goodsLabelFile;
+        try {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             is = file.getInputStream();
@@ -395,7 +409,7 @@ public class MetaLabelController {
 
             Sheet expressCompanySheet = wk.getSheetAt(0);
             List<GoodsLabelSpuReqBO> goodsLabelSpuReqBOS = metaLabelProvider.queryAllGoodsLabel();
-            AtomicInteger rowCount= new AtomicInteger(1);
+            AtomicInteger rowCount = new AtomicInteger(1);
             for (GoodsLabelSpuReqBO good : goodsLabelSpuReqBOS) {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
                 row.createCell(0).setCellValue(good.getGoodsId());
@@ -403,15 +417,18 @@ public class MetaLabelController {
                 row.createCell(2).setCellValue(good.getLabelId());
                 row.createCell(3).setCellValue(good.getLabelName());
                 row.createCell(4).setCellValue(good.getId());
+                row.createCell(5).setCellValue(good.getFirstId());
+                row.createCell(6).setCellValue(good.getSecondId());
+                row.createCell(7).setCellValue(good.getOrderNum());
             }
             wk.write(outputStream);
             String fileName = URLEncoder.encode("goods_label.xlsx", "UTF-8");
-            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
-        }finally {
+        } finally {
             try {
                 is.close();
             } catch (IOException e) {
@@ -423,8 +440,8 @@ public class MetaLabelController {
     @PostMapping("exportGoods")
     public void exportGoods() {
         InputStream is = null;
-        org.springframework.core.io.Resource file= goodsFile;
-        try{
+        org.springframework.core.io.Resource file = goodsFile;
+        try {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             is = file.getInputStream();
@@ -432,7 +449,7 @@ public class MetaLabelController {
 
             Sheet expressCompanySheet = wk.getSheetAt(0);
             List<GoodsBO> goodsList = metaLabelProvider.queryAllGoods();
-            AtomicInteger rowCount= new AtomicInteger(1);
+            AtomicInteger rowCount = new AtomicInteger(1);
             for (GoodsBO good : goodsList) {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
                 row.createCell(0).setCellValue(good.getGoodsId());
@@ -440,12 +457,12 @@ public class MetaLabelController {
             }
             wk.write(outputStream);
             String fileName = URLEncoder.encode("goods.xlsx", "UTF-8");
-            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers","Content-Disposition");
+            HttpUtil.getResponse().setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
             HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
         } catch (Exception e) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
-        }finally {
+        } finally {
             try {
                 is.close();
             } catch (IOException e) {

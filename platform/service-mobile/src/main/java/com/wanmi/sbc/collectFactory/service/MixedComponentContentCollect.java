@@ -86,7 +86,7 @@ public class MixedComponentContentCollect extends AbstractCollect {
                     }
                     goodsPoolDtos.forEach(g -> {
                         g.getGoods().forEach(item -> {
-                            idSet.add(item.getSkuId());
+                            idSet.add(item.getSpuId());
                         });
                     });
                 }

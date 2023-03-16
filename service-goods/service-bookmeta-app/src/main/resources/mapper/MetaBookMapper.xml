@@ -240,6 +240,9 @@
             <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
                 and t2.name like concat('%', #{metaBook.publisherLike}, '%')
             </if>
+<!--            <if test="metaBook.isbn != null and metaBook.isbn != ''">
+                and t1.isbn like concat('%', #{metaBook.isbn}, '%')
+            </if>-->
         </where>
         ) w2 ON w2.id = w1.id
         ORDER BY w1.create_time DESC
@@ -275,6 +278,9 @@
             <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
                 and t2.name like concat('%', #{metaBook.publisherLike}, '%')
             </if>
+<!--            <if test="metaBook.isbn != null and metaBook.isbn != ''">
+                and t1.isbn like concat('%', #{metaBook.isbn}, '%')
+            </if>-->
         </where>
     </select>
 

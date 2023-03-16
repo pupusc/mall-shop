@@ -300,7 +300,7 @@ public class BookListModelController {
     /**
      * 下载模板
      */
-    @PostMapping("/exportExcel")
+    @GetMapping("/exportExcel")
     public void exportBookListModelById(@RequestParam(value = "id") Integer id)  {
         InputStream is = null;
         org.springframework.core.io.Resource file=templateFile;
@@ -388,7 +388,7 @@ public class BookListModelController {
                     cells[cellNum] = cell.getStringCellValue();
                 }
                 RankGoodsPublishResponse rankGoodsPublishResponse=new RankGoodsPublishResponse();
-                rankGoodsPublishResponse.setSkuNo(cells[0]);
+                rankGoodsPublishResponse.setSkuId(cells[0]);
                 rankGoodsPublishResponse.setSaleNum(Integer.parseInt(cells[1]));
                 rankGoodsPublishResponse.setRankText(cells[2]);
                 res = bookListModelProvider.importById(rankGoodsPublishResponse);

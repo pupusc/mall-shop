@@ -76,7 +76,7 @@ public class TopicController {
      */
     @ApiOperation(value = "首页路由")
     @PostMapping(value = "/v2/page")
-    public BaseResponse pageV2(HttpServletResponse response){
+    public BaseResponse pageV2(){
         BaseResponse resp = BaseResponse.SUCCESSFUL();
         resp.setContext(topicService.routeIndex());
         return resp;

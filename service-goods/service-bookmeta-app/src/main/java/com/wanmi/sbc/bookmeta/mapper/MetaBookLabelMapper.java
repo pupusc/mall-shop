@@ -121,5 +121,13 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
      * @return
      */
     List<MetaBookLabel> queryExitByBookAndLabelId(@Param("book_id") Integer bookId,@Param("label_id") Integer labelId);
+
+    List<MetaBookLabelQueryByPageReqBO> getAllBook(@Param("name") String name,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    int getAllBookCount(@Param("name") String name);
+
+    List<MetaBookLabelQueryByPageReqBO> getAllBookLabel(@Param("bo")MetaBookLabelQueryByPageReqBO pageReqBO,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    int getAllBookLabelCount(MetaBookLabelQueryByPageReqBO pageReqBO);
 }
 

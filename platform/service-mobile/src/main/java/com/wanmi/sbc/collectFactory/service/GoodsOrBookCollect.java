@@ -29,7 +29,7 @@ public class GoodsOrBookCollect extends AbstractCollect {
             topicStoreyContentRequest.setStoreyId(topicStoreyId);
             //获得主题下商品skuList
             List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
-            Set<String> skuList = collectTemp.stream().map(t -> t.getSkuId()).collect(Collectors.toSet());
+            Set<String> skuList = collectTemp.stream().map(t -> t.getSpuId()).collect(Collectors.toSet());
             return skuList;
         }
         return new HashSet<>();

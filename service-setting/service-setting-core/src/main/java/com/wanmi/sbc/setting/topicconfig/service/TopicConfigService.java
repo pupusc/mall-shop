@@ -650,6 +650,23 @@ public class TopicConfigService {
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
+        topicStoreySearch.setDropName(request.getDropName());
+        topicStoreySearch.setSubName(request.getSubName());
+        topicStoreySearch.setBookType(request.getBookType());
+        Map<String,Object> map = new HashMap<>();
+        if (BookType.VIDEO.toValue().equals(request.getBookType())) {
+            map.put("image", request.getImage());
+            map.put("video", request.getUrl());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
+            map.put("titleImage", request.getTitleImage());
+            map.put("image", request.getImage());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
+            map.put("url", request.getUrl());
+            map.put("image", request.getImage());
+            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        }
         updateUtil.partialUpdate(topicStoreySearch.getId(), topicStoreySearch, columnRepository);
     }
 

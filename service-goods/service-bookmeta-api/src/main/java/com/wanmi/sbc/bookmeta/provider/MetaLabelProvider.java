@@ -108,7 +108,7 @@ public interface MetaLabelProvider {
     BusinessResponse<List<MetaLabelBO>> getLabelByGoodsId(@RequestBody @NotNull MetaLabelQueryByPageReqBO metaLabelQueryByPageReqBO);
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/insertGoodsLabel")
-    BusinessResponse<Integer> insertGoodsLabel(@RequestBody @NotNull GoodsLabelSpuReqBO bo);
+    BusinessResponse<String> insertGoodsLabel(@RequestBody @NotNull GoodsLabelSpuReqBO bo);
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/updateGoodsLabel")
     BusinessResponse<Integer> updateGoodsLabel(@RequestBody @NotNull GoodsLabelSpuReqBO bo);
@@ -127,4 +127,7 @@ public interface MetaLabelProvider {
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/updateGoodsDetailOther")
     int updateGoodsDetailAndOther(@RequestBody @NotNull GoodDetailOtherRespBO goodDetailOtherRespBO);
+
+    @PostMapping("/goods/${application.goods.version}/metaLabel/getList")
+    List<MetaLabelBO> getType2Label(@RequestBody @NotNull LabelListReqVO reqVO);
 }

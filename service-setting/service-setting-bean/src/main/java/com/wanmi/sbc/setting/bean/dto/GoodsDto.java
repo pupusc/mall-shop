@@ -46,6 +46,10 @@ public class GoodsDto implements Serializable {
 
     private BigDecimal paidCardPrice;
 
+    private BigDecimal salePrice;
+
+    private BigDecimal marketPrice;
+
     private String discount;
 
     private String listMessage;

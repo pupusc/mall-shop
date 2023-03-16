@@ -49,6 +49,7 @@
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="isShow" column="is_show" jdbcType="INTEGER"/>
         <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="labelId" column="label_id" jdbcType="INTEGER"/>
         <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
     </resultMap>
 
@@ -65,6 +66,9 @@
         <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
         <result property="labelId" column="label_id" jdbcType="VARCHAR"/>
         <result property="labelName" column="label_name" jdbcType="VARCHAR"/>
+        <result property="firstId" column="first_id" jdbcType="INTEGER"/>
+        <result property="secondId" column="second_id" jdbcType="INTEGER"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
 
     </resultMap>
 
@@ -379,8 +383,9 @@
                  left join goods c on a.goods_id = c.goods_id
         where
            c.del_flag = 0 and b.del_flag = 0
-            <if test="name != null">
-               and b.name like concat('%',#{name},'%') or c.goods_name like concat('%',#{name},'%')
+            <if test="name != null and name != ''">
+<!--               and b.name like concat('%',#{name},'%')-->
+                and c.goods_name like concat('%',#{name},'%')
             </if>
             group by a.goods_id
         limit #{limitIndex}, #{limitSize}
@@ -388,18 +393,19 @@
 
 <!--    该商品的标签-->
    <select id="getLabelByGoodsIdOrLabelId" resultMap="MetaLabelMapV2" parameterType="com.wanmi.sbc.bookmeta.entity.MetaLabelV2">
-       select a.label_id as id, b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
+       select a.id as id, a.label_id as label_id,b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
        from meta_label_spu a
                 left join meta_label b on a.label_id = b.id
                 left join goods c on a.goods_id = c.goods_id
        where
            c.del_flag = 0 and b.del_flag = 0
-         <if test="goodsId !=null and goodsId!= '' ">
-             and a.goods_id = #{goodsId}
+         <if test="bo.goodsId !=null and bo.goodsId!= '' ">
+             and a.goods_id = #{bo.goodsId}
          </if>
        <if test="id !=null and id!= '' ">
-           and a.label_id = #{id}
+           and a.label_id = #{bo.id}
        </if>
+       limit #{limitIndex}, #{limitSize}
    </select>
 
 
@@ -568,7 +574,30 @@
     </select>
 
     <select id="getExistGoodsLabel" resultMap="GoodsLabelMap">
-        select * from meta_label_spu where del_flag = 0
+        select * from meta_label_spu where goods_id = #{goodsId} and label_id = #{LabelId}
+    </select>
+
+    <select id="getType2Label" resultMap="MetaLabelMap">
+        select id,name from meta_label where type = 2 and del_flag = 0
+        <if test="name !=null and name !=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        limit 10
+    </select>
+    <select id="existLabel" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(1) from meta_label where del_flag = 0 and type = 2 and id = #{id}
+    </select>
+    <select id="getLabelByGoodsIdOrLabelIdCount" resultType="java.lang.Integer">
+        select count(1)
+        from meta_label_spu a
+        left join meta_label b on a.label_id = b.id
+        left join goods c on a.goods_id = c.goods_id
+        where
+        c.del_flag = 0 and b.del_flag = 0
+        <if test="name != null and name != ''">
+            <!--               and b.name like concat('%',#{name},'%')-->
+            and c.goods_name like concat('%',#{name},'%')
+        </if>
     </select>
 </mapper>
 

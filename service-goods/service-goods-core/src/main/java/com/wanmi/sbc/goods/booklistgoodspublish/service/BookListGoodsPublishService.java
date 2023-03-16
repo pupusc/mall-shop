@@ -219,8 +219,8 @@ public class BookListGoodsPublishService {
         return resultList;
     }
 
-    public List<RankGoodsPublishResponse> getPublishGoodsBySkuNo(String skuNo){
-        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findBySkuNo(skuNo), RankGoodsPublishResponse.class);
+    public List<RankGoodsPublishResponse> getPublishGoodsBySkuId(String skuId){
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findBySkuId(skuId), RankGoodsPublishResponse.class);
         return responses;
     }
 

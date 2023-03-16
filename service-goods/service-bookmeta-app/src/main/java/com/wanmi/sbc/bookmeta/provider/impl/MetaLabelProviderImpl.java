@@ -202,7 +202,6 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public BusinessResponse<String> importGoodsLabel(GoodsLabelSpuReqBO goodsLabelSpuReqBO) {
         int updateCount = 0;
         int addCount = 0;
-        Map map = new HashMap<>();
         if (StringUtils.isBlank(goodsLabelSpuReqBO.getGoodsId())) {
             return BusinessResponse.error("failed,GoodsId can't be blank");
         }
@@ -211,7 +210,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         }
         boolean goodsExist = metaLabelMapper.existGoods(goodsLabelSpuReqBO.getGoodsId()) > 0;
         if (goodsExist) {
-            boolean labelExit = metaBookMapper.existsWithPrimaryKey(goodsLabelSpuReqBO.getLabelId());
+            boolean labelExit = metaLabelMapper.existLabel(goodsLabelSpuReqBO.getLabelId()) > 0;
             if (labelExit) {
                 List<GoodsLabelSpu> goodsLabelSpuList = metaLabelMapper.getExistGoodsLabel(goodsLabelSpuReqBO.getGoodsId(), goodsLabelSpuReqBO.getLabelId());
                 if (null != goodsLabelSpuList && goodsLabelSpuList.size() > 0) {//该数据已存在，更新该条数据
@@ -222,7 +221,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
                     goodsLabelSpu.setSecondId(goodsLabelSpuReqBO.getSecondId());
                     goodsLabelSpu.setOrderNum(goodsLabelSpuReqBO.getOrderNum());
                     updateCount = metaLabelMapper.updateGoodsLabelSpu(goodsLabelSpu);
-                }else {
+                } else {
                     GoodsLabelSpu goodsLabelSpu = goodsLabelSpuList.get(0);
                     goodsLabelSpu.setGoodsId(goodsLabelSpuReqBO.getGoodsId());
                     goodsLabelSpu.setLabelId(goodsLabelSpuReqBO.getLabelId());
@@ -235,8 +234,14 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
                     addCount = metaLabelMapper.addGoodsLabelSpu(goodsLabelSpu);
                 }
             }
+            else {
+                return BusinessResponse.error("doesn't exist "+goodsLabelSpuReqBO.getLabelId()+" Label");
+            }
         }
-        return BusinessResponse.success("Success,update " + updateCount + "and add "+addCount+"!");
+        else {
+            return BusinessResponse.error("doesn't exist "+goodsLabelSpuReqBO.getGoodsId()+" Goods");
+        }
+        return BusinessResponse.success("Success,update " + updateCount + " and add " + addCount + "!");
     }
 
     @Override
@@ -248,20 +253,25 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         }
         List<MetaLabelV2> labels = metaLabelMapper.getLabels(pageReqBO.getName(), page.getOffset(), page.getPageSize());
         List<MetaLabelBO> metaLabelBOS = KsBeanUtil.convertList(labels, MetaLabelBO.class);
-        return BusinessResponse.success(metaLabelBOS);
+        return BusinessResponse.success(metaLabelBOS, page);
     }
 
     @Override
     public BusinessResponse<List<MetaLabelBO>> getLabelByGoodsId(MetaLabelQueryByPageReqBO metaLabelQueryByPageReqBO) {
         MetaLabelV2 convert1 = KsBeanUtil.convert(metaLabelQueryByPageReqBO, MetaLabelV2.class);
-        List<MetaLabelV2> labelByGoodsId = metaLabelMapper.getLabelByGoodsIdOrLabelId(convert1);
+        Page page = metaLabelQueryByPageReqBO.getPage();
+        page.setTotalCount((int) metaLabelMapper.getLabelByGoodsIdOrLabelIdCount(convert1));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<MetaLabelV2> labelByGoodsId = metaLabelMapper.getLabelByGoodsIdOrLabelId(convert1,page.getOffset(), page.getPageSize());
         List<MetaLabelBO> convert = KsBeanUtil.convert(labelByGoodsId, MetaLabelBO.class);
-        return BusinessResponse.success(convert);
+        return BusinessResponse.success(convert,page);
 
     }
 
     @Override
-    public BusinessResponse<Integer> insertGoodsLabel(GoodsLabelSpuReqBO bo) {
+    public BusinessResponse<String> insertGoodsLabel(GoodsLabelSpuReqBO bo) {
         GoodsLabelSpu convert = KsBeanUtil.convert(bo, GoodsLabelSpu.class);
         if (!metaLabelMapper.existsWithPrimaryKey(convert.getLabelId())) {
             return BusinessResponse.error("Invalidate Label");
@@ -269,9 +279,12 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         if (metaLabelMapper.isExistGoods(convert.getGoodsId()) < 1) {
             return BusinessResponse.error("Invalidate Goods");
         }
+        if (metaLabelMapper.getExistGoodsLabel(convert.getGoodsId(),convert.getLabelId()).size()>0){
+            return BusinessResponse.success("failed,已有该商品标签");
+        }
         convert.setCreateTime(new Date());
         int i = metaLabelMapper.addGoodsLabelSpu(convert);
-        return BusinessResponse.success(i);
+        return BusinessResponse.success("success");
     }
 
     @Override
@@ -382,6 +395,13 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public int updateGoodsDetailAndOther(GoodDetailOtherRespBO goodDetailOtherRespBO) {
         GoodsOtherDetail convert = KsBeanUtil.convert(goodDetailOtherRespBO, GoodsOtherDetail.class);
         return metaLabelMapper.updateGoodsOtherDetail(convert);
+    }
+
+    @Override
+    public List<MetaLabelBO> getType2Label(LabelListReqVO reqVO) {
+        List<MetaLabel> type2Label = metaLabelMapper.getType2Label(reqVO.getName());
+        List<MetaLabelBO> metaLabelBOS = KsBeanUtil.convertList(type2Label, MetaLabelBO.class);
+        return metaLabelBOS;
     }
 
 
