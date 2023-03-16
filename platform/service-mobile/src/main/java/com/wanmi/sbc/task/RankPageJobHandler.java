@@ -258,10 +258,6 @@ public class RankPageJobHandler extends IJobHandler {
                     goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
                     goods.setLabels(goodsCustom.get().getLabels());
                     goods.setActivities(goodsCustom.get().getActivities());
-                    MarketingLabelNewDTO context = goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsCustom.get().getGoodsInfoId()).getContext();
-                    if(null!=context){
-                        goods.setMarketingLabels(context);
-                    }
                     if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
                         goods.setAtmosType(p.getAtmosType());
                         goods.setImageUrl(p.getImageUrl());
