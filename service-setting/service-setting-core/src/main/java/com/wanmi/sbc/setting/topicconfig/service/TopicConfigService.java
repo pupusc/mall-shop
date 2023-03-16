@@ -258,9 +258,11 @@ public class TopicConfigService {
                 }else {
                     relationRepository.enableRank(1,r.getId());
                 }
+            }else {
+                cIds.add(r.getCRankId());
             }
         });
-        cIds.add(storeyRequest.getRankId());
+//        cIds.add(storeyRequest.getRankId());
         List<RankRequest> rankRequests=new ArrayList<>();
         list.forEach(l->{
             RankRequest rankRequest=new RankRequest();
