@@ -60,18 +60,19 @@ public class MarketLabel {
         //sku_id= "2c9a009b86a5b1850186a6ae64c80004";
         //spu_no = "P735546359";
         //isbn   = "ISBN_C_T003";
-        //10.积分
+
+        //10.返积分、20.积分兑换 30.满减 40.满折 50.49包邮 60 榜单 70 大促标签 80其它标签
+        //10.返积分
         List pointList = marketJpa.getPointList(sku_id);
         //List pointList = cacheService.getPointList(sku_id);
         if(pointList !=null && pointList.size() > 0){
             allList.addAll(pointList);
         }
 
-        //20.榜单
-        List topList = marketJpa.getTopList(sku_id);
-        //List topList = cacheService.getTopList(sku_id);
-        if(topList !=null && topList.size() > 0){
-            allList.addAll(topList);
+        //20.积分兑换
+        List exList = marketJpa.getExchangeList(sku_id);
+        if(exList !=null && exList.size() > 0){
+            allList.addAll(exList);
         }
 
         //30. 满减
@@ -95,14 +96,23 @@ public class MarketLabel {
             allList.addAll(list49);
         }
 
-        //60. 大促标签
+
+        //60.榜单
+        List topList = marketJpa.getTopList(sku_id);
+        //List topList = cacheService.getTopList(sku_id);
+        if(topList !=null && topList.size() > 0){
+            allList.addAll(topList);
+        }
+
+
+        //70. 大促标签
         List tagList1 = marketJpa.getTagList1(spu_id);
         //List tagList1 = cacheService.getTagList1(spu_id);
         if(tagList1 !=null && tagList1.size() > 0){
             allList.addAll(tagList1);
         }
 
-        //70. 其它标签
+        //80. 其它标签
         List tagList2 = marketJpa.getTagList2(spu_id);
         //List tagList2 = cacheService.getTagList2(spu_id);
         if(tagList2 !=null && tagList2.size() > 0){

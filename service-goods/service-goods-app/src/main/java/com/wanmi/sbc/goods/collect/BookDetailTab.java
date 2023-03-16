@@ -95,6 +95,9 @@ public class BookDetailTab {
         //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
         redisMap.put("isShowIntegral", bookDetailTab.isShowIntegral(spu_id, sku_id));
 
+        //积分兑换
+        redisMap.put("jiList", null);
+
         redisMap.put("bookDetail", allList);
 
         setRedis_Books(spu_id, redisMap);

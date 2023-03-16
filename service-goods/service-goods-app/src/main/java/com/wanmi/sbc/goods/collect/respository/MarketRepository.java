@@ -47,14 +47,33 @@ public class MarketRepository {
         return list;
     }
 
-    //20. 榜单标签
+    //60. 榜单标签
     public List getTopList(String sku_id) {
 
-        String sql = " select b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,c.goods_info_name,b.order_num,20 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
+        String sql = " select b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,c.goods_info_name,b.order_num,60 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
                      " left join goods_info c on b.sku_no = c.goods_info_no " +
                      " where a.del_flag = 0 and b.del_flag = 0 and c.del_flag = 0 " +
                      " and c.goods_info_id = ? order by b.order_num desc limit 0,1  ";
         Object[] obj = new Object[]{sku_id};
+
+        List list = jpaManager.queryForList(sql,obj);
+
+        return list;
+    }
+
+    //20. 积分兑换
+    public List getExchangeList(String sku_id) {
+
+        String currentTime = DitaUtil.getCurrentAllDate();
+
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,c.point_need as num,concat (c.point_need, '积分兑换') as name,20 as order_type " +
+                     "  from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+                     "  left join `sbc-marketing`.marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
+                     "  where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0  " +
+                     "  and a.begin_time <= ? and ? <= a.end_time " +
+                     "  and b.scope_id = ? " +
+                     "  limit 0,1 ";
+        Object[] obj = new Object[]{currentTime,currentTime,sku_id};
 
         List list = jpaManager.queryForList(sql,obj);
 
@@ -112,10 +131,10 @@ public class MarketRepository {
         return list;
     }
 
-    //60. 大促标签
+    //70. 大促标签
     public List getTagList1(String spu_id) {
 
-        String sql = " select a.id,a.name,show_img,show_status,is_static,60 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = " select a.id,a.name,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                      " where b.goods_id = ? and a.del_flag = 0 and a.is_static = 1 order by seq asc  ";
 
         Object[] obj = new Object[]{spu_id};
@@ -123,10 +142,10 @@ public class MarketRepository {
         return list;
     }
 
-    //70. 其它标签
+    //80. 其它标签
     public List getTagList2(String book_id) {
 
-        String sql = " select a.id,a.name,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = " select a.id,a.name,show_status,is_static,80 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                 " where b.goods_id = ? and a.del_flag = 0 and a.is_static = 2 order by seq asc  ";
         Object[] obj = new Object[]{book_id};
 
