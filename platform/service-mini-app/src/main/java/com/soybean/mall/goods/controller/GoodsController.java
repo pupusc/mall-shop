@@ -1,6 +1,9 @@
 package com.soybean.mall.goods.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.common.CommonUtil;
+import com.soybean.mall.common.RedisService;
+import com.soybean.mall.goods.response.BaseResponseV2;
 import com.soybean.mall.goods.response.GoodsDetailResponse;
 import com.soybean.mall.goods.vo.SpuSpecsParamVO;
 import com.soybean.mall.goods.vo.SpuSpecsResultVO;
@@ -11,7 +14,6 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
-import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
@@ -78,6 +80,9 @@ public class GoodsController {
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
 
+    @Autowired
+    private RedisService redisService;
+
     /**
      * @description 商品详情页
      * @param spuId
@@ -117,6 +122,61 @@ public class GoodsController {
         GoodsInfoListByGoodsInfoResponse context = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
         response.setGoodsInfos(context.getGoodsInfoVOList());
         return BaseResponse.success(KsBeanUtil.convert(response,GoodsDetailResponse.class));
+    }
+
+    /**
+     * @description 商品详情页
+     * @param spuId
+     * @menu 小程序
+     * @status done
+     */
+    @GetMapping("/v2_detail")
+    public BaseResponseV2<GoodsDetailResponse> detail_v2(@RequestParam("spuId")String spuId, @RequestParam(value = "skuId",required = false)String skuId){
+        GoodsViewByIdRequest request = new GoodsViewByIdRequest();
+        request.setGoodsId(spuId);
+
+        request.setShowLabelFlag(true);
+        if(StringUtils.isEmpty(spuId)){
+            BaseResponse<GoodsInfoByIdResponse> goodsInfo = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder().goodsInfoId(skuId).build());
+            if(goodsInfo == null || goodsInfo.getContext() == null){
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+            request.setGoodsId(goodsInfo.getContext().getGoodsId());
+        }
+        GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
+
+        String customerId = commonUtil.getOperatorId();
+        //计算营销价格
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(response.getGoodsInfos(), GoodsInfoDTO.class));
+        filterRequest.setIsIndependent(Boolean.FALSE);
+        if (!StringUtils.isEmpty(customerId)) {
+            CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+            if (Objects.nonNull(customer)) {
+                filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+            }
+        }
+        // 注意这边是取反，非全量营销时isFlashSaleMarketing=true
+        if (Objects.nonNull(response.getFullMarketing()) && Objects.equals(response.getFullMarketing(), Boolean.FALSE)) {
+            // 排除秒杀
+            filterRequest.setIsFlashSaleMarketing(Boolean.TRUE);
+        }
+        GoodsInfoListByGoodsInfoResponse context = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        response.setGoodsInfos(context.getGoodsInfoVOList());
+
+        String message = "false";
+
+        if(skuId != null){
+
+            String json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID:" + skuId);
+            if(json != null){
+                JSONObject jsonObject = JSONObject.parseObject(json);
+                message = String.valueOf(jsonObject.get("isShowIntegral"));
+            }
+
+        }
+
+        return BaseResponseV2.success(KsBeanUtil.convert(response, GoodsDetailResponse.class),message);
     }
 
     /**
