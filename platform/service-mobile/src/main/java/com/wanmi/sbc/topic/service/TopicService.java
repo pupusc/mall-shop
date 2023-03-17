@@ -53,6 +53,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfosRedisResponse;
 import com.wanmi.sbc.goods.api.response.goods.NewBookPointRedisResponse;
+import com.wanmi.sbc.goods.bean.dto.FilterDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.MarketingLabelNewDTO;
 import com.wanmi.sbc.goods.bean.dto.SuspensionDTO;
@@ -2050,6 +2051,61 @@ public class TopicService {
             if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
                 return true;
             }
+            //如果都没命中直接去老版本首页
+            return false;
+        }catch (Exception e){
+            log.error("route page redirect error,cause:{}",e);
+        }
+        return false;
+    }
+
+    public Boolean routeIndexTemp() {
+        //获取NACOS路由配置
+//        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        List<String> phoneList=new ArrayList<>();
+        JSONArray.parseArray(refreshConfig.getV2FilterConfig(), FilterDTO.class).forEach(s->{
+            phoneList.add(String.valueOf(s.getPhone()));
+        });
+        try {
+            //获取当前用户
+            CustomerVO customer = commonUtil.getCustomer();
+            //用户如果未获取到跳转登陆页面
+            if(Objects.isNull(customer)){
+                return false;
+            }
+            if(CollectionUtils.isEmpty(phoneList)){
+                return false;
+            }
+            //指定手机号跳转新版本
+            if(phoneList.contains(customer.getCustomerAccount())){
+                return true;
+            }
+            /*判断模式
+             * 1：全部跳转老版本；
+             * 2：全部跳转新版本；
+             * 3：白名单跳转新版本
+             * 4: 根据手机号码结尾跳转新版
+             * */
+//            String status = object.getString("status");
+//            //1：跳转老版本
+//            if(String.valueOf(Constants.ONE).equals(status)){
+//                return false;
+//            }
+//            //2：跳转新版本
+//            if(String.valueOf(Constants.PRICETYPE).equals(status)){
+//                return true;
+//            }
+//            //3：白名单跳转新版；
+//            String userIds = object.getString("userIds");
+//            if(String.valueOf(Constants.GOODS_LEAF_CATE_GRADE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
+//                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
+//                return true;
+//            }
+//            //4：根据手机号码结尾
+//            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
+//            if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
+//                return true;
+//            }
             //如果都没命中直接去老版本首页
             return false;
         }catch (Exception e){

@@ -36,47 +36,49 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
 //            String spuId = columnContentDTO.getSpuId();
-            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
-            String spuId = skuDetailBO.getSpuId();
-            if (! StringUtils.isEmpty(spuId)) {
-                List<String> spuIds = new ArrayList<>();
-                spuIds.add(spuId);
-                EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-                es.setSpuIds(spuIds);
-                //es.setKeyword(keyword);
-                List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-                if (content.size() != 0) {
-                    EsSpuNewResp esSpuNewResp = content.get(0);
-                    List<GoodsDto> goods = new ArrayList<>();
-                    getGoods(columnContentDTO, goods,esSpuNewResp, skuDetailBO);
-                    GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
-                    goodsPoolDtos.add(goodsPoolDto);
-                }
-            } else if (! StringUtils.isEmpty(columnContentDTO.getLinkUrl())) {
-                GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, null);
-                goodsPoolDtos.add(goodsPoolDto);
-            }
+//            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+//            String spuId = skuDetailBO.getSpuId();
+//            if (! StringUtils.isEmpty(spuId)) {
+//                List<String> spuIds = new ArrayList<>();
+//                spuIds.add(spuId);
+//                EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
+//                es.setSpuIds(spuIds);
+//                //es.setKeyword(keyword);
+//                List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
+//                if (content.size() != 0) {
+//                    EsSpuNewResp esSpuNewResp = content.get(0);
+//                    List<GoodsDto> goods = new ArrayList<>();
+//                    getGoods(columnContentDTO, goods,esSpuNewResp, skuDetailBO);
+//                    GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
+//                    goodsPoolDtos.add(goodsPoolDto);
+//                }
+//            } else if (! StringUtils.isEmpty(columnContentDTO.getLinkUrl())) {
+//                GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, null);
+//                goodsPoolDtos.add(goodsPoolDto);
+//            }
+            GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, null);
+            goodsPoolDtos.add(goodsPoolDto);
         }
     }
 
     @Override
     public void getGoods(ColumnContentDTO columnContentDTO, List<GoodsDto> goods, EsSpuNewResp res ,SkuDetailBO skuDetailBO) {
-        GoodsDto goodsDto = new GoodsDto();
-        goodsDto.setSpuId(skuDetailBO.getSpuId());
-        //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
-        goodsDto.setSkuId(skuDetailBO.getSkuId());
-        String score = null;
-        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : (res.getBook() != null ? res.getBook().getIsbn() : null);
-        if (isbn != null) {
-            goodsDto.setIsbn(isbn);
-            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
-            if (context.size() != 0) {
-                Map map = (Map) context.get(0);
-                score = map.get("score") != null ? map.get("score").toString() : null;
-            }
-        }
-        //当图书库评分为空取商城商品评分
-        score = score != null ? score : skuDetailBO.getScore();
+//        GoodsDto goodsDto = new GoodsDto();
+//        goodsDto.setSpuId(skuDetailBO.getSpuId());
+//        //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
+//        goodsDto.setSkuId(skuDetailBO.getSkuId());
+//        String score = null;
+//        String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : (res.getBook() != null ? res.getBook().getIsbn() : null);
+//        if (isbn != null) {
+//            goodsDto.setIsbn(isbn);
+//            List context = bookListModelProvider.getBookRecommend(isbn).getContext();
+//            if (context.size() != 0) {
+//                Map map = (Map) context.get(0);
+//                score = map.get("score") != null ? map.get("score").toString() : null;
+//            }
+//        }
+//        //当图书库评分为空取商城商品评分
+//        score = score != null ? score : skuDetailBO.getScore();
 //        Integer saleNum = skuDetailBO.getSaleNum() != null ? Integer.valueOf(skuDetailBO.getSaleNum()) : 0;
 //        String[] digit = {"十+", "百+", "千+", "万+"};
 //        if (saleNum >= 300) {
@@ -86,15 +88,15 @@ public class AdvertisementPoolServiceImpl implements PoolService {
 //        } else {
 //
 //        }
-        goodsDto.setScore(score);
-        goodsDto.setRetailPrice(skuDetailBO.getPrice());
-        //商品标签
-        List<String> tags = new ArrayList<>();
-        if (res.getLabels() != null) {
-            res.getLabels().forEach(label -> tags.add(label.getLabelName()));
-        }
-        goodsDto.setTags(tags);
-        goods.add(goodsDto);
+//        goodsDto.setScore(score);
+//        goodsDto.setRetailPrice(skuDetailBO.getPrice());
+//        //商品标签
+//        List<String> tags = new ArrayList<>();
+//        if (res.getLabels() != null) {
+//            res.getLabels().forEach(label -> tags.add(label.getLabelName()));
+//        }
+//        goodsDto.setTags(tags);
+//        goods.add(goodsDto);
     }
 
     @Override
@@ -103,14 +105,8 @@ public class AdvertisementPoolServiceImpl implements PoolService {
         goodsPoolDto.setType(pool.getBookType());
         goodsPoolDto.setSorting(columnContentDTO.getSorting());
         goodsPoolDto.setImage(columnContentDTO.getImageUrl());
-        goodsPoolDto.setUrl(goods == null ? columnContentDTO.getLinkUrl() : null);
+        goodsPoolDto.setUrl(columnContentDTO.getSkuNo());
         goodsPoolDto.setGoods(goods);
-
         return goodsPoolDto;
-    }
-
-    private SkuDetailBO getSpuBySkuId(String skuId) {
-        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
-        return skuDetailBO;
     }
 }

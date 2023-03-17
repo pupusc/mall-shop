@@ -9,6 +9,8 @@ import lombok.Data;
  */
 @Data
 public class TagsDto {
+    private Integer id;
+    
     private String name;
 
     private Integer showStatus;

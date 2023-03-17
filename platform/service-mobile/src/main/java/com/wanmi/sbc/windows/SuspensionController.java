@@ -92,8 +92,6 @@ public class SuspensionController {
     @Autowired
     private RedisService redisService;
 
-    @Value("classpath:/download/avtivity_goods.xlsx")
-    private org.springframework.core.io.Resource templateFile;
 
     @PostMapping("/getSuspensionByType")
     public BaseResponse<SuspensionByTypeResponse> getByType(@RequestBody @Valid SuspensionByTypeRequest suspensionByTypeRequest) {
@@ -169,7 +167,7 @@ public class SuspensionController {
     }
 
     @PostMapping("/getTagsLabel")
-    public BaseResponse getTagsLabel(@RequestParam(value = "spuId,",required = false) String spuId)  {
+    public BaseResponse getTagsLabel(@RequestParam(value = "spuId",required = false) String spuId)  {
         Map map=new HashMap<>();
         if(null!=spuId){
             String old_json = redisService.getString("ELASTIC_SAVE:GOODS_TAGS_SPU_ID"+ ":" + spuId);
