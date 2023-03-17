@@ -92,8 +92,6 @@ public class SuspensionController {
     @Autowired
     private RedisService redisService;
 
-    @Value("classpath:/download/avtivity_goods.xlsx")
-    private org.springframework.core.io.Resource templateFile;
 
     @PostMapping("/getSuspensionByType")
     public BaseResponse<SuspensionByTypeResponse> getByType(@RequestBody @Valid SuspensionByTypeRequest suspensionByTypeRequest) {

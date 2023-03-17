@@ -316,13 +316,13 @@ public class BookListModelController {
             context.stream().forEach(res -> {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
                 row.createCell(0).setCellValue(res.getSkuId());
-                row.createCell(1).setCellValue(res.getName());
                 if(null!=res.getSaleNum()){
-                    row.createCell(2).setCellValue(res.getSaleNum().toString());
+                    row.createCell(1).setCellValue(res.getSaleNum().toString());
                 }
                 if(null!=res.getRankText()) {
-                    row.createCell(3).setCellValue(res.getRankText());
+                    row.createCell(2).setCellValue(res.getRankText());
                 }
+                row.createCell(3).setCellValue(res.getName());
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("avtivity_goods.xlsx", "UTF-8");
