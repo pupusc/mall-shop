@@ -35,6 +35,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -219,14 +220,14 @@ public class BookListGoodsPublishService {
         return resultList;
     }
 
-    public List<RankGoodsPublishResponse> getPublishGoodsBySkuId(String skuId){
-        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findBySkuId(skuId), RankGoodsPublishResponse.class);
+    public List<RankGoodsPublishResponse> getPublishGoodsBySkuId(String skuId,Integer bookListId){
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsPublishV2Repository.findBySkuIdAndBookListId(skuId,bookListId), RankGoodsPublishResponse.class);
         return responses;
     }
 
     @Transactional
     public int updateBookListGoodsPublish(RankGoodsPublishResponse rankGoodsPublishResponse){
-        int update=bookListGoodsPublishV2Repository.updateBookListGoodsPublish(rankGoodsPublishResponse.getSkuNo(),rankGoodsPublishResponse.getSaleNum(),rankGoodsPublishResponse.getRankText());
+        int update=bookListGoodsPublishV2Repository.updateBookListGoodsPublish(rankGoodsPublishResponse.getSkuId(),rankGoodsPublishResponse.getSaleNum(),rankGoodsPublishResponse.getRankText(), LocalDateTime.now());
         return update;
     }
 
