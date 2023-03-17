@@ -167,7 +167,7 @@ public class SuspensionController {
     }
 
     @PostMapping("/getTagsLabel")
-    public BaseResponse getTagsLabel(@RequestParam(value = "spuId,",required = false) String spuId)  {
+    public BaseResponse getTagsLabel(@RequestParam(value = "spuId",required = false) String spuId)  {
         Map map=new HashMap<>();
         if(null!=spuId){
             String old_json = redisService.getString("ELASTIC_SAVE:GOODS_TAGS_SPU_ID"+ ":" + spuId);
