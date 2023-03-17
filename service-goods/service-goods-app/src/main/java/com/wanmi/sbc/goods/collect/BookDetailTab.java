@@ -60,27 +60,25 @@ public class BookDetailTab {
         String spu_no = "P735546359";
         String isbn   = "ISBN_C_T003";*/
 
-
-        // Map bookMap = bookJpa.getBookMap(isbn);
-        Map bookMap = bookCacheService.getBookMap_cache(isbn);   //2.读缓存
-
-
-        if (bookMap == null || bookMap.size() == 0) {
-            return;
-        }
-
-        String book_id = String.valueOf(bookMap.get("id"));  //7838
-
-        //推荐内容~关键词
-        doSearch(redisMap, book_id);
-
-        //讲稿中提到的其他书籍
-        doOtherBooks(redisMap, book_id);
-
         List allList = new ArrayList();
-        doTab1(allList, book_id);
-        doTab2(allList, book_id, spu_no);
-        doTab3(allList,book_id);
+
+        Map bookMap = bookJpa.getBookMap(isbn);
+        //Map bookMap = bookCacheService.getBookMap_cache(isbn);   //2.读缓存
+
+        if (bookMap != null && bookMap.size() > 0) {
+            String book_id = String.valueOf(bookMap.get("id"));  //7838
+
+            //推荐内容~关键词
+            doSearch(redisMap, book_id);
+
+            //讲稿中提到的其他书籍
+            doOtherBooks(redisMap, book_id);
+
+            doTab1(allList, book_id);
+            doTab2(allList, book_id, spu_no);
+            doTab3(allList, book_id);
+
+        }
         doTab4(allList, spu_id);
 
         //销量
