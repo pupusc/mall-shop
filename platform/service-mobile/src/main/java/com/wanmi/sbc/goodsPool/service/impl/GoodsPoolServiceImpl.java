@@ -74,15 +74,16 @@ public class GoodsPoolServiceImpl implements PoolService {
         if (isbn != null) {
             goodsDto.setIsbn(isbn);
             List context = bookListModelProvider.getBookRecommend(isbn).getContext();
+            String name = null;
             if (context.size() != 0) {
                 Map map = (Map) context.get(0);
                 score = map.get("score") != null ? map.get("score").toString() : null;
-                String name = map.get("name") != null ? map.get("name").toString() : null ;
+                name = map.get("name") != null ? map.get("name").toString() : null ;
                 goodsDto.setRecommend(map.get("descr") != null ? map.get("descr").toString() : null);
                 goodsDto.setRecommendName(name);
-                goodsDto.setReferrer(name == null ? "文喵" : name);
                 goodsDto.setReferrerTitle(map.get("job_title") != null ? map.get("job_title").toString() : null);
             }
+            goodsDto.setReferrer(name == null ? "文喵" : name);
         }
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
         //当图书库评分为空取商城商品评分

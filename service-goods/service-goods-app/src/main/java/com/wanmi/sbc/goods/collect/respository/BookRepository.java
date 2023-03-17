@@ -535,9 +535,9 @@ public class BookRepository {
     }
 
     public List<Map> getBookRecommend(String isbn_id) {
-        String sql = " SELECT mbr.descr, CASE mbr.biz_type WHEN 5 THEN 0 WHEN 3 THEN 1 WHEN 2 THEN 2 WHEN 4 THEN 3 WHEN 10 THEN 4 ELSE 5 END sorting, " +
-                " mf.name, mb.score, mf.job_title FROM meta_book mb, meta_book_rcmmd mbr, meta_figure mf WHERE mb.id = mbr.book_id and mbr.biz_id  " +
-                " = mf.id and mb.isbn = ? and mbr.biz_type in (2,3,4,5,9,10) and mbr.is_selected = 1 ORDER BY sorting ";
+        String sql = " SELECT * FROM (SELECT mb.score, mb.id FROM meta_book mb WHERE mb.isbn = '0315_001') a LEFT JOIN (SELECT mbr.descr, mbr.book_id, CASE  " +
+                " mbr.biz_type WHEN 5 THEN 0 WHEN 3 THEN 1 WHEN 2 THEN 2 WHEN 4 THEN 3 WHEN 10 THEN 4 ELSE 5 END sorting, mf.name, mf.job_title FROM  " +
+                " meta_book_rcmmd mbr, meta_figure mf WHERE mbr.biz_id= mf.id and mbr.biz_type in (2,3,4,5,9,10) and mbr.is_selected = 1 ORDER BY sorting) b ON a.id = b.book_id ";
         Object[] obj = new Object[]{isbn_id};
 
         List<Map> list = jpaManager.queryForList(sql,obj);
