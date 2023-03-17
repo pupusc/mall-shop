@@ -43,7 +43,7 @@ public class SaleNumProviderImpl implements SaleNumProvider {
             boolean skuExit = saleNumMapper.existSku(saleNumBO.getSkuId()) > 0;
             if (skuExit) {
                     SaleNum saleNum = new SaleNum();
-                    saleNum.setSkuId(saleNum.getSkuId());
+                    saleNum.setSkuId(saleNumBO.getSkuId());
                     saleNum.setSalesNum(StringUtils.isBlank(String.valueOf(saleNumBO.getSalesNum())) ? 0 : saleNumBO.getSalesNum());
                     saleNum.setFixPrice(saleNumBO.getFixPrice());
                     updateCount = saleNumMapper.update(saleNum);

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -29,7 +31,11 @@ public class MetaBookRelationController {
     MetaBookRelationProvider metaBookRelationProvider;
     @PostMapping("insertMetaBookRelation")
     public BusinessResponse<Integer> insert(@RequestBody RelationAddVo reqVO) {
-        RelationAddBO convert = KsBeanUtil.convert(reqVO, RelationAddBO.class);
+        List<MetaBookRelationAddReqVO> list = reqVO.getList();
+        List<MetaBookRelationAddBO> list1 = KsBeanUtil.convertList(list, MetaBookRelationAddBO.class);
+        RelationAddBO convert = new RelationAddBO();
+        convert.setList(list1);
+        convert.setBookId(reqVO.getBookId());
         Integer insert = metaBookRelationProvider.insert(convert);
             return BusinessResponse.success(insert);
     }

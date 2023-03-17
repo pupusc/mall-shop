@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.GoodsEvaluateAnalyseMapper">
+    <resultMap id="GoodsEvaluateAnalyseMap" type="com.wanmi.sbc.bookmeta.entity.GoodsEvaluateAnalyse">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="evaluateId" column="evaluate_id" jdbcType="INTEGER"/>
+        <result property="evaluateContentKey" column="evaluate_content_key" jdbcType="VARCHAR"/>
+        <result property="evaluateContent" column="evaluate_content" jdbcType="VARCHAR"/>
+<!--        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="goodsName" column="goods_name" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>-->
+    </resultMap>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete from default_search_terms where id = #{id}
+    </delete>
+    <select id="getByPage" resultMap="GoodsEvaluateAnalyseMap">
+        select a.evaluate_id, b.evaluate_content, a.evaluate_content_key
+        from goods_evaluate_analyse a
+        left join goods_evaluate b on a.evaluate_id = b.evaluate_id
+        where 1=1
+        <if test="name !=null and name !='' ">
+           and b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
+        </if>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1)
+        from goods_evaluate_analyse a
+        left join goods_evaluate b on a.evaluate_id = b.evaluate_id
+        where 1=1
+        <if test="name !=null and name !='' ">
+            and b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
+        </if>
+    </select>
+
+
+</mapper>

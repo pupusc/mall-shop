@@ -14,7 +14,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -52,6 +54,7 @@ public class MetaBookRelationProviderImpl implements MetaBookRelationProvider {
                         metaBookRelationKeyMapper.deleteSelective(key.getId());
                     }
                 }
+                metaBookRelationMapper.deleteSelective(relation.getId());
             }
         }
         int i = 0;

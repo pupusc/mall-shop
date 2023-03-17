@@ -7,11 +7,11 @@
         <result property="bookId" column="book_id" jdbcType="INTEGER"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="subName" column="sub_name" jdbcType="VARCHAR"/>
-        <result property="startTime" column="start_time" jdbcType="DATE"/>
-        <result property="endTime" column="end_time" jdbcType="DATE"/>
+        <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+        <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
         <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="DATE"/>
-        <result property="updateTime" column="update_time" jdbcType="DATE"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
     </resultMap>
     <update id="updateMetaBookRelation" parameterType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
@@ -39,13 +39,13 @@
         where id = #{id}
     </update>
     <delete id="deleteSelective">
-        update meta_book_relation set del_flay = 1 where id = #{id}
+        update meta_book_relation set del_flag = 1 where id = #{id}
     </delete>
 
     <select id="getTitleByBookId" resultType="map">
         select id,book_id,name,sub_name from meta_book_relation where book_id = #{bookId} and del_flag = 0 order by order_num asc limit 0,1;
     </select>
-    <select id="getMetaBookRelation" resultType="com.wanmi.sbc.bookmeta.entity.MetaBookRelation">
+    <select id="getMetaBookRelation" resultMap="MetaBookRelationMap">
         select * from meta_book_relation where book_id = #{bookId} and del_flag = 0;
     </select>
 

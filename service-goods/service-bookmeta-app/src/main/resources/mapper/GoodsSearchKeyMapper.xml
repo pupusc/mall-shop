@@ -130,4 +130,7 @@
         from goods_search_key gsk left join goods gs on gsk.spu_id = gs.goods_id
         where gs.del_flag =0 and gsk.del_flag=0
     </select>
+    <select id="isExistGoodsSearchKey" resultType="java.lang.Integer">
+        select count(1) from goods_search_key where del_flag = 0 and name = #{name} and spu_id = #{spuId}
+    </select>
 </mapper>
