@@ -51,14 +51,14 @@ public class BookDetailTab {
         Map redisMap = new LinkedHashMap();
 
 
-        String spu_no = String.valueOf(goodMap.get("spu"));
+      /*  String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
-        String spu_id = String.valueOf(goodMap.get("spu_id"));
+        String spu_id = String.valueOf(goodMap.get("spu_id"));*/
 
-       /* String  spu_id = "2c9a00ca86299cda01862a0163e60000";
+       String  spu_id = "2c9a00ca86299cda01862a0163e60000";
         String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
         String spu_no = "P735546359";
-        String isbn   = "ISBN_C_T003";*/
+        String isbn   = "ISBN_C_T003";
 
 
         // Map bookMap = bookJpa.getBookMap(isbn);
@@ -91,12 +91,12 @@ public class BookDetailTab {
         // redisMap.put("fix_price", fix_price);
 
         //根据spu 找到sku
-        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
+        //String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
         //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
         redisMap.put("isShowIntegral", bookDetailTab.isShowIntegral(spu_id, sku_id));
 
         //积分兑换
-        redisMap.put("jiList", null);
+        //redisMap.put("jiList", null);
 
         redisMap.put("bookDetail", allList);
 
@@ -109,7 +109,8 @@ public class BookDetailTab {
     private void doTab1(List allList, String book_id) {
         Map map = new HashMap<>();
         //推荐人列表
-        List metaBookRcmmdFigureList = bookJpa.RcommdFigureByBookId(book_id);
+          List metaBookRcmmdFigureList = bookCacheService.RcommdFigureByBookId(book_id);
+         //List metaBookRcmmdFigureList = bookJpa.RcommdFigureByBookId(book_id);
         if (null == metaBookRcmmdFigureList || metaBookRcmmdFigureList.size() == 0) {
             return;
         }
@@ -400,9 +401,9 @@ public class BookDetailTab {
     }
 
     private void doTab3(List allList,String bookId) {
-
-        Map map=this.BookIdBySingle(bookId);
-        map.put("tab3", map);
+        Map map=new HashMap();
+        Map mapSingle=this.BookIdBySingle(bookId);
+        map.put("tab3", mapSingle);
         allList.add(map);
     }
 
@@ -632,6 +633,11 @@ public class BookDetailTab {
         return score;
     }
 
+
+/**通过sku_id得到分组评论**/
+public List comment(String skuId){
+  return goodJpa.getCommentSkuId(skuId);
+}
 
 
 }

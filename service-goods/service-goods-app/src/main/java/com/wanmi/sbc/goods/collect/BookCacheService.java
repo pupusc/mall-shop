@@ -27,6 +27,7 @@ public class BookCacheService {
     public static Map bookTradeMap = null;
     public static Map bookClumpMap = null;
     public static Map bookSearchNameMap = null;
+    public static Map bookRcommdFigureMap = null;
 
 
     //通过isbn查找book_id缓存
@@ -424,6 +425,42 @@ public class BookCacheService {
         return (List) bookSearchNameMap.get(book_id);
     }
 
+    //推荐人列表
+    public void RcommdFigureByBookId_init() {
+        bookRcommdFigureMap =new HashMap();
+        String sql = " select a.*,b.name,b.job_title from meta_book_rcmmd as a left join meta_figure as b on a.biz_id = b.id where  a.is_selected=1 and a.del_flag=0 ";
+
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql,obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_id = String.valueOf(map.get("book_id"));
+
+            if (DitaUtil.isNotBlank(book_id)) {
+                List tagList = (List) bookRcommdFigureMap.get(book_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    bookRcommdFigureMap.put(book_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
+                }
+            }
+
+        }
+
+    }
+
+    //推荐内容~关键词
+    public List RcommdFigureByBookId(String book_id) {
+        if (bookRcommdFigureMap == null) {
+            RcommdFigureByBookId_init();
+        }
+
+        return (List) bookRcommdFigureMap.get(book_id);
+    }
+
 
 
     public void clear() {
@@ -438,6 +475,7 @@ public class BookCacheService {
         bookTradeMap=null;
         bookClumpMap=null;
         bookSearchNameMap=null;
+        bookRcommdFigureMap=null;
     }
 
 }

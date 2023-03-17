@@ -251,7 +251,7 @@ public class GoodRepository {
 
        String sql = " SELECT a.prop_value, a.goods_id,b.goods_subtitle from goods_prop_detail_rel a " +
                " LEFT JOIN goods b ON b.goods_id=a.goods_id  " +
-               "  where a.prop_id = 3 AND a.goods_id =(" +
+               "  where a.prop_id = 3 AND a.goods_id in (" +
                "  select goods_id  from goods_prop_detail_rel where prop_value = ?  and prop_id = 5  ) " +
                "  and a.del_flag=0 AND b.del_flag=0 ";
        Object[] obj = new Object[]{isbn};
@@ -261,5 +261,22 @@ public class GoodRepository {
        }
        return map;
    }
+
+
+    /**
+     * 通过sku_id得到分组评论
+     * **/
+
+    public List getCommentSkuId(String spu_id) {
+
+        String sql = "select a.evaluate_content_key as comment_name,count(a.incr_id) as num from goods_evaluate_analyse a left join goods_evaluate b on a.evaluate_id = b.evaluate_id " +
+                "  where b.goods_id = ? " +
+                "  group by a.evaluate_content_key" +
+                "  order by num desc  ";
+
+        Object[] obj = new Object[]{spu_id};
+        List list = jpaManager.queryForList(sql, obj);
+        return list;
+    }
 }
 
