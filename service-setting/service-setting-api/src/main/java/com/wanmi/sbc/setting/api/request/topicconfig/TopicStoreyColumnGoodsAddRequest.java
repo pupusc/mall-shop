@@ -37,6 +37,8 @@ public class TopicStoreyColumnGoodsAddRequest implements Serializable {
 
     private String skuNo;
 
+    private String skuId;
+
     private String goodsName;
 
     private Integer sorting;
@@ -44,6 +46,8 @@ public class TopicStoreyColumnGoodsAddRequest implements Serializable {
     private Integer topicStoreySearchId;
 
     private String spuNo;
+
+    private String spuId;
 
     private Integer topicStoreyId;
 

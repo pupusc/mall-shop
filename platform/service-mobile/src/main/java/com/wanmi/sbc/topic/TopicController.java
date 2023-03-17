@@ -78,7 +78,7 @@ public class TopicController {
     @PostMapping(value = "/v2/page")
     public BaseResponse pageV2(){
         BaseResponse resp = BaseResponse.SUCCESSFUL();
-        resp.setContext(topicService.routeIndex());
+        resp.setContext(topicService.routeIndexTemp());
         return resp;
     }
 

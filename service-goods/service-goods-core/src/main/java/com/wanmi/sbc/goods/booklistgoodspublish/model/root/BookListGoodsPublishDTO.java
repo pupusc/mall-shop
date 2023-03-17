@@ -83,4 +83,10 @@ public class BookListGoodsPublishDTO {
 
     @Column(name = "del_flag")
     private Integer delFlag;
+
+    @Column(name = "sale_num")
+    private Integer saleNum;
+
+    @Column(name = "rank_text")
+    private String rankText;
 }

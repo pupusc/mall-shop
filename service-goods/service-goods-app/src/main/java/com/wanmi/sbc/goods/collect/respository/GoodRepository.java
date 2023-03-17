@@ -22,10 +22,10 @@ public class GoodRepository {
     public List getGoodsList() {
 
         String sql = " select * from ( " +
-                " select a.goods_id,a.goods_no as spu_no,concat (b.cate_path, b.cate_id) as cate_path  from goods a left join goods_cate b on a.cate_id = b.cate_id " +
+                " select a.goods_id as spu_id,a.goods_no as spu_no,concat (b.cate_path, b.cate_id) as cate_path  from goods a left join goods_cate b on a.cate_id = b.cate_id " +
                 " where a.del_flag = 0 and b.del_flag = 0 and a.added_flag in (1,2) " +
-                " )c where cate_path not like '%1190%' ";
-
+                " )c where cate_path not like '%1190%'  ";
+        //and spu_id = '2c90c8647c3481e7017c35c181140001'
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql, obj);
         return list;

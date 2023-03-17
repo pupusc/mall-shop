@@ -29,6 +29,8 @@ public class GoodTags {
     @Autowired
     BookTags bookTags;
 
+    @Autowired
+    BookDetailTab bookDetailTab;
 
     @Autowired
     private GoodsTestCacheService goodsCacheService;
@@ -40,6 +42,11 @@ public class GoodTags {
         for(int i=0;i<list.size();i++){
             Map map = (Map)list.get(i);
             doGoods(map);
+        }
+
+        for(int i=0;i<list.size();i++){
+            Map map = (Map)list.get(i);
+            bookDetailTab.doBook(map);    //非书tab
         }
 
     }
@@ -55,11 +62,11 @@ public class GoodTags {
 
     public void doGoods(Map goodMap){
 
-     /*   String spu_no = String.valueOf(goodMap.get("spu_no"));
-        String spu_id = String.valueOf(goodMap.get("goods_id"));*/
+        String spu_no = String.valueOf(goodMap.get("spu_no"));
+        String spu_id = String.valueOf(goodMap.get("goods_id"));
 
-        String spu_id = "2c90c8647c3481e7017c35c181140001";
-        String spu_no = "P989359460";
+        //spu_id = "2c90c8647c3481e7017c35c181140001";
+        //spu_no = "P989359460";
 
         List allList = new ArrayList();
 
