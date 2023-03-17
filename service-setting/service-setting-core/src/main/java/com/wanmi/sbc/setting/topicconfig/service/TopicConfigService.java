@@ -742,6 +742,9 @@ public class TopicConfigService {
         topicStoreySearchContent.setStartTime(request.getStartTime());
         topicStoreySearchContent.setEndTime(request.getEndTime());
         topicStoreySearchContent.setSkuNo(request.getSkuNo());
+        topicStoreySearchContent.setSkuId(request.getSkuId());
+        topicStoreySearchContent.setSpuNo(request.getSpuNo());
+        topicStoreySearchContent.setSpuId(request.getSpuId());
         topicStoreySearchContent.setSorting(request.getSorting());
         topicStoreySearchContent.setGoodsName(request.getGoodsName());
         topicStoreySearchContent.setCreateTime(now());
