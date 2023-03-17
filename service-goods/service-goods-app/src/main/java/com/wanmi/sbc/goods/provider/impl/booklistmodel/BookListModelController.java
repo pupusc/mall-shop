@@ -11,6 +11,8 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.*;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.*;
+import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
+import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishV2DTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
@@ -26,10 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +52,8 @@ public class BookListModelController implements BookListModelProvider {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private BookListGoodsService bookListGoodsService;
     /**
      * 新增书单模版
      * @param bookListMixProviderRequest
@@ -209,10 +210,10 @@ public class BookListModelController implements BookListModelProvider {
     }
 
     @Override
-    public String importById(RankGoodsPublishResponse response) {
+    public String importIntoGoodsPubishById(RankGoodsPublishResponse response) {
         int updateCount=0;
         int addCount=0;
-        List<RankGoodsPublishResponse> publishGoodsBySkuId = bookListGoodsPublishService.getPublishGoodsBySkuId(response.getSkuId());
+        List<RankGoodsPublishResponse> publishGoodsBySkuId = bookListGoodsPublishService.getPublishGoodsBySkuId(response.getSkuId(),response.getBookListId());
         if(null != publishGoodsBySkuId && publishGoodsBySkuId.size()!=0){
             //有就更新
             publishGoodsBySkuId.get(0).setSaleNum(response.getSaleNum());
@@ -221,8 +222,36 @@ public class BookListModelController implements BookListModelProvider {
             ;
         }else{
             //没有就新增
+            response.setCreateTime(new Date());
+            response.setUpdateTime(new Date());
+            response.setDelFlag(0);
             BookListGoodsPublishV2DTO bookListGoodsPublishV2DTO = bookListGoodsPublishService.saveBookListGoodsPublish(response);
             if(null!=bookListGoodsPublishV2DTO){
+                addCount++;
+            }
+        }
+
+        return updateCount+","+addCount;
+    }
+
+    @Override
+    public String importIntoGoodsById(RankGoodsPublishResponse response) {
+        int updateCount=0;
+        int addCount=0;
+        List<RankGoodsPublishResponse> publishGoodsBySkuId = bookListGoodsService.getGoodsBySkuId(response.getSkuId(),response.getBookListId());
+        if(null != publishGoodsBySkuId && publishGoodsBySkuId.size()!=0){
+            //有就更新
+            publishGoodsBySkuId.get(0).setSaleNum(response.getSaleNum());
+            publishGoodsBySkuId.get(0).setRankText(response.getRankText());
+            updateCount=bookListGoodsService.updateBookListGoods(publishGoodsBySkuId.get(0));
+            ;
+        }else{
+            //没有就新增
+            response.setCreateTime(new Date());
+            response.setUpdateTime(new Date());
+            response.setDelFlag(0);
+            BookListGoodsDTO bookListGoodsDTO = bookListGoodsService.saveBookListGoods(response);
+            if(null!=bookListGoodsDTO){
                 addCount++;
             }
         }

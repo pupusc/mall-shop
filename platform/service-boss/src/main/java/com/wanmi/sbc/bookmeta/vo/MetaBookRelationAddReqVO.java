@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRelationBookAddBo;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRelationKeyAddBo;
@@ -22,15 +23,11 @@ public class MetaBookRelationAddReqVO implements Serializable {
     private int bookId;
     private String name;
     private String subName;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date startTime;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date endTime;
+    private String startTime;
+    private String endTime;
     private int orderNum;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date createTime;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date updateTime;
+    private String createTime;
+    private String updateTime;
     private int delFlag;
     private List<MetaBookRelationBookAddBo> metaBookRelationBook;
     private List<MetaBookRelationKeyAddBo> metaBookRelationKey;

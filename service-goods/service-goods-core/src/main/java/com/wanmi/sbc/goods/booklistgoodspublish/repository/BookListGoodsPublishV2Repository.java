@@ -83,11 +83,11 @@ public interface BookListGoodsPublishV2Repository extends JpaRepository<BookList
     @Query(value = "select a.*,b.goods_info_name as name from t_book_list_goods_publish as a left join goods_info as b on a.sku_id=b.goods_info_id where book_list_id in ?1 and del_flag = 0", nativeQuery = true)
     List<Map> findByBookListId(Integer id);
 
-    List<BookListGoodsPublishV2DTO> findBySkuId(String skuNo);
+    List<BookListGoodsPublishV2DTO> findBySkuIdAndBookListId(String skuId,Integer bookListId);
 
     @Modifying
-    @Query(value = "update t_book_list_goods_publish set sale_num=?2 , rank_text=?3  where sku_no = ?1", nativeQuery = true)
-    int updateBookListGoodsPublish(String skuNo, Integer saleNum, String rankText);
+    @Query(value = "update t_book_list_goods_publish set sale_num=?2 , rank_text=?3 ,update_time=?4  where sku_id = ?1", nativeQuery = true)
+    int updateBookListGoodsPublish(String skuId, Integer saleNum, String rankText,LocalDateTime updateTime);
 }
 
 

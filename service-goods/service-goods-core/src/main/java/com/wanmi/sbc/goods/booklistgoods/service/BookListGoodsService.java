@@ -1,14 +1,19 @@
 package com.wanmi.sbc.goods.booklistgoods.service;
 
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.RankGoodsPublishResponse;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.repository.BookListGoodsRepository;
 import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishV2DTO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -118,5 +123,23 @@ public class BookListGoodsService {
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
         };
+    }
+
+    public List<RankGoodsPublishResponse> getGoodsBySkuId(String skuId, Integer bookListId){
+        List<RankGoodsPublishResponse> responses = KsBeanUtil.convertList(bookListGoodsRepository.findBySkuIdAndBookListId(skuId,bookListId), RankGoodsPublishResponse.class);
+        return responses;
+    }
+
+    @Transactional
+    public int updateBookListGoods(RankGoodsPublishResponse rankGoodsPublishResponse){
+        int update=bookListGoodsRepository.updateBookListGoods(rankGoodsPublishResponse.getSkuId(),rankGoodsPublishResponse.getSaleNum(),rankGoodsPublishResponse.getRankText());
+        return update;
+    }
+
+    public BookListGoodsDTO saveBookListGoods(RankGoodsPublishResponse rankGoodsPublishResponse){
+        BookListGoodsDTO bookListGoodsDTO=new BookListGoodsDTO();
+        BeanUtils.copyProperties(rankGoodsPublishResponse,bookListGoodsDTO);
+        BookListGoodsDTO save = bookListGoodsRepository.save(bookListGoodsDTO);
+        return save;
     }
 }

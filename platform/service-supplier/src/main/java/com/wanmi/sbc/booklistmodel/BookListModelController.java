@@ -322,7 +322,10 @@ public class BookListModelController {
                 if(null!=res.getRankText()) {
                     row.createCell(2).setCellValue(res.getRankText());
                 }
-                row.createCell(3).setCellValue(res.getName());
+                row.createCell(3).setCellValue(res.getChooseRuleId());
+                row.createCell(4).setCellValue(res.getBookListId());
+                row.createCell(5).setCellValue(res.getCategory());
+                row.createCell(6).setCellValue(res.getName());
             });
             wk.write(outputStream);
             String fileName = URLEncoder.encode("avtivity_goods.xlsx", "UTF-8");
@@ -347,7 +350,8 @@ public class BookListModelController {
     public BaseResponse loadExcel(MultipartFile multipartFile) {
         int addNum = 0;
         int updateNum = 0;
-        String res=null;
+        String res1=null;
+        String res2=null;
         Workbook wb = null;
         try {
             try {
@@ -391,9 +395,18 @@ public class BookListModelController {
                 rankGoodsPublishResponse.setSkuId(cells[0]);
                 rankGoodsPublishResponse.setSaleNum(Integer.parseInt(cells[1]));
                 rankGoodsPublishResponse.setRankText(cells[2]);
-                res = bookListModelProvider.importById(rankGoodsPublishResponse);
-                if(null!=res) {
-                    String[] split = res.split(",");
+                rankGoodsPublishResponse.setChooseRuleId(Integer.parseInt(cells[3]));
+                rankGoodsPublishResponse.setBookListId(Integer.parseInt(cells[4]));
+                rankGoodsPublishResponse.setCategory(Integer.parseInt(cells[5]));
+                res1 = bookListModelProvider.importIntoGoodsPubishById(rankGoodsPublishResponse);
+                res2 = bookListModelProvider.importIntoGoodsById(rankGoodsPublishResponse);
+                if(null!=res1) {
+                    String[] split = res1.split(",");
+                    addNum = addNum + Integer.parseInt(split[1]);
+                    updateNum = updateNum + Integer.parseInt(split[0]);
+                }
+                if(null!=res2) {
+                    String[] split = res2.split(",");
                     addNum = addNum + Integer.parseInt(split[1]);
                     updateNum = updateNum + Integer.parseInt(split[0]);
                 }

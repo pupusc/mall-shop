@@ -1,9 +1,6 @@
 package com.wanmi.sbc.bookmeta.controller;
 
-import com.wanmi.sbc.bookmeta.bo.GoodsBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsKeyWordsDownLoadBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.bookmeta.vo.GoodsSearchBySpuIdReqVO;
 import com.wanmi.sbc.bookmeta.vo.GoodsSearchBySpuIdRespVO;
@@ -14,21 +11,23 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -109,7 +108,6 @@ public class GoodsSearchKeyController {
                     row.createCell(0).setCellValue(map.getName().toString());
                     row.createCell(1).setCellValue(map.getSpuId().toString());
                     row.createCell(2).setCellValue(map.getGoodsName().toString());
-
             }
             wk.write(outputStream);
             String fileName = URLEncoder.encode("good_search_key.xlsx", "UTF-8");
@@ -128,10 +126,66 @@ public class GoodsSearchKeyController {
     }
 
     @PostMapping("import")
-    public BusinessResponse<List<GoodsBO>> importGoodsSearchKey(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
-        GoodsNameBySpuIdBO convert = KsBeanUtil.convert(pageRequest, GoodsNameBySpuIdBO.class);
-        BusinessResponse<List<GoodsBO>> goodsList = goodsSearchKeyProvider.getGoodsList(convert);
-        return goodsList;
-    }
+    public BusinessResponse<String> importGoodsSearchKey(MultipartFile multipartFile) {
+        String res = null;
+        Workbook wb = null;
+        try {
+            try {
+                wb = new HSSFWorkbook(new POIFSFileSystem(multipartFile.getInputStream()));
+            } catch (Exception e) {
+                wb = new XSSFWorkbook(multipartFile.getInputStream());        //XSSF不能读取Excel2003以前（包括2003）的版本
+            }
 
+            Sheet sheet = wb.getSheetAt(0);
+
+            if (sheet == null) {
+                return null;
+            }
+
+            //获得当前sheet的开始行
+            int firstRowNum = sheet.getFirstRowNum();
+            //获得当前sheet的结束行
+            int lastRowNum = sheet.getLastRowNum();
+            //循环除了第一行的所有行
+            for (int rowNum = firstRowNum + 1; rowNum <= lastRowNum; rowNum++) {
+                //获得当前行
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    continue;
+                }
+                //获得当前行的开始列
+                int firstCellNum = row.getFirstCellNum();
+                //获得当前行的列数
+                int lastCellNum = row.getLastCellNum();
+                String[] cells = new String[row.getLastCellNum()];
+
+                //循环当前行
+                for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
+                    Cell cell = row.getCell(cellNum);
+                    cell.setCellType(CellType.STRING);
+                    cells[cellNum] = cell.getStringCellValue();
+                }
+                GoodsSearchKeyAddBo goodsSearchKeyAddBo =new GoodsSearchKeyAddBo();
+                goodsSearchKeyAddBo.setName(cells[0]);
+                goodsSearchKeyAddBo.setSpuId(cells[1]);
+                goodsSearchKeyAddBo.setCreateTime(new Date());
+                res = goodsSearchKeyProvider.importGoodsSearchKey(goodsSearchKeyAddBo).getContext();
+            }
+        } catch (Exception e) {
+            return BusinessResponse.error("文件不符合要求");
+        } finally {
+            try {
+                wb.close();
+                multipartFile.getInputStream().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (null != res) {
+            if (res.contains("failed")){
+                return BusinessResponse.error(res);
+            }
+        }
+        return BusinessResponse.success(res);
+    }
 }

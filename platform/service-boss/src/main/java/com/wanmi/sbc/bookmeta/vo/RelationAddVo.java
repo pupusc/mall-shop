@@ -14,6 +14,6 @@ import java.util.List;
 @Data
 public class RelationAddVo {
     private List<MetaBookRelationAddReqVO> list;
-    private String bookId;
+    private int bookId;
 
 }
