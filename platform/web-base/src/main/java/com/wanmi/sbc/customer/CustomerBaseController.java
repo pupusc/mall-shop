@@ -60,6 +60,8 @@ import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsPageRequest;
+import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
+import com.wanmi.sbc.marketing.api.request.market.ExistsSkuByMarketingTypeRequest;
 import com.wanmi.sbc.mq.producer.WebBaseProducerService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.systemconfig.SystemConfigQueryProvider;
@@ -145,6 +147,9 @@ public class CustomerBaseController {
     private PointsGoodsQueryProvider pointsGoodsQueryProvider;
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+    @Autowired
+    private MarketingQueryProvider marketingQueryProvider;
+
     /**
      * 查询会员基本信息数据
      *
@@ -330,17 +335,22 @@ public class CustomerBaseController {
      */
     @ApiOperation(value = "查询可用积分")
     @RequestMapping(value = "/getPointsAvailableV2", method = RequestMethod.GET)
-    public BaseResponse<CustomerPointsAvailableByCustomerIdResponse> getPointsAvailableV2(@Valid @RequestParam(value = "spuId") String spuId) {
+    public BaseResponse<CustomerPointsAvailableByCustomerIdResponse> getPointsAvailableV2(@Valid @RequestParam(value = "spuId") String spuId, @RequestParam(value = "skuId" ,required = false) String skuId) {
 //       String customerId = commonUtil.getOperatorId();
 //        return customerQueryProvider.getPointsAvailable(new CustomerPointsAvailableByIdRequest
 //                (customerId));
-        PointsGoodsListRequest pointsGoodsListRequest=new PointsGoodsListRequest();
-        pointsGoodsListRequest.setDelFlag(DeleteFlag.NO);
-        pointsGoodsListRequest.setStatus(EnableStatus.DISABLE);
-        pointsGoodsListRequest.setGoodsId(spuId);
-        pointsGoodsListRequest.setBeginTimeBegin(LocalDateTime.now());
-        pointsGoodsListRequest.setBeginTimeEnd(LocalDateTime.now());
-        int pointActivitySize = pointsGoodsQueryProvider.list(pointsGoodsListRequest).getContext().getPointsGoodsVOList().size();
+//        PointsGoodsListRequest pointsGoodsListRequest=new PointsGoodsListRequest();
+//        pointsGoodsListRequest.setDelFlag(DeleteFlag.NO);
+//        pointsGoodsListRequest.setStatus(EnableStatus.DISABLE);
+//        pointsGoodsListRequest.setGoodsId(spuId);
+//        pointsGoodsListRequest.setBeginTimeBegin(LocalDateTime.now());
+//        pointsGoodsListRequest.setBeginTimeEnd(LocalDateTime.now());
+//        int pointActivitySize = pointsGoodsQueryProvider.list(pointsGoodsListRequest).getContext().getPointsGoodsVOList().size();
+
+        if(null==skuId){
+            return BaseResponse.error("没有sku");
+        }
+        Boolean skuInMarketingPoint = marketingQueryProvider.isSkuInMarketingPoint(skuId);
 
         GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest=new GoodsBlackListCacheProviderRequest();
         goodsBlackListCacheProviderRequest.setDelFlag(0);
@@ -354,9 +364,9 @@ public class CustomerBaseController {
         goodsBlackListCacheProviderRequest.setBusinessIdColl(idCollection);
         int blackListSize = goodsBlackListProvider.list(goodsBlackListCacheProviderRequest).getContext().getContent().size();
 
-        if(blackListSize==0 || pointActivitySize==0 ){
+        if(blackListSize!=0 || skuInMarketingPoint==true ){
             //在积分兑换列表或者黑名单列表，就不显示抵扣（商详用）
-            return null;
+            return BaseResponse.error("不参与积分抵扣");
         }
 
         String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();

@@ -58,6 +58,11 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
             , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
             , @Param("excludeId") Long excludeId);
 
+    @Query("select s.scopeId from Marketing m left join m.marketingScopeList s " +
+            "where m.delFlag = 0 and m.marketingType = :marketingType and  s.scopeId = :skuId " +
+            "and not(m.beginTime > :endTime or m.endTime < :startTime)")
+    List<String> isSkuInMarketingPoint(@Param("skuId") String skuId, @Param("marketingType") MarketingType marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     /**
      * 获取重复的换购skuIds

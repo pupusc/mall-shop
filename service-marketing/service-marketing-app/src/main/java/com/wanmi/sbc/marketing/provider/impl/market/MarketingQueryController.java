@@ -109,6 +109,11 @@ public class MarketingQueryController implements MarketingQueryProvider {
         return BaseResponse.success(skuList);
     }
 
+    @Override
+    public Boolean isSkuInMarketingPoint(String skuId) {
+        return marketingService.isSkuInMarketingPoint(skuId);
+    }
+
     /**
      * @param marketingPageRequest 分页查询参数 {@link MarketingPageRequest}
      * @return
