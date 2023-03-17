@@ -387,6 +387,7 @@ public class TopicConfigController {
             List<EsSpuNewResp> esResp = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
             if (content.size() != 0) {
                 EsSpuNewResp res = esResp.get(0);
+                topicStoreyColumnGoodsDTO.setGoodsName(skuDetailBO.getSkuName());
                 topicStoreyColumnGoodsDTO.setImageUrl(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
             }
         }
