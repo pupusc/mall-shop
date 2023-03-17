@@ -50,13 +50,13 @@ public class MarketLabel {
 
         List allList = new ArrayList();
 
-      /*  String spu_id = String.valueOf(skuMap.get("spu_id"));
-        String sku_id = String.valueOf(skuMap.get("sku_id"));*/
+        String spu_id = String.valueOf(skuMap.get("spu_id"));
+        String sku_id = String.valueOf(skuMap.get("sku_id"));
 
-        String spu_id = "2c9a00ca86299cda01862a0163e60000";
+        /*String spu_id = "2c9a00ca86299cda01862a0163e60000";
         String sku_id= "2c9a009b86a5b1850186a6ae64c80004";
         String spu_no = "P735546359";
-        String isbn   = "ISBN_C_T003";
+        String isbn   = "ISBN_C_T003";*/
 
         //10.返积分、20.积分兑换 30.满减 40.满折 50.49包邮 60 榜单 70 大促标签 80其它标签
         //10.返积分
@@ -120,18 +120,22 @@ public class MarketLabel {
         Map map = new LinkedHashMap();
         map.put("name", "营销标签");
         //销量
-        String saleNum = bookDetailTab.getSaleNum_bySpuID(spu_id);
-        map.put("salenum", saleNum);
+        //String saleNum = bookDetailTab.getSaleNum_bySpuID(spu_id);
+        //map.put("salenum", saleNum);
 
         //定价
         //String fix_price = bookDetailTab.getFixPrice(spu_id);
         //map.put("fix_price", fix_price);
 
         //是否显示积分全额抵扣（参加积分活动和加入黑名单中的商品不显示）
-        map.put("isShowIntegral", bookDetailTab.isShowIntegral(spu_id, sku_id));
+        //map.put("isShowIntegral", bookDetailTab.isShowIntegral(spu_id, sku_id));
 
         ///**通过sku_id得到分组评论**/
-        map.put("comment",bookDetailTab.comment(sku_id));
+        //List commentList=bookDetailTab.comment(spu_id);
+        //map.put("commentList",commentList);
+
+        //int commentNum = bookDetailTab.getCommentNum(commentList);
+        //map.put("commentNum",commentNum);
 
         map.put("labels", allList);
 

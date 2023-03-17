@@ -278,5 +278,22 @@ public class GoodRepository {
         List list = jpaManager.queryForList(sql, obj);
         return list;
     }
+
+
+
+
+    /**通过book_id取到行业**/
+    //select trade_id from meta_book where id = 7838;
+    /**通过行业取到book_id**/
+    //select id from meta_book where id !=7838 and trade_id = '11880';
+    public List getTrade(String bookId) {
+
+        String sql = " select id from meta_book where id != ? and trade_id in (select trade_id from meta_book where id = ? ) ";
+        Object[] obj = new Object[]{bookId,bookId};
+        List list = jpaManager.queryForList(sql, obj);
+
+        return list;
+    }
+
 }
 
