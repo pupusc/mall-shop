@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.setting.bean.enums.BookType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -126,10 +127,13 @@ public class GoodsPoolServiceImpl implements PoolService {
     @Override
     public GoodsPoolDto getPool(MixedComponentTabDto pool, ColumnContentDTO columnContentDTO, List<GoodsDto> goods) {
         GoodsPoolDto goodsPoolDto = new GoodsPoolDto();
-        goodsPoolDto.setType(pool.getBookType());
+        if(goods.get(0).getIsbn() != null) {
+            goodsPoolDto.setType(pool.getBookType());
+        } else {
+            goodsPoolDto.setType(BookType.NOT_BOOK.toValue());
+        }
         goodsPoolDto.setSorting(columnContentDTO.getSorting());
         goodsPoolDto.setGoods(goods);
-
         return goodsPoolDto;
     }
 

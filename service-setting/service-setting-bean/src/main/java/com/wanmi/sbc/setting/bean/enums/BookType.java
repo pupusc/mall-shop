@@ -27,6 +27,7 @@ public enum BookType {
     @ApiEnumProperty("6：跳转广告")
     SKIP;
 
+
     @JsonCreator
     public static BookType fromValue(int value) {
         return values()[value];
