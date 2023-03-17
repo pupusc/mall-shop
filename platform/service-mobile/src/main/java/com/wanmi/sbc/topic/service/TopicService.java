@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.soybean.common.util.StockUtil;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
@@ -110,6 +112,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1727,11 +1730,15 @@ public class TopicService {
     }
 
     public BaseResponse getGoodsDetialById1(String spuId, String skuId) {
+        System.out.println("time1~" + DitaUtil.getCurrentAllDate());
         CustomerGetByIdResponse customer = getCustomer();
-        Map map=new HashMap<>();
+
         String old_json=new String();
         old_json = getGoodsDetialById(spuId, skuId, "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID");
-        map=JSONObject.parseObject(old_json,Map.class);
+
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, Object>>() {}.getType();
+        Map<String, Object> map = gson.fromJson(old_json, type);
 
         List<String> spuIdList=new ArrayList<>();
         List<Map> maplist=new ArrayList<>();
@@ -1739,11 +1746,14 @@ public class TopicService {
         //循环每个推荐人取出skuId,并放入skuIdList
 //        List<String> skuIdByGoodsDetailTableOne = goodsService.getSkuIdByGoodsDetailTableOne(map, skuIdList);
 //        List<String> skuIdByGoodsDetailOtherBook = goodsService.getSkuIdByGoodsDetailOtherBook(map, skuIdList);
+        System.out.println("time2~" + DitaUtil.getCurrentAllDate());
         spuIdList = getSpuIdByGoodsDetail(old_json);
+        System.out.println("time3~" + DitaUtil.getCurrentAllDate());
         List<String> collect = spuIdList.stream().distinct().collect(Collectors.toList());
 
         if(null==spuIdList ||spuIdList.size()==0 ){
             //没有商品信息需要回填
+
             return BaseResponse.success(map);
         }
 
@@ -1778,10 +1788,12 @@ public class TopicService {
 //
 //        }
 
+        System.out.println("time4~" + DitaUtil.getCurrentAllDate());
         Map<String, SpuNewBookListResp> initPrice = this.initPrice(spuIdList);
+        System.out.println("time5~" + DitaUtil.getCurrentAllDate());
         //回填商品的价格信息
-        map= fillGoodsDetail(old_json,initPrice);
-
+        map= fillGoodsDetail(map,initPrice);
+        System.out.println("time6~" + DitaUtil.getCurrentAllDate());
         //榜单
         Map rankMap = getGoodsDetailRankById(spuId, skuId, "ELASTIC_SAVE:GOODS_TAGS_SPU_ID");
         map.put("rank",rankMap);
@@ -1867,11 +1879,15 @@ public class TopicService {
     }
 
     //递归查询,查询所有为key的value
-    public  List<String> findJsonGetKey(String fullResponseJson, String key) {
+    public static List<String> findJsonGetKey(String fullResponseJson, String key) {
 
         List<String> list = new ArrayList<>();
 
-        findValueObjectGetKey(JSONObject.parseObject(fullResponseJson), key, list);
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, Object>>() {}.getType();
+        Map<String, Object> map = gson.fromJson(fullResponseJson, type);
+
+        findValueObjectGetKey(map, key, list);
 
         return list;
     }
@@ -1879,42 +1895,45 @@ public class TopicService {
     /**
      * 从json中查找对象
      *
-     * @param fullResponse json对象
+     * @param object        json对象
      * @param key          json key
      */
-    private  void findValueObjectGetKey(JSONObject fullResponse, String key,List list) {
+    private static void findValueObjectGetKey(Object object, String key,List list) {
 
-        if (fullResponse == null) {
-            return;
-        }
-        fullResponse.keySet().forEach(keyStr -> {
-            Object keyvalue = fullResponse.get((String) keyStr);
-            if (keyvalue instanceof JSONArray) {
-                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
-                    Object obj = ((JSONArray) keyvalue).get(i);
-                    if (obj instanceof JSONObject) {
-                        findValueObjectGetKey(((JSONObject) obj), key,list);
+        if(object instanceof LinkedTreeMap) {
+            LinkedTreeMap<String, Object> jsonObject = (LinkedTreeMap) object;
+
+            for (Map.Entry<String, Object> entry: jsonObject.entrySet()) {
+                //System.out.println(entry.getKey());
+                Object o = entry.getValue();
+                if(o instanceof String) {
+                    //System.out.println("key:" + entry.getKey() + "，value:" + entry.getValue());
+                    if (key.equals(entry.getKey())) {
+                        list.add(entry.getValue());
                     }
-                }
-            } else if (keyvalue instanceof JSONObject) {
-                findValueObjectGetKey((JSONObject) keyvalue,key, list);
-            } else {
-                if (key.equals(keyStr)) {
-                    list.add(keyvalue);
+                } else {
+                    findValueObjectGetKey(o,key,list);
                 }
             }
-        });
+        }else if(object instanceof List) {
+            List jsonArray = (List) object;
+            for(int i = 0; i < jsonArray.size(); i ++) {
+                findValueObjectGetKey(jsonArray.get(i),key,list);
+            }
+        }else if(object instanceof String || object instanceof Integer || object instanceof Boolean) {
+            //System.out.println(object.toString());
+        }
+
     }
 
-    public Map fillGoodsDetail(String old_json, Map<String, SpuNewBookListResp> goodsPriceMap) {
+    public Map fillGoodsDetail(Map gsonMap, Map<String, SpuNewBookListResp> goodsPriceMap) {
         Map mapTemp=new HashMap<>();
-//        String s = map.toString();
-        JSONObject jsonObject = JSONObject.parseObject(old_json);
+
         goodsPriceMap.entrySet().stream().forEach(e->{
             mapTemp.put(e.getKey(),ObjectToMap(e.getValue()));
         });
-        richJson(jsonObject,"spu_id",mapTemp);
-        return JSONObject.toJavaObject(jsonObject,Map.class);
+        richJson(gsonMap,"spu_id",mapTemp);
+        return gsonMap;
     }
 
     public Map ObjectToMap(Object o) {
@@ -1933,7 +1952,7 @@ public class TopicService {
     }
 
     //丰富
-    public  void richJson(JSONObject jsonObject, String key, Map richMap) {
+    public  void richJson(Object jsonObject, String key, Map richMap) {
 
         List list = findJsonGetList(jsonObject,key);
         for(int i=0;i<list.size();i++){
@@ -1952,7 +1971,7 @@ public class TopicService {
     }
 
     //递归查询,查询所有为key的value
-    public  List<Map> findJsonGetList(JSONObject jsonObject, String key) {
+    public static List<Map> findJsonGetList(Object jsonObject, String key) {
 
         List<Map> list = new ArrayList<>();
 
@@ -1964,31 +1983,35 @@ public class TopicService {
     /**
      * 从json中查找对象
      *
-     * @param fullResponse json对象
+     * @param object       json对象
      * @param key          json key
      */
-    private  void findValueObjectGetList(JSONObject fullResponse, String key,List list) {
+    private static void findValueObjectGetList(Object object, String key,List list) {
 
-        if (fullResponse == null) {
-            return;
-        }
-        fullResponse.keySet().forEach(keyStr -> {
-            Object keyvalue = fullResponse.get((String) keyStr);
-            if (keyvalue instanceof JSONArray) {
-                for (int i = 0; i < ((JSONArray) keyvalue).size(); i++) {
-                    Object obj = ((JSONArray) keyvalue).get(i);
-                    if (obj instanceof JSONObject) {
-                        findValueObjectGetList(((JSONObject) obj), key,list);
+        if(object instanceof LinkedTreeMap) {
+            LinkedTreeMap<String, Object> jsonObject = (LinkedTreeMap) object;
+
+            for (Map.Entry<String, Object> entry: jsonObject.entrySet()) {
+                //System.out.println(entry.getKey());
+                Object o = entry.getValue();
+                if(o instanceof String) {
+                    //System.out.println("key:" + entry.getKey() + "，value:" + entry.getValue());
+                    if (key.equals(entry.getKey())) {
+                        list.add(object);
                     }
-                }
-            } else if (keyvalue instanceof JSONObject) {
-                findValueObjectGetList((JSONObject) keyvalue,key, list);
-            } else {
-                if (key.equals(keyStr)) {
-                    list.add(fullResponse);
+                } else {
+                    findValueObjectGetList(o,key,list);
                 }
             }
-        });
+        }else if(object instanceof List) {
+            List jsonArray = (List) object;
+            for(int i = 0; i < jsonArray.size(); i ++) {
+                findValueObjectGetList(jsonArray.get(i),key,list);
+            }
+        }else if(object instanceof String || object instanceof Integer || object instanceof Boolean) {
+            //System.out.println(object.toString());
+        }
+
     }
 
     public Boolean routeIndex() {
