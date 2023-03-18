@@ -33,4 +33,6 @@ public interface GoodsSearchKeyMapper {
     List<GoodsVO> getGoodsList(@Param("name")String name, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
     Integer getAllGoodsCount(@Param("name")String name);
+
+    int isExistGoodsSearchKey(@Param("name") String name,@Param("spuId") String spuId);
 }

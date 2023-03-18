@@ -18,8 +18,11 @@
         <result property="updatePerson" column="update_person" jdbcType="VARCHAR"/>
     </resultMap>
     <insert id="insert" parameterType="com.wanmi.sbc.bookmeta.entity.SearchTerm">
-        insert into  sbc-setting.default_search_terms
+        insert into `sbc-setting`.default_search_terms
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
             <if test="defaultChannel != null and defaultChannel!=''">
                 default_channel,
             </if>
@@ -29,10 +32,10 @@
             <if test="relatedLandingPage!= null and relatedLandingPage!=''">
                 related_landing_page,
             </if>
-            <if test="parentId!= null and parentId!=''">
+            <if test="parentId!= null">
                 parent_id,
             </if>
-            <if test="isParent!= null and isParent!=''">
+            <if test="isParent!= null">
                 is_parent,
             </if>
             <if test="imgBefore!= null and imgBefore!=''">
@@ -53,86 +56,119 @@
         </trim>
 
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
             <if test="defaultChannel != null and defaultChannel!=''">
-                {defaultChannel},
+                #{defaultChannel},
             </if>
             <if test="defaultSearchKeyword!= null and defaultSearchKeyword!=''">
-                {defaultSearchKeyword},
+                #{defaultSearchKeyword},
             </if>
             <if test="relatedLandingPage!= null and relatedLandingPage!=''">
-                {relatedLandingPage},
+                #{relatedLandingPage},
             </if>
-            <if test="parentId!= null and parentId!=''">
-                {parentId},
+            <if test="parentId!= null">
+                #{parentId},
             </if>
-            <if test="isParent!= null and isParent!=''">
-                {isParent},
+            <if test="isParent!= null">
+                #{isParent},
             </if>
             <if test="imgBefore!= null and imgBefore!=''">
-                {imgBefore},
+                #{imgBefore},
             </if>
             <if test="imgAfter!= null and imgAfter!=''">
-               {imgAfter},
+                #{imgAfter},
             </if>
             <if test="sortNumber!= null and sortNumber!=''">
-                {sortNumber},
+                #{sortNumber},
             </if>
             <if test="createPerson!= null and createPerson!=''">
-               {createPerson},
+                #{createPerson},
             </if>
             <if test="updatePerson!= null and updatePerson!=''">
-                {updatePerson}
+                #{updatePerson}
             </if>
         </trim>
     </insert>
+    <insert id="insertEvaluateAnalyse" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsEvaluateAnalyse">
+        insert into goods_evaluate_analyse
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="evaluateId != null and evaluateId!=''">
+            evaluate_id,
+        </if>
+        <if test="evaluateContentKey != null and evaluateContentKey!=''">
+            evaluate_content_key
+        </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="evaluateId != null and evaluateId!=''">
+            #{evaluateId},
+        </if>
+        <if test="evaluateContentKey != null and evaluateContentKey!=''">
+            #{evaluateContentKey}
+        </if>
+        </trim>
+    </insert>
     <update id="update" parameterType="com.wanmi.sbc.bookmeta.entity.SearchTerm">
-        update sbc-setting.default_search_terms
+        update `sbc-setting`.default_search_terms
         <set>
             <if test="defaultChannel != null and defaultChannel!=''">
-                default_channel ={defaultChannel},
+                default_channel =#{defaultChannel},
             </if>
             <if test="defaultSearchKeyword!= null and defaultSearchKeyword!=''">
-                default_search_keyword={defaultSearchKeyword},
+                default_search_keyword=#{defaultSearchKeyword},
             </if>
             <if test="relatedLandingPage!= null and relatedLandingPage!=''">
-                related_landing_page={relatedLandingPage},
+                related_landing_page=#{relatedLandingPage},
             </if>
             <if test="parentId!= null and parentId!=''">
-                parent_id={parentId},
+                parent_id=#{parentId},
             </if>
-            <if test="isParent!= null and isParent!=''">
-                is_parent={isParent},
+            <if test="isParent!= null">
+                is_parent=#{isParent},
             </if>
             <if test="imgBefore!= null and imgBefore!=''">
-                img_before={imgBefore},
+                img_before=#{imgBefore},
             </if>
             <if test="imgAfter!= null and imgAfter!=''">
-                img_after={imgAfter},
+                img_after=#{imgAfter},
             </if>
             <if test="sortNumber!= null and sortNumber!=''">
-                sort_number={sortNumber},
+                sort_number=#{sortNumber},
             </if>
             <if test="createPerson!= null and createPerson!=''">
-                create_person={createPerson},
+                create_person=#{createPerson},
             </if>
             <if test="updatePerson!= null and updatePerson!=''">
-                update_person={updatePerson}
+                update_person=#{updatePerson}
             </if>
         </set>
       where id = #{id}
     </update>
     <delete id="delete" parameterType="java.lang.Integer">
-        update sbc-setting.default_search_terms set del_flag =1 where id = #{id}
+        update `sbc-setting`.default_search_terms set del_flag =1 where id = #{id}
     </delete>
-    <select id="getTree" resultMap="SearchTermMap" parameterType="java.lang.Integer">
-        select * from sbc-setting.default_search_terms where del_flag = 0
+
+    <select id="getTree" resultMap="SearchTermMap">
+        select * from `sbc-setting`.default_search_terms where del_flag = 0
         <choose>
-            <when test="parentId !=null and parentId !=''">
+            <when test="parentId !=null">
                 and parent_id = #{parentId}
             </when>
             <otherwise>
                 and parent_id = 0
             </otherwise>
         </choose>
+        <if test=" defaultSearchKeyword != null and defaultSearchKeyword !='' ">
+            and default_search_keyword like concat('%',#{defaultSearchKeyword},'%')
+        </if>
+    </select>
+
+    <select id="isExistEvaluateId" resultType="java.lang.Integer">
+        select count(1) from goods_evaluate where evaluate_id = #{evaluateId}
+    </select>
+    <select id="isExistEvaluateAnalyse" resultType="java.lang.Integer">
+        select count(1) from goods_evaluate_analyse where evaluate_id = #{evaluateId} and evaluate_content_key=#{evaluateContentKey}
     </select>
 </mapper>

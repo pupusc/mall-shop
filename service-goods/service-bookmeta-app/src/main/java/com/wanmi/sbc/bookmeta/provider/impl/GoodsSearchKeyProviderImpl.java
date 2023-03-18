@@ -8,6 +8,7 @@ import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
 import com.wanmi.sbc.bookmeta.entity.GoodSearchKey;
 import com.wanmi.sbc.bookmeta.mapper.AuthorityMapper;
 import com.wanmi.sbc.bookmeta.mapper.GoodsSearchKeyMapper;
+import com.wanmi.sbc.bookmeta.mapper.SaleNumMapper;
 import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
@@ -35,6 +36,8 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
 
     @Resource
     GoodsSearchKeyMapper goodsSearchKeyMapper;
+    @Resource
+    SaleNumMapper saleNumMapper;
     @Override
     public List<GoodsNameBySpuIdBO> getGoodsNameBySpuId(String name) {
         List<GoodSearchKey> goodsNameBySpuId = goodsSearchKeyMapper.getGoodsNameBySpuId(name);
@@ -105,5 +108,26 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
         List<GoodSearchKey> goodSearchKeys = goodsSearchKeyMapper.downLoadQuery();
         List<GoodsKeyWordsDownLoadBO> goodsBOS = KsBeanUtil.convertList(goodSearchKeys, GoodsKeyWordsDownLoadBO.class);
         return goodsBOS;
+    }
+
+    @Override
+    public BusinessResponse<String> importGoodsSearchKey(GoodsSearchKeyAddBo goodsSearchKeyAddBo) {
+        boolean spuExit = saleNumMapper.existSpu(goodsSearchKeyAddBo.getSpuId()) > 0;
+        int addCount = 0;
+        int updateCount = 0;
+        if (spuExit){
+            boolean isExist= goodsSearchKeyMapper.isExistGoodsSearchKey(goodsSearchKeyAddBo.getName(),goodsSearchKeyAddBo.getSpuId())>0;
+            GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
+            if (isExist){
+                goodsSearchKeyMapper.updateGoodsSearchKey(convert);
+                updateCount++;
+            }else {
+                goodsSearchKeyMapper.insertGoodsSearchKey(convert);
+                addCount++;
+            }
+        }else {
+            return BusinessResponse.success("failed spuId:" +goodsSearchKeyAddBo.getSpuId()+" is not exist");
+        }
+        return BusinessResponse.success("success add "+addCount+"update "+updateCount);
     }
 }

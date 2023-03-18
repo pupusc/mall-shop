@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -22,15 +23,15 @@ public class MetaBookRelation implements Serializable {
     private int bookId;
     private String name;
     private String subName;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date startTime;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
+    private String startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
+    private String endTime;
     private int orderNum;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date createTime;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT-8")
-    private Date updateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
+    private String createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
+    private String updateTime;
     private int delFlag;
 
 

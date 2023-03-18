@@ -1,9 +1,6 @@
 package com.wanmi.sbc.bookmeta.provider;
 
-import com.wanmi.sbc.bookmeta.bo.GoodsBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsKeyWordsDownLoadBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsNameBySpuIdBO;
-import com.wanmi.sbc.bookmeta.bo.GoodsSearchKeyAddBo;
+import com.wanmi.sbc.bookmeta.bo.*;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,4 +38,7 @@ public interface GoodsSearchKeyProvider {
     BusinessResponse<List<GoodsBO>> getGoodsList(@RequestBody @NotNull GoodsNameBySpuIdBO goodsNameBySpuIdBO);
     @PostMapping("/goods/${application.goods.version}/goodsSearchKey/downloadQuery")
     List<GoodsKeyWordsDownLoadBO> downloadQuery();
+    @PostMapping("/goods/${application.goods.version}/goodsSearchKey/importGoodsSearchKey")
+    BusinessResponse<String> importGoodsSearchKey(@RequestBody GoodsSearchKeyAddBo goodsSearchKeyAddBo);
+
 }

@@ -159,8 +159,11 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
     BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
 
-    @PostMapping("/goods/${application.goods.version}/booklistmodel/importById")
-    String importById(@RequestBody RankGoodsPublishResponse response);
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/importIntoGoodsPubishById")
+    String importIntoGoodsPubishById(@RequestBody RankGoodsPublishResponse response);
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/importIntoGoodsById")
+    String importIntoGoodsById(@RequestBody RankGoodsPublishResponse response);
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/getBookRecommend")
     BaseResponse<List> getBookRecommend(@RequestParam(value = "isbnId") String isbnId);

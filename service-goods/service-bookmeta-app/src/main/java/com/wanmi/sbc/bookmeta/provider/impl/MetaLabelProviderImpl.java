@@ -222,7 +222,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
                     goodsLabelSpu.setOrderNum(goodsLabelSpuReqBO.getOrderNum());
                     updateCount = metaLabelMapper.updateGoodsLabelSpu(goodsLabelSpu);
                 } else {
-                    GoodsLabelSpu goodsLabelSpu = goodsLabelSpuList.get(0);
+                    GoodsLabelSpu goodsLabelSpu = new GoodsLabelSpu();
                     goodsLabelSpu.setGoodsId(goodsLabelSpuReqBO.getGoodsId());
                     goodsLabelSpu.setLabelId(goodsLabelSpuReqBO.getLabelId());
                     goodsLabelSpu.setFirstId(goodsLabelSpuReqBO.getFirstId());
@@ -313,6 +313,13 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
             String id = String.valueOf(map.get("id"));
             int intId = Integer.parseInt(id);
             List childList = metaLabelMapper.getLabelCate(intId);
+            for (int j = 0; j < childList.size(); j++) {
+                Map map1 = (Map) childList.get(j);
+                String id1 = String.valueOf(map1.get("id"));
+                int intId1 = Integer.parseInt(id1);
+                List childList1 = metaLabelMapper.getLabelCate2(intId1);
+                map1.put("childList", childList1);
+            }
             map.put("childList", childList);
         }
         return list;
