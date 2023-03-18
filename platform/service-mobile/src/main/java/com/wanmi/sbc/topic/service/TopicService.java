@@ -1750,13 +1750,13 @@ public class TopicService {
         System.out.println("time2~" + DitaUtil.getCurrentAllDate());
         spuIdList = getSpuIdByGoodsDetail(old_json);
         System.out.println("time3~" + DitaUtil.getCurrentAllDate());
-        List<String> collect = spuIdList.stream().distinct().collect(Collectors.toList());
 
         if(null==spuIdList ||spuIdList.size()==0 ){
             //没有商品信息需要回填
 
             return BaseResponse.success(map);
         }
+        List<String> collect = spuIdList.stream().distinct().collect(Collectors.toList());
 
 //        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
 //        goodsInfoViewByIdsRequest.setGoodsInfoIds(collect);
@@ -1790,7 +1790,7 @@ public class TopicService {
 //        }
 
         System.out.println("time4~" + DitaUtil.getCurrentAllDate());
-        Map<String, SpuNewBookListResp> initPrice = this.initPrice(spuIdList);
+        Map<String, SpuNewBookListResp> initPrice = this.initPrice(collect);
         System.out.println("time5~" + DitaUtil.getCurrentAllDate());
         //回填商品的价格信息
         map= fillGoodsDetail(map,initPrice);
