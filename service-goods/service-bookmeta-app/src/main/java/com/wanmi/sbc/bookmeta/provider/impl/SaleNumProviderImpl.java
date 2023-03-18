@@ -37,19 +37,17 @@ public class SaleNumProviderImpl implements SaleNumProvider {
     @Transactional
     public BusinessResponse<String> importSaleNum(SaleNumBO saleNumBO) {
         int updateCount = 0;
-        if (StringUtils.isBlank(saleNumBO.getSkuId())) {
-            return BusinessResponse.error("failed,SKU_ID can't be blank");
-        }
+        if (StringUtils.isNotBlank(saleNumBO.getSkuId())) {
             boolean skuExit = saleNumMapper.existSku(saleNumBO.getSkuId()) > 0;
             if (skuExit) {
                     SaleNum saleNum = new SaleNum();
                     saleNum.setSkuId(saleNumBO.getSkuId());
                     saleNum.setSalesNum(StringUtils.isBlank(String.valueOf(saleNumBO.getSalesNum())) ? 0 : saleNumBO.getSalesNum());
                     saleNum.setFixPrice(saleNumBO.getFixPrice());
-                    updateCount = saleNumMapper.update(saleNum);
-            } else {
-                return BusinessResponse.error("failed,SKU_ID is not exist");
+                    saleNumMapper.update(saleNum);
+                    updateCount ++;
             }
+        }
         return BusinessResponse.success("Success,update" + updateCount + "!");
     }
 

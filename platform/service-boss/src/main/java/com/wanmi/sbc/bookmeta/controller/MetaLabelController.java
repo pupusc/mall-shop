@@ -256,6 +256,11 @@ public class MetaLabelController {
         return this.metaLabelProvider.deleteById(id.getId());
     }
 
+    @PostMapping("deleteMetaLabel")
+    public BusinessResponse<Boolean> deleteMetaLabel(@RequestBody IntegerIdVO id) {
+        return this.metaLabelProvider.deleteById(id.getId());
+    }
+
     /**
      * 下载模板
      */
@@ -470,9 +475,10 @@ public class MetaLabelController {
     }
 
     @PostMapping("getGoodsDetailOther")
-    public BusinessResponse<GoodDetailOtherRespBO> getGoodsDetailOther(@RequestBody GoodsLabelAddReqVO reqVO) {
-        GoodDetailOtherRespBO respBO = metaLabelProvider.getGoodsDetailAndOther(reqVO.getGoodsId());
-        return BusinessResponse.success(respBO);
+    public BusinessResponse<List<GoodDetailOtherRespBO>> getGoodsDetailOther(@RequestBody GoodsLabelAddReqVO reqVO) {
+        GoodsOtherDetailBO convert = KsBeanUtil.convert(reqVO, GoodsOtherDetailBO.class);
+        BusinessResponse<List<GoodDetailOtherRespBO>> goodsDetailAndOther = metaLabelProvider.getGoodsDetailAndOther(convert);
+        return goodsDetailAndOther;
     }
 
     @PostMapping("updateGoodsDetailOther")
@@ -480,6 +486,5 @@ public class MetaLabelController {
         int i = metaLabelProvider.updateGoodsDetailAndOther(reqVO);
         return BusinessResponse.success(i);
     }
-
 }
 

@@ -55,6 +55,7 @@
 
     <resultMap id="GoodsOtherDetail" type="com.wanmi.sbc.bookmeta.entity.GoodsOtherDetail">
         <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
         <result property="goodsShowType" column="goods_show_type" jdbcType="VARCHAR"/>
         <result property="goodsDetail" column="goods_detail" jdbcType="VARCHAR"/>
         <result property="orderShowType" column="order_show_type" jdbcType="VARCHAR"/>
@@ -396,7 +397,7 @@
     </select>
 
 <!--    该商品的标签-->
-   <select id="getLabelByGoodsIdOrLabelId" resultMap="MetaLabelMapV2" parameterType="com.wanmi.sbc.bookmeta.entity.MetaLabelV2">
+    <select id="getLabelByGoodsIdOrLabelId" resultMap="MetaLabelMapV2" parameterType="com.wanmi.sbc.bookmeta.entity.MetaLabelV2">
        select a.id as id, a.label_id as label_id,b.name as name, a.goods_id as goods_id, c.goods_name as goods_name, b.is_static
        from meta_label_spu a
                 left join meta_label b on a.label_id = b.id
@@ -544,7 +545,12 @@
     </delete>
 
     <select id="getGoodsOtherDetail" resultMap="GoodsOtherDetail">
-        select goods_id,goods_show_type,goods_detail,order_show_type,order_detail from goods where goods_id = #{goodsId}
+        select goods_id, goods_name, goods_show_type, goods_detail, order_show_type, order_detail
+        from goods where del_flag = 0
+        <if test="goodsName != null and goodsName !=''">
+            and  goods_name = #{goodsName}
+        </if>
+        limit #{limitIndex}, #{limitSize}
     </select>
 
     <update id="updateGoodsOtherDetail" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsOtherDetail">
@@ -591,16 +597,24 @@
     <select id="existLabel" parameterType="java.lang.Integer" resultType="java.lang.Integer">
         select count(1) from meta_label where del_flag = 0 and type = 2 and id = #{id}
     </select>
-    <select id="getLabelByGoodsIdOrLabelIdCount" resultType="java.lang.Integer">
+    <select id="getLabelByGoodsIdOrLabelIdCount" resultType="java.lang.Integer" parameterType="com.wanmi.sbc.bookmeta.entity.MetaLabelV2">
         select count(1)
         from meta_label_spu a
         left join meta_label b on a.label_id = b.id
         left join goods c on a.goods_id = c.goods_id
         where
         c.del_flag = 0 and b.del_flag = 0
-        <if test="name != null and name != ''">
-            <!--               and b.name like concat('%',#{name},'%')-->
-            and c.goods_name like concat('%',#{name},'%')
+        <if test="bo.goodsId !=null and bo.goodsId!= '' ">
+            and a.goods_id = #{bo.goodsId}
+        </if>
+        <if test="bo.id !=null and bo.id!= '' ">
+            and a.label_id = #{bo.id}
+        </if>
+    </select>
+    <select id="getGoodsOtherDetailCount" resultType="java.lang.Integer">
+        select count(1)  from goods where del_flag = 0
+        <if test="goodsName != null and goodsName !=''">
+              and  goods_name = #{goodsName}
         </if>
     </select>
 </mapper>

@@ -7,6 +7,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaTrade;
 import com.wanmi.sbc.bookmeta.mapper.MetaTradeMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaTradeProvider;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -98,7 +99,16 @@ public class MetaTradeProviderImpl implements MetaTradeProvider {
     }
 
     @Override
+    @Transactional
     public int deleteMetaTade(int id) {
-        return metaTradeMapper.deleteMetaTrade(id);
+        int deleteCount =0 ;
+        metaTradeMapper.deleteMetaTrade(id);
+        deleteCount++;
+        List<MetaTrade> metaTradeTree = metaTradeMapper.getMetaTradeTree(id);
+        for (MetaTrade metaTrade : metaTradeTree) {
+            metaTradeMapper.deleteMetaTrade(metaTrade.getId());
+            deleteCount ++;
+        }
+        return deleteCount;
     }
 }

@@ -80,5 +80,7 @@ public interface MetaBookLabelProvider {
 
     @PostMapping("/goods/${application.goods.version}/metaBook/bookLabelAllByPage")
     BusinessResponse<List<MetaBookLabelReqBO>> bookLabelAllByPage(@RequestBody MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo);
+    @PostMapping("/goods/${application.goods.version}/metaBook/addBookLabe")
+    BusinessResponse<Integer> addBookLabel(@RequestBody MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo);
 
 }

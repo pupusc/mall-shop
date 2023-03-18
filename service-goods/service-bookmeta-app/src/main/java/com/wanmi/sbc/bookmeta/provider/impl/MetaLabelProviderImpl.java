@@ -176,6 +176,10 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
         this.metaLabelService.deleteById(id);
+        List<Map> labelCate = metaLabelMapper.getLabelCate(id);
+        for (Map label : labelCate) {
+            metaLabelMapper.deleteById((Integer) label.get("id"));
+        }
         return BusinessResponse.success(true);
     }
 
@@ -392,10 +396,15 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
-    public GoodDetailOtherRespBO getGoodsDetailAndOther(String GoodsId) {
-        GoodsOtherDetail goodsOtherDetail = metaLabelMapper.getGoodsOtherDetail(GoodsId);
-        GoodDetailOtherRespBO convert = KsBeanUtil.convert(goodsOtherDetail, GoodDetailOtherRespBO.class);
-        return convert;
+    public BusinessResponse<List<GoodDetailOtherRespBO>> getGoodsDetailAndOther(GoodsOtherDetailBO bo) {
+        Page page = bo.getPage();
+        page.setTotalCount((int) metaLabelMapper.getGoodsOtherDetailCount(bo.getGoodsName()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        }
+        List<GoodsOtherDetail> goodsOtherDetail = metaLabelMapper.getGoodsOtherDetail(bo.getGoodsName(), page.getOffset(), page.getPageSize());
+        List<GoodDetailOtherRespBO> goodDetailOtherRespBOS = KsBeanUtil.convertList(goodsOtherDetail, GoodDetailOtherRespBO.class);
+        return BusinessResponse.success(goodDetailOtherRespBOS,page);
     }
 
     @Override

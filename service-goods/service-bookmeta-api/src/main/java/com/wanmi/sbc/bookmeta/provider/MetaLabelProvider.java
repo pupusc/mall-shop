@@ -123,7 +123,7 @@ public interface MetaLabelProvider {
     SkuDetailBO getGoodsInfoBySkuId(@RequestBody @NotNull String id);
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/getGoodsDetailOther")
-    GoodDetailOtherRespBO getGoodsDetailAndOther(@RequestBody @NotNull String GoodsId);
+    BusinessResponse<List<GoodDetailOtherRespBO>> getGoodsDetailAndOther(@RequestBody @NotNull GoodsOtherDetailBO bo);
 
     @PostMapping("/goods/${application.goods.version}/metaLabel/updateGoodsDetailOther")
     int updateGoodsDetailAndOther(@RequestBody @NotNull GoodDetailOtherRespBO goodDetailOtherRespBO);

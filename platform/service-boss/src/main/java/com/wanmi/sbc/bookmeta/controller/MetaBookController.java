@@ -386,9 +386,9 @@ public class MetaBookController {
                     cells[cellNum] = cell.getStringCellValue();
                 }
                 MetaBookLabelBO metaBookLabelBO=new MetaBookLabelBO();
-                metaBookLabelBO.setBookId(Integer.parseInt(cells[0]));
-                metaBookLabelBO.setLabelId(Integer.parseInt(cells[1]));
-                metaBookLabelBO.setDelFlag(Integer.parseInt(cells[2]));
+                metaBookLabelBO.setBookId(Integer.parseInt(cells[4]));
+                metaBookLabelBO.setLabelId(Integer.parseInt(cells[2]));
+                metaBookLabelBO.setDelFlag(0);
                 res = metaBookLabelProvider.importBookLabel(metaBookLabelBO).getContext();
                 if(null!=res) {
                     String[] split = res.split(",");
