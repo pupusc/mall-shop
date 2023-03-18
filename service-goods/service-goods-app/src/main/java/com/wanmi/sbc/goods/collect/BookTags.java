@@ -84,14 +84,14 @@ public class BookTags {
 
     public void doGoods(Map goodMap){
 
-        /*String spu_no = String.valueOf(goodMap.get("spu"));
+        String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
-        String spu_id = String.valueOf(goodMap.get("spu_id"));*/
+        String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-        String spu_id = "2c9a00ca86299cda01862a0163e60000";
+    /*    String spu_id = "2c9a00ca86299cda01862a0163e60000";
         String spu_no = "P735546359";
         String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
-        String isbn   = "ISBN_C_T003";
+        String isbn   = "ISBN_C_T003";*/
 
 
         //Map bookMap = bookJpa.getBookMap(isbn);               //1.读数据库
