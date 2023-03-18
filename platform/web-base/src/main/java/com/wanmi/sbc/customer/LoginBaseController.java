@@ -1519,7 +1519,7 @@ public class LoginBaseController {
     public BaseResponse<LoginResponse> authLogin(@Valid @RequestBody FanDengAuthLoginRequest loginRequest) {
         log.info("enter autoLogin method ......");
 
-        /**
+
         BaseResponse<FanDengLoginResponse> authLogin = externalProvider.authLogin(loginRequest);
         authLogin.getContext().setMobile(loginRequest.getMobile());
         CustomerVO customerVO = extractLogin(authLogin.getContext());
@@ -1534,8 +1534,8 @@ public class LoginBaseController {
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
-        }**/
-
+        }
+/**
         //LoginResponse loginResponse = new LoginResponse();
         LoginResponse loginResponse = LoginResponse.builder().build();
         loginResponse.setToken("eyJhbGciOiJIUzI1NiIsInppcCI6IkRFRiJ9.eNpkkD1OxDAQhe8ydRR57MSx01GuhKgoI0V2PF5Z5E-xsyBWewIKbsEduA_cA6dAFBTTzPvee9K7QtwttIC1RKXz1QoKCCZBi7JRokbBWQHDHtMy0XZymeWDNow5VBV5IxRjqCRK1N46ybio4I-_G4Zln9O_gl_9wUyUxa_Pj-_3tz68PuujfT14zUuUqqxlieywJNqmMJvxcXmiOQOWC-4t-Qq54cyyikuhXTM0VnIvFGaLD1tM98s5ZN6bMVIBFzPu1BvnyPWRtksYKOawa5eV2Ada8zelMJ87aDug2diROrjlMHpZj00UMq4bzm4_AAAA__8.g8LZ9Oa4betORBsPMD7xVOZeyop6aO_cFR147POynq4");
@@ -1543,7 +1543,7 @@ public class LoginBaseController {
         loginResponse.setCustomerId("2c9a00d184efa38001861619fbd60234");
         loginResponse.setAccountName("书友_izw9");
         loginResponse.setNewFlag(true);
-
+ **/
         log.info("autoLogin success ......");
         return BaseResponse.success(loginResponse);
     }
