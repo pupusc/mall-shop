@@ -53,7 +53,7 @@ public class MarketLabel {
         String spu_id = String.valueOf(skuMap.get("spu_id"));
         String sku_id = String.valueOf(skuMap.get("sku_id"));
 
-        /*String spu_id = "2c9a00ca86299cda01862a0163e60000";
+    /*    String spu_id = "2c9a00ca86299cda01862a0163e60000";
         String sku_id= "2c9a009b86a5b1850186a6ae64c80004";
         String spu_no = "P735546359";
         String isbn   = "ISBN_C_T003";*/

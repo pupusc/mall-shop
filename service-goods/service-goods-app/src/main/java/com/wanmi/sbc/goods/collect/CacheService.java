@@ -51,7 +51,7 @@ public class CacheService {
         String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from `sbc-marketing`.t_normal_activity a left join `sbc-marketing`.t_activity_point_sku b on a.id = b.normal_activity_id " +
                 "                  where a.del_flag = 0 and a.publish_state = 1 " +
                 "                  and a.begin_time <= ? and ? <= a.end_time " +
-                "                  order by a.id desc,b.num desc limit 0,1  ";
+                "                  order by a.id desc,b.num desc  ";
         Object[] obj = new Object[]{currentTime, currentTime};
         List list = jpaManager.queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
