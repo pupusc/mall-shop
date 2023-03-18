@@ -1736,7 +1736,9 @@ public class TopicService {
 
         String old_json=new String();
         old_json = getGoodsDetialById(spuId, skuId, "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID");
-
+        if(DitaUtil.isBlank(old_json)){
+            return BaseResponse.success("");
+        }
         Gson gson = new Gson();
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> map = gson.fromJson(old_json, type);
@@ -1877,11 +1879,7 @@ public class TopicService {
         }
         List<String> spu_id=new ArrayList<>();
         spu_id= findJsonGetKey(old_json, "spu_id");
-        if(CollectionUtils.isEmpty(spu_id)){
-            spu_id= findJsonGetKey(old_json, "goodsId");
-        }
         return spu_id;
-
     }
 
     //递归查询,查询所有为key的value
