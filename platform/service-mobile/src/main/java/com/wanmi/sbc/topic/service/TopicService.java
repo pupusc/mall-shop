@@ -1875,6 +1875,11 @@ public class TopicService {
         if(null==old_json){
             return null;
         }
+        List<String> spu_id=new ArrayList<>();
+        spu_id= findJsonGetKey(old_json, "spu_id");
+        if(CollectionUtils.isEmpty(spu_id)){
+            spu_id= findJsonGetKey(old_json, "goodsId");
+        }
         return findJsonGetKey(old_json,"spu_id");
 
     }
