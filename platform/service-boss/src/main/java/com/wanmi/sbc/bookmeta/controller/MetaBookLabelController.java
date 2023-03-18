@@ -109,5 +109,11 @@ public class MetaBookLabelController {
         BusinessResponse<List<MetaBookLabelReqBO>> listBusinessResponse = metaBookLabelProvider.bookLabelAllByPage(metaBookQueryByPageBo);
         return listBusinessResponse;
     }
+
+    @PostMapping("/addBookLabel")
+    public BusinessResponse<Integer> addBookLabel(@RequestBody MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
+        BusinessResponse<Integer> integerBusinessResponse = metaBookLabelProvider.addBookLabel(metaBookQueryByPageBo);
+        return integerBusinessResponse;
+    }
 }
 

@@ -129,5 +129,7 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
     List<MetaBookLabelQueryByPageReqBO> getAllBookLabel(@Param("bo")MetaBookLabelQueryByPageReqBO pageReqBO,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
     int getAllBookLabelCount(MetaBookLabelQueryByPageReqBO pageReqBO);
+
+    int insertSelective(MetaBookLabel metaBookLabel);
 }
 

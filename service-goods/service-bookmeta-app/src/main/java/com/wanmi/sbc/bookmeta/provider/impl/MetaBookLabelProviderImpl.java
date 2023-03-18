@@ -135,11 +135,11 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
     @Override
     public BusinessResponse<List<MetaBookLabelReqBO>> bookAllByPage(MetaBookQueryByPageBo metaBookQueryByPageBo) {
         Page page = metaBookQueryByPageBo.getPage();
-        page.setTotalCount((int) metaBookLabelMapper.getAllBookCount(metaBookQueryByPageBo.getQueryBookName()));
+        page.setTotalCount((int) metaBookLabelMapper.getAllBookCount(metaBookQueryByPageBo.getName()));
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBook(metaBookQueryByPageBo.getQueryBookName(), page.getOffset(), page.getPageSize());
+        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBook(metaBookQueryByPageBo.getName(), page.getOffset(), page.getPageSize());
         List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
         return BusinessResponse.success(metaLabelBOS, page);
     }
@@ -154,5 +154,18 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
         List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBookLabel(metaBookQueryByPageBo, page.getOffset(), page.getPageSize());
         List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
         return BusinessResponse.success(metaLabelBOS, page);
+    }
+
+    @Override
+    public BusinessResponse<Integer> addBookLabel(MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
+        int i = 0;
+        MetaBookLabel convert = KsBeanUtil.convert(metaBookQueryByPageBo, MetaBookLabel.class);
+        List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.queryExitByBookAndLabelId(convert.getBookId(), convert.getLabelId());
+        if (metaBookLabels.size() > 0) {
+            i=2;
+            return BusinessResponse.success(i);
+        }
+        i = metaBookLabelMapper.insertSelective(convert);
+        return BusinessResponse.success(i);
     }
 }

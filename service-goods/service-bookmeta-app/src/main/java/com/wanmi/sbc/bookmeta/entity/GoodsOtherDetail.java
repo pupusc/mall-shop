@@ -14,6 +14,7 @@ import java.io.Serializable;
 @Data
 public class GoodsOtherDetail implements Serializable {
     private String goodsId;
+    private String goodsName;
     private String goodsShowType;
     private String goodsDetail;
     private String orderShowType;

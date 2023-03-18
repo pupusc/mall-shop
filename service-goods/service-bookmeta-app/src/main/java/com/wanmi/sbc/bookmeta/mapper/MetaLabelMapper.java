@@ -120,7 +120,7 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     List<MetaLabelV2> getLabelByGoodsIdOrLabelId(@Param("bo") MetaLabelV2 metaLabelV2,@Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 
-    int getLabelByGoodsIdOrLabelIdCount(MetaLabelV2 metaLabelV2);
+    int getLabelByGoodsIdOrLabelIdCount(@Param("bo") MetaLabelV2 metaLabelV2);
     int getLabelsCount(@Param("name")String name);
 
     int isExistGoods(@Param("goods_id") String id);
@@ -142,7 +142,9 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     String getIsbnBySkuId(@Param("goodsId") String goodsId);
 
     String getSaleNumSkuId(@Param("goodsId") String goodsId);
-    GoodsOtherDetail getGoodsOtherDetail(@Param("goodsId") String goodsId);
+    List<GoodsOtherDetail> getGoodsOtherDetail(@Param("goodsName") String goodsName, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    int getGoodsOtherDetailCount(@Param("goodsName") String goodsName);
     Integer updateGoodsOtherDetail(GoodsOtherDetail goodsOtherDetail);
     List<GoodsLabelSpu> getGoodsLabel();
     List<GoodsVO> getGoodsList();

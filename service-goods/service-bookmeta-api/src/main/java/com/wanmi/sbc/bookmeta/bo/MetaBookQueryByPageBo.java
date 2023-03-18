@@ -16,6 +16,7 @@ public class MetaBookQueryByPageBo implements Serializable {
     private String queryBookName;
 
     private String queryLabelName;
+    private String name;
 
     private Integer pageNum;
 
