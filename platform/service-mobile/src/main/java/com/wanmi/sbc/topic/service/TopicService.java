@@ -2059,7 +2059,7 @@ public class TopicService {
         return false;
     }
 
-    public Boolean routeIndexTemp() {
+    public Map routeIndexTemp() {
         //获取NACOS路由配置
 //        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
         List<String> phoneList=new ArrayList<>();
@@ -2067,18 +2067,22 @@ public class TopicService {
             phoneList.add(String.valueOf(s.getPhone()));
         });
         try {
+            Map map=new HashMap();
             //获取当前用户
             CustomerVO customer = commonUtil.getCustomer();
             //用户如果未获取到跳转登陆页面
             if(Objects.isNull(customer)){
-                return false;
+                map.put("result","false");
+                return map;
             }
             if(CollectionUtils.isEmpty(phoneList)){
-                return false;
+                map.put("result","false");
+                return map;
             }
             //指定手机号跳转新版本
             if(phoneList.contains(customer.getCustomerAccount())){
-                return true;
+                map.put("result","true");
+                return map;
             }
             /*判断模式
              * 1：全部跳转老版本；
@@ -2107,10 +2111,13 @@ public class TopicService {
 //                return true;
 //            }
             //如果都没命中直接去老版本首页
-            return false;
+            map.put("result","false");
+            return map;
         }catch (Exception e){
             log.error("route page redirect error,cause:{}",e);
         }
-        return false;
+        Map map=new HashMap();
+        map.put("result","false");
+        return map;
     }
 }
