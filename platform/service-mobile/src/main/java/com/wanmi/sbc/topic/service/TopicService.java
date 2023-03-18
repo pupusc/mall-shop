@@ -1880,7 +1880,7 @@ public class TopicService {
         if(CollectionUtils.isEmpty(spu_id)){
             spu_id= findJsonGetKey(old_json, "goodsId");
         }
-        return findJsonGetKey(old_json,"spu_id");
+        return spu_id;
 
     }
 
