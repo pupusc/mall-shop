@@ -18,7 +18,7 @@ import java.util.List;
 
 @Repository
 public interface MetaTradeMapper extends Mapper<MetaTrade> {
-    List<MetaTrade> getMetaTradeTree(int parentId);
+    List<MetaTrade> getMetaTradeTree(@Param("parentId") int parentId);
 
     List<MetaTrade> getAllMetaTradeNode();
 

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goodsPool.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
@@ -10,14 +11,17 @@ import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.bean.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Description: todo-zh
@@ -38,6 +42,9 @@ public class AssignPoolServiceImpl implements PoolService {
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Autowired
+    private RedisService redisService;
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         List<GoodsDto> goods = new ArrayList<>();
@@ -97,10 +104,10 @@ public class AssignPoolServiceImpl implements PoolService {
             }
         }
         //营销标签
-        List<String> tagList = new ArrayList<>();
-        if (res.getLabels() != null) {
-            res.getLabels().forEach(label -> tagList.add(label.getLabelName()));
-        }
+        List<String> tagList = getMarkingSku(skuDetailBO.getSkuId()).stream().map(s -> String.valueOf(s.get("name"))).collect(Collectors.toList());
+//        if (res.getLabels() != null) {
+//            res.getLabels().forEach(label -> tagList.add(label.getLabelName()));
+//        }
         goodsDto.setTags(tagList);
         //买点标签
         String tagJson = goodsInfoQueryProvider.getRedis(res.getSpuId()).getContext();
@@ -167,4 +174,21 @@ public class AssignPoolServiceImpl implements PoolService {
         return skuDetailBO;
     }
 
+    public List<Map> getMarkingSku(String sku_id) {
+
+        Map labelMap = new HashMap();
+        //读取公用标签
+        String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
+        List<Map> labelNewList = new ArrayList<Map>();
+        if (null != old_json) {
+            labelMap = JSONObject.parseObject(old_json, Map.class);
+            if(labelMap.get("labels") != null) {
+                List<Map> labelList = (List)labelMap.get("labels");
+                labelNewList = labelList.stream().filter(s -> s.get("order_type") != null && Integer.valueOf(String.valueOf(s.get("order_type"))) <= 50)
+                        .collect(Collectors.toList());
+                labelMap.put("labels", labelNewList);
+            }
+        }
+        return labelNewList;
+    }
 }

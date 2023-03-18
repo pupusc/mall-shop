@@ -26,8 +26,8 @@
     <select id="getAllMetaTradeNode" resultMap="MetaTradeMap">
         select *
         from meta_trade
-        where
-        del_flag = 0
+        where del_flag = 0
+        order by update_time desc
     </select>
     <select id="isExist" resultType="java.lang.Integer">
         select count(1) from meta_trade where

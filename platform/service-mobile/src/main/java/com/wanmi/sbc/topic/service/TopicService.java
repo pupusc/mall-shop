@@ -1701,6 +1701,7 @@ public class TopicService {
                     .map(c -> {
                         return new KeyWordDto(String.valueOf(c.getId()), c.getName());
                     }).collect(Collectors.toList());
+            redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":");
             for (KeyWordDto keyword : keywords) {
                 String keyWordId = keyword.getId();
                 String keyWord = keyword.getName();
@@ -1722,7 +1723,6 @@ public class TopicService {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
-                redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId);
                 redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
             redisService.delete(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords");
