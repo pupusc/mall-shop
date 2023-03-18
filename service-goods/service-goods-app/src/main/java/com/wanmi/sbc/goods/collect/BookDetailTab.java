@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.alibaba.nacos.api.selector.SelectorType.label;
+
 @Slf4j
 @Service
 //图书商品详细
@@ -684,6 +686,12 @@ public class BookDetailTab {
         String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
         if (null != old_json) {
             labelMap = JSONObject.parseObject(old_json, Map.class);
+            if(labelMap.get("labels") != null) {
+                List<Map> labelList = (List)labelMap.get("labels");
+                List<Map> labelNewList = labelList.stream().filter(s -> s.get("order_type") != null && Integer.valueOf(String.valueOf(s.get("order_type"))) <= 50)
+                        .collect(Collectors.toList());
+                labelMap.put("labels", labelNewList);
+            }
         }
         return labelMap;
     }
