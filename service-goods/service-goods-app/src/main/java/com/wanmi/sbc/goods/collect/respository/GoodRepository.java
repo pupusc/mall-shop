@@ -288,7 +288,7 @@ public class GoodRepository {
     //select id from meta_book where id !=7838 and trade_id = '11880';
     public List getTrade(String bookId) {
 
-        String sql = " select id from meta_book where id != ? and trade_id in (select trade_id from meta_book where id = ? ) ";
+        String sql = " select id from meta_book where id != ? and trade_id in (select trade_id from meta_book where id = ? ) limit 0,5 ";
         Object[] obj = new Object[]{bookId,bookId};
         List list = jpaManager.queryForList(sql, obj);
 

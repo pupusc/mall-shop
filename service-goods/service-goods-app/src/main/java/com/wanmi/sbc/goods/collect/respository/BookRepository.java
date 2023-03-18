@@ -470,7 +470,7 @@ public class BookRepository {
     }
 
     public List<String> RcommdBookByFigureId(int biz_id, String book_id) {
-        String sql = "        select b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.biz_id=? and a.book_id !=? and a.is_selected=1 and a.del_flag=0 and b.del_flag=0";
+        String sql = " select b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.biz_id=? and a.book_id !=? and a.is_selected=1 and a.del_flag=0 and b.del_flag=0 limit 0,5";
         Object[] obj = new Object[]{biz_id,book_id};
 
         List<Map> list = jpaManager.queryForList(sql,obj);
