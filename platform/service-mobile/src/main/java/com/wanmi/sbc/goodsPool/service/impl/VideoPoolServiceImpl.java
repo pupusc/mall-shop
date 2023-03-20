@@ -76,6 +76,7 @@ public class VideoPoolServiceImpl implements PoolService {
         //SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySpuId(goodsDto.getSpuId());
         goodsDto.setSkuId(skuDetailBO.getSkuId());
         goodsDto.setGoodsName(skuDetailBO.getSkuName());
+        goodsDto.setSpecMore(Integer.parseInt(skuDetailBO.getSpecNum()) >= 2 ? true : false);
         goodsDto.setImage(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
         String score = null;
         String isbn = columnContentDTO.getIsbn() != null ? columnContentDTO.getIsbn() : (res.getBook() != null ? res.getBook().getIsbn() : null);
