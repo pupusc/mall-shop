@@ -318,7 +318,7 @@ public class TopicService {
             }
             return null;
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("获取用户信息失败");
             return null;
         }
 
