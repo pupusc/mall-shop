@@ -19,5 +19,5 @@ public class GoodsEvaluateAnalyseReqVO implements Serializable {
     private String evaluateContentKey;
     private String evaluateContent;
     private String name;
-    private Page page = new Page(1,10);
+    private Page page = new Page(1, 10);
 }

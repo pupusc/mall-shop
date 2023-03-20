@@ -18,6 +18,7 @@ public class GoodsLabelAddReqVO implements Serializable {
 
     private int id;
     private String goodsId;
+    private String goodsName;
     private int labelId;
     private int firstId;
     private int secondId;

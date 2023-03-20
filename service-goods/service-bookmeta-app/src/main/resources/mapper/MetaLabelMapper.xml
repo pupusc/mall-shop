@@ -548,7 +548,7 @@
         select goods_id, goods_name, goods_show_type, goods_detail, order_show_type, order_detail
         from goods where del_flag = 0
         <if test="goodsName != null and goodsName !=''">
-            and  goods_name = #{goodsName}
+            and  goods_name like concat('%',#{goodsName},'%')
         </if>
         limit #{limitIndex}, #{limitSize}
     </select>
@@ -614,7 +614,7 @@
     <select id="getGoodsOtherDetailCount" resultType="java.lang.Integer">
         select count(1)  from goods where del_flag = 0
         <if test="goodsName != null and goodsName !=''">
-              and  goods_name = #{goodsName}
+              and  goods_name like concat('%',#{goodsName},'%')
         </if>
     </select>
 </mapper>
