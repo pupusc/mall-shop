@@ -212,9 +212,12 @@ public class TopicService {
             return BaseResponse.success(response);
         }
         //轮播图要加载
-        for (int i= 0 ;i<response.getStoreyList().size();i++){
-            if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
-                response.getStoreyList().get(i).setContents(null);
+        if(!allLoad) {
+            int index = response.getStoreyList().size() > 1 ? 2 : 1;
+            for (int i= index ;i<response.getStoreyList().size();i++){
+                if(!response.getStoreyList().get(i).getStoreyType().equals(TopicStoreyType.HETERSCROLLIMAGE.getId())){
+                    response.getStoreyList().get(i).setContents(null);
+                }
             }
         }
         //商品属性
