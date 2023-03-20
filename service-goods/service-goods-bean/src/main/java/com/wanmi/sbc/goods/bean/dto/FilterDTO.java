@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @ApiModel
 @Data
 @NoArgsConstructor
@@ -26,5 +28,5 @@ public class FilterDTO {
 
     private String loginUrl;
 
-    private String phone;
+    private List<String> phoneList;
 }

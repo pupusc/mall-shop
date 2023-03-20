@@ -2065,10 +2065,8 @@ public class TopicService {
     public Map routeIndexTemp() {
         //获取NACOS路由配置
 //        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
-        List<String> phoneList=new ArrayList<>();
-        JSONArray.parseArray(refreshConfig.getV2FilterConfig(), FilterDTO.class).forEach(s->{
-            phoneList.add(String.valueOf(s.getPhone()));
-        });
+        FilterDTO filterDTO = JSON.parseObject(refreshConfig.getV2FilterConfig(), FilterDTO.class);
+        List<String> phoneList=filterDTO.getPhoneList();
         try {
             Map map=new HashMap();
             //获取当前用户
@@ -2078,15 +2076,6 @@ public class TopicService {
                 map.put("result","false");
                 return map;
             }
-            if(CollectionUtils.isEmpty(phoneList)){
-                map.put("result","false");
-                return map;
-            }
-            //指定手机号跳转新版本
-            if(phoneList.contains(customer.getCustomerAccount())){
-                map.put("result","true");
-                return map;
-            }
             /*判断模式
              * 1：全部跳转老版本；
              * 2：全部跳转新版本；
@@ -2094,25 +2083,32 @@ public class TopicService {
              * 4: 根据手机号码结尾跳转新版
              * */
 //            String status = object.getString("status");
-//            //1：跳转老版本
-//            if(String.valueOf(Constants.ONE).equals(status)){
-//                return false;
-//            }
-//            //2：跳转新版本
-//            if(String.valueOf(Constants.PRICETYPE).equals(status)){
-//                return true;
-//            }
-//            //3：白名单跳转新版；
+            //1：跳转老版本
+            if(String.valueOf(Constants.ONE).equals(filterDTO.getStatus())){
+                map.put("result","false");
+                return map;
+            }
+            //2：跳转新版本
+            if(String.valueOf(Constants.PRICETYPE).equals(filterDTO.getStatus())){
+                map.put("result","true");
+                return map;
+            }
+            //3：白名单跳转新版；
 //            String userIds = object.getString("userIds");
 //            if(String.valueOf(Constants.GOODS_LEAF_CATE_GRADE).equals(status)&& org.apache.commons.lang3.StringUtils.isNotBlank(userIds)
 //                    && Arrays.asList(userIds.split(",",-1)).contains(customer.getCustomerId())){
 //                return true;
 //            }
-//            //4：根据手机号码结尾
+            //4：根据手机号码结尾
 //            String proied = object.getString("prod");//手机号结尾，1-9,支持多个配置逗号分隔，例如1,6
 //            if("4".equals(status)&& DitaUtil.isPhoneEndWith(customer.getCustomerAccount(),proied)){
 //                return true;
 //            }
+            //5:根据手机号跳转新版
+            if(CollectionUtils.isNotEmpty(phoneList)&& phoneList.contains(customer.getCustomerAccount())){
+                map.put("result","true");
+                return map;
+            }
             //如果都没命中直接去老版本首页
             map.put("result","false");
             return map;
