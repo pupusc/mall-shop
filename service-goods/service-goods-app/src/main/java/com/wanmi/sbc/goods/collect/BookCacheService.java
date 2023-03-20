@@ -698,11 +698,11 @@ public class BookCacheService {
             String book_id = String.valueOf(map.get("book_id"));
             String figure_type = String.valueOf(map.get("figure_type"));
             if (DitaUtil.isNotBlank(figure_type) && DitaUtil.isNotBlank(book_id)) {
-                List tagList = (List) bookFirstWriterMap.get(book_id + figure_type);
+                List tagList = (List) bookFirstWriterMap.get(book_id+figure_type);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
                     tagList.add(map);
-                    bookFirstWriterMap.put(book_id + figure_type, tagList);
+                    bookFirstWriterMap.put(book_id+figure_type, tagList);
                 } else {
                     tagList.add(map);                             //存在放入
                 }

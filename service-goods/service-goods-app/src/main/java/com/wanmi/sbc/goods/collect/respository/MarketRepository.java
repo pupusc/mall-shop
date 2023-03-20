@@ -23,7 +23,7 @@ public class MarketRepository {
     public List getSkuList(){
 
         String sql = " select b.goods_id as spu_id,b.goods_info_id as sku_id,b.goods_info_no as sku_no from goods a left join goods_info b on a.goods_id = b.goods_id " +
-                     "  where a.del_flag = 0 and b.del_flag = 0 ";
+                     "  where a.del_flag = 0 and b.del_flag = 0  and b.stock > 0 and b.goods_info_id = '2c9a00b586ed86b90186ee83712d0015'";
         //             "  limit 0,1 ";
         // and b.stock > 0 and b.goods_info_id = '2c9a009b86a5b1850186a6ae64c80004''
         Object[] obj = new Object[]{};

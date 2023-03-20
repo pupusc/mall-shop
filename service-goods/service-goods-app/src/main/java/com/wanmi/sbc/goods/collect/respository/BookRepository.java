@@ -265,7 +265,7 @@ public class BookRepository {
 
         String sql = "select a.goods_no as spu,b.prop_value as isbn,c.id,a.goods_id as spu_id from goods a left join goods_prop_detail_rel b on a.goods_id = b.goods_id \n" +
                 " left join meta_book c on b.prop_value = c.isbn " +
-                " where b.prop_id = 5 and a.del_flag=0 and b.del_flag=0 ";
+                " where b.prop_id = 5 and a.del_flag=0 and b.del_flag=0 and c.id = 7839";
 
         //and c.id = 7836
         Object[] obj = new Object[]{};
