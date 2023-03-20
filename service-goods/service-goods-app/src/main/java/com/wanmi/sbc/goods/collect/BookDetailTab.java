@@ -229,11 +229,11 @@ public class BookDetailTab {
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> contentMap = new HashMap<>();
         //作家
-        List<Map> FirstWriter = getFigure(bookId, FigureType.WRITER.toValue());
+        Map FirstWriter = getFigure(bookId, FigureType.WRITER.toValue());
         contentMap.put("firstWriter", FirstWriter);
 
         //翻译家
-        List<Map> FirstTranslator = getFigure(bookId, FigureType.TRANSLATOR.toValue());
+        Map FirstTranslator = getFigure(bookId, FigureType.TRANSLATOR.toValue());
         contentMap.put("firstTranslator", FirstTranslator);
 
         //简介目录原文摘要
@@ -270,63 +270,59 @@ public class BookDetailTab {
     }
 
     //1.作家 2.翻译家
-    private List<Map> getFigure(String bookId, String figureType) {
+    private Map getFigure(String bookId, String figureType) {
         //1.作家 2.翻译家
         //List firstWriter = bookJpa.getFirstWriter(bookId, figureType);
         List firstWriter = bookCacheService.getFirstWriter(bookId, figureType);
-        List<Map> mapList = new ArrayList<>();
+        Map map = new HashMap();
         if (firstWriter != null && firstWriter.size() > 0) {
-            for (int i = 0; i < firstWriter.size(); i++) {
-                //作家
-                Map map = new HashMap();
-                map = (Map) firstWriter.get(i);
-                String writerId = String.valueOf(map.get("id"));
-                //获得的奖项
-                // List writerAwards = bookJpa.getWriterAwards(writerId);
-                List writerAwards = bookCacheService.getWriterAwards(writerId);
+            //作家
+            map = (Map) firstWriter.get(0);
+            String writerId = String.valueOf(map.get("id"));
+            //获得的奖项
+            // List writerAwards = bookJpa.getWriterAwards(writerId);
+            List writerAwards = bookCacheService.getWriterAwards(writerId);
 
-                map.put("Awards", writerAwards);
-                //查询作家其它的书
-                //List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
-                List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
-                List ret = new ArrayList();
-                for (int j = 0; j < writerBooks.size(); j++) {
-                    Map writerBookMap = (Map) writerBooks.get(j);
-                    String isbn = String.valueOf(writerBookMap.get("isbn"));
-                    // Map goodMap = bookJpa.findSpuByV3(isbn);
-                    Map goodMap = bookCacheService.findSpuByV3(isbn);
-                    if (goodMap != null && goodMap.size() > 0) {
-                        String spu_no = String.valueOf(goodMap.get("spu_no"));
-                        String goods_name = String.valueOf(goodMap.get("goods_name"));
-                        String spu_id = String.valueOf(goodMap.get("spu_id"));
-                        // Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
-                        Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
-                        writerBookMap.put("sku_id", null);
-                        writerBookMap.put("labelMap", null);
-                        String sku_id = "";
-                        if (skuBySpuId != null && skuBySpuId.size() > 0) {
-                            sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
-                            writerBookMap.put("sku_id", sku_id);
-                        }
-                        writerBookMap.put("spu_no", spu_no);
-                        writerBookMap.put("goods_name", goods_name);
-                        writerBookMap.put("spu_id", spu_id);
-                        if (null != spu_id) {
-                            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
-                            if (null != old_json) {
-                                Map labelMap = JSONObject.parseObject(old_json, Map.class);
-                                writerBookMap.put("labelMap", labelMap);
-                            }
-                        }
-                        ret.add(writerBookMap);
+            map.put("Awards", writerAwards);
+            //查询作家其它的书
+            //List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
+            List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
+            List ret = new ArrayList();
+            for (int j = 0; j < writerBooks.size(); j++) {
+                Map writerBookMap = (Map) writerBooks.get(j);
+                String isbn = String.valueOf(writerBookMap.get("isbn"));
+                // Map goodMap = bookJpa.findSpuByV3(isbn);
+                Map goodMap = bookCacheService.findSpuByV3(isbn);
+                if (goodMap != null && goodMap.size() > 0) {
+                    String spu_no = String.valueOf(goodMap.get("spu_no"));
+                    String goods_name = String.valueOf(goodMap.get("goods_name"));
+                    String spu_id = String.valueOf(goodMap.get("spu_id"));
+                    // Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                    Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
+                    writerBookMap.put("sku_id", null);
+                    writerBookMap.put("labelMap", null);
+                    String sku_id = "";
+                    if (skuBySpuId != null && skuBySpuId.size() > 0) {
+                        sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                        writerBookMap.put("sku_id", sku_id);
                     }
-
+                    writerBookMap.put("spu_no", spu_no);
+                    writerBookMap.put("goods_name", goods_name);
+                    writerBookMap.put("spu_id", spu_id);
+                    if (null != spu_id) {
+                        String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
+                        if (null != old_json) {
+                            Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                            writerBookMap.put("labelMap", labelMap);
+                        }
+                    }
+                    ret.add(writerBookMap);
                 }
-                map.put("Books", ret);
-                mapList.add(map);
+
             }
+            map.put("Books", ret);
         }
-        return mapList;
+        return map;
 
     }
 
