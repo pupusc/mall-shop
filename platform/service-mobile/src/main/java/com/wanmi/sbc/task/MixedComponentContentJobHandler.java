@@ -1,13 +1,6 @@
 package com.wanmi.sbc.task;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
-import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
-import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
-import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.PoolFactory;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.redis.RedisListService;
@@ -42,13 +35,8 @@ public class MixedComponentContentJobHandler extends IJobHandler {
     private RedisService redisService;
 
     @Autowired
-    private RedisListService redisListService;
-
-    @Autowired
     private PoolFactory poolFactory;
 
-    @Autowired
-    private TopicConfigProvider columnRepository;
 
 
     @Override
@@ -103,7 +91,7 @@ public class MixedComponentContentJobHandler extends IJobHandler {
                                 .thenComparing(Comparator.comparing(GoodsPoolDto::getType).reversed()))
                         .collect(Collectors.toList());
                 //存redis
-                redisListService.putAll(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
+                redisService.putList(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, goodsPools);
             }
             redisService.setString(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":keywords", JSON.toJSONString(keywords));
         }
