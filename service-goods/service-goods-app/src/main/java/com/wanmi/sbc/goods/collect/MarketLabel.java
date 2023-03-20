@@ -47,18 +47,13 @@ public class MarketLabel {
 
         List allList = new ArrayList();
 
-        /*String spu_id = String.valueOf(skuMap.get("spu_id"));
-        String sku_id = String.valueOf(skuMap.get("sku_id"));*/
+        String spu_id = String.valueOf(skuMap.get("spu_id"));
+        String sku_id = String.valueOf(skuMap.get("sku_id"));
 
     /*    String spu_id = "2c9a00ca86299cda01862a0163e60000";
         String sku_id= "2c9a009b86a5b1850186a6ae64c80004";
         String spu_no = "P735546359";
         String isbn   = "ISBN_C_T003";*/
-
-        String spu_id = "2c9a00b586ed86b90186ee8370f20014";
-        String sku_id = "2c9a00b586ed86b90186ee83712d0015";
-        String spu_no = "P038539612";
-        String isbn = "20230317";
 
 
         //10.返积分、20.积分兑换 30.满减 40.满折 50.49包邮 60 榜单 70 大促标签 80其它标签

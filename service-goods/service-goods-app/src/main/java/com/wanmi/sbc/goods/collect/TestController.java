@@ -43,7 +43,7 @@ public class TestController {
 
         bookTags.doGoods();         //图书商品
 
-        //goodTags.doGoods();         //非书商品
+        goodTags.doGoods();         //非书商品
 
         bookCacheService.clear();  //释放内存
         goodsCacheService.clear();
