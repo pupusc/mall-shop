@@ -9,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -163,6 +160,18 @@ public class MarketLabel {
             value = "{}";
         }
         return value;
+    }
+
+    public void doTest() {
+
+        String key = "Test11223344";
+        List list = new ArrayList();
+        Map map1 = new HashMap(); map1.put("name","name1"); map1.put("key","key1"); list.add(map1);
+        Map map2 = new HashMap(); map2.put("name","name2"); map2.put("key","key2"); list.add(map2);
+        Map map3 = new HashMap(); map3.put("name","name3"); map3.put("key","key3"); list.add(map3);
+
+        redisService.putList(key,list);
+
     }
 }
 

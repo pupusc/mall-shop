@@ -66,21 +66,6 @@ import java.util.stream.Collectors;
 public class NewBookPointJobHandler extends IJobHandler {
 
     @Autowired
-    private TopicConfigProvider topicConfigProvider;
-
-    @Autowired
-    private BookListModelProvider bookListModelProvider;
-
-    @Autowired
-    private CommonUtil commonUtil;
-
-    @Autowired
-    private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
-
-    @Autowired
-    private BookListModelAndGoodsService bookListModelAndGoodsService;
-
-    @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     @Autowired
@@ -88,9 +73,6 @@ public class NewBookPointJobHandler extends IJobHandler {
 
     @Autowired
     private NormalActivityPointSkuProvider normalActivityPointSkuProvider;
-
-    @Autowired
-    private RedisListService redisListService;
 
     @Autowired
     private RedisService redisService;

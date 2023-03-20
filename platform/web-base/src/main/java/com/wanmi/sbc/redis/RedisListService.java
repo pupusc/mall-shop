@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -43,6 +44,23 @@ public class RedisListService {
         return true;
     }
 
+    @Transactional
+    public void putList(String key, List list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        redisTemplate.setEnableTransactionSupport(true);
+        //redisTemplate.setEnableTransactionSupport(true)在本方法中不能使用get去取值或者去watch
+
+        Boolean hasKey = redisTemplate.delete(key);
+
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, JSONObject> operations = (ListOperations<String, JSONObject>) redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        redisTemplate.exec();
+        //redisTemplate.setEnableTransactionSupport(false);
+    }
 
     /**
      * 从redis 中查询数据
