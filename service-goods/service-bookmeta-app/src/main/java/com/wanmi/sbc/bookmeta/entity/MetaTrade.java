@@ -21,15 +21,15 @@ import java.util.Date;
 public class MetaTrade implements Serializable {
     @Id
     @Column(name = "id")
-    private int id;
+    private Integer id;
     @Column(name = "parent_id")
-    private int parentId;
+    private Integer parentId;
     @Column(name = "name")
     private String name;
     @Column(name = "descr")
     private String descr;
     @Column(name = "order_num")
-    private int orderNum;
+    private Integer orderNum;
     @Column(name = "path")
     private String  path;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss" ,timezone = "GMT+8")
@@ -39,6 +39,6 @@ public class MetaTrade implements Serializable {
     @Column(name = "update_time")
     private Date updateTime;
     @Column(name = "del_flag")
-    private int delFlag;
+    private Integer delFlag;
 
 }
