@@ -229,11 +229,11 @@ public class BookDetailTab {
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> contentMap = new HashMap<>();
         //作家
-        Map FirstWriter = getFigure(bookId, FigureType.WRITER.toValue());
+        List<Map> FirstWriter = getFigure(bookId, FigureType.WRITER.toValue());
         contentMap.put("firstWriter", FirstWriter);
 
         //翻译家
-        Map FirstTranslator = getFigure(bookId, FigureType.TRANSLATOR.toValue());
+        List<Map> FirstTranslator = getFigure(bookId, FigureType.TRANSLATOR.toValue());
         contentMap.put("firstTranslator", FirstTranslator);
 
         //简介目录原文摘要
@@ -270,15 +270,15 @@ public class BookDetailTab {
     }
 
     //1.作家 2.翻译家
-    private Map getFigure(String bookId, String figureType) {
+    private List<Map> getFigure(String bookId, String figureType) {
         //1.作家 2.翻译家
         //List firstWriter = bookJpa.getFirstWriter(bookId, figureType);
         List firstWriter = bookCacheService.getFirstWriter(bookId, figureType);
-
-        Map map = new HashMap();
+        List<Map> mapList = new ArrayList<>();
         if (firstWriter != null && firstWriter.size() > 0) {
             for (int i = 0; i < firstWriter.size(); i++) {
                 //作家
+                Map map = new HashMap();
                 map = (Map) firstWriter.get(i);
                 String writerId = String.valueOf(map.get("id"));
                 //获得的奖项
@@ -323,10 +323,10 @@ public class BookDetailTab {
 
                 }
                 map.put("Books", ret);
+                mapList.add(map);
             }
         }
-
-        return map;
+        return mapList;
 
     }
 
