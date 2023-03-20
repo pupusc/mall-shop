@@ -1736,7 +1736,9 @@ public class TopicService {
 
         String old_json=new String();
         old_json = getGoodsDetialById(spuId, skuId, "ELASTIC_SAVE:BOOKS_DETAIL_SPU_ID");
-
+        if(DitaUtil.isBlank(old_json)){
+            return BaseResponse.success("");
+        }
         Gson gson = new Gson();
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> map = gson.fromJson(old_json, type);
@@ -1750,13 +1752,13 @@ public class TopicService {
         System.out.println("time2~" + DitaUtil.getCurrentAllDate());
         spuIdList = getSpuIdByGoodsDetail(old_json);
         System.out.println("time3~" + DitaUtil.getCurrentAllDate());
-        List<String> collect = spuIdList.stream().distinct().collect(Collectors.toList());
 
         if(null==spuIdList ||spuIdList.size()==0 ){
             //没有商品信息需要回填
 
             return BaseResponse.success(map);
         }
+        List<String> collect = spuIdList.stream().distinct().collect(Collectors.toList());
 
 //        GoodsInfoViewByIdsRequest goodsInfoViewByIdsRequest = new GoodsInfoViewByIdsRequest();
 //        goodsInfoViewByIdsRequest.setGoodsInfoIds(collect);
@@ -1790,7 +1792,7 @@ public class TopicService {
 //        }
 
         System.out.println("time4~" + DitaUtil.getCurrentAllDate());
-        Map<String, SpuNewBookListResp> initPrice = this.initPrice(spuIdList);
+        Map<String, SpuNewBookListResp> initPrice = this.initPrice(collect);
         System.out.println("time5~" + DitaUtil.getCurrentAllDate());
         //回填商品的价格信息
         map= fillGoodsDetail(map,initPrice);
@@ -1875,8 +1877,9 @@ public class TopicService {
         if(null==old_json){
             return null;
         }
-        return findJsonGetKey(old_json,"spu_id");
-
+        List<String> spu_id=new ArrayList<>();
+        spu_id= findJsonGetKey(old_json, "spu_id");
+        return spu_id;
     }
 
     //递归查询,查询所有为key的value
