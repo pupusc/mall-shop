@@ -82,4 +82,9 @@ public class NewBookPointResponse implements Serializable {
      * 营销标签
      */
     private Map labelMap;
+
+    /**
+     * 营销标签
+     */
+    private Boolean specMore;
 }
