@@ -143,10 +143,10 @@ public class RankPageJobHandler extends IJobHandler {
         goodsInfoByIdRequest.setGoodsInfoIds(skus);
         goodsInfoByIdRequest.setIsHavSpecText(1);
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
-        if(redisListService.getSize(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList")>0){
-            redisService.delete(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList");
-        }
-        redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList",goodsInfos);
+//        if(redisListService.getSize(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList")>0){
+//            redisService.delete(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList");
+//        }
+        redisListService.putList(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":goodsInfoList",goodsInfos);
         pageResponse.getPageRequest().getContentList().forEach(r->{
             r.getRankList().forEach(t->{
                 Map tMap= (Map) t;
