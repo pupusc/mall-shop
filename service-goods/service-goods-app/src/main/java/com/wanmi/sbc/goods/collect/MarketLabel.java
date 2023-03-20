@@ -55,6 +55,7 @@ public class MarketLabel {
         String spu_no = "P735546359";
         String isbn   = "ISBN_C_T003";*/
 
+
         //10.返积分、20.积分兑换 30.满减 40.满折 50.49包邮 60 榜单 70 大促标签 80其它标签
         //10.返积分
         //List pointList = marketJpa.getPointList(sku_id);

@@ -231,7 +231,7 @@ public class GoodRepository {
 
         Map map = new HashMap();
 
-        String sql = "select a.id,a.name,a.job_title,b.descr,b.book_id ,b.is_selected ,case b.biz_type when 5 then 0 when 3 then 1  when 2 then 2  when 4 then 3   when 9 then 4   when 10  then 5  end biz_type,c.score,c.isbn from meta_figure a " +
+        String sql = "select a.id,a.name as writerName,a.job_title,b.descr,b.book_id ,b.is_selected ,case b.biz_type when 5 then 0 when 3 then 1  when 2 then 2  when 4 then 3   when 9 then 4   when 10  then 5  end biz_type,c.score,c.isbn from meta_figure a " +
                 " left join meta_book_rcmmd b on a.id = b.biz_id " +
                 " left join meta_book c ON c.id=b.book_id " +
                 " where  b.biz_type in(5,3,2,4,9,10)  AND b.book_id= ? and b.is_selected = 1  and a.del_flag=0 and b.del_flag=0 and c.del_flag=0  " +
@@ -249,7 +249,7 @@ public class GoodRepository {
    public Map getIsbnBySpuIdScore(String isbn){
        Map map = new HashMap();
 
-       String sql = " SELECT a.prop_value, a.goods_id,b.goods_subtitle from goods_prop_detail_rel a " +
+       String sql = " SELECT b.goods_name,a.prop_value, a.goods_id,b.goods_subtitle from goods_prop_detail_rel a " +
                " LEFT JOIN goods b ON b.goods_id=a.goods_id  " +
                "  where a.prop_id = 3 AND a.goods_id in (" +
                "  select goods_id  from goods_prop_detail_rel where prop_value = ?  and prop_id = 5  ) " +
