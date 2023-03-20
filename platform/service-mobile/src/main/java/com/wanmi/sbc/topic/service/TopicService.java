@@ -718,6 +718,7 @@ public class TopicService {
                     g.put("marketPrice",resp.getMarketPrice());
                     g.put("stock",resp.getStock());
                     g.put("book",resp.getBook());
+                    g.put("specMore",resp.getSpecMore());
                 }
             });
             RankPageRequest pageRequest = new RankPageRequest();
@@ -864,6 +865,7 @@ public class TopicService {
                 }
                 newBookPointResponseList.get(i).setSalePrice(stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId()).getSalesPrice());
                 newBookPointResponseList.get(i).setMarketPrice(stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId()).getMarketPrice());
+                newBookPointResponseList.get(i).setSpecMore(stringSpuNewBookListRespMap.get(newBookPointResponseList.get(i).getSpuId()).getSpecMore());
             }
 
             return newBookPointResponseList;
@@ -1025,6 +1027,9 @@ public class TopicService {
                 }
                 if(null!=initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getMarketPrice()) {
                     goodsOrBookMapList.get(j).put("marketPrice", initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getMarketPrice());
+                }
+                if(null!=initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getSpecMore()) {
+                    goodsOrBookMapList.get(j).put("specMore", initPrice.get(goodsOrBookMapList.get(j).get("spuId").toString()).getSpecMore());
                 }
             }
         }
@@ -1965,7 +1970,7 @@ public class TopicService {
 
             Map findMap = (Map)richMap.get(value);
             if(findMap != null){
-
+                map.put("spec_more",findMap.get("specMore"));
                 map.put("goods_info_img",findMap.get("pic"));
                 map.put("market_price",findMap.get("marketPrice"));
                 map.put("sale_price",findMap.get("salePrice"));

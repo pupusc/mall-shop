@@ -415,7 +415,7 @@
 
 
     <select id="getLabelsCount" parameterType="java.lang.String" resultType="java.lang.Integer">
-        select count(1)
+        select count(distinct a.goods_id)
         from meta_label_spu a
         left join meta_label b on a.label_id = b.id
         left join goods c on a.goods_id = c.goods_id

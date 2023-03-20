@@ -152,6 +152,8 @@ public class TopicController {
 
     @Autowired
     private RankPageJobHandler rankPageJobHandler;
+    @Autowired
+    private NewRankJobHandler rankJobHandler;
 
     @ApiOperation(value = "榜单聚合页")
     @PostMapping(value = "/v2/rankPage")
@@ -159,9 +161,10 @@ public class TopicController {
 //        BaseResponse<RankPageRequest> response = topicService.rankPage(request);
 
 //        homeIndexGoodsJobHandler.execute("H5,MINIPROGRAM");
-//        rankJobHandler.execute("H5");
-        rankPageJobHandler.execute("7ffffe79444084fa6c7ce890988eb95b");
+        rankJobHandler.execute("618");
+//        rankPageJobHandler.execute("7ffffe79444084fa6c7ce890988eb95b");
 //        newBookPointJobHandler.execute(null);
+
 //        collectSkuIdFactory.collectId();
 //        collectSkuIdJobHandler.execute(null);
         return BaseResponse.SUCCESSFUL();
