@@ -139,7 +139,8 @@ public class InvoiceTradeController {
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
         BigDecimal deliveryPrice = BigDecimal.ONE;
-        if (tradeVO.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice()!=null
+        if (tradeVO.getTradePrice().getDeliveryDetailPrice() != null
+                && tradeVO.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice()!=null
                 && tradeVO.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice().compareTo(BigDecimal.ZERO)>0){
             deliveryPrice = tradeVO.getTradePrice().getDeliveryDetailPrice().getDeliveryPayPrice();
         }else if(tradeVO.getTradePrice().getDeliveryPrice()!=null && tradeVO.getTradePrice().getDeliveryPrice().compareTo(BigDecimal.ZERO)>0){
