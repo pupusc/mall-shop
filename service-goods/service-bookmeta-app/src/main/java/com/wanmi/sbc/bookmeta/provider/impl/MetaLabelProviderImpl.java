@@ -375,6 +375,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         SkuDetailBO bo = new SkuDetailBO();
         Map map = metaLabelMapper.getSkuIdBySkuId(skuId);
         String spuId = (String) map.get("goods_id");
+        String specNum = (String) map.get("spec_num");
         String img = (String) map.get("goods_info_img");
         String SkuName = (String) map.get("goods_info_name");
         BigDecimal price = (BigDecimal) map.get("market_price");
@@ -386,6 +387,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         bo.setImg(img);
         bo.setSkuId(skuId);
         bo.setScore(score);
+        bo.setSpecNum(specNum);
         if (StringUtils.isNotBlank(Isbn)) {
             bo.setIsbn(Isbn);
         }

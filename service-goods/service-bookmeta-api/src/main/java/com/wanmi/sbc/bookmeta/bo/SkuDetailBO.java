@@ -22,4 +22,5 @@ public class SkuDetailBO implements Serializable {
     private String saleNum;
     private String SkuName;
     private BigDecimal price;
+    private String specNum; //规格数量
 }

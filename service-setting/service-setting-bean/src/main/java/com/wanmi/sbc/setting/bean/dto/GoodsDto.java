@@ -59,4 +59,6 @@ public class GoodsDto implements Serializable {
     private List<TagsDto> labelId;
 
     private String isbn;
+
+    private Boolean specMore;
 }
