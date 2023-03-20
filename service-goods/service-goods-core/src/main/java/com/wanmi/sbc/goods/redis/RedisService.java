@@ -18,6 +18,7 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
@@ -125,6 +126,24 @@ public class RedisService {
         }
 
         return false;
+    }
+
+    @Transactional
+    public void putList(String key, List list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        redisTemplate.setEnableTransactionSupport(true);
+        //redisTemplate.setEnableTransactionSupport(true)在本方法中不能使用get去取值或者去watch
+
+        Boolean hasKey = redisTemplate.delete(key);
+
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, JSONObject> operations = (ListOperations<String, JSONObject>) redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        redisTemplate.exec();
+        //redisTemplate.setEnableTransactionSupport(false);
     }
 
     public boolean hincrPipeline(final String key, final List<RedisHIncrBean> fieldValues) {
