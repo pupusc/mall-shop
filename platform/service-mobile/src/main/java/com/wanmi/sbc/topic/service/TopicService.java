@@ -227,6 +227,7 @@ public class TopicService {
             } });
         if(CollectionUtils.isNotEmpty(skuIds)){
             List<GoodsCustomResponse> list = initGoods(skuIds);
+            List<GoodsCustomResponse> collect = list.stream().filter(l -> l.getMarketingLabel() != null).collect(Collectors.toList());
             response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
                 if(CollectionUtils.isEmpty(p.getContents())){
                     return;
@@ -1429,7 +1430,7 @@ public class TopicService {
                     goods.setActivities(goodsCustom.get().getActivities());
                     MarketingLabelNewDTO context = goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsCustom.get().getGoodsInfoId()).getContext();
                     if(null!=context){
-                        goods.setMarketingLabels(context);
+                        goods.setMarketingLabel(context);
                     }
                     if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
                         goods.setAtmosType(p.getAtmosType());

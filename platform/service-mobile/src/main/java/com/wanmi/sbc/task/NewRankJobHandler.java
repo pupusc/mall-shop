@@ -223,7 +223,7 @@ public class NewRankJobHandler extends IJobHandler {
                     goods.setActivities(goodsCustom.get().getActivities());
                     MarketingLabelNewDTO context = goodsInfoQueryProvider.getMarketingLabelsBySKu(goodsCustom.get().getGoodsInfoId()).getContext();
                     if(null!=context){
-                        goods.setMarketingLabels(context);
+                        goods.setMarketingLabel(context);
                     }
                     if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
                         goods.setAtmosType(p.getAtmosType());

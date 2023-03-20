@@ -139,7 +139,7 @@ public class GoodsCustomResponse implements Serializable{
     /**
      * 卖点标签
      */
-    private MarketingLabelNewDTO marketingLabels;
+    private MarketingLabelNewDTO marketingLabel;
 
 
     /**
