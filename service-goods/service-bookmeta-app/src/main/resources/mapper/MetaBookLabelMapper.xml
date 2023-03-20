@@ -42,7 +42,7 @@
 
 
     <select id="getAllBookCount" resultType="java.lang.Integer" parameterType="java.lang.String">
-        select count(1) from meta_book_label mtl
+        select count(DISTINCT mtl.book_id) from meta_book_label mtl
         left join meta_book mb on mtl.book_id = mb.id
         left join meta_label ml on mtl.label_id = ml.id
         where mtl.del_flag = 0
