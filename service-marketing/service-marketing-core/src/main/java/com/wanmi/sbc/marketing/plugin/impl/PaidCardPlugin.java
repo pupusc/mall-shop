@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreCustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
@@ -27,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -249,6 +251,9 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
 
     private PaidCardVO obtainPaidCard(MarketingPluginRequest request) {
         String customerId = request.getCustomer().getCustomerId();
+        if(null==customerId||customerId==""){
+            return null;
+        }
         List<PaidCardVO> paidCardVOList = paidCardCustomerRelQueryProvider.getMaxDiscountPaidCard(MaxDiscountPaidCardRequest.builder()
                 .customerId(customerId)
                 .build()).getContext();
