@@ -59,11 +59,14 @@ public class CacheService {
             String sku_id = String.valueOf(map.get("sku_id"));
             if (DitaUtil.isNotBlank(sku_id)) {
                 List tagList = (List) marketJpaPointMap.get(sku_id);
+
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("sku_id");
                     tagList.add(map);
                     marketJpaPointMap.put(sku_id, tagList);
                 } else {
+                    map.remove("sku_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -98,9 +101,11 @@ public class CacheService {
                 List tagList = (List) marketTagMap.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("goods_id");
                     tagList.add(map);
                     marketTagMap.put(goods_id, tagList);
                 } else {
+                    map.remove("goods_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -135,9 +140,11 @@ public class CacheService {
                 List tagList = (List) marketTopMap.get(goods_info_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("goods_info_id");
                     tagList.add(map);
                     marketTopMap.put(goods_info_id, tagList);
                 } else {
+                    map.remove("goods_info_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -174,9 +181,11 @@ public class CacheService {
                 List tagList = (List) marketMarkingMap.get(sku_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("sku_id");
                     tagList.add(map);
                     marketMarkingMap.put(sku_id, tagList);
                 } else {
+                    map.remove("sku_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -215,9 +224,11 @@ public class CacheService {
                 List tagList = (List) marketMarking2Map.get(sku_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("sku_id");
                     tagList.add(map);
                     marketMarking2Map.put(sku_id, tagList);
                 } else {
+                    map.remove("sku_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -249,9 +260,11 @@ public class CacheService {
                 List tagList = (List) market49Map.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("goods_id");
                     tagList.add(map);
                     market49Map.put(goods_id, tagList);
                 } else {
+                    map.remove("goods_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -282,9 +295,11 @@ public class CacheService {
                 List tagList = (List) marketTagList1Map.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("goods_id");
                     tagList.add(map);
                     marketTagList1Map.put(goods_id, tagList);
                 } else {
+                    map.remove("goods_id");
                     tagList.add(map);                             //存在放入
                 }
             }
@@ -320,9 +335,11 @@ public class CacheService {
                 List tagList = (List) marketExchangeMap.get(sku_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
+                    map.remove("sku_id");
                     tagList.add(map);
                     marketExchangeMap.put(sku_id, tagList);
                 } else {
+                    map.remove("sku_id");
                     tagList.add(map);                             //存在放入
                 }
             }

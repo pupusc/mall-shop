@@ -81,7 +81,7 @@ public class MarketLabel {
         }
 
         //40. 满折
-       // List markingList2 = marketJpa.getMarking2List(sku_id);
+        //List markingList2 = marketJpa.getMarking2List(sku_id);
         List markingList2 = cacheService.getMarking2List(sku_id);
         if (markingList2 != null && markingList2.size() > 0) {
             allList.addAll(markingList2);
