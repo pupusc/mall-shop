@@ -249,7 +249,10 @@ public class CacheService {
         market49Map = new HashMap();
 
         String sql = " select a.goods_id,a.freight_temp_id,'满49元包邮' as name,50 as order_type from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id " +
-                " where  b.freight_temp_name = '满49元包邮模板'";
+                     " where  b.freight_temp_name = '满49元包邮模板' " +
+                     " union " +
+                     " select goods_id,freight_temp_id,'包邮' as name,50 as order_type from goods " +
+                     " freight_temp_id = 429";
 
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql, obj);
