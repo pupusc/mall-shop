@@ -209,10 +209,7 @@ public class RankPageJobHandler extends IJobHandler {
                         redisGoods.add(map);
                     });
                 });
-                if(redisListService.getSize(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"))>0){
-                    redisService.delete(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"));
-                }
-                redisListService.putAll(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"),redisGoods);
+                redisListService.putList(RedisKeyUtil.RANK_PAGE+topicResponse.getId()+":listGoods:"+tMap.get("id"),redisGoods);
             });
         });
     }
