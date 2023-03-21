@@ -135,7 +135,7 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
 
     Map<String,Object> getSkuIdBySpuId1(@Param("goodsId") String goodsId);
 
-    Map<String,Object> getSkuIdBySkuId(@Param("goodsInfoId") String goodsInfoId);
+    Map<String,Object> getSkuIdBySkuNo(@Param("goodsInfoNo") String goodsInfoNo);
 
     String getScoreBySkuId(@Param("goodsId") String goodsId);
 

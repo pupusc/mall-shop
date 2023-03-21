@@ -371,9 +371,10 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     }
 
     @Override
-    public SkuDetailBO getGoodsInfoBySkuId(String skuId) {
+    public SkuDetailBO getGoodsInfoBySkuId(String skuNo) {
         SkuDetailBO bo = new SkuDetailBO();
-        Map map = metaLabelMapper.getSkuIdBySkuId(skuId);
+        Map map = metaLabelMapper.getSkuIdBySkuNo(skuNo);
+        String skuId = String.valueOf(map.get("goods_info_id"));
         String spuId = (String) map.get("goods_id");
         String specNum = String.valueOf(map.get("spec_num"));
         String img = (String) map.get("goods_info_img");
