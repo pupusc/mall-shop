@@ -25,7 +25,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.configure.SpringUtil;
 import com.wanmi.sbc.customer.CustomerBaseController;
@@ -99,6 +101,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.wanmi.sbc.util.ThreadLocalUtil;
+import com.wanmi.sbc.vas.bean.vo.IepSettingVO;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -2125,4 +2128,28 @@ public class TopicService {
         map.put("result","false");
         return map;
     }
+
+    public BaseResponse<AppointmentRequest> testLog(AppointmentStockRequest request) {
+        BaseResponse<AppointmentRequest> baseResponse = BaseResponse.SUCCESSFUL();
+        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        log.info("Nacos V2Filter value:{}",refreshConfig.getV2FilterConfig());
+        try {
+            //
+            CustomerVO customer = commonUtil.getCustomer();
+            log.info("TestLog Current Customer:{}",Objects.isNull(customer)?"":JSON.toJSONString(customer));
+            //用户如果未获取到跳转登陆页面
+            if(Objects.isNull(customer)){
+                baseResponse.setCode("1234556");
+            }
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "testLog",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+            baseResponse = BaseResponse.FAILED();
+        }
+        return baseResponse;
+    }
+
 }
