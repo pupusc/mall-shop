@@ -397,6 +397,10 @@ public class TopicService {
      */
     public BaseResponse<TopicResponse> detailV2(TopicQueryRequest request,Boolean allLoad){
         CustomerGetByIdResponse customer = getCustomer();
+        if(null==customer){
+            log.error("用户信息为空！:detailV2~");
+            return BaseResponse.error("用户信息为空!");
+        }
         //调用老版首页入口加载老版组件
         BaseResponse<TopicResponse> detail = this.baseDetail(request, allLoad);
         if(null==detail||null==detail.getContext()){
@@ -410,7 +414,7 @@ public class TopicService {
         for(TopicStoreyResponse topicResponse:storeyList){
             Integer storeyType = topicResponse.getStoreyType();
 
-            System.out.println("storeyType:" + storeyType + "~ begin:" + DitaUtil.getCurrentAllDate());
+            log.info("storeyType:" + storeyType + "~ begin:" + DitaUtil.getCurrentAllDate());
 
             if(storeyType == TopicStoreyTypeV2.ROLLINGMESSAGE.getId()){//滚动消息
                 topicResponse.setNotes(homePageService.notice());
@@ -464,8 +468,9 @@ public class TopicService {
         Map customerMap = ( Map ) httpRequest.getAttribute("claims");
         if(null!=customerMap && null!=customerMap.get("customerId")) {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
+            return customer;
         }
-        return customer;
+        return null;
     }
 
     private List<SuspensionDTO> getSearchKey() {
@@ -483,7 +488,7 @@ public class TopicService {
             });
             return list;
         }catch (Exception e){
-            log.error("获取搜索关键词失败！");
+            log.error("获取搜索关键词失败！:getSearchKey()");
             return null;
         }
     }
@@ -498,7 +503,7 @@ public class TopicService {
             RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK+topicStoreyId), RankRedisListResponse.class);
             return response.getRankRequestList();
         }catch (Exception e){
-            log.error("获取首页榜单失败!");
+            log.error("获取首页榜单失败!方法:{rank()},参数:{}",Objects.isNull(topicStoreyId)?"":JSON.toJSONString(topicStoreyId));
             return null;
         }
     }
