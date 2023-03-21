@@ -39,6 +39,7 @@ public class TestController {
         //1小时37分
         System.out.println("begin:" + DitaUtil.getCurrentAllDate());
 
+        //marketLabel.doTest();
         marketLabel.doMarket();     //营销标签
 
         bookTags.doGoods();         //图书商品
