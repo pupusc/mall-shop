@@ -515,18 +515,6 @@ public class TopicService {
             topicStoreyContentRequest.setStoreyId(topicConfigProvider.getStoreyIdByType(topicStoreyContentRequest.getStoreyType()).get(0).getId());
             //获得主题下商品skuList
             List<TopicStoreyContentDTO> collectTemp = topicConfigProvider.getContentByStoreyId(topicStoreyContentRequest);
-//        if(null==contentByStoreyId || contentByStoreyId.size()==0){
-//            return null;
-//        }
-//        List<TopicStoreyContentDTO> collectTemp = contentByStoreyId.stream().filter(t -> {
-//            LocalDateTime now = LocalDateTime.now();
-//            if (now.isBefore(t.getEndTime()) && now.isAfter(t.getStartTime())) {
-//                return true;
-//            } else {
-//                return false;
-//            }
-//        }).collect(Collectors.toList());
-
             if (null == collectTemp || collectTemp.size() == 0) {
                 return null;
             }
@@ -538,16 +526,6 @@ public class TopicService {
             goodsInfoByIdRequest.setGoodsInfoIds(skuList);
             goodsInfoByIdRequest.setIsHavSpecText(1);
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listViewByIds(goodsInfoByIdRequest).getContext().getGoodsInfos();
-
-//        //获取会员价
-//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-//        CustomerGetByIdResponse customer =new CustomerGetByIdResponse();
-//        Map customerMap = ( Map ) request.getAttribute("claims");
-//        if(null!=customerMap && null!=customerMap.get("customerId")) {
-//            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerMap.get("customerId").toString())).getContext();
-//
-//        }
-            //获取会员
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
             filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
             filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
@@ -575,41 +553,6 @@ public class TopicService {
             return null;
         }
     }
-
-//    public BaseResponse<RankPageRequest> rankPage(RankStoreyRequest request){
-//        RankPageResponse pageResponse = topicConfigProvider.rankPage(request);
-//        List<String> idList = pageResponse.getIdList();
-//        if(CollectionUtils.isEmpty(idList)){
-//            return BaseResponse.success(null);
-//        }
-//        List<RankRequest> contentList = pageResponse.getPageRequest().getContentList();
-//        Iterator<RankRequest> iterator=contentList.iterator();
-//        List<GoodsCustomResponse> goodsCustomResponses = initGoods(idList);
-//        goodsCustomResponses.forEach(g-> {
-//            String label = g.getGoodsLabelList().get(0);
-//            pageResponse.getPageRequest().getContentList().forEach(r->{
-//                r.getRankList().forEach(t->{
-//                    Map tMap= (Map) t;
-//                    List<Map> list=(List<Map>) tMap.get("rankList");
-//                    list.forEach(m->{
-//                            if(m.get("spuId").equals(g.getGoodsId())) {
-//                                m.put("label", label);
-//                                m.put("subName", g.getGoodsSubName());
-//                                m.put("goodsInfoId",g.getGoodsInfoId());
-//                                m.put("showPrice",g.getShowPrice());
-//                                m.put("linePrice",g.getLinePrice());
-//                                m.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-//                                m.put("stock",g.getStock());
-//                                m.put("author",g.getGoodsExtProperties().getAuthor());
-//                                m.put("publisher",g.getGoodsExtProperties().getPublisher());
-//                            }
-//
-//                    });
-//                });
-//                });
-//            });
-//        return BaseResponse.success(pageResponse.getPageRequest());
-//    }
 
     /**
      * 榜单聚合页
