@@ -33,15 +33,22 @@ public class RedisListService {
     /**
      * 从redis 中查询数据
      */
-    public boolean putAll(final String key, List list) {
-        if (CollectionUtils.isEmpty(list)) {
-            return true;
+    @Transactional
+    public void putAll(String key, List list) {
+        if (list == null || list.isEmpty()) {
+            return;
         }
+        redisTemplate.setEnableTransactionSupport(true);
+        //redisTemplate.setEnableTransactionSupport(true)在本方法中不能使用get去取值或者去watch
+
+        Boolean hasKey = redisTemplate.delete(key);
+
         redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
-        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        ListOperations<String, JSONObject> operations = (ListOperations<String, JSONObject>) redisTemplate.opsForList();
         operations.rightPushAll(key, list);
-        return true;
+        redisTemplate.exec();
+        //redisTemplate.setEnableTransactionSupport(false);
     }
 
     @Transactional

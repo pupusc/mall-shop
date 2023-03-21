@@ -511,14 +511,23 @@ public class TopicConfigService {
      * @return: com.wanmi.sbc.setting.api.response.TopicStoreyColumnResponse
      */
     public MicroServicePage<TopicStoreyColumnDTO> listTopicStoreyColumn(TopicStoreyColumnQueryRequest request){
-        Page<TopicStoreyColumn> topicStoreySearchPage = columnRepository
-                .findAll(columnRepository.topicStoreySearch(request), PageRequest.of(request.getPageNum(),
-                request.getPageSize(), Sort.by(Sort.Direction.ASC, "deleted").and(Sort.by(Sort.Direction.ASC, "orderNum")))  );
-
-        List<TopicStoreyColumn> content = topicStoreySearchPage.getContent();
         MicroServicePage<TopicStoreyColumnDTO> microServicePage = new MicroServicePage<>();
-        microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
-        microServicePage.setContent(changeTopicStoreyColumn(content));
+        try{
+            Page<TopicStoreyColumn> topicStoreySearchPage = topicStoreySearchPage = columnRepository
+                    .findAll(columnRepository.topicStoreySearch(request), PageRequest.of(request.getPageNum(),
+                            request.getPageSize(), Sort.by(Sort.Direction.ASC, "deleted").and(Sort.by(Sort.Direction.ASC, "orderNum")))  );
+
+            List<TopicStoreyColumn> content = topicStoreySearchPage.getContent();
+            microServicePage.setTotal(topicStoreySearchPage.getTotalElements());
+            microServicePage.setContent(changeTopicStoreyColumn(content));
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "listTopicStoreyColumn",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+        }
+
         return microServicePage;
     }
 
@@ -546,41 +555,49 @@ public class TopicConfigService {
      */
     public void addStoreyColumn(TopicStoreyColumnAddRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
-        topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearch.setCreateTime(now());
-        topicStoreySearch.setBeginTime(request.getBeginTime());
-        topicStoreySearch.setEndTime(request.getEndTime());
-        topicStoreySearch.setOrderNum(request.getSorting());
-        topicStoreySearch.setName(request.getName());
+        try{
+            topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
+            topicStoreySearch.setCreateTime(now());
+            topicStoreySearch.setBeginTime(request.getBeginTime());
+            topicStoreySearch.setEndTime(request.getEndTime());
+            topicStoreySearch.setOrderNum(request.getSorting());
+            topicStoreySearch.setName(request.getName());
 
-        if(request.getParentId() == null){
-            topicStoreySearch.setPId(0);
-        }else{
-            topicStoreySearch.setPId(request.getParentId());
-        }
+            if(request.getParentId() == null){
+                topicStoreySearch.setPId(0);
+            }else{
+                topicStoreySearch.setPId(request.getParentId());
+            }
 
-        topicStoreySearch.setUpdateTime(now());
-        topicStoreySearch.setDeleted(0);
-        topicStoreySearch.setBookType(request.getBookType());
-        topicStoreySearch.setDropName(request.getDropName());
-        topicStoreySearch.setRecommend(request.getRecommend());
-        topicStoreySearch.setLabelId(request.getLabelId());
-        topicStoreySearch.setSubName(request.getSubName());
-        Map<String,Object> map = new HashMap<>();
-        if (BookType.VIDEO.toValue().equals(request.getBookType())) {
-            map.put("image", request.getImage());
-            map.put("url", request.getUrl());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
-        } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
-            map.put("titleImage", request.getTitleImage());
-            map.put("image", request.getImage());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
-        }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
-            map.put("url", request.getUrl());
-            map.put("image", request.getImage());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            topicStoreySearch.setUpdateTime(now());
+            topicStoreySearch.setDeleted(0);
+            topicStoreySearch.setBookType(request.getBookType());
+            topicStoreySearch.setDropName(request.getDropName());
+            topicStoreySearch.setRecommend(request.getRecommend());
+            topicStoreySearch.setLabelId(request.getLabelId());
+            topicStoreySearch.setSubName(request.getSubName());
+            Map<String,Object> map = new HashMap<>();
+            if (BookType.VIDEO.toValue().equals(request.getBookType())) {
+                map.put("image", request.getImage());
+                map.put("url", request.getUrl());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
+                map.put("titleImage", request.getTitleImage());
+                map.put("image", request.getImage());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
+                map.put("url", request.getUrl());
+                map.put("image", request.getImage());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            }
+            columnRepository.save(topicStoreySearch);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "addStoreyColumn",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
         }
-        columnRepository.save(topicStoreySearch);
     }
 
     /**
@@ -591,7 +608,8 @@ public class TopicConfigService {
     public void addRankLevel(RankLevelAddRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setBeginTime(request.getStartTime());
+        topicStoreySearch.setCreateTime(now());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
@@ -652,30 +670,38 @@ public class TopicConfigService {
      */
     @SneakyThrows
     public void updateStoreyColumn(TopicStoreyColumnUpdateRequest request) {
-        TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
-        topicStoreySearch.setId(request.getId());
-        topicStoreySearch.setBeginTime(request.getBeginTime());
-        topicStoreySearch.setEndTime(request.getEndTime());
-        topicStoreySearch.setOrderNum(request.getSorting());
-        topicStoreySearch.setName(request.getName());
-        topicStoreySearch.setDropName(request.getDropName());
-        topicStoreySearch.setSubName(request.getSubName());
-        topicStoreySearch.setBookType(request.getBookType());
-        Map<String,Object> map = new HashMap<>();
-        if (BookType.VIDEO.toValue().equals(request.getBookType())) {
-            map.put("image", request.getImage());
-            map.put("video", request.getUrl());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
-        } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
-            map.put("titleImage", request.getTitleImage());
-            map.put("image", request.getImage());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
-        }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
-            map.put("url", request.getUrl());
-            map.put("image", request.getImage());
-            topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+        try{
+            TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
+            topicStoreySearch.setId(request.getId());
+            topicStoreySearch.setBeginTime(request.getBeginTime());
+            topicStoreySearch.setEndTime(request.getEndTime());
+            topicStoreySearch.setOrderNum(request.getSorting());
+            topicStoreySearch.setName(request.getName());
+            topicStoreySearch.setDropName(request.getDropName());
+            topicStoreySearch.setSubName(request.getSubName());
+            topicStoreySearch.setBookType(request.getBookType());
+            Map<String,Object> map = new HashMap<>();
+            if (BookType.VIDEO.toValue().equals(request.getBookType())) {
+                map.put("image", request.getImage());
+                map.put("video", request.getUrl());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            } else if(BookType.ASSIGN.toValue().equals(request.getBookType()))  {
+                map.put("titleImage", request.getTitleImage());
+                map.put("image", request.getImage());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            }else if(BookType.SKIP.toValue().equals(request.getBookType()))  {
+                map.put("url", request.getUrl());
+                map.put("image", request.getImage());
+                topicStoreySearch.setAttributeInfo(JSON.toJSONString(map));
+            }
+            updateUtil.partialUpdate(topicStoreySearch.getId(), topicStoreySearch, columnRepository);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "updateStoreyColumn",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
         }
-        updateUtil.partialUpdate(topicStoreySearch.getId(), topicStoreySearch, columnRepository);
     }
 
     /**
@@ -736,29 +762,37 @@ public class TopicConfigService {
      * @param request
      */
     public void addStoreyColumnGoods(TopicStoreyColumnGoodsAddRequest request) {
-        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
-        topicStoreySearchContent.setTopicStoreySearchId(request.getTopicStoreySearchId());
-        topicStoreySearchContent.setImageUrl(request.getImageUrl());
-        topicStoreySearchContent.setStartTime(request.getStartTime());
-        topicStoreySearchContent.setEndTime(request.getEndTime());
-        topicStoreySearchContent.setSkuNo(request.getSkuNo());
-        topicStoreySearchContent.setSkuId(request.getSkuId());
-        topicStoreySearchContent.setSpuNo(request.getSpuNo());
-        topicStoreySearchContent.setSpuId(request.getSpuId());
-        topicStoreySearchContent.setSorting(request.getSorting());
-        topicStoreySearchContent.setGoodsName(request.getGoodsName());
-        topicStoreySearchContent.setCreateTime(now());
-        topicStoreySearchContent.setUpdateTime(now());
-        topicStoreySearchContent.setDeleted(0);
-        topicStoreySearchContent.setType(1);
-        topicStoreySearchContent.setSpuNo(request.getSpuNo());
-        topicStoreySearchContent.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearchContent.setShowLabeTxt(request.getShowLabelTxt());
-        topicStoreySearchContent.setNumTxt(request.getNumTxt());
-        topicStoreySearchContent.setReferrer(request.getReferrer());
-        topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
-        topicStoreySearchContent.setRecommendName(request.getRecommendName());
-        columnGoodsRepository.save(topicStoreySearchContent);
+        try{
+            TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
+            topicStoreySearchContent.setTopicStoreySearchId(request.getTopicStoreySearchId());
+            topicStoreySearchContent.setImageUrl(request.getImageUrl());
+            topicStoreySearchContent.setStartTime(request.getStartTime());
+            topicStoreySearchContent.setEndTime(request.getEndTime());
+            topicStoreySearchContent.setSkuNo(request.getSkuNo());
+            topicStoreySearchContent.setSkuId(request.getSkuId());
+            topicStoreySearchContent.setSpuNo(request.getSpuNo());
+            topicStoreySearchContent.setSpuId(request.getSpuId());
+            topicStoreySearchContent.setSorting(request.getSorting());
+            topicStoreySearchContent.setGoodsName(request.getGoodsName());
+            topicStoreySearchContent.setCreateTime(now());
+            topicStoreySearchContent.setUpdateTime(now());
+            topicStoreySearchContent.setDeleted(0);
+            topicStoreySearchContent.setType(1);
+            topicStoreySearchContent.setSpuNo(request.getSpuNo());
+            topicStoreySearchContent.setTopicStoreyId(request.getTopicStoreyId());
+            topicStoreySearchContent.setShowLabeTxt(request.getShowLabelTxt());
+            topicStoreySearchContent.setNumTxt(request.getNumTxt());
+            topicStoreySearchContent.setReferrer(request.getReferrer());
+            topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
+            topicStoreySearchContent.setRecommendName(request.getRecommendName());
+            columnGoodsRepository.save(topicStoreySearchContent);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "addStoreyColumnGoods",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+        }
     }
 
     /**
@@ -767,21 +801,30 @@ public class TopicConfigService {
      */
     @SneakyThrows
     public void updateStoreyColumnGoods(TopicStoreyColumnGoodsUpdateRequest request) {
-        TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
-        topicStoreySearchContent.setId(request.getId());
-        topicStoreySearchContent.setName(request.getName());
-        topicStoreySearchContent.setImageUrl(request.getImageUrl());
-        topicStoreySearchContent.setStartTime(request.getStartTime());
-        topicStoreySearchContent.setEndTime(request.getEndTime());
-        topicStoreySearchContent.setSkuNo(request.getSkuNo());
-        topicStoreySearchContent.setSorting(request.getSorting());
-        topicStoreySearchContent.setGoodsName(request.getGoodsName());
-        topicStoreySearchContent.setShowLabeTxt(request.getShowLabeTxt());
-        topicStoreySearchContent.setNumTxt(request.getNumTxt());
-        topicStoreySearchContent.setReferrer(request.getReferrer());
-        topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
-        topicStoreySearchContent.setRecommendName(request.getRecommendName());
-        updateUtil.partialUpdate(topicStoreySearchContent.getId(), topicStoreySearchContent, columnGoodsRepository);
+        try{
+            TopicStoreyColumnContent topicStoreySearchContent = new TopicStoreyColumnContent();
+            topicStoreySearchContent.setId(request.getId());
+            topicStoreySearchContent.setName(request.getName());
+            topicStoreySearchContent.setImageUrl(request.getImageUrl());
+            topicStoreySearchContent.setStartTime(request.getStartTime());
+            topicStoreySearchContent.setEndTime(request.getEndTime());
+            topicStoreySearchContent.setSkuNo(request.getSkuNo());
+            topicStoreySearchContent.setSorting(request.getSorting());
+            topicStoreySearchContent.setGoodsName(request.getGoodsName());
+            topicStoreySearchContent.setShowLabeTxt(request.getShowLabeTxt());
+            topicStoreySearchContent.setNumTxt(request.getNumTxt());
+            topicStoreySearchContent.setReferrer(request.getReferrer());
+            topicStoreySearchContent.setReferrerTitle(request.getReferrerTitle());
+            topicStoreySearchContent.setRecommendName(request.getRecommendName());
+            updateUtil.partialUpdate(topicStoreySearchContent.getId(), topicStoreySearchContent, columnGoodsRepository);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "updateStoreyColumnGoods",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+        }
+
     }
 
     /**

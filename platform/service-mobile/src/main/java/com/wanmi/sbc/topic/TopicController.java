@@ -7,7 +7,9 @@ import com.wanmi.sbc.bookmeta.provider.GoodsSearchKeyProvider;
 import com.wanmi.sbc.collectFactory.CollectSkuIdFactory;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -41,10 +43,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @menu 专题
@@ -226,5 +225,16 @@ public class TopicController {
     public BaseResponse<AppointmentRequest> findAppointment(){
         return topicService.findAppointment();
     }
+
+
+    /**
+     * 日志处理规范
+     * @return
+     */
+    @PostMapping(value = "/testCommonLog")
+    public BaseResponse<AppointmentRequest> testLog(@RequestBody AppointmentStockRequest request){
+        return topicService.testLog(request);
+    }
+
 
 }

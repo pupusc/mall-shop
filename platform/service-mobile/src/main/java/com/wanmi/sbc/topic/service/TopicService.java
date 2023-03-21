@@ -25,7 +25,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.configure.SpringUtil;
 import com.wanmi.sbc.customer.CustomerBaseController;
@@ -99,6 +101,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.DitaUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import com.wanmi.sbc.util.ThreadLocalUtil;
+import com.wanmi.sbc.vas.bean.vo.IepSettingVO;
 import com.wanmi.sbc.windows.request.ThreeGoodBookRequest;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -256,7 +259,9 @@ public class TopicService {
         }
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         if(!allLoad){
-            response.setStoreyList(response.getStoreyList().subList(0,4));
+            if(response.getStoreyList().size()>4){
+                response.setStoreyList(response.getStoreyList().subList(0,4));
+            }
         }
         //如果配置有一行两个商品的配置信息，查询商品
         List<String> skuIds = new ArrayList<>();
@@ -304,8 +309,7 @@ public class TopicService {
         String key="showUserIntegral.config";
         String pointsText=SpringUtil.getBean(key);
         Gson gson=new Gson();
-        Map map=new HashMap();
-        map=gson.fromJson(pointsText,Map.class);
+        Map map=gson.fromJson(pointsText,Map.class);
         String customerId;
         try{
             customerId = commonUtil.getOperatorId();
@@ -467,16 +471,21 @@ public class TopicService {
     private List<SuspensionDTO> getSearchKey() {
         LocalDateTime now = LocalDateTime.now();
         List<SuspensionDTO> list =new ArrayList<>();
-        JSONArray.parseArray(refreshConfig.getV2searchKey(), SuspensionDTO.class).forEach(s->{
-            if(null!=s.getStartTime()&&null!=s.getEndTime()){
-                if((now.isAfter(s.getStartTime())||now.isEqual(s.getStartTime()))&&(now.isBefore(s.getEndTime())||now.isEqual(s.getEndTime()))){
+        try {
+            JSONArray.parseArray(refreshConfig.getV2searchKey(), SuspensionDTO.class).forEach(s->{
+                if(null!=s.getStartTime()&&null!=s.getEndTime()){
+                    if((now.isAfter(s.getStartTime())||now.isEqual(s.getStartTime()))&&(now.isBefore(s.getEndTime())||now.isEqual(s.getEndTime()))){
+                        list.add(s);
+                    }
+                }else {
                     list.add(s);
                 }
-            }else {
-                list.add(s);
-            }
-        });
-        return list;
+            });
+            return list;
+        }catch (Exception e){
+            log.error("获取搜索关键词失败！");
+            return null;
+        }
     }
 
     /**
@@ -487,53 +496,9 @@ public class TopicService {
     public List<RankRequest> rank(String topicStoreyId){
         try {
             RankRedisListResponse response = JSON.parseObject(redisService.getString(RedisKeyUtil.HOME_RANK+topicStoreyId), RankRedisListResponse.class);
-//        List<Integer> idList = response.getRankIds();
-//        GoodsIdsByRankListIdsRequest idsRequest=new GoodsIdsByRankListIdsRequest();
-//        idsRequest.setIds(idList);
-//        List<String> goods=new ArrayList<>();
-//        List<RankGoodsPublishResponse> baseResponse = bookListModelProvider.listBookListGoodsPublishByIds(idsRequest).getContext();
-//        if(CollectionUtils.isEmpty(baseResponse)){
-//            return null;
-//        }
-//        //初始化榜单商品树形结构
-//        idList.forEach(id->{
-//            List<String> goodIds=new ArrayList<>();
-//            List<Map> maps=new ArrayList<>();
-//            baseResponse.stream().filter(item->item.getBookListId().equals(id)&&goodIds.size()<3).forEach(item->{
-//                goodIds.add(item.getSkuId());
-//                Map map=new HashMap();
-//                map.put("spuId",item.getSpuId());
-//                maps.add(map);
-//            });
-//            goods.addAll(goodIds);
-//            response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
-//        });
-//        //初始化榜单商品
-//        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods);
-//        goodsCustomResponses.forEach(g->{
-////            String label = g.getGoodsLabelList().get(0);
-//            response.getRankRequestList().forEach(r->{
-//                if(null!=r.getRankList()&&r.getRankList().size()>0){
-//                    r.getRankList().forEach(t->{
-//                        Map map= (Map) t;
-//                        if(map.get("spuId").equals(g.getGoodsId())){
-//                            map.put("label","");
-//                            map.put("goodsInfoId",g.getGoodsInfoId());
-//                            map.put("subName",g.getGoodsSubName());
-//                            map.put("showPrice",g.getShowPrice());
-//                            map.put("linePrice",g.getLinePrice());
-//                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-//                            map.put("stock",g.getStock());
-//                            map.put("author",g.getGoodsExtProperties().getAuthor());
-//                            map.put("publisher",g.getGoodsExtProperties().getPublisher());
-//                        }
-//                    });
-//                }
-//            });
-//        });
             return response.getRankRequestList();
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("获取首页榜单失败!");
             return null;
         }
     }
@@ -653,13 +618,15 @@ public class TopicService {
      * @return
      */
     public RankPageRequest rankPageByBookList(RankStoreyRequest request){
-        try {
             List<RankRequest> rankRequestList = new ArrayList<>();
             List<JSONObject> objectList = redisListService.findAll(RedisKeyUtil.RANK_PAGE + request.getTopicStoreyId() + ":table");
             if (!CollectionUtils.isEmpty(objectList)) {
                 for (JSONObject goodStr : objectList) {
                     rankRequestList.add(JSONObject.toJavaObject(goodStr, RankRequest.class));
                 }
+            }else {
+                log.error("榜单无缓存数据");
+                return null;
             }
             Iterator<RankRequest> iterator = rankRequestList.iterator();
             while (iterator.hasNext()){
@@ -674,6 +641,9 @@ public class TopicService {
                 for (JSONObject goodStr : infoObjectList) {
                     goodsInfoVOList.add(JSONObject.toJavaObject(goodStr, GoodsInfoVO.class));
                 }
+            }else {
+                log.error("榜单无商品缓存数据!");
+                return null;
             }
             if (null == request.getTopicStoreySearchId() && null == request.getRankId()) {
                 request.setTopicStoreySearchId(rankRequestList.get(0).getId());
@@ -743,10 +713,6 @@ public class TopicService {
             pageRequest.setPageSize(pageSize);
             pageRequest.setTotal(Long.valueOf(total));
             return pageRequest;
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
-        }
     }
 
     /**
@@ -2125,4 +2091,28 @@ public class TopicService {
         map.put("result","false");
         return map;
     }
+
+    public BaseResponse<AppointmentRequest> testLog(AppointmentStockRequest request) {
+        BaseResponse<AppointmentRequest> baseResponse = BaseResponse.SUCCESSFUL();
+        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        log.info("Nacos V2Filter value:{}",refreshConfig.getV2FilterConfig());
+        try {
+            //
+            CustomerVO customer = commonUtil.getCustomer();
+            log.info("TestLog Current Customer:{}",Objects.isNull(customer)?"":JSON.toJSONString(customer));
+            //用户如果未获取到跳转登陆页面
+            if(Objects.isNull(customer)){
+                baseResponse.setCode("1234556");
+            }
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "testLog",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+            baseResponse = BaseResponse.FAILED();
+        }
+        return baseResponse;
+    }
+
 }
