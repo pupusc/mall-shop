@@ -608,7 +608,8 @@ public class TopicConfigService {
     public void addRankLevel(RankLevelAddRequest request) {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setTopicStoreyId(request.getTopicStoreyId());
-        topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setBeginTime(request.getStartTime());
+        topicStoreySearch.setCreateTime(now());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
