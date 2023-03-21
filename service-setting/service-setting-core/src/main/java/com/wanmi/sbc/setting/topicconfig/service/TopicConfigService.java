@@ -713,6 +713,7 @@ public class TopicConfigService {
         TopicStoreyColumn topicStoreySearch = new TopicStoreyColumn();
         topicStoreySearch.setId(request.getId());
         topicStoreySearch.setCreateTime(request.getStartTime());
+        topicStoreySearch.setBeginTime(request.getStartTime());
         topicStoreySearch.setEndTime(request.getEndTime());
         topicStoreySearch.setOrderNum(request.getSorting());
         topicStoreySearch.setName(request.getName());
@@ -880,6 +881,7 @@ public class TopicConfigService {
             rankListDTO.setRankList(rankList);
             rankListDTO.setSorting(c.getOrderNum());
             rankListDTO.setPublishState(c.getDeleted());
+            rankListDTO.setStartTime(c.getBeginTime());
             list.add(rankListDTO);
             ids.add(c.getId());
         });
