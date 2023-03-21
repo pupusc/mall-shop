@@ -672,47 +672,52 @@ public class TopicService {
             if (end > total) {
                 end = total - 1;
             }
-            List<Map> goodsCustomResponses = new ArrayList<>();
-            List<JSONObject> goodsInfoList = redisListService.findByRange(key, start, end);
-            List<String> spuIds=new ArrayList<>();
-            if (!CollectionUtils.isEmpty(goodsInfoList)) {
-                for (JSONObject goodStr : goodsInfoList) {
-                    Map map = JSONObject.toJavaObject(goodStr, Map.class);
-                    if(!spuIds.contains(map.get("spuId"))){
-                        spuIds.add(String.valueOf(map.get("spuId")));
+            try {
+                List<Map> goodsCustomResponses = new ArrayList<>();
+                List<JSONObject> goodsInfoList = redisListService.findByRange(key, start, end);
+                List<String> spuIds=new ArrayList<>();
+                if (!CollectionUtils.isEmpty(goodsInfoList)) {
+                    for (JSONObject goodStr : goodsInfoList) {
+                        Map map = JSONObject.toJavaObject(goodStr, Map.class);
+                        if(!spuIds.contains(map.get("spuId"))){
+                            spuIds.add(String.valueOf(map.get("spuId")));
+                        }
+                        goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                     }
-                    goodsCustomResponses.add(JSONObject.toJavaObject(goodStr, Map.class));
                 }
-            }
-            Map<String, SpuNewBookListResp> map = this.initPrice(spuIds);
-            goodsCustomResponses.forEach(g->{
-                if(map.containsKey(String.valueOf(g.get("spuId")))){
-                    SpuNewBookListResp resp = map.get(String.valueOf(g.get("spuId")));
-                    g.put("salePrice",resp.getSalesPrice());
-                    g.put("marketPrice",resp.getMarketPrice());
-                    g.put("stock",resp.getStock());
-                    g.put("book",resp.getBook());
-                    g.put("specMore",resp.getSpecMore());
-                }
-            });
-            RankPageRequest pageRequest = new RankPageRequest();
-            //初始化榜单树形结构，获取商品详情
-            rankRequestList.forEach(r -> {
-                r.getRankList().forEach(t -> {
-                    Map tMap = (Map) t;
-                    if (tMap.get("id").equals(request.getRankId())) {
-                        pageRequest.setTopicStoreySearchId(r.getId());
-                        List<Map> rankList = (List<Map>) tMap.get("rankList");
-                        rankList.addAll(goodsCustomResponses);
+                Map<String, SpuNewBookListResp> map = this.initPrice(spuIds);
+                goodsCustomResponses.forEach(g->{
+                    if(map.containsKey(String.valueOf(g.get("spuId")))){
+                        SpuNewBookListResp resp = map.get(String.valueOf(g.get("spuId")));
+                        g.put("salePrice",resp.getSalesPrice());
+                        g.put("marketPrice",resp.getMarketPrice());
+                        g.put("stock",resp.getStock());
+                        g.put("book",resp.getBook());
+                        g.put("specMore",resp.getSpecMore());
                     }
                 });
-            });
-            pageRequest.setContentList(rankRequestList);
-            pageRequest.setPageNum(pageNum);
-            pageRequest.setTotalPages(totalPages);
-            pageRequest.setPageSize(pageSize);
-            pageRequest.setTotal(Long.valueOf(total));
-            return pageRequest;
+                RankPageRequest pageRequest = new RankPageRequest();
+                //初始化榜单树形结构，获取商品详情
+                rankRequestList.forEach(r -> {
+                    r.getRankList().forEach(t -> {
+                        Map tMap = (Map) t;
+                        if (tMap.get("id").equals(request.getRankId())) {
+                            pageRequest.setTopicStoreySearchId(r.getId());
+                            List<Map> rankList = (List<Map>) tMap.get("rankList");
+                            rankList.addAll(goodsCustomResponses);
+                        }
+                    });
+                });
+                pageRequest.setContentList(rankRequestList);
+                pageRequest.setPageNum(pageNum);
+                pageRequest.setTotalPages(totalPages);
+                pageRequest.setPageSize(pageSize);
+                pageRequest.setTotal(Long.valueOf(total));
+                return pageRequest;
+            }catch (Exception e){
+                log.error("榜单聚合页获取商品信息失败！");
+                return new RankPageRequest();
+            }
     }
 
     /**
