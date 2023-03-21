@@ -1466,9 +1466,11 @@ public class TopicService {
 
     }
 
-    public List<MixedComponentDto> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
+    public BaseResponse<List<MixedComponentDto>> getMixedComponentContent(Integer topicStoreyId, Integer tabId, String keyWord, CustomerGetByIdResponse customer, Integer pageNum, Integer pageSize) {
+        BaseResponse baseResponse = BaseResponse.SUCCESSFUL();
+        JSONObject object = JSON.parseObject(refreshConfig.getV2FilterConfig());
+        log.info("Nacos V2Filter value:{}",refreshConfig.getV2FilterConfig());
         try {
-
             //获取楼层id
             if(topicStoreyId == null) {
                 List<V2tabConfigResponse> list = JSONArray.parseArray(refreshConfig.getV2tabConfig(), V2tabConfigResponse.class);
@@ -1482,23 +1484,12 @@ public class TopicService {
                     topicStoreyId = tpList.stream().filter(s -> s.getStoreyType() == TopicStoreyTypeV2.MIXED.getId()).map(TopicStoreyDTO::getId).findFirst().get();
                 }
             }
-            //详情
-//            String mixed = redisService.getString(RedisKeyUtil.MIXED_COMPONENT+ "details");
-//            List<MixedComponentTabDto> mixedComponentTab = new ArrayList<>();
-//            if (!StringUtils.isEmpty(mixed)) {
-//                mixedComponentTab = JSON.parseArray(mixed, MixedComponentTabDto.class);
-//            }
-//
-//            List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
             // tab
             String tabJSON = redisService.getString(RedisKeyUtil.MIXED_COMPONENT_TAB+topicStoreyId+":tab");
             List<MixedComponentDto> mixedComponentDtos = new ArrayList<>();
             if (!StringUtils.isEmpty(tabJSON)) {
                 mixedComponentDtos = JSON.parseArray(tabJSON, MixedComponentDto.class);
             }
-//            mixedComponentDtos = mixedComponentTab.stream().filter(c -> MixedComponentLevel.ONE.toValue().equals(c.getLevel())).map(c -> {
-//                return new MixedComponentDto(c);
-//            }).collect(Collectors.toList());
             if (tabId == null || "".equals(tabId)) {
                 tabId = mixedComponentDtos != null ? mixedComponentDtos.get(0).getId() : null;
             }
@@ -1509,9 +1500,6 @@ public class TopicService {
             if (!StringUtils.isEmpty(keywordJSON)) {
                 keywords = JSON.parseArray(keywordJSON, KeyWordDto.class);
             }
-//            mixedComponentTab.stream().filter(c -> MixedComponentLevel.TWO.toValue().equals(c.getLevel()) && finalTabId.equals(c.getPId()))
-//                    .map(c -> {return c.getKeywords();}).collect(Collectors.toList())
-//                    .forEach(c -> {c.forEach(s -> {keywords.add(new KeyWordDto(s.getId(), s.getName()));});});
             if (keyWord == null || "".equals(keyWord)) {
                 keyWord = mixedComponentDtos.size() != 0 && keywords.size() != 0 ? keywords.get(0).getName() : null;
             }
@@ -1519,7 +1507,6 @@ public class TopicService {
             String finalKeyWord = keyWord;
             String keyWordId = keywords.stream().filter(t -> finalKeyWord.equals(t.getName())).findFirst().get().getId();
             MicroServicePage<GoodsPoolDto> goodsPoolPage = new MicroServicePage<>();
-            List<String> spuIds=new ArrayList<>();
             List<JSONObject> byRange = redisListService.findByRange(RedisKeyUtil.MIXED_COMPONENT+topicStoreyId+":" + tabId + ":" + keyWordId, pageNum * pageSize, pageNum * pageSize + 9);
             List<GoodsPoolDto> goodsPoolDtos = byRange.stream().map(s -> {return JSON.toJavaObject(s, GoodsPoolDto.class);}).collect(Collectors.toList());
             initVipPrice(goodsPoolDtos, customer);
@@ -1529,11 +1516,22 @@ public class TopicService {
             if(mixedComponentDtos.size() != 0) {
                 List<KeyWordDto> finalKeywords = keywords;
                 mixedComponentDtos.forEach(s -> {if(finalTabId.equals(s.getId())) {s.setKeywords(finalKeywords);}});}
-            return mixedComponentDtos;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return new ArrayList<>();
+            baseResponse = BaseResponse.success(mixedComponentDtos);
+        }catch (Exception e){
+            Map request = new HashMap<String,Object>();
+            request.put("topicStoreyId", topicStoreyId);
+            request.put("tabId", tabId);
+            request.put("keyWord", keyWord);
+            request.put("pageNum", pageNum);
+            request.put("pageSize", pageSize);
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "getMixedComponentContent",
+                    Objects.isNull(request)?"":JSON.toJSONString(request),
+                    e);
+            baseResponse = BaseResponse.FAILED();
         }
+        return baseResponse;
     }
 
     //获取会员价
