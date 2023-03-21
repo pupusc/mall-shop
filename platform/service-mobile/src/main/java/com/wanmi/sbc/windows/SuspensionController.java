@@ -1,5 +1,6 @@
 package com.wanmi.sbc.windows;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ofpay.rex.control.helper.StringUtils;
 import com.wanmi.sbc.bookmeta.bo.*;
@@ -12,6 +13,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.StringUtil;
@@ -55,10 +57,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
@@ -146,22 +145,32 @@ public class SuspensionController {
     @PostMapping("/getMarketingLabel")
     public BaseResponse getMarketingLabel(@RequestParam(value = "spuId",required = false) String spuId,@RequestParam(value = "skuId,",required = false) String skuId)  {
         Map map=new HashMap<>();
-        if(null!=skuId){
-           String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID"+ ":" + skuId);
-           if(null==old_json){
-               return null;
-           }
-           map= JSONObject.parseObject(old_json,Map.class);
-       }else {
-            if(null==spuId){
-                return null;
+        try {
+            if (null != skuId) {
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + skuId);
+                if (null == old_json) {
+                    return null;
+                }
+                map = JSONObject.parseObject(old_json, Map.class);
+            } else {
+                if (null == spuId) {
+                    return null;
+                }
+                Map skuIdMap = (Map) goodsProvider.getSkuBySpu(spuId).getContext();
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + skuIdMap.get("goods_info_id").toString());
+                if (null == old_json) {
+                    return null;
+                }
+                map = JSONObject.parseObject(old_json, Map.class);
             }
-            Map skuIdMap =(Map) goodsProvider.getSkuBySpu(spuId).getContext();
-            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID"+ ":" + skuIdMap.get("goods_info_id").toString());
-            if(null==old_json){
-                return null;
-            }
-            map= JSONObject.parseObject(old_json,Map.class);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    com.wanmi.sbc.common.util.DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
+                    "getMarketingLabel",
+                    Objects.isNull(skuId)?"": skuId,
+                    Objects.isNull(spuId)?"": spuId,
+                    e);
+            return BaseResponse.success(map);
         }
         return BaseResponse.success(map);
     }

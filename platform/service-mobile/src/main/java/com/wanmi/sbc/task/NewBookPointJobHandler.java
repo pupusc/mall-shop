@@ -8,8 +8,10 @@ import com.soybean.marketing.api.resp.NormalActivitySkuResp;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
@@ -135,7 +137,12 @@ public class NewBookPointJobHandler extends IJobHandler {
             response.setNewBookPointResponseList(KsBeanUtil.convert(newBookPointResponseList, NewBookPointRedisResponse.class));
             return response;
         }catch (Exception e){
-            return null;
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                    "newBookPoint",
+                    Objects.isNull(baseQueryRequest)?"":JSON.toJSONString(baseQueryRequest),
+                    e);
+            return new GoodsInfosRedisResponse();
         }
     }
 }
