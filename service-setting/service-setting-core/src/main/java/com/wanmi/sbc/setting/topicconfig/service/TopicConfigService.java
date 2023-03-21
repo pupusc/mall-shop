@@ -576,6 +576,7 @@ public class TopicConfigService {
             topicStoreySearch.setRecommend(request.getRecommend());
             topicStoreySearch.setLabelId(request.getLabelId());
             topicStoreySearch.setSubName(request.getSubName());
+            topicStoreySearch.setLevel(request.getLevel());
             Map<String,Object> map = new HashMap<>();
             if (BookType.VIDEO.toValue().equals(request.getBookType())) {
                 map.put("image", request.getImage());

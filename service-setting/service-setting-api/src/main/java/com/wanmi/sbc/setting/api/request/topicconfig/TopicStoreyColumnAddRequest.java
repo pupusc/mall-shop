@@ -44,7 +44,7 @@ public class TopicStoreyColumnAddRequest implements Serializable {
     private Integer parentId;
 
 
-    private Integer level = MixedComponentLevel.FOUR.toValue();
+    private Integer level = MixedComponentLevel.ONE.toValue();
 
     private Integer bookType;
 
