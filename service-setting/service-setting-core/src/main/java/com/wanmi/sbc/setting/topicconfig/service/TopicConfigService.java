@@ -640,6 +640,17 @@ public class TopicConfigService {
     }
 
     /**
+     * 删除一级榜单列表
+     * @param request
+     */
+    @SneakyThrows
+    @Transactional
+    public void deleteRankLevel(RankLevelUpdateRequest request) {
+        columnRepository.deleteById(request.getId());
+        relationRepository.deleteByPRankColumId(request.getId());
+    }
+
+    /**
      * 删除二级榜单列表
      * @param request
      */

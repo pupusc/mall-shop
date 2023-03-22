@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -26,4 +27,9 @@ public interface TopicRankRelationRepository extends JpaRepository<TopicRankRela
     @Modifying
     @Query(value = "update TopicRankRelation t set t.delFlag=?1 where t.id=?2")
     List<TopicRankRelation> enableRank(Integer delFlag, Integer id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "delete from TopicRankRelation t where t.PRankColumId=?1")
+    List<TopicRankRelation> deleteByPRankColumId(Integer id);
 }
