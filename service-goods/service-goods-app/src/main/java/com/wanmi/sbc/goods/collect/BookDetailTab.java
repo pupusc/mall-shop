@@ -619,7 +619,7 @@ public class BookDetailTab {
         List makertList = bookCacheService.getByMarketSkuId(sku_id);//查询参加积分兑换活动
 
         //参加积分兑换活动 或者 加入黑名单 都不显示 积分全额抵扣
-        if (blackList.size() > 0 || makertList.size() > 0) {
+        if ((blackList != null && blackList.size() > 0) || (makertList != null && makertList.size() > 0)) {
             flag = false;
         }
         return flag;
