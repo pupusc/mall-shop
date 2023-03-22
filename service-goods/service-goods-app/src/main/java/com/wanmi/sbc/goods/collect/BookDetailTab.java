@@ -53,7 +53,7 @@ public class BookDetailTab {
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
-        String spu_id = String.valueOf(goodMap.get("spu_id")  );
+        String spu_id = String.valueOf(goodMap.get("spu_id"));
 
       /*  String spu_id = "2c90c8647cfb7fdf017cfe04106201e6";
         String spu_no = "P671293304";
@@ -466,19 +466,21 @@ public class BookDetailTab {
     //sku 查询销量
     private String getSaleNum_byskuID(String sku_id) {
 
-        List<Map> saleNum = new ArrayList<>();
+        List saleNumList = new ArrayList();
 
         //saleNum = bookJpa.getSaleNum(sku_id);//根据sku 查询榜单销量
-        saleNum = bookCacheService.getSaleNum(sku_id);//根据sku 查询榜单销量
+        saleNumList = bookCacheService.getSaleNum(sku_id);//根据sku 查询榜单销量
         String sale_num = "";
-        if (!saleNum.isEmpty()) { //根据sku 查询榜单销量
-            sale_num = String.valueOf(saleNum.get(0).get("sale_num"));
+        if (saleNumList != null && saleNumList.size() > 0) { //根据sku 查询榜单销量
+            Map map = (Map) saleNumList.get(0);
+            sale_num = String.valueOf(map.get("sale_num"));
 
         } else {     //没查到就取商品表sku 销售量
             //saleNum = bookJpa.getSkuSaleNum(sku_id);
-            saleNum = bookCacheService.getSkuSaleNum(sku_id);
-            if (!saleNum.isEmpty()) {//根据sku 查询商品销量
-                sale_num = String.valueOf(saleNum.get(0).get("sale_num"));
+            saleNumList = bookCacheService.getSkuSaleNum(sku_id);
+            if (saleNumList != null && saleNumList.size() > 0) {//根据sku 查询商品销量
+                Map map = (Map) saleNumList.get(0);
+                sale_num = String.valueOf(map.get("sale_num"));
 
             }
         }
@@ -630,7 +632,7 @@ public class BookDetailTab {
         //List list = goodJpa.getTrade(bookId);
         List list = bookCacheService.getTrade(bookId);
         List bookList = new ArrayList();
-        if(list!=null && list.size()>0) {
+        if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 Map map = (Map) list.get(i);
                 //通过book_id 查看详情
@@ -753,7 +755,7 @@ public class BookDetailTab {
      * 通过sku_id得到分组评论
      **/
     public List comment(String spu_id) {
-       return bookCacheService.getCommentSkuId(spu_id);
+        return bookCacheService.getCommentSkuId(spu_id);
         //return goodJpa.getCommentSkuId(spu_id);
     }
 
@@ -762,7 +764,7 @@ public class BookDetailTab {
         int num = 0;
 
         //评价总和数量
-        if(commentList !=null && commentList.size()>0) {
+        if (commentList != null && commentList.size() > 0) {
             for (int i = 0; i < commentList.size(); i++) {
                 Map map = (Map) commentList.get(i);
                 num += Integer.parseInt(map.get("num").toString());
