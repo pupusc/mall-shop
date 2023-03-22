@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.collect;
 
 import com.wanmi.sbc.goods.jpa.JpaManager;
+import com.wanmi.sbc.goods.jpa.MarkingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,8 @@ public class CacheService {
 
     @Autowired
     JpaManager jpaManager;
-
+    @Autowired
+    MarkingTemplate markingTemplate;
 
     //积分
     public static Map marketJpaPointMap = null;
@@ -48,12 +50,12 @@ public class CacheService {
         marketJpaPointMap = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from `sbc-marketing`.t_normal_activity a left join `sbc-marketing`.t_activity_point_sku b on a.id = b.normal_activity_id " +
+        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from t_normal_activity a left join t_activity_point_sku b on a.id = b.normal_activity_id " +
                 "                  where a.del_flag = 0 and a.publish_state = 1 " +
                 "                  and a.begin_time <= ? and ? <= a.end_time " +
                 "                  order by a.id desc,b.num desc  ";
         Object[] obj = new Object[]{currentTime, currentTime};
-        List list = jpaManager.queryForList(sql, obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String sku_id = String.valueOf(map.get("sku_id"));
@@ -167,13 +169,13 @@ public class CacheService {
         marketMarkingMap = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select b.scope_id as sku_id,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select b.scope_id as sku_id,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                 "    where a.del_flag = 0 and a.marketing_type = 0 and a.is_pause = 0 " +
                 "    and a.begin_time <= ? and ? <= a.end_time " +
                 "    order by a.marketing_id desc ";
 
         Object[] obj = new Object[]{currentTime, currentTime};
-        List list = jpaManager.queryForList(sql, obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String sku_id = String.valueOf(map.get("sku_id"));
@@ -209,14 +211,14 @@ public class CacheService {
         marketMarking2Map = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select b.scope_id as sku_id ,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select b.scope_id as sku_id ,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                 "                      where a.del_flag = 0 and a.marketing_type = 1 and a.is_pause = 0 " +
                 "                      and a.begin_time <= ? and ? <= a.end_time " +
                 "                      order by a.marketing_id desc ";
 
 
         Object[] obj = new Object[]{currentTime, currentTime};
-        List list = jpaManager.queryForList(sql, obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String sku_id = String.valueOf(map.get("sku_id"));
@@ -255,7 +257,7 @@ public class CacheService {
                      " freight_temp_id = 429";
 
         Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql, obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String goods_id = String.valueOf(map.get("goods_id"));
@@ -324,13 +326,13 @@ public class CacheService {
         String currentTime = DitaUtil.getCurrentAllDate();
 
         String sql = " select b.scope_id as sku_id, a.marketing_id,a.marketing_name,a.begin_time,a.end_time,c.point_need as num,concat (c.point_need, '积分兑换') as name,20 as order_type " +
-                "  from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
-                "  left join `sbc-marketing`.marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
+                "  from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
+                "  left join marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
                 "  where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0  " +
                 "  and a.begin_time <= ? and ? <= a.end_time ";
         Object[] obj = new Object[]{currentTime,currentTime};
 
-        List list = jpaManager.queryForList(sql,obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql,obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String sku_id = String.valueOf(map.get("sku_id"));

@@ -95,7 +95,7 @@ public class MarketLabel {
 
         //60.榜单
         //List topList = marketJpa.getTopList(sku_id);
-         List topList = cacheService.getTopList(sku_id);
+        List topList = cacheService.getTopList(sku_id);
         if (topList != null && topList.size() > 0) {
             allList.addAll(topList);
         }
