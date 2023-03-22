@@ -30,6 +30,5 @@ public interface TopicRankRelationRepository extends JpaRepository<TopicRankRela
 
     @Modifying
     @Transactional
-    @Query(value = "delete from TopicRankRelation t where t.PRankColumId=?1")
-    List<TopicRankRelation> deleteByPRankColumId(Integer id);
+    Integer deleteByPRankColumId(Integer PRankColumId);
 }
