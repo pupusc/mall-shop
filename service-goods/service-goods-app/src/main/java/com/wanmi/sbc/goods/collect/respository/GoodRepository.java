@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.collect.respository;
 
 import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
+import com.wanmi.sbc.goods.jpa.MarkingTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class GoodRepository {
 
     @Autowired
     JpaManager jpaManager;
+
+    @Autowired
+    MarkingTemplate markingTemplate;
 
     //非书商品
     public List getGoodsList() {
@@ -214,15 +218,14 @@ public class GoodRepository {
 
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id  " +
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id  " +
                 " where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0 " +
                 " and a.begin_time <= ? and ? <= a.end_time  " +
                 " and b.scope_id = ? ";
         Object[] obj = new Object[]{currentTime, currentTime, skuId};
-        List list = jpaManager.queryForList(sql, obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
         return list;
     }
-
 
 
      /* 通过book_id查询
