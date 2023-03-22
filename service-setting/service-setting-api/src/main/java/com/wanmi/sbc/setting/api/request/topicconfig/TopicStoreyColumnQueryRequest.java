@@ -21,6 +21,8 @@ public class TopicStoreyColumnQueryRequest implements Serializable {
 
     private String name;
 
+    private Integer level;
+
     /**
      * 0-未开始 1-进行中 2-已结束
      */
