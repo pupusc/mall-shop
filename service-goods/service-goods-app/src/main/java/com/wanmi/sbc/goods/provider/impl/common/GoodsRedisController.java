@@ -141,7 +141,7 @@ public class GoodsRedisController implements GoodsRedisProvider {
 
                     goodsCacheService.clear();
                     cacheService.clear();
-
+                    System.out.println("finish:" + DitaUtil.getCurrentAllDate());
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
