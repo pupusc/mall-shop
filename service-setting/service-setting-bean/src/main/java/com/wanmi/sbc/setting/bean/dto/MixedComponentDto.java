@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.bean.dto;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import io.swagger.annotations.ApiModel;
@@ -35,6 +36,8 @@ public class MixedComponentDto implements Serializable {
     private SelectDto image;
 
     private List<KeyWordDto> keywords;
+
+    private MicroServicePage<GoodsPoolDto> goodsPoolPage;
 
     public MixedComponentDto() {
     }

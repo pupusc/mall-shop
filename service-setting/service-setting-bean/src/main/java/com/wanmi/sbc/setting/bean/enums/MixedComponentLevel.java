@@ -17,9 +17,9 @@ public enum MixedComponentLevel {
     ONE,
     @ApiEnumProperty("1:关键词")
     TWO,
-    @ApiEnumProperty("2:规则")
+    @ApiEnumProperty("2:投放内容")
     THREE,
-    @ApiEnumProperty("3:投放内容")
+    @ApiEnumProperty("3:规则")
     FOUR;
 
     @JsonCreator

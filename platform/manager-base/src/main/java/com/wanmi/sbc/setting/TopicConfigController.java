@@ -298,7 +298,7 @@ public class TopicConfigController {
      * @param request
      * @status undone
      */
-    @ApiOperation("榜单分类添加")
+    @ApiOperation("榜单分类修改")
     @PostMapping("/storey/v2/rank/level/update")
     public BaseResponse updateRankLevel(@RequestBody RankLevelUpdateRequest request){
         return topicConfigProvider.updateRankLevel(request);
