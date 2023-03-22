@@ -257,7 +257,7 @@ public class CacheService {
                      " freight_temp_id = 429";
 
         Object[] obj = new Object[]{};
-        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
+        List list = jpaManager.queryForList(sql, obj);
         for (int i = 0; i < list.size(); i++) {
             Map map = (Map) list.get(i);
             String goods_id = String.valueOf(map.get("goods_id"));

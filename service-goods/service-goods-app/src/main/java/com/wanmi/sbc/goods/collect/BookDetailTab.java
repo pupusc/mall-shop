@@ -55,12 +55,10 @@ public class BookDetailTab {
         String isbn = String.valueOf(goodMap.get("isbn"));
         String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-
-
-       /* String spu_id = "2c9a00b586ed86b90186ee8370f20014";
-        //String sku_id = "2c9a00b586ed86b90186ee83712d0015";
-        String spu_no = "P038539612";
-        String isbn = "20230317";*/
+     /*   String spu_id = "2c9a00ca86299cda01862a0163e60000";
+        String spu_no = "P735546359";
+        //String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
+        String isbn   = "ISBN_C_T003";*/
 
         List allList = new ArrayList();
 
@@ -161,7 +159,9 @@ public class BookDetailTab {
             if (null == maptemp.get("biz_type") && null == maptemp.get("descr")) {
                 return null;//没有推荐人和推荐语的跳过
             }
-            List<String> isbnList = bookJpa.RcommdBookByFigureId(Integer.parseInt(maptemp.get("biz_id").toString()), book_id);
+
+            //List<String> isbnList = bookJpa.RcommdBookByFigureId(Integer.parseInt(maptemp.get("biz_id").toString()), book_id);
+            List<String> isbnList = bookCacheService.RcommdBookByFigureId(String.valueOf(maptemp.get("biz_id")), book_id);
             if (null != isbnList && isbnList.size() != 0) {
                 //说明这个推荐人有其他可推荐的,构建推荐商品的详细信息
 
@@ -245,12 +245,13 @@ public class BookDetailTab {
         //图文详情
         //List goodsDetail = goodJpa.getGoodsDetail(spuNo);
         List goodsDetail = bookCacheService.getGoodsDetail(spuNo);
-        Map goodsDetailMap = goodsDetail.size() != 0 ? (Map) goodsDetail.get(0) : null;
+        Map goodsDetailMap =goodsDetail !=null &&  goodsDetail.size() != 0 ? (Map) goodsDetail.get(0) : null;
         contentMap.put("goodsDetail", goodsDetailMap.get("goods_detail"));
 
         //书中提到人物显示
-        List characters = bookJpa.getCharacters(bookId);
-        Map charactersMap = characters.size() != 0 ? (Map) characters.get(0) : null;
+        //List characters = bookJpa.getCharacters(bookId);
+        List characters = bookCacheService.getCharacters(bookId);
+        Map charactersMap = characters !=null && characters.size() != 0  ? (Map) characters.get(0) : null;
         contentMap.put("character", charactersMap);
 
         //丛书
@@ -428,7 +429,8 @@ public class BookDetailTab {
     }
 
     public Map getKeyRecommend(String bookId) {
-        Map mapRecommend = goodJpa.getKeyRecommend(bookId);
+          //Map mapRecommend = goodJpa.getKeyRecommend(bookId);
+          Map mapRecommend = bookCacheService.getKeyRecommend(bookId);
         return mapRecommend;
     }
 
@@ -441,7 +443,8 @@ public class BookDetailTab {
 
     private void doTab4(List allList, String spuId) {
         Map<String, Object> map = new HashMap<>();
-        Map orderDetail = goodJpa.getOrderDetail(spuId);
+        //Map orderDetail = goodJpa.getOrderDetail(spuId);
+        Map orderDetail = bookCacheService.getOrderDetail(spuId);
         map.put("tab4", orderDetail);
         allList.add(map);
     }
@@ -580,8 +583,8 @@ public class BookDetailTab {
     public String getFixPrice(String spuId) {
 
         String getFixPrice = "";
-        //根据spu 找到sku
-        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spuId).get("goods_info_id"));
+        //根据spu 找到sku            //goodJpa.getSkuBySpuId(spuId)
+        String sku_id = String.valueOf(bookCacheService.getSkuBySpuId(spuId).get("goods_info_id"));
         getFixPrice = String.valueOf(goodJpa.getfixPricebySku(sku_id).get("fix_price"));
         if (DitaUtil.isBlank(getFixPrice)) {
             getFixPrice = String.valueOf(goodJpa.getfixPricebySpu(spuId).get("fix_price"));
@@ -623,7 +626,8 @@ public class BookDetailTab {
     public Map BookIdBySingle(String book_id) {
 
         //根据book_id 获取名家>媒体>编辑>机构 推荐人职称、推荐语
-        Map map = goodJpa.getPublicBookId(book_id);
+        // Map map = goodJpa.getPublicBookId(book_id);
+        Map map = bookCacheService.getPublicBookId(book_id);
 
         String isbn = String.valueOf(map.get("isbn"));
         String writerName = String.valueOf(map.get("writerName")); //取推荐人名称
