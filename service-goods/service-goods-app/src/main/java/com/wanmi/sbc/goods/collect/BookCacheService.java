@@ -1603,16 +1603,17 @@ public class BookCacheService {
         }
         return (List) getBlackBySpuIdMap.get(spuId);
     }
+
     /**
      * 通过sku_id查询参加积分兑换活动
      **/
     public void getByMarketSkuId_init() {
-        getByMarketSkuIdMap=new HashMap<>();
+        getByMarketSkuIdMap = new HashMap<>();
         String currentTime = DitaUtil.getCurrentAllDate();
 
         String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id  " +
                 " where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0 " +
-                " and a.begin_time <= ? and ? <= a.end_time  " ;
+                " and a.begin_time <= ? and ? <= a.end_time  ";
 
         Object[] obj = new Object[]{currentTime, currentTime};
         List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
@@ -1642,7 +1643,7 @@ public class BookCacheService {
         }
         return (List) getByMarketSkuIdMap.get(sku_id);
 
-}
+    }
 
     public void clear() {
         bookMap = null;
@@ -1685,5 +1686,5 @@ public class BookCacheService {
         getBlackBySpuIdMap = null;
         getByMarketSkuIdMap = null;
     }
-
+}
 
