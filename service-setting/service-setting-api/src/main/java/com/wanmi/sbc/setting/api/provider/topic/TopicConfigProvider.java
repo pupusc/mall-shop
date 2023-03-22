@@ -174,6 +174,14 @@ public interface TopicConfigProvider {
     BaseResponse deleteRankrelation(@RequestBody TopicRalationRequest request);
 
     /**
+     * @Description 一级榜单删除
+     * @Author
+     * @Date  2023/2/18 11:50
+     */
+    @PostMapping("/setting/${application.setting.version}/topic/storey/v2/rank/level/delete")
+    BaseResponse deleteRankLevel(@RequestBody RankLevelUpdateRequest request);
+
+    /**
      * @Description 榜单分类添加
      * @Author
      * @Date  2023/2/18 11:50

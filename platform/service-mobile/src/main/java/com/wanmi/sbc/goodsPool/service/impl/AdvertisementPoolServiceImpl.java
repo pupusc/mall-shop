@@ -35,6 +35,9 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
+            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String spuId = skuDetailBO.getSpuId();
+            columnContentDTO.setSpuId(spuId);
 //            String spuId = columnContentDTO.getSpuId();
 //            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
 //            String spuId = skuDetailBO.getSpuId();
@@ -105,8 +108,13 @@ public class AdvertisementPoolServiceImpl implements PoolService {
         goodsPoolDto.setType(pool.getBookType());
         goodsPoolDto.setSorting(columnContentDTO.getSorting());
         goodsPoolDto.setImage(columnContentDTO.getImageUrl());
-        goodsPoolDto.setUrl(columnContentDTO.getSkuNo());
+        goodsPoolDto.setUrl(columnContentDTO.getSpuId());
         goodsPoolDto.setGoods(goods);
         return goodsPoolDto;
+    }
+
+    private SkuDetailBO getSpuBySkuId(String skuId) {
+        SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
+        return skuDetailBO;
     }
 }

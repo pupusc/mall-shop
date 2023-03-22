@@ -46,6 +46,11 @@ public interface TopicStoreyColumnRepository extends JpaRepository<TopicStoreyCo
             if (request.getId() != null &&  !"".equals(request.getId())) {
                 conditionList.add(criteriaBuilder.equal(root.get("id"), request.getId()));
             }
+
+            if (request.getLevel() != null) {
+                conditionList.add(criteriaBuilder.equal(root.get("level"), request.getLevel()));
+            }
+
             if (StringUtils.isNotEmpty(request.getName())) {
                 conditionList.add(criteriaBuilder.like(root.get("name"), request.getName() + "%"));
             }

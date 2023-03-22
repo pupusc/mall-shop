@@ -423,9 +423,15 @@ public class TopicService {
             } else if(storeyType == TopicStoreyTypeV2.MIXED.getId()) { //混合组件   价格
                 //topicResponse.setMixedComponentContent(getMixedComponentContent(request.request.getTabId(), request.getKeyWord(), customer, request.getPageNum(), request.getPageSize()));
             }else if(storeyType==TopicStoreyTypeV2.POINTS.getId()){//用户积分
-                topicResponse.setPoints(this.getPoints(customer));
+                TopicCustomerPointsResponse points = this.getPoints(customer);
+                if(null!=points){
+                    topicResponse.setPoints(points);
+                }
             }else if(storeyType==TopicStoreyTypeV2.NEWBOOK.getId()){//新书速递  价格
-                topicResponse.setNewBookPointResponseList(newBookPoint(new BaseQueryRequest(),customer,String.valueOf(topicResponse.getId())));
+                List<NewBookPointResponse> newBookPointResponses = newBookPoint(new BaseQueryRequest(), customer, String.valueOf(topicResponse.getId()));
+                if(null!=newBookPointResponses){
+                    topicResponse.setNewBookPointResponseList(newBookPointResponses);
+                }
             }else if(storeyType==TopicStoreyTypeV2.RANKLIST.getId()){//首页榜单
                 List<RankRequest> rank = rank(String.valueOf(topicResponse.getId()));
                 if (CollectionUtils.isNotEmpty(rank)) {
@@ -437,21 +443,32 @@ public class TopicService {
             } else if(storeyType==TopicStoreyTypeV2.THREEGOODBOOK.getId()){//三本好书
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
-                topicResponse.setThreeGoodBookResponses(getThreeBookSaveByRedis(topicStoreyContentRequest));
+                List threeBookSaveByRedis = getThreeBookSaveByRedis(topicStoreyContentRequest);
+                if(CollectionUtils.isNotEmpty(threeBookSaveByRedis)){
+                    topicResponse.setThreeGoodBookResponses(threeBookSaveByRedis);
+                }
             }else if(storeyType==TopicStoreyTypeV2.Books.getId()){//图书组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
-                topicResponse.setBooksResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
+                List<Map> goodsOrBookSaveByRedis = getGoodsOrBookSaveByRedis(topicStoreyContentRequest, customer);
+                if(CollectionUtils.isNotEmpty(goodsOrBookSaveByRedis)){
+                    topicResponse.setBooksResponses(goodsOrBookSaveByRedis);
+                }
             }else if(storeyType==TopicStoreyTypeV2.Goods.getId()){//商品组件 价格
                 TopicStoreyContentRequest topicStoreyContentRequest=new TopicStoreyContentRequest();
                 topicStoreyContentRequest.setStoreyId(topicResponse.getId());
-                topicResponse.setGoodsResponses(getGoodsOrBookSaveByRedis(topicStoreyContentRequest,customer));
+                List<Map> goodsOrBookSaveByRedis = getGoodsOrBookSaveByRedis(topicStoreyContentRequest, customer);
+                if(CollectionUtils.isNotEmpty(goodsOrBookSaveByRedis)){
+                    topicResponse.setGoodsResponses(goodsOrBookSaveByRedis);
+                }
             }else if(storeyType==TopicStoreyTypeV2.KeyWord.getId()){//关键字组件
                 //SuspensionByTypeRequest suspensionByTypeRequest=new SuspensionByTypeRequest();
                 //suspensionByTypeRequest.setType(2L);
                 //topicResponse.setSuspensionDTOList(suspensionProvider.getByType(suspensionByTypeRequest).getContext().getSuspensionDTOList());
                 List<SuspensionDTO> list = this.getSearchKey();
-                topicResponse.setSuspensionDTOList(list);
+                if(CollectionUtils.isNotEmpty(list)){
+                    topicResponse.setSuspensionDTOList(list);
+                }
             }
 
             System.out.println("storeyType:" + storeyType + "~  end:" + DitaUtil.getCurrentAllDate());
