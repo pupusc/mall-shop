@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @JobHandler(value = "newRankJobHandler")
 @Component
@@ -95,27 +96,66 @@ public class NewRankJobHandler extends IJobHandler {
         if(CollectionUtils.isEmpty(baseResponse)){
             return null;
         }
+        baseResponse.forEach(b->goods.add(b.getSkuId()));
+        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,"H5").stream().filter(g->g.getStock()>0).collect(Collectors.toList());
         //初始化榜单商品树形结构
         idList.forEach(id->{
             List<String> goodIds=new ArrayList<>();
             List<Map> maps=new ArrayList<>();
-            baseResponse.stream().filter(item->item.getBookListId().equals(id)&&goodIds.size()<3).forEach(item->{
-                goodIds.add(item.getSkuId());
-                Map map=new HashMap();
-                map.put("spuId",item.getSpuId());
-                map.put("rankText",item.getRankText());
-                if(null!=item.getSaleNum()&&item.getSaleNum()>10000){
-                    map.put("saleNum",item.getSaleNum()/10000+"万");
-                }else {
-                    map.put("saleNum",item.getSaleNum());
-                }
-                maps.add(map);
-            });
-            goods.addAll(goodIds);
-            response.getRankRequestList().stream().filter(r->r.getId().equals(id)).forEach(r->r.setRankList(maps));
+                baseResponse.stream().filter(item -> item.getBookListId().equals(id)).forEach(item -> {
+                    goodsCustomResponses.stream().filter(g -> g.getGoodsId().equals(item.getSpuId())).forEach(g -> {
+                        if(maps.size()<3) {
+                            EsSpuNewQueryProviderReq req = new EsSpuNewQueryProviderReq();
+                            List<String> spuid = new ArrayList<>();
+                            spuid.add(g.getGoodsId());
+                            req.setSpuIds(spuid);
+                            TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
+                            List<TagsDto.Tags> tags = tagsDto.getTags();
+                            MarketingLabelNewDTO marketingLabel = goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
+                            List<MarketingLabelNewDTO.Labels> marketinglabels = marketingLabel.getLabels();
+                            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listNormalEsSpuNew(req).getContext().getContent();
+                            EsSpuNewResp esSpuNewResp = esSpuNewResps.get(0);
+                            goodIds.add(item.getSkuId());
+                            Map map = new HashMap();
+                            map.put("spuId", item.getSpuId());
+                            map.put("rankText", item.getRankText());
+                            if (null != item.getSaleNum() && item.getSaleNum() > 10000) {
+                                map.put("saleNum", item.getSaleNum() / 10000 + "万");
+                            } else {
+                                map.put("saleNum", item.getSaleNum());
+                            }
+                            map.put("goodsName", esSpuNewResp.getSpuName());
+                            if (CollectionUtils.isNotEmpty(g.getGoodsLabelList())) {
+                                map.put("label", g.getGoodsLabelList().get(0));
+                            }
+                            map.put("marketingLabel", marketinglabels);
+                            if (DitaUtil.isNotBlank(esSpuNewResp.getPic())) {
+                                map.put("imageUrl", esSpuNewResp.getPic());
+                            } else if (DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())) {
+                                map.put("imageUrl", esSpuNewResp.getUnBackgroundPic());
+                            } else if (DitaUtil.isNotBlank(g.getImageUrl())) {
+                                map.put("imageUrl", g.getImageUrl());
+                            } else {
+                                map.put("imageUrl", g.getGoodsUnBackImg());
+                            }
+                            map.put("goodsInfoId", g.getGoodsInfoId());
+                            map.put("subName", g.getGoodsSubName());
+                            map.put("showPrice", g.getShowPrice());
+                            map.put("linePrice", g.getLinePrice());
+                            map.put("discount", g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+                            map.put("stock", g.getStock());
+                            if (null != g.getGoodsExtProperties()) {
+                                map.put("author", g.getGoodsExtProperties().getAuthor());
+                                map.put("publisher", g.getGoodsExtProperties().getPublisher());
+                            }
+                            maps.add(map);
+                        }
+                    });
+                });
+                goods.addAll(goodIds);
+                response.getRankRequestList().stream().filter(r ->r.getId().equals(id)).forEach(r -> r.setRankList(maps));
         });
         //初始化榜单商品
-        List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,"H5");
         goodsCustomResponses.forEach(g->{
             EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
             List<String> spuid=new ArrayList<>();
@@ -159,6 +199,8 @@ public class NewRankJobHandler extends IJobHandler {
                             }
                         }
                     });
+                }else {
+
                 }
             });
         });
