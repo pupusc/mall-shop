@@ -762,9 +762,11 @@ public class BookDetailTab {
         int num = 0;
 
         //评价总和数量
-        for (int i = 0; i < commentList.size(); i++) {
-            Map map = (Map) commentList.get(i);
-            num += Integer.parseInt(map.get("num").toString());
+        if(commentList !=null && commentList.size()>0) {
+            for (int i = 0; i < commentList.size(); i++) {
+                Map map = (Map) commentList.get(i);
+                num += Integer.parseInt(map.get("num").toString());
+            }
         }
         return num;
     }
