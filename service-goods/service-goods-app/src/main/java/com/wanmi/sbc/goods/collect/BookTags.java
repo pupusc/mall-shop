@@ -88,10 +88,10 @@ public class BookTags {
         String isbn = String.valueOf(goodMap.get("isbn"));
         String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-     /*   String spu_id = "2c9a00ca86299cda01862a0163e60000";
-        String spu_no = "P735546359";
-        String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
-        String isbn   = "ISBN_C_T003";*/
+       /* String spu_id = "2c90c8647cfb7fdf017cfe04106201e6";
+        String spu_no = "P671293304";
+        String sku_id = "2c90c8647cfb7fdf017cfe04108601e7";
+        String isbn   = "9787508694672";*/
 
 
 
@@ -201,7 +201,8 @@ public class BookTags {
         String fit_age_min = null;
         String fit_age_max = null;
 
-        Map bookMap = bookJpa.getBookMap(isbn);
+       // Map bookMap = bookJpa.getBookMap(isbn);
+          Map bookMap = bookCacheService.getBookMap_cache(isbn);
         if(bookMap != null && bookMap.size() >0 ){
             fit_age_min = String.valueOf(bookMap.get("fit_age_min"));        //'最小阅读年龄'
             fit_age_max = String.valueOf(bookMap.get("fit_age_max"));        //'最大阅读年龄'

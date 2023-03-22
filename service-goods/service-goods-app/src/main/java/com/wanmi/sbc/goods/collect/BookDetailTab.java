@@ -55,10 +55,10 @@ public class BookDetailTab {
         String isbn = String.valueOf(goodMap.get("isbn"));
         String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-     /*   String spu_id = "2c9a00ca86299cda01862a0163e60000";
-        String spu_no = "P735546359";
-        //String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
-        String isbn   = "ISBN_C_T003";*/
+      /*  String spu_id = "2c90c8647cfb7fdf017cfe04106201e6";
+        String spu_no = "P671293304";
+        //String sku_id = "2c90c8647cfb7fdf017cfe04108601e7";
+        String isbn = "9787508694672";*/
 
         List allList = new ArrayList();
 
@@ -245,13 +245,13 @@ public class BookDetailTab {
         //图文详情
         //List goodsDetail = goodJpa.getGoodsDetail(spuNo);
         List goodsDetail = bookCacheService.getGoodsDetail(spuNo);
-        Map goodsDetailMap =goodsDetail !=null &&  goodsDetail.size() != 0 ? (Map) goodsDetail.get(0) : null;
+        Map goodsDetailMap = goodsDetail != null && goodsDetail.size() != 0 ? (Map) goodsDetail.get(0) : null;
         contentMap.put("goodsDetail", goodsDetailMap.get("goods_detail"));
 
         //书中提到人物显示
         //List characters = bookJpa.getCharacters(bookId);
         List characters = bookCacheService.getCharacters(bookId);
-        Map charactersMap = characters !=null && characters.size() != 0  ? (Map) characters.get(0) : null;
+        Map charactersMap = characters != null && characters.size() != 0 ? (Map) characters.get(0) : null;
         contentMap.put("character", charactersMap);
 
         //丛书
@@ -287,12 +287,12 @@ public class BookDetailTab {
             map.put("Awards", writerAwards);
             //查询作家其它的书
             //List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
-            List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
+            List writerBooks = bookCacheService.getWriterBooks(bookId, writerId);
             List ret = new ArrayList();
             for (int j = 0; j < writerBooks.size(); j++) {
                 Map writerBookMap = (Map) writerBooks.get(j);
                 String isbn = String.valueOf(writerBookMap.get("isbn"));
-                 //Map goodMap = bookJpa.findSpuByV3(isbn);
+                //Map goodMap = bookJpa.findSpuByV3(isbn);
                 Map goodMap = bookCacheService.findSpuByV3(isbn);
                 if (goodMap != null && goodMap.size() > 0) {
                     String spu_no = String.valueOf(goodMap.get("spu_no"));
@@ -329,51 +329,58 @@ public class BookDetailTab {
 
     //获取丛书信息
     private Map getLibrary(String bookId) {
-        List libraryName = bookJpa.getLibraryName(bookId);
+        //List libraryName = bookJpa.getLibraryName(bookId);
+        List libraryName = bookCacheService.getLibraryName(bookId);
         Map map = new HashMap();
-        for (int i = 0; i < libraryName.size(); i++) {
-            //丛书名称
-            map = (Map) libraryName.get(0);
-            String libraryId = String.valueOf(map.get("id"));
-            //获得的奖项
-            List libraryNum = bookJpa.getLibraryNum(libraryId);
-            map.put("libraryNum", libraryNum);
-            //查询作家其它的书
-            List library = bookJpa.getLibrary(bookId, libraryId);
-            List ret = new ArrayList();
-            for (int j = 0; j < library.size(); j++) {
-                Map libraryMap = (Map) library.get(j);
-                String isbn = String.valueOf(libraryMap.get("isbn"));
-                //Map goodMap = bookJpa.findSpuByV3(isbn);
-                Map goodMap = bookCacheService.findSpuByV3(isbn);
-                if (goodMap != null && goodMap.size() > 0) {
-                    String spu_no = String.valueOf(goodMap.get("spu_no"));
-                    String goods_name = String.valueOf(goodMap.get("goods_name"));
-                    String spu_id = String.valueOf(goodMap.get("spu_id"));
-                    libraryMap.put("sku_id", null);
-                    //Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
-                    Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
-                    String sku_id = "";
-                    if (skuBySpuId != null && skuBySpuId.size() > 0) {
-                        sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
-                        libraryMap.put("sku_id", sku_id);
-                    }
-                    libraryMap.put("spu_no", spu_no);
-                    libraryMap.put("goods_name", goods_name);
-                    libraryMap.put("spu_id", spu_id);
-                    libraryMap.put("labelMap", null);
+        if (libraryName != null && libraryName.size() > 0) {
+            for (int i = 0; i < libraryName.size(); i++) {
+                //丛书名称
+                map = (Map) libraryName.get(0);
+                String libraryId = String.valueOf(map.get("id"));
+                //获得的奖项
+                //List libraryNum = bookJpa.getLibraryNum(libraryId);
+                List libraryNum = bookCacheService.getLibraryNum(libraryId);
+                map.put("libraryNum", libraryNum);
+                //查询作家其它的书
+                //List library = bookJpa.getLibrary(bookId, libraryId);
+                List library = bookCacheService.getLibrary(bookId, libraryId);
+                List ret = new ArrayList();
+                if (library != null && library.size() > 0) {
+                    for (int j = 0; j < library.size(); j++) {
+                        Map libraryMap = (Map) library.get(j);
+                        String isbn = String.valueOf(libraryMap.get("isbn"));
+                        //Map goodMap = bookJpa.findSpuByV3(isbn);
+                        Map goodMap = bookCacheService.findSpuByV3(isbn);
+                        if (goodMap != null && goodMap.size() > 0) {
+                            String spu_no = String.valueOf(goodMap.get("spu_no"));
+                            String goods_name = String.valueOf(goodMap.get("goods_name"));
+                            String spu_id = String.valueOf(goodMap.get("spu_id"));
+                            libraryMap.put("sku_id", null);
+                            //Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                            Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
+                            String sku_id = "";
+                            if (skuBySpuId != null && skuBySpuId.size() > 0) {
+                                sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                                libraryMap.put("sku_id", sku_id);
+                            }
+                            libraryMap.put("spu_no", spu_no);
+                            libraryMap.put("goods_name", goods_name);
+                            libraryMap.put("spu_id", spu_id);
+                            libraryMap.put("labelMap", null);
 
-                    if (null != spu_id) {
-                        String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
-                        if (null != old_json) {
-                            Map labelMap = JSONObject.parseObject(old_json, Map.class);
-                            libraryMap.put("labelMap", labelMap);
+                            if (null != spu_id) {
+                                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
+                                if (null != old_json) {
+                                    Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                                    libraryMap.put("labelMap", labelMap);
+                                }
+                            }
+                            ret.add(libraryMap);
                         }
                     }
-                    ret.add(libraryMap);
                 }
+                map.put("Books", ret);
             }
-            map.put("Books", ret);
         }
         return map;
     }
@@ -381,56 +388,63 @@ public class BookDetailTab {
 
     //获取出版方信息
     private Map getProducer(String bookId) {
-        List producerName = bookJpa.getProducerName(bookId);
+        // List producerName = bookJpa.getProducerName(bookId);
+        List producerName = bookCacheService.getProducerName(bookId);
         Map map = new HashMap();
-        for (int i = 0; i < producerName.size(); i++) {
-            //丛书名称
-            map = (Map) producerName.get(0);
-            String producerId = String.valueOf(map.get("id"));
-            //获得的奖项
-            List producerNum = bookJpa.getProducerNum(producerId);
-            map.put("producerNum", producerNum);
-            //查询作家其它的书
-            List producer = bookJpa.getProducer(bookId, producerId);
-            List ret = new ArrayList();
-            for (int j = 0; j < producer.size(); j++) {
-                Map producerMap = (Map) producer.get(j);
-                String isbn = String.valueOf(producerMap.get("isbn"));
-                //Map goodMap = bookJpa.findSpuByV3(isbn);
-                  Map goodMap = bookCacheService.findSpuByV3(isbn);
+        if (producerName != null && producerName.size() > 0) {
+            for (int i = 0; i < producerName.size(); i++) {
+                //丛书名称
+                map = (Map) producerName.get(0);
+                String producerId = String.valueOf(map.get("id"));
+                //获得的奖项
+                // List producerNum = bookJpa.getProducerNum(producerId);
+                List producerNum = bookCacheService.getProducerNum(producerId);
+                map.put("producerNum", producerNum);
+                //查询作家其它的书
+                //List producer = bookJpa.getProducer(bookId, producerId);
+                List producer = bookCacheService.getProducer(bookId, producerId);
+                List ret = new ArrayList();
+                if (producer != null && producer.size() > 0) {
+                    for (int j = 0; j < producer.size(); j++) {
+                        Map producerMap = (Map) producer.get(j);
+                        String isbn = String.valueOf(producerMap.get("isbn"));
+                        //Map goodMap = bookJpa.findSpuByV3(isbn);
+                        Map goodMap = bookCacheService.findSpuByV3(isbn);
 
-                if (goodMap != null && goodMap.size() > 0) {
-                    String spu_no = String.valueOf(goodMap.get("spu_no"));
-                    String goods_name = String.valueOf(goodMap.get("goods_name"));
-                    String spu_id = String.valueOf(goodMap.get("spu_id"));
-                    producerMap.put("sku_id", null);
-                    //Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
-                    Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
-                    producerMap.put("labelMap", null);
-                    if (skuBySpuId != null && skuBySpuId.size() > 0) {
-                        String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
-                        if (null != sku_id) {
-                            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
-                            if (null != old_json) {
-                                Map labelMap = JSONObject.parseObject(old_json, Map.class);
-                                producerMap.put("labelMap", labelMap);
+                        if (goodMap != null && goodMap.size() > 0) {
+                            String spu_no = String.valueOf(goodMap.get("spu_no"));
+                            String goods_name = String.valueOf(goodMap.get("goods_name"));
+                            String spu_id = String.valueOf(goodMap.get("spu_id"));
+                            producerMap.put("sku_id", null);
+                            //Map skuBySpuId = goodJpa.getSkuBySpuId(spu_id);
+                            Map skuBySpuId = bookCacheService.getSkuBySpuId(spu_id);
+                            producerMap.put("labelMap", null);
+                            if (skuBySpuId != null && skuBySpuId.size() > 0) {
+                                String sku_id = String.valueOf(skuBySpuId.get("goods_info_id"));
+                                if (null != sku_id) {
+                                    String old_json = redisService.getString("ELASTIC_SAVE:GOODS_MARKING_SKU_ID" + ":" + sku_id);
+                                    if (null != old_json) {
+                                        Map labelMap = JSONObject.parseObject(old_json, Map.class);
+                                        producerMap.put("labelMap", labelMap);
+                                    }
+                                }
                             }
+                            producerMap.put("spu_no", spu_no);
+                            producerMap.put("goods_name", goods_name);
+                            producerMap.put("spu_id", spu_id);
+                            ret.add(producerMap);
                         }
                     }
-                    producerMap.put("spu_no", spu_no);
-                    producerMap.put("goods_name", goods_name);
-                    producerMap.put("spu_id", spu_id);
-                    ret.add(producerMap);
                 }
+                map.put("Books", ret);
             }
-            map.put("Books", ret);
         }
         return map;
     }
 
     public Map getKeyRecommend(String bookId) {
-          //Map mapRecommend = goodJpa.getKeyRecommend(bookId);
-          Map mapRecommend = bookCacheService.getKeyRecommend(bookId);
+        //Map mapRecommend = goodJpa.getKeyRecommend(bookId);
+        Map mapRecommend = bookCacheService.getKeyRecommend(bookId);
         return mapRecommend;
     }
 
@@ -454,13 +468,15 @@ public class BookDetailTab {
 
         List<Map> saleNum = new ArrayList<>();
 
-        saleNum = bookJpa.getSaleNum(sku_id);//根据sku 查询榜单销量
+        //saleNum = bookJpa.getSaleNum(sku_id);//根据sku 查询榜单销量
+        saleNum = bookCacheService.getSaleNum(sku_id);//根据sku 查询榜单销量
         String sale_num = "";
         if (!saleNum.isEmpty()) { //根据sku 查询榜单销量
             sale_num = String.valueOf(saleNum.get(0).get("sale_num"));
 
         } else {     //没查到就取商品表sku 销售量
-            saleNum = bookJpa.getSkuSaleNum(sku_id);
+            //saleNum = bookJpa.getSkuSaleNum(sku_id);
+            saleNum = bookCacheService.getSkuSaleNum(sku_id);
             if (!saleNum.isEmpty()) {//根据sku 查询商品销量
                 sale_num = String.valueOf(saleNum.get(0).get("sale_num"));
 
@@ -477,7 +493,7 @@ public class BookDetailTab {
 
         //通过spu_查找sku_id
         // String sku_id = goodJpa.getSkuBySpuId(spu_id);
-        String sku_id = String.valueOf(goodJpa.getSkuBySpuId(spu_id).get("goods_info_id"));
+        String sku_id = String.valueOf(bookCacheService.getSkuBySpuId(spu_id).get("goods_info_id"));
         return getSaleNum_byskuID(sku_id);
 
        /* if(Integer.parseInt(sale_num)<300){
@@ -611,12 +627,15 @@ public class BookDetailTab {
      **/
     public List getTrade(String bookId) {
 
-        List list = goodJpa.getTrade(bookId);
+        //List list = goodJpa.getTrade(bookId);
+        List list = bookCacheService.getTrade(bookId);
         List bookList = new ArrayList();
-        for (int i = 0; i < list.size(); i++) {
-            Map map = (Map) list.get(i);
-            //通过book_id 查看详情
-            bookList.add(BookIdBySingle(map.get("id").toString()));
+        if(list!=null && list.size()>0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                //通过book_id 查看详情
+                bookList.add(BookIdBySingle(map.get("id").toString()));
+            }
         }
         return bookList;
     }
@@ -644,12 +663,13 @@ public class BookDetailTab {
         String prop_value = "";//商城商品评分
         String goods_subtitle = "";//商城商品评分
         String saleNum = ""; //获取销售额
-        String goods_name="";//商品名称
+        String goods_name = "";//商品名称
 
         //如果isbn 为空
         if (!DitaUtil.isBlank(isbn)) {
             //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
-            spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
+            //spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
+            spuMap = bookCacheService.getIsbnBySpuIdScore(isbn);
             spu_id = String.valueOf(spuMap.get("goods_id"));
             prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
             goods_subtitle = String.valueOf(spuMap.get("goods_subtitle"));//商城商品评分
@@ -668,7 +688,7 @@ public class BookDetailTab {
         map.put("score", score);*/
         //根据spu_id 找sku_id     goodJpa.getSkuBySpuId(DitaUtil.isBlank(spu_id)
         String sku_id = String.valueOf(bookCacheService.getSkuBySpuId(DitaUtil.isBlank(spu_id) ? null : spu_id).get("goods_info_id"));
-        map.put("bookName",goods_name);
+        map.put("bookName", goods_name);
         map.put("sku_id", sku_id);
         map.put("spu_id", spu_id);
         map.put("labelMap", null);
@@ -733,8 +753,8 @@ public class BookDetailTab {
      * 通过sku_id得到分组评论
      **/
     public List comment(String spu_id) {
-        //goodJpa.getCommentSkuId(spu_id)
-        return goodJpa.getCommentSkuId(spu_id);
+       return bookCacheService.getCommentSkuId(spu_id);
+        //return goodJpa.getCommentSkuId(spu_id);
     }
 
     //评价数量总和
