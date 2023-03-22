@@ -18,13 +18,13 @@ import java.util.Date;
 @Table(name = "meta_label_spu")
 public class GoodsLabelSpu implements Serializable {
     @Column(name ="id" )
-    private int id;
+    private Integer id;
     @Column(name ="goods_id" )
     private String goodsId;
     @Column(name ="goods_name" )
     private String goodsName;
     @Column(name ="label_id" )
-    private int labelId;
+    private Integer labelId;
     @Column(name ="label_name" )
     private String labelName;
     @Column(name ="create_time" )
@@ -32,10 +32,10 @@ public class GoodsLabelSpu implements Serializable {
     @Column(name ="update_time" )
     private Date updateTime;
     @Column(name ="first_id" )
-    private int firstId;
+    private Integer firstId;
     @Column(name ="second_id" )
-    private int secondId;
+    private Integer secondId;
     @Column(name ="order_num" )
-    private int orderNum;
+    private Integer orderNum;
 
 }

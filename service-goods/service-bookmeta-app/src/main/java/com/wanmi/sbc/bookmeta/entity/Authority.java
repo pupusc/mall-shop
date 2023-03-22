@@ -24,7 +24,7 @@ public class Authority  implements Serializable {
     @Column(name = "authority_id")
     private String authorityId;
     @Column(name = "system_type_cd")
-    private int systemTypeCd;
+    private Integer systemTypeCd;
     @Column(name = "function_id")
     private String functionId;
     @Column(name = "authority_title")
@@ -38,9 +38,9 @@ public class Authority  implements Serializable {
     @Column(name = "remark")
     private String remark;
     @Column(name = "sort")
-    private int sort;
+    private Integer sort;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "del_flag")
-    private int delFlag;
+    private Integer delFlag;
 }

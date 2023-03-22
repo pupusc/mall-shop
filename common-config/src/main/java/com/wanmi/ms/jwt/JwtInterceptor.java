@@ -141,6 +141,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/metaBookRelation")
                     || requestURI.startsWith("/SaleNum")
                     || requestURI.startsWith("/searchTerm")
+                    || requestURI.startsWith("/searchTermV2")
                     || requestURI.startsWith("/goodsEvaluateAnalyse")
             ) {
                 if (StringUtils.isBlank(token)) {

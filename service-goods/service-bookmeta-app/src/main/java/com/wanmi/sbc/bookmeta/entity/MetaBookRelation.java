@@ -19,20 +19,20 @@ import java.util.Date;
 public class MetaBookRelation implements Serializable {
 
     @GeneratedValue
-    private int id;
-    private int bookId;
+    private Integer id;
+    private Integer bookId;
     private String name;
     private String subName;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
     private String startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
     private String endTime;
-    private int orderNum;
+    private Integer orderNum;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
     private String createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT-8")
     private String updateTime;
-    private int delFlag;
+    private Integer delFlag;
 
 
 }

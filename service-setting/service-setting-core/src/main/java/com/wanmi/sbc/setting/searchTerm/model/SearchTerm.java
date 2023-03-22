@@ -1,8 +1,11 @@
-package com.wanmi.sbc.bookmeta.entity;
+package com.wanmi.sbc.setting.searchTerm.model;
 
 import lombok.Data;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -14,28 +17,31 @@ import java.util.Date;
  * @Description:
  */
 @Data
+@Entity
 public class SearchTerm implements Serializable {
 
     @Column(name = "id")
-    private Integer id;
+    @Id
+    @GeneratedValue
+    private int id;
     @Column(name = "default_channel")
-    private Integer defaultChannel;
+    private int defaultChannel;
     @Column(name = "default_search_keyword")
     private String defaultSearchKeyword;
     @Column(name = "related_landing_page")
     private String relatedLandingPage;
     @Column(name = "parent_id")
-    private Integer parentId;
+    private int parentId;
     @Column(name = "is_parent")
-    private Integer isParent;
+    private int isParent;
     @Column(name = "img_before")
     private String imgBefore;
     @Column(name = "img_after")
     private String imgAfter;
     @Column(name = "sort_number")
-    private Integer sortNumber;
+    private int sortNumber;
     @Column(name = "del_flag")
-    private Integer delFlag;
+    private int delFlag;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "create_person")

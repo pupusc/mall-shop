@@ -24,7 +24,7 @@ public class SaleNum implements Serializable {
     @Column(name = "goods_info_name")
     private String skuName;
     @Column(name = "sales_num")
-    private int salesNum;
+    private Integer salesNum;
     @Column(name = "fix_price")
-    private double fixPrice;
+    private Double fixPrice;
 }

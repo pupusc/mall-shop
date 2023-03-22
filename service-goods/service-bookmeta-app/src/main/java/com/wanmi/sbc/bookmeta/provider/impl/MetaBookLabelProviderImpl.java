@@ -15,7 +15,9 @@ import com.wanmi.sbc.bookmeta.provider.MetaBookLabelProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +35,7 @@ import java.util.*;
  * @since 2022-05-13 22:20:02
  */
 @Validated
+@Slf4j
 @RestController
 public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
     @Resource
@@ -63,7 +66,7 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
     public BusinessResponse<List<MetaBookLabelBO>> queryByPage(@Valid MetaBookLabelQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookLabel metaBookLabel = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookLabel.class);
-        
+
         page.setTotalCount((int) this.metaBookLabelMapper.count(metaBookLabel));
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
@@ -108,64 +111,92 @@ public class MetaBookLabelProviderImpl implements MetaBookLabelProvider {
 
     @Override
     public BusinessResponse<String> importBookLabel(MetaBookLabelBO metaBookLabel) {
-        int updateCount=0;
-        int addCount=0;
-        Map map=new HashMap<>();
+        int updateCount = 0;
+        int addCount = 0;
+        Map map = new HashMap<>();
         boolean bookExit = metaBookMapper.existsWithPrimaryKey(metaBookLabel.getBookId());
-        if(bookExit){
+        if (bookExit) {
             boolean labelExit = metaLabelMapper.existsWithPrimaryKey(metaBookLabel.getLabelId());
-            if(labelExit){
+            if (labelExit) {
                 List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.queryExitByBookAndLabelId(metaBookLabel.getBookId(), metaBookLabel.getLabelId());
-                if(null != metaBookLabels && metaBookLabels.size()!=0){//该数据已存在，更新该条数据
+                if (null != metaBookLabels && metaBookLabels.size() != 0) {//该数据已存在，更新该条数据
                     metaBookLabel.setId(metaBookLabels.get(0).getId());
-                    updateCount=metaBookLabelMapper.update(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
-                }else{//该数据不存在，插入该条数据
-                    Date date=new Date();
+                    updateCount = metaBookLabelMapper.update(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
+                } else {//该数据不存在，插入该条数据
+                    Date date = new Date();
                     metaBookLabel.setCreateTime(date);
                     metaBookLabel.setUpdateTime(date);
-                    addCount=metaBookLabelMapper.insert(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
+                    addCount = metaBookLabelMapper.insert(DO2BOUtils.objA2objB(metaBookLabel, MetaBookLabel.class));
                     //触发图书库更新到es
-                    metaBookMapper.updateDelflag(metaBookLabel.getBookId(),date);
+                    metaBookMapper.updateDelflag(metaBookLabel.getBookId(), date);
                 }
             }
         }
-        return BusinessResponse.success(updateCount+","+addCount);
+        return BusinessResponse.success(updateCount + "," + addCount);
     }
 
     @Override
     public BusinessResponse<List<MetaBookLabelReqBO>> bookAllByPage(MetaBookQueryByPageBo metaBookQueryByPageBo) {
         Page page = metaBookQueryByPageBo.getPage();
-        page.setTotalCount((int) metaBookLabelMapper.getAllBookCount(metaBookQueryByPageBo.getName()));
-        if (page.getTotalCount() <= 0) {
-            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        List<MetaBookLabelReqBO> metaLabelBOS = new ArrayList<>();
+        try {
+            page.setTotalCount((int) metaBookLabelMapper.getAllBookCount(metaBookQueryByPageBo.getName()));
+            if (page.getTotalCount() <= 0) {
+                return BusinessResponse.success(Collections.EMPTY_LIST, page);
+            }
+            List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBook(metaBookQueryByPageBo.getName(), page.getOffset(), page.getPageSize());
+            metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+        } catch (Exception e) {
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
+                    "bookAllByPage",
+                    Objects.isNull(metaBookQueryByPageBo) ? "" : JSON.toJSONString(metaBookQueryByPageBo),
+                    e);
         }
-        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBook(metaBookQueryByPageBo.getName(), page.getOffset(), page.getPageSize());
-        List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+
         return BusinessResponse.success(metaLabelBOS, page);
     }
 
     @Override
     public BusinessResponse<List<MetaBookLabelReqBO>> bookLabelAllByPage(MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
         Page page = metaBookQueryByPageBo.getPage();
-        page.setTotalCount((int) metaBookLabelMapper.getAllBookLabelCount(metaBookQueryByPageBo));
-        if (page.getTotalCount() <= 0) {
-            return BusinessResponse.success(Collections.EMPTY_LIST, page);
+        List<MetaBookLabelReqBO> metaLabelBOS = new ArrayList<>();
+        try {
+            page.setTotalCount((int) metaBookLabelMapper.getAllBookLabelCount(metaBookQueryByPageBo));
+            if (page.getTotalCount() <= 0) {
+                return BusinessResponse.success(Collections.EMPTY_LIST, page);
+            }
+            List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBookLabel(metaBookQueryByPageBo, page.getOffset(), page.getPageSize());
+            metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+        } catch (Exception e) {
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
+                    "bookLabelAllByPage",
+                    Objects.isNull(metaBookQueryByPageBo) ? "" : JSON.toJSONString(metaBookQueryByPageBo),
+                    e);
         }
-        List<MetaBookLabelQueryByPageReqBO> allBook = metaBookLabelMapper.getAllBookLabel(metaBookQueryByPageBo, page.getOffset(), page.getPageSize());
-        List<MetaBookLabelReqBO> metaLabelBOS = KsBeanUtil.convertList(allBook, MetaBookLabelReqBO.class);
+
         return BusinessResponse.success(metaLabelBOS, page);
     }
 
     @Override
     public BusinessResponse<Integer> addBookLabel(MetaBookLabelQueryByPageReqBO metaBookQueryByPageBo) {
         int i = 0;
-        MetaBookLabel convert = KsBeanUtil.convert(metaBookQueryByPageBo, MetaBookLabel.class);
-        List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.queryExitByBookAndLabelId(convert.getBookId(), convert.getLabelId());
-        if (metaBookLabels.size() > 0) {
-            i=2;
-            return BusinessResponse.success(i);
+        try {
+            MetaBookLabel convert = KsBeanUtil.convert(metaBookQueryByPageBo, MetaBookLabel.class);
+            List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.queryExitByBookAndLabelId(convert.getBookId(), convert.getLabelId());
+            if (metaBookLabels.size() > 0) {
+                i = 2;
+                return BusinessResponse.success(i);
+            }
+            i = metaBookLabelMapper.insertSelective(convert);
+        }catch (Exception e){
+            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                    DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
+                    "addBookLabel",
+                    Objects.isNull(metaBookQueryByPageBo) ? "" : JSON.toJSONString(metaBookQueryByPageBo),
+                    e);
         }
-        i = metaBookLabelMapper.insertSelective(convert);
         return BusinessResponse.success(i);
     }
 }
