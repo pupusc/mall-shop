@@ -41,13 +41,14 @@ public class RedisListService {
         redisTemplate.setEnableTransactionSupport(true);
         //redisTemplate.setEnableTransactionSupport(true)在本方法中不能使用get去取值或者去watch
 
+        //redisTemplate.multi();
         Boolean hasKey = redisTemplate.delete(key);
 
         redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
         ListOperations<String, JSONObject> operations = (ListOperations<String, JSONObject>) redisTemplate.opsForList();
         operations.rightPushAll(key, list);
-        redisTemplate.exec();
+        //redisTemplate.exec();
         //redisTemplate.setEnableTransactionSupport(false);
     }
 
