@@ -50,7 +50,7 @@ public class CacheService {
         marketJpaPointMap = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from t_normal_activity a left join t_activity_point_sku b on a.id = b.normal_activity_id " +
+        String sql = " select distinct a.name as activity_name,a.begin_time,a.end_time,b.sku_id,b.num,concat ('返',b.num, '积分') as name,10 as order_type from t_normal_activity a left join t_activity_point_sku b on a.id = b.normal_activity_id " +
                 "                  where a.del_flag = 0 and a.publish_state = 1 " +
                 "                  and a.begin_time <= ? and ? <= a.end_time " +
                 "                  order by a.id desc,b.num desc  ";
@@ -90,7 +90,7 @@ public class CacheService {
 
         marketTagMap = new HashMap();
 
-        String sql = " select b.goods_id,a.id,a.name,show_status,is_static,80 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = " select distinct b.goods_id,a.id,a.name,show_status,is_static,80 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                 "         where a.del_flag = 0 and a.is_static = 2 order by seq asc  ";
         Object[] obj = new Object[]{};
 
@@ -128,7 +128,7 @@ public class CacheService {
     public List getTopList_init() {
         marketTopMap = new HashMap();
 
-        String sql = "  select c.goods_info_id,b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,c.goods_info_name,b.order_num,60 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
+        String sql = "  select distinct c.goods_info_id,b.id,concat (a.name,'第', b.order_num,'名') as show_name,a.name as name,c.goods_info_name,b.order_num,60 as order_type from t_book_list_model a left join t_book_list_goods_publish b on a.id = b.book_list_id " +
                 "               left join goods_info c on b.sku_no = c.goods_info_no " +
                 "               where a.del_flag = 0 and b.del_flag = 0 and c.del_flag = 0 " +
                 "               order by b.order_num desc ";
@@ -169,7 +169,7 @@ public class CacheService {
         marketMarkingMap = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select b.scope_id as sku_id,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select distinct b.scope_id as sku_id,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                 "    where a.del_flag = 0 and a.marketing_type = 0 and a.is_pause = 0 " +
                 "    and a.begin_time <= ? and ? <= a.end_time " +
                 "    order by a.marketing_id desc ";
@@ -211,7 +211,7 @@ public class CacheService {
         marketMarking2Map = new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select b.scope_id as sku_id ,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select distinct b.scope_id as sku_id ,a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                 "                      where a.del_flag = 0 and a.marketing_type = 1 and a.is_pause = 0 " +
                 "                      and a.begin_time <= ? and ? <= a.end_time " +
                 "                      order by a.marketing_id desc ";
@@ -250,7 +250,7 @@ public class CacheService {
     public void get49List_init() {
         market49Map = new HashMap();
 
-        String sql = " select a.goods_id,a.freight_temp_id,'满49元包邮' as name,50 as order_type from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id " +
+        String sql = " select distinct a.goods_id,a.freight_temp_id,'满49元包邮' as name,50 as order_type from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id " +
                      " where  b.freight_temp_name = '满49元包邮模板' " +
                      " union " +
                      " select goods_id,freight_temp_id,'包邮' as name,50 as order_type from goods where " +
@@ -288,7 +288,7 @@ public class CacheService {
     //60. 大促标签
     public void getTagList1_init() {
         marketTagList1Map = new HashMap();
-        String sql = "  select b.goods_id,a.id,a.name,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
+        String sql = "  select distinct b.goods_id,a.id,a.name,show_img,show_status,is_static,70 as order_type from meta_label a left join meta_label_spu b on a.id = b.label_id " +
                 "                      where  a.del_flag = 0 and a.is_static = 1 order by seq asc  ";
 
         Object[] obj = new Object[]{};
@@ -325,7 +325,7 @@ public class CacheService {
         marketExchangeMap=new HashMap();
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select b.scope_id as sku_id, a.marketing_id,a.marketing_name,a.begin_time,a.end_time,c.point_need as num,concat (c.point_need, '积分兑换') as name,20 as order_type " +
+        String sql = " select distinct b.scope_id as sku_id, a.marketing_id,a.marketing_name,a.begin_time,a.end_time,c.point_need as num,concat (c.point_need, '积分兑换') as name,20 as order_type " +
                 "  from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                 "  left join marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
                 "  where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0  " +
