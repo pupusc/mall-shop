@@ -646,8 +646,8 @@ public class TopicConfigService {
     @SneakyThrows
     @Transactional
     public void deleteRankLevel(RankLevelUpdateRequest request) {
-        columnRepository.deleteById(request.getId());
         relationRepository.deleteByPRankColumId(request.getId());
+        columnRepository.deleteById(request.getId());
     }
 
     /**
