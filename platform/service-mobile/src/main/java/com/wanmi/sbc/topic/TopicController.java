@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -166,6 +167,13 @@ public class TopicController {
 
 //        collectSkuIdFactory.collectId();
 //        collectSkuIdJobHandler.execute(null);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @ApiOperation(value = "榜单聚合页")
+    @PostMapping(value = "/v2/refreshRankPageRedis")
+    public BaseResponse refreshRankPageRedis(@RequestParam(value = "topicKey") String topicKey) throws Exception {
+        rankPageJobHandler.execute(topicKey);
         return BaseResponse.SUCCESSFUL();
     }
 
