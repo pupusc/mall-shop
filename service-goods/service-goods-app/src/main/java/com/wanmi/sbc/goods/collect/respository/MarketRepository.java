@@ -2,14 +2,12 @@ package com.wanmi.sbc.goods.collect.respository;
 
 import com.wanmi.sbc.goods.collect.DitaUtil;
 import com.wanmi.sbc.goods.jpa.JpaManager;
+import com.wanmi.sbc.goods.jpa.MarkingTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -19,6 +17,9 @@ public class MarketRepository {
     @Autowired
     JpaManager jpaManager;
 
+    @Autowired
+    MarkingTemplate markingTemplate;
+
     //所有商品sku_id,b.stock > 0 也查出没有库存的商品
     public List getSkuList(){
 
@@ -26,6 +27,7 @@ public class MarketRepository {
                      "  where a.del_flag = 0 and b.del_flag = 0 ";
         //             "  limit 0,1 ";
         // and b.stock > 0 and b.goods_info_id = '2c9a009b86a5b1850186a6ae64c80004''
+        // and b.goods_info_id = '2c9a009b86a5b1850186a6ae64c80004'
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql,obj);
 
@@ -38,12 +40,12 @@ public class MarketRepository {
 
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.num,concat ('返',b.num, '积分') as name,10 as order_type from `sbc-marketing`.t_normal_activity a left join `sbc-marketing`.t_activity_point_sku b on a.id = b.normal_activity_id " +
+        String sql = " select a.name as activity_name,a.begin_time,a.end_time,b.num,concat ('返',b.num, '积分') as name,10 as order_type from t_normal_activity a left join t_activity_point_sku b on a.id = b.normal_activity_id " +
                      " where a.del_flag = 0 and a.publish_state = 1 " +
                      " and a.begin_time <= ? and ? <= a.end_time and b.sku_id = ? " +
                      " order by a.id desc,b.num desc limit 0,1 ";
         Object[] obj = new Object[]{currentTime,currentTime,sku_id};
-        List list = jpaManager.queryForList(sql,obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql,obj);
         return list;
     }
 
@@ -67,15 +69,15 @@ public class MarketRepository {
         String currentTime = DitaUtil.getCurrentAllDate();
 
         String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,c.point_need as num,concat (c.point_need, '积分兑换') as name,20 as order_type " +
-                     "  from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
-                     "  left join `sbc-marketing`.marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
+                     "  from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
+                     "  left join marketing_point_buy_level c on a.marketing_id = c.marketing_id " +
                      "  where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0  " +
                      "  and a.begin_time <= ? and ? <= a.end_time " +
                      "  and b.scope_id = ? " +
                      "  limit 0,1 ";
         Object[] obj = new Object[]{currentTime,currentTime,sku_id};
 
-        List list = jpaManager.queryForList(sql,obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql,obj);
 
         return list;
     }
@@ -86,14 +88,14 @@ public class MarketRepository {
 
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满减' as name,30 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                      " where a.del_flag = 0 and a.marketing_type = 0 and a.is_pause = 0 " +
                      " and a.begin_time <= ? and ? <= a.end_time " +
                      " and b.scope_id = ? " +
                      " order by a.marketing_id desc limit 0,1 ";
 
         Object[] obj = new Object[]{currentTime,currentTime,sku_id};
-        List list = jpaManager.queryForList(sql,obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql,obj);
 
         return list;
     }
@@ -103,7 +105,7 @@ public class MarketRepository {
 
         String currentTime = DitaUtil.getCurrentAllDate();
 
-        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from `sbc-marketing`.marketing a left join `sbc-marketing`.marketing_scope b on a.marketing_id = b.marketing_id " +
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,'满折' as name,40 as order_type from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id " +
                      " where a.del_flag = 0 and a.marketing_type = 1 and a.is_pause = 0 " +
                      " and a.begin_time <= ? and ? <= a.end_time " +
                      " and b.scope_id = ? " +
@@ -111,7 +113,7 @@ public class MarketRepository {
 
 
         Object[] obj = new Object[]{currentTime,currentTime,sku_id};
-        List list = jpaManager.queryForList(sql,obj);
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql,obj);
 
         return list;
     }
@@ -122,10 +124,12 @@ public class MarketRepository {
         String currentTime = DitaUtil.getCurrentAllDate();
 
         String sql = " select a.freight_temp_id,'满49元包邮' as name,50 as order_type from goods a left join freight_template_goods b on a.freight_temp_id = b.freight_temp_id " +
-                     " where a.goods_id = ? and b.freight_temp_name = '满49元包邮模板' ";
+                     " where a.goods_id = ? and b.freight_temp_name = '满49元包邮模板' " +
+                     " union " +
+                     " select freight_temp_id,'包邮' as name,50 as order_type from goods " +
+                     " where goods_id = ? and freight_temp_id = 429 ";
 
-
-        Object[] obj = new Object[]{spu_id};
+        Object[] obj = new Object[]{spu_id,spu_id};
         List list = jpaManager.queryForList(sql,obj);
 
         return list;

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.configuration.sharding;
 
 import com.google.common.base.Preconditions;
+import com.wanmi.sbc.goods.jpa.MarkingTemplate;
 import io.seata.rm.datasource.DataSourceProxy;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.core.yaml.swapper.ShardingRuleConfigurationYamlSwapper;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jndi.JndiObjectFactoryBean;
 
 import javax.naming.NamingException;
@@ -59,7 +61,12 @@ public class ShardingConfiguration implements EnvironmentAware {
         String prefix = "spring.shardingsphere.datasource.";
         for (String each : getDataSourceNames(environment, prefix)) {
             try {
-                dataSourceMap.put(each, getDataSource(environment, prefix, each));
+                DataSource  dataSource = getDataSource(environment, prefix, each);
+                if(each.equals("marking")){
+                    MarkingTemplate.getInstance().init(dataSource);
+                    continue;
+                }
+                dataSourceMap.put(each, dataSource);
             } catch (final ReflectiveOperationException ex) {
                 throw new ShardingSphereConfigurationException("Can't find datasource type!", ex);
             } catch (final NamingException namingEx) {
