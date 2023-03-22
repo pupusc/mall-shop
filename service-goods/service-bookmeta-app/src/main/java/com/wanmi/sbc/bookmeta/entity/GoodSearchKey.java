@@ -17,7 +17,7 @@ import java.util.Date;
 public class GoodSearchKey {
     @Id
     @Column(name = "id")
-    private int id;
+    private Integer id;
     @Column(name = "name")
     private String name;
     @Column(name = "goods_name")
@@ -25,12 +25,12 @@ public class GoodSearchKey {
     @Column(name = "spu_id")
     private String spuId;
     @Column(name = "del_flag")
-    private int delFlag;
+    private Integer delFlag;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "update_time")
     private Date updateTime;
     @Column(name = "status")
-    private int status;
+    private Integer status;
 
 }

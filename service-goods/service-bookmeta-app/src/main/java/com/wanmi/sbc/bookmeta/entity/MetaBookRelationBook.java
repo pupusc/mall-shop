@@ -17,19 +17,19 @@ import java.util.Date;
 public class MetaBookRelationBook implements Serializable {
 
     @Column(name = "id")
-    private int id;
+    private Integer id;
     @Column(name = "relation_id")
-    private int relationId;
+    private Integer relationId;
     @Column(name = "isbn")
     private String isbn;
     @Column(name = "name")
     private String name;
     @Column(name = "order_num")
-    private int orderNum;
+    private Integer orderNum;
     @Column(name = "create_time")
     private Date createTime;
     @Column(name = "update_time")
     private Date updateTime;
     @Column(name = "del_flag")
-    private int delFlag;
+    private Integer delFlag;
 }

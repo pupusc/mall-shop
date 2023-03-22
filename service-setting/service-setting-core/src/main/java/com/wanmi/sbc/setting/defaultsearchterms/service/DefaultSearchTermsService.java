@@ -2,26 +2,32 @@ package com.wanmi.sbc.setting.defaultsearchterms.service;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
+
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.setting.api.response.defaultsearchterms.DefaultSearchTermsListResponse;
-import com.wanmi.sbc.setting.api.response.popularsearchterms.PopularSearchTermsDeleteResponse;
-import com.wanmi.sbc.setting.api.response.popularsearchterms.PopularSearchTermsListResponse;
+import com.wanmi.sbc.setting.api.response.defaultsearchterms.SearchTermBo;
+
 import com.wanmi.sbc.setting.bean.vo.DefaultSearchTermsVO;
-import com.wanmi.sbc.setting.bean.vo.PopularSearchTermsVO;
+
 import com.wanmi.sbc.setting.defaultsearchterms.model.DefaultSearchTerms;
 import com.wanmi.sbc.setting.defaultsearchterms.repository.DefaultSearchTermsRespository;
-import com.wanmi.sbc.setting.popularsearchterms.model.PopularSearchTerms;
-import com.wanmi.sbc.setting.popularsearchterms.repository.PopularSearchTermsRespository;
-import com.wanmi.sbc.setting.util.error.SearchTermsErrorCode;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumn;
+import com.wanmi.sbc.setting.util.BeanUtil;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,7 +47,7 @@ public class DefaultSearchTermsService {
     /**
      * @Description 查询默认搜索词
      * @Author zh
-     * @Date  2023/2/4 14:13
+     * @Date 2023/2/4 14:13
      */
     public BaseResponse<List<DefaultSearchTermsListResponse>> listDefaultSearchTerms(Integer defaultChannel) {
         //查询主标题 主标题为true 标签为false
@@ -61,5 +67,66 @@ public class DefaultSearchTermsService {
             return new DefaultSearchTermsListResponse(defaultParentSearchTermsVO, defaultSonSearchTermsVOList);
         }).collect(Collectors.toList());
         return BaseResponse.success(defaultSearchTermsListResponse);
+    }
+
+    public BaseResponse<MicroServicePage<SearchTermBo>> DefaultSearchTermsByPage(SearchTermBo bo) {
+        Page<DefaultSearchTerms> pageSearchTerms = defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(bo), PageRequest.of(bo.getPageNum(),
+                bo.getPageSize(), Sort.by(Sort.Direction.ASC, "sorting")));
+        List<DefaultSearchTerms> listSearchTerms = pageSearchTerms.getContent();
+        MicroServicePage<SearchTermBo> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(pageSearchTerms.getTotalElements());
+        microServicePage.setContent(KsBeanUtil.convertList(listSearchTerms, SearchTermBo.class));
+        return BaseResponse.success(microServicePage);
+    }
+
+    public BaseResponse<List<SearchTermBo>> listDefaultSearchTermsByPage(SearchTermBo bo) {
+        List<DefaultSearchTerms> SearchTermsParent = defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(bo));
+        List<SearchTermBo> searchTermBos = KsBeanUtil.convertList(SearchTermsParent, SearchTermBo.class);
+        for (SearchTermBo term : searchTermBos) {
+            List<SearchTermBo> children = KsBeanUtil.convertList(defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(term)), SearchTermBo.class);
+            term.setChildrenList(children);
+        }
+        return BaseResponse.success(searchTermBos);
+    }
+
+
+    public BaseResponse<Long> delete(SearchTermBo bo) {
+        DefaultSearchTerms one = defaultSearchTermsRespository.getOne(bo.getId());
+        List<DefaultSearchTerms> SearchTermsParent = defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(bo));
+        if (SearchTermsParent.size() > 0) {
+            for (DefaultSearchTerms SearchTerms : SearchTermsParent) {
+                SearchTerms.setDelFlag(DeleteFlag.YES);
+                defaultSearchTermsRespository.save(SearchTerms);
+            }
+        }
+        one.setDelFlag(DeleteFlag.YES);
+        defaultSearchTermsRespository.save(one);
+        return BaseResponse.success(bo.getId());
+    }
+
+    public BaseResponse<Integer> add(SearchTermBo bo) {
+        DefaultSearchTerms convert = KsBeanUtil.convert(bo, DefaultSearchTerms.class);
+        convert.setDelFlag(DeleteFlag.NO);
+        convert.setCreateTime(LocalDateTime.now());
+        defaultSearchTermsRespository.save(convert);
+        return BaseResponse.success(1);
+    }
+
+    public BaseResponse<Long> update(SearchTermBo bo) {
+        DefaultSearchTerms convert = KsBeanUtil.convert(bo, DefaultSearchTerms.class);
+        convert.setDelFlag(DeleteFlag.NO);
+        convert.setUpdateTime(LocalDateTime.now());
+        DefaultSearchTerms save = defaultSearchTermsRespository.save(convert);
+        return BaseResponse.success(save.getId());
+    }
+
+    public boolean existName(SearchTermBo bo) {
+        int count = defaultSearchTermsRespository.countByDefaultSearchKeywordAndDelFlag(bo.getDefaultSearchKeyword());
+        return count > 0;
+    }
+
+    public boolean existId(SearchTermBo bo) {
+        int count = defaultSearchTermsRespository.countById(bo.getId());
+        return count > 0;
     }
 }

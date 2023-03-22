@@ -1,7 +1,9 @@
 package com.wanmi.sbc.goods.provider.impl.common;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.api.provider.common.GoodsRedisProvider;
 import com.wanmi.sbc.goods.api.provider.common.RiskVerifyProvider;
 import com.wanmi.sbc.goods.api.request.SuspensionV2.SpuRequest;
@@ -14,9 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Slf4j
@@ -45,10 +45,28 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Override
     public BaseResponse refreshBook(SpuRequest spuRequest) {
 
-        String isbn = spuRequest.getIsbn();
+        new Thread(new Runnable() {
+            public void run() {
+                try {
 
-        bookTags.doData(isbn);
-        System.out.println("isbn"+ isbn);
+                    String isbn = spuRequest.getIsbn();
+
+                    bookTags.doData(isbn);
+                    System.out.println("isbn"+ isbn);
+
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                            DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                            "testLog",
+                            Objects.isNull(ex.getMessage())?"": JSON.toJSONString(ex.getMessage()),
+                            ex);
+                }
+            }
+        }).start();
+
+
         return BaseResponse.SUCCESSFUL();
 
     }
@@ -59,29 +77,48 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Override
     public BaseResponse refreshGoods(SpuRequest spuRequest) {
 
-        String sku_id = spuRequest.getSku_id();
-        boolean isExistSku = goodRepository.isExistSku(sku_id);
 
-        if (!isExistSku){
-            return BaseResponse.FAILED();
-        }
-        String spu_id = goodRepository.getSpuIdBySku(sku_id);
+        new Thread(new Runnable() {
+            public void run() {
+                try {
 
-        String isbn = goodRepository.getIsbnBySpuId(spu_id);
+                    String sku_id = spuRequest.getSku_id();
+                    boolean isExistSku = goodRepository.isExistSku(sku_id);
 
-        if(DitaUtil.isNotBlank(isbn)){
-            bookTags.doData(isbn);          //图书
-        }else{
-            goodTags.doGoods(spu_id);       //非书
-        }
+                    if (isExistSku){
+                        String spu_id = goodRepository.getSpuIdBySku(sku_id);
 
-        if(DitaUtil.isNotBlank(spu_id)){
-            Map skuMap = new HashMap();
-            skuMap.put("spu_id",spu_id);
-            skuMap.put("sku_id",sku_id);
+                        String isbn = goodRepository.getIsbnBySpuId(spu_id);
 
-            marketLabel.doData(skuMap);
-        }
+                        if(DitaUtil.isNotBlank(isbn)){
+                            bookTags.doData(isbn);          //图书
+                        }else{
+                            goodTags.doGoods(spu_id);       //非书
+                        }
+
+                        if(DitaUtil.isNotBlank(spu_id)){
+                            Map skuMap = new HashMap();
+                            skuMap.put("spu_id",spu_id);
+                            skuMap.put("sku_id",sku_id);
+
+                            marketLabel.doData(skuMap);
+                        }
+
+                    }
+
+
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                            DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                            "testLog",
+                            Objects.isNull(ex.getMessage())?"": JSON.toJSONString(ex.getMessage()),
+                            ex);
+                }
+            }
+        }).start();
+
 
         return BaseResponse.SUCCESSFUL();
     }
@@ -90,16 +127,33 @@ public class GoodsRedisController implements GoodsRedisProvider {
     @Override
     public BaseResponse refreshRedis() {
 
-        marketLabel.doMarket();     //营销标签
+        new Thread(new Runnable() {
+            public void run() {
+                try {
 
-        bookTags.doGoods();         //图书商品
+                    marketLabel.doMarket();     //营销标签
 
-        goodTags.doGoods();         //非书商品
+                    bookTags.doGoods();         //图书商品
 
-        cacheService.clear();       //释放内存
+                    goodTags.doGoods();         //非书商品
 
-        goodsCacheService.clear();
-        cacheService.clear();
+                    cacheService.clear();       //释放内存
+
+                    goodsCacheService.clear();
+                    cacheService.clear();
+                    System.out.println("finish:" + DitaUtil.getCurrentAllDate());
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                            DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                            "testLog",
+                            Objects.isNull(ex.getMessage())?"": JSON.toJSONString(ex.getMessage()),
+                            ex);
+                }
+            }
+        }).start();
+
 
         return BaseResponse.SUCCESSFUL();
 

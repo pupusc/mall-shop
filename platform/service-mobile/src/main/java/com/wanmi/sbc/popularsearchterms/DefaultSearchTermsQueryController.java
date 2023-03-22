@@ -1,6 +1,7 @@
 package com.wanmi.sbc.popularsearchterms;
 
 
+import com.wanmi.sbc.bookmeta.provider.SearchTermProvider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.provider.defaultsearchterms.DefaultSearchTermsQueryProvider;
 import com.wanmi.sbc.setting.api.response.defaultsearchterms.DefaultSearchTermsListResponse;

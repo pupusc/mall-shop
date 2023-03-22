@@ -44,6 +44,18 @@ public class BookCacheService {
     public static Map KeyRecommendMap = null;
     public static Map getCharactersMap = null;
     public static Map getPublicBookIdMap = null;
+    public static Map getWriterBooksMap = null;
+    public static Map getLibraryNameMap = null;
+    public static Map getLibraryNumMap = null;
+    public static Map getLibraryMap = null;
+    public static Map getProducerNameMap = null;
+    public static Map getOrderDetailMap = null;
+    public static Map getProducerNumMap = null;
+    public static Map getProducerMap = null;
+    public static Map getIsbnBySpuIdScoreMap = null;
+    public static Map getSaleNumMap = null;
+    public static Map getSkuSaleNumMap = null;
+    public static Map getTradeMap = null;
 
 
     //通过isbn查找book_id缓存
@@ -51,7 +63,7 @@ public class BookCacheService {
 
         bookMap = new HashMap();
 
-        String sql = " select id,isbn,trade_id from meta_book where del_flag=0 ";
+        String sql = " select id,isbn,trade_id,fit_age_min,fit_age_max from meta_book where del_flag=0 ";
 
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql, obj);
@@ -766,26 +778,28 @@ public class BookCacheService {
     public void getCommentSkuId_init() {
 
         bookCommentSkuMap = new HashMap<>();
-        String sql = "select b.goods_id,a.evaluate_content_key as comment_name,count(a.incr_id) as num from goods_evaluate_analyse a left join goods_evaluate b on a.evaluate_id = b.evaluate_id " +
-                "  group by a.evaluate_content_key" +
-                "  order by num desc  ";
+        String sql = " select b.goods_id, a.evaluate_content_key as comment_name,count(a.incr_id) as num from goods_evaluate_analyse a left join goods_evaluate b on a.evaluate_id = b.evaluate_id " +
+                "                 group by a.evaluate_content_key,goods_id " +
+                "                 order by num desc";
 
         Object[] obj = new Object[]{};
-        List list = jpaManager.queryForList(sql, obj);
-        for (int i = 0; i < list.size(); i++) {
-            Map map = (Map) list.get(i);
+        List<Map> list = jpaManager.queryForList(sql, obj);
+        for (Map map : list) {
             String goods_id = String.valueOf(map.get("goods_id"));
-
+            List addList = new ArrayList();
             if (DitaUtil.isNotBlank(goods_id)) {
+                for (Map ortherMap : list) {
+                    if (String.valueOf(ortherMap.get("goods_id")).equals(goods_id)) {
+                        addList.add(ortherMap);
+                    }
+                }
                 List tagList = (List) bookCommentSkuMap.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
-                    tagList = new ArrayList();
-                    tagList.add(map);
-                    bookCommentSkuMap.put(goods_id, tagList);
-                } else {
-                    tagList.add(map);                             //存在放入
+                    bookCommentSkuMap.put(goods_id, addList);
                 }
             }
+
+
         }
     }
 
@@ -799,7 +813,7 @@ public class BookCacheService {
     }
 
     //简介目录原文摘要
-    public List getContent_init() {
+    public void getContent_init() {
         bookContentMap = new HashMap();
         String sql = " select content,type,book_id from meta_book_content where  type in (1,2,3) ";
         Object[] obj = new Object[]{};
@@ -820,7 +834,6 @@ public class BookCacheService {
                 }
             }
         }
-        return list;
     }
 
     public List getContent(String bookId) {
@@ -832,7 +845,7 @@ public class BookCacheService {
     }
 
     //图文详情
-    public List getGoodsDetail_init() {
+    public void getGoodsDetail_init() {
 
         bookGoodsDetailMap = new HashMap();
 
@@ -855,7 +868,6 @@ public class BookCacheService {
                 }
             }
         }
-        return list;
     }
 
     public List getGoodsDetail(String spu_no) {
@@ -871,7 +883,7 @@ public class BookCacheService {
 
         RcommdBookByFigureIdMap = new HashMap();
         //String sql = " select b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.biz_id=? and a.book_id !=? and a.is_selected=1 and a.del_flag=0 and b.del_flag=0 limit 0,5";
-        String sql = "  select b.isbn,a.book_id,a.biz_id from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where a.is_selected=1 and a.del_flag=0 and b.del_flag=0 ";
+        String sql = " select a.book_id, a.biz_id, b.isbn from meta_book_rcmmd as a left join meta_book as b on a.book_id = b.id where   a.is_selected=1 and a.del_flag=0 and b.del_flag=0 GROUP BY  b.isbn   ";
         Object[] obj = new Object[]{};
         List<Map> list = jpaManager.queryForList(sql, obj);
 
@@ -885,7 +897,7 @@ public class BookCacheService {
                 if (DitaUtil.isNotBlank(bizId) && DitaUtil.isNotBlank(bookId)) {
                     //循环找到同biz_id下不包含book_id 的其他id
                     for (Map ortherMap : list) {
-                        if (String.valueOf(ortherMap.get("biz_id")).equals(bizId) && String.valueOf(ortherMap.get("book_id")).equals(bookId)) {
+                        if (String.valueOf(ortherMap.get("biz_id")).equals(bizId) && !String.valueOf(ortherMap.get("book_id")).equals(bookId)) {
                             ortherBookIdlist.add(ortherMap); //找到就放入获取isbn
                         }
                     }
@@ -1015,7 +1027,7 @@ public class BookCacheService {
     //订购须知
     public void getOrderDetail_init() {
 
-        getCharactersMap = new HashMap();
+        getOrderDetailMap = new HashMap();
         String sql = " select goods_id,order_show_type, order_detail from goods where del_flag = 0 ";
 
         Object[] obj = new Object[]{};
@@ -1025,12 +1037,12 @@ public class BookCacheService {
             String goods_id = String.valueOf(map.get("goods_id"));
 
             if (DitaUtil.isNotBlank(goods_id)) {
-                List tagList = (List) getCharactersMap.get(goods_id);
+                List tagList = (List) getOrderDetailMap.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     tagList = new ArrayList();
                     map.remove(goods_id);
                     tagList.add(map);
-                    getCharactersMap.put(goods_id, tagList);
+                    getOrderDetailMap.put(goods_id, tagList);
                 } else {
                     map.remove(goods_id);
                     tagList.add(map);                             //存在放入
@@ -1046,11 +1058,11 @@ public class BookCacheService {
 
 
         Map map = new HashMap();
-        if (getCharactersMap == null) {
+        if (getOrderDetailMap == null) {
             getOrderDetail_init();
         }
 
-        List list = (List) getCharactersMap.get(spuId);
+        List list = (List) getOrderDetailMap.get(spuId);
         if (list != null && list.size() > 0) {
             map = (Map) list.get(0);
         }
@@ -1058,35 +1070,36 @@ public class BookCacheService {
         return map;
 
     }
-          /* 通过book_id查询
-        名家>媒体>编辑>机构 取推荐人职称、推荐语 */
-        public void getPublicBookId_init() {
 
-            getPublicBookIdMap=new HashMap<>();
+    /* 通过book_id查询
+  名家>媒体>编辑>机构 取推荐人职称、推荐语 */
+    public void getPublicBookId_init() {
 
-            String sql = "select a.id,a.name as writerName,a.job_title,b.descr,b.book_id ,b.is_selected ,case b.biz_type when 5 then 0 when 3 then 1  when 2 then 2  when 4 then 3   when 9 then 4   when 10  then 5  end biz_type,c.score,c.isbn from meta_figure a " +
-                    " left join meta_book_rcmmd b on a.id = b.biz_id " +
-                    " left join meta_book c ON c.id=b.book_id " +
-                    " where  b.biz_type in(5,3,2,4,9,10)  and b.is_selected = 1  and a.del_flag=0 and b.del_flag=0 and c.del_flag=0  " +
-                    " GROUP BY b.biz_type  ORDER BY biz_type asc LIMIT 0,1";
-            Object[] obj = new Object[]{};
-            List list = jpaManager.queryForList(sql, obj);
+        getPublicBookIdMap = new HashMap<>();
 
-            for (int i = 0; i < list.size(); i++) {
-                Map map = (Map) list.get(i);
-                String book_id = String.valueOf(map.get("book_id"));
+        String sql = "select a.id,a.name as writerName,a.job_title,b.descr,b.book_id ,b.is_selected ,case b.biz_type when 5 then 0 when 3 then 1  when 2 then 2  when 4 then 3   when 9 then 4   when 10  then 5  end biz_type,c.score,c.isbn from meta_figure a " +
+                " left join meta_book_rcmmd b on a.id = b.biz_id " +
+                " left join meta_book c ON c.id=b.book_id " +
+                " where  b.biz_type in(5,3,2,4,9,10)  and b.is_selected = 1  and a.del_flag=0 and b.del_flag=0 and c.del_flag=0  " +
+                " GROUP BY b.biz_type  ORDER BY biz_type asc LIMIT 0,1";
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
 
-                if (DitaUtil.isNotBlank(book_id)) {
-                    List tagList = (List) getPublicBookIdMap.get(book_id);
-                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
-                        tagList = new ArrayList();
-                        tagList.add(map);
-                        getPublicBookIdMap.put(book_id, tagList);
-                    } else {
-                        tagList.add(map);                             //存在放入
-                    }
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_id = String.valueOf(map.get("book_id"));
+
+            if (DitaUtil.isNotBlank(book_id)) {
+                List tagList = (List) getPublicBookIdMap.get(book_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    tagList.add(map);
+                    getPublicBookIdMap.put(book_id, tagList);
+                } else {
+                    tagList.add(map);                             //存在放入
                 }
             }
+        }
 
     }
 
@@ -1105,6 +1118,449 @@ public class BookCacheService {
             map = (Map) list.get(0);
         }
         return map;
+    }
+
+    public void getWriterBooks_init() {
+        getWriterBooksMap = new HashMap<>();
+
+
+        String sql = " select b.book_id,a.isbn,b.figure_id from meta_book a left join meta_book_figure b on a.id = b.book_id ";
+
+        Object[] obj = new Object[]{};
+        List<Map> list = jpaManager.queryForList(sql, obj);
+
+        if (list != null && list.size() > 0) {
+            for (Map map : list) {
+                List<Map> ortherBookIdlist = new ArrayList<>();
+                String figure_id = String.valueOf(map.get("figure_id"));
+                String bookId = String.valueOf(map.get("book_id"));
+
+                if (DitaUtil.isNotBlank(figure_id) && DitaUtil.isNotBlank(bookId)) {
+                    //循环找到同biz_id下不包含book_id 的其他id
+                    for (Map ortherMap : list) {
+                        if (String.valueOf(ortherMap.get("figure_id")).equals(figure_id) && !String.valueOf(ortherMap.get("book_id")).equals(bookId)) {
+                            ortherBookIdlist.add(ortherMap); //找到就放入获取isbn
+                        }
+                    }
+                    //map 中获取value 值
+                    List listBookId = (List) getWriterBooksMap.get(figure_id + bookId);
+                    if (listBookId == null || listBookId.size() == 0) {       //不存在就新建一个，放入
+                        getWriterBooksMap.put(figure_id + bookId, ortherBookIdlist);
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+
+    public List getWriterBooks(String bookId, String figure_id) {
+        Map map = new HashMap();
+        if (getWriterBooksMap == null) {
+            getWriterBooks_init();
+        }
+        return (List) getWriterBooksMap.get(figure_id + bookId);
+    }
+
+
+    public void getLibraryName_init() {
+
+        getLibraryNameMap = new HashMap<>();
+        String sql = " select a.id,a.name,b.id as book_id from meta_book_clump a left join meta_book b on a.id = b.book_clump_id ";
+
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_id = String.valueOf(map.get("book_id"));
+
+            if (DitaUtil.isNotBlank(book_id)) {
+                List tagList = (List) getLibraryNameMap.get(book_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    map.remove(book_id);
+                    tagList.add(map);
+                    getLibraryNameMap.put(book_id, tagList);
+                } else {
+                    map.remove(book_id);
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+
+    }
+
+    public List getLibraryName(String bookId) {
+
+        if (getLibraryNameMap == null) {
+            getLibraryName_init();
+        }
+        return (List) getLibraryNameMap.get(bookId);
+    }
+
+
+    public void getLibraryNum_init() {
+
+        getLibraryNumMap = new HashMap();
+        String sql = "  select count(*) as num,book_clump_id from meta_book where book_clump_id is not null GROUP BY  book_clump_id   ";
+
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql, obj);
+
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_clump_id = String.valueOf(map.get("book_clump_id"));
+
+            if (DitaUtil.isNotBlank(book_clump_id)) {
+                List tagList = (List) getLibraryNumMap.get(book_clump_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    map.remove(book_clump_id);
+                    tagList.add(map);
+                    getLibraryNumMap.put(book_clump_id, tagList);
+                } else {
+                    map.remove(book_clump_id);
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+
+    public List getLibraryNum(String libraryId) {
+
+        if (getLibraryNumMap == null) {
+            getLibraryNum_init();
+        }
+        return (List) getLibraryNumMap.get(libraryId);
+    }
+
+    //通过book_id得到丛书名称,且不包含这本书
+    public void getLibrary_init() {
+        getLibraryMap = new HashMap();
+        String sql = " select a.book_clump_id,a.id,a.name,a.isbn from meta_book a left join meta_book_rcmmd b on a.book_clump_id = b.id ";
+
+
+        Object[] obj = new Object[]{};
+
+        List<Map> list = jpaManager.queryForList(sql, obj);
+
+        if (list != null && list.size() > 0) {
+            for (Map map : list) {
+                List<Map> ortherBookIdlist = new ArrayList<>();
+                String book_clump_id = String.valueOf(map.get("book_clump_id"));
+                String id = String.valueOf(map.get("id"));
+
+                if (DitaUtil.isNotBlank(book_clump_id) && DitaUtil.isNotBlank(id)) {
+                    //循环找到同biz_id下不包含book_id 的其他id
+                    for (Map ortherMap : list) {
+                        if (String.valueOf(ortherMap.get("book_clump_id")).equals(book_clump_id) && !String.valueOf(ortherMap.get("id")).equals(id)) {
+                            ortherBookIdlist.add(ortherMap); //找到就放入获取isbn
+                        }
+                    }
+                    //map 中获取value 值
+                    List listBookId = (List) getLibraryMap.get(book_clump_id + id);
+                    if (listBookId == null || listBookId.size() == 0) {       //不存在就新建一个，放入
+                        getLibraryMap.put(book_clump_id + id, ortherBookIdlist);
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    //通过book_id得到丛书名称,且不包含这本书
+    public List getLibrary(String bookId, String libraryId) {
+
+        List list = new ArrayList();
+        if (getLibraryMap == null) {
+            getLibrary_init();
+        }
+        list = (List) getLibraryMap.get(libraryId + bookId);
+        return list;
+    }
+
+    //通过book_id得到出品方名称
+    public void getProducerName_init() {
+        getProducerNameMap = new HashMap();
+        String sql = " select b.id as book_id,a.id,a.name from meta_producer a left join meta_book b on a.id = b.producer_id ";
+
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String book_id = String.valueOf(map.get("book_id"));
+
+            if (DitaUtil.isNotBlank(book_id)) {
+                List tagList = (List) getProducerNameMap.get(book_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    map.remove(book_id);
+                    tagList.add(map);
+                    getProducerNameMap.put(book_id, tagList);
+                } else {
+                    map.remove(book_id);
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+    }
+
+    public List getProducerName(String bookId) {
+        if (getProducerNameMap == null) {
+            getProducerName_init();
+        }
+        return (List) getProducerNameMap.get(bookId);
+    }
+
+
+    //通过book_id得到出品方名称得到总数
+    public void getProducerNum_init() {
+        getProducerNumMap = new HashMap<>();
+        String sql = " select count(*) as num,producer_id from meta_book where producer_id is not null GROUP BY  producer_id ";
+
+        Object[] obj = new Object[]{};
+
+        List list = jpaManager.queryForList(sql, obj);
+        for (int i = 0; i < list.size(); i++) {
+            Map map = (Map) list.get(i);
+            String producer_id = String.valueOf(map.get("producer_id"));
+
+            if (DitaUtil.isNotBlank(producer_id)) {
+                List tagList = (List) getProducerNumMap.get(producer_id);
+                if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                    tagList = new ArrayList();
+                    map.remove(producer_id);
+                    tagList.add(map);
+                    getProducerNumMap.put(producer_id, tagList);
+                } else {
+                    map.remove(producer_id);
+                    tagList.add(map);                             //存在放入
+                }
+            }
+        }
+
+    }
+
+    //通过book_id得到出品方名称得到总数
+    public List getProducerNum(String producerId) {
+
+        if (getProducerNumMap == null) {
+            getProducerNum_init();
+        }
+        return (List) getProducerNumMap.get(producerId);
+    }
+
+    //通过book_id得到出品方名称,且不包含这本书
+    public void getProducer_init() {
+        getProducerMap = new HashMap();
+        String sql = " select a.producer_id,a.id,a.name,a.isbn from meta_book a left join meta_producer b on a.producer_id = b.id ";
+
+        Object[] obj = new Object[]{};
+
+        List<Map> list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (Map map : list) {
+                List<Map> ortherBookIdlist = new ArrayList<>();
+                String producer_id = String.valueOf(map.get("producer_id"));
+                String id = String.valueOf(map.get("id"));
+
+                if (DitaUtil.isNotBlank(producer_id) && DitaUtil.isNotBlank(id)) {
+                    //循环找到同biz_id下不包含book_id 的其他id
+                    for (Map ortherMap : list) {
+                        if (String.valueOf(ortherMap.get("producer_id")).equals(producer_id) && !String.valueOf(ortherMap.get("id")).equals(id)) {
+                            ortherBookIdlist.add(ortherMap); //找到就放入获取isbn
+                        }
+                    }
+                    //map 中获取value 值
+                    List listBookId = (List) getProducerMap.get(producer_id + id);
+                    if (listBookId == null || listBookId.size() == 0) {       //不存在就新建一个，放入
+                        getProducerMap.put(producer_id + id, ortherBookIdlist);
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+    public List getProducer(String bookId, String producerId) {
+
+        if (getProducerMap == null) {
+            getProducer_init();
+        }
+        return (List) getProducerMap.get(producerId + bookId);
+    }
+
+
+    ///**当图书库评分为空取商城商品评分**/
+    //通过isbn 查找spu_id 和商城商品评分,副标题
+    public void getIsbnBySpuIdScore_init() {
+        getIsbnBySpuIdScoreMap = new HashMap<>();
+
+        String sql = " SELECT c.prop_value as isbn,b.goods_name,a.prop_value, a.goods_id,b.goods_subtitle from goods_prop_detail_rel a " +
+                "    LEFT JOIN goods b ON b.goods_id=a.goods_id  " +
+                "    LEFT JOIN goods_prop_detail_rel c ON a.goods_id =c.goods_id  " +
+                "    where a.prop_id = 3   and c.prop_id = 5 and a.del_flag=0 AND b.del_flag=0 ";
+
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                String isbn = String.valueOf(map.get("isbn"));
+
+                if (DitaUtil.isNotBlank(isbn)) {
+                    List tagList = (List) getIsbnBySpuIdScoreMap.get(isbn);
+                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                        tagList = new ArrayList();
+                        map.remove(isbn);
+                        tagList.add(map);
+                        getIsbnBySpuIdScoreMap.put(isbn, tagList);
+                    } else {
+                        map.remove(isbn);
+                        tagList.add(map);                             //存在放入
+                    }
+                }
+            }
+        }
+
+    }
+
+    public Map getIsbnBySpuIdScore(String isbn) {
+
+        Map map = new HashMap();
+        if (getIsbnBySpuIdScoreMap == null) {
+            getIsbnBySpuIdScore_init();
+        }
+        List list = (List) getIsbnBySpuIdScoreMap.get(isbn);
+        if (list != null && list.size() > 0) {
+            map = (Map) list.get(0);
+        }
+        return map;
+    }
+
+
+    public void getSaleNum_init() {
+        getSaleNumMap = new HashMap<>();
+        String sql = "select sku_id,sale_num,rank_text from t_book_list_goods_publish where del_flag = 0";
+        Object[] obj = new Object[]{};
+
+        List<Map> list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                String sku_id = String.valueOf(map.get("sku_id"));
+
+                if (DitaUtil.isNotBlank(sku_id)) {
+                    List tagList = (List) getSaleNumMap.get(sku_id);
+                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                        tagList = new ArrayList();
+                        tagList.add(map);
+                        getSaleNumMap.put(sku_id, tagList);
+                    } else {
+                        tagList.add(map);                             //存在放入
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    public List getSaleNum(String sku_id) {
+        if (getSaleNumMap == null) {
+            getSaleNum_init();
+        }
+        return (List) getSaleNumMap.get(sku_id);
+    }
+
+    //根据商品sku 查询销量
+    public void getSkuSaleNum_init() {
+        getSkuSaleNumMap = new HashMap<>();
+        String sql = " select sales_num,goods_info_id from goods_info where del_flag = 0 GROUP BY goods_info_id ";
+        Object[] obj = new Object[]{};
+
+        List<Map> list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                String goods_info_id = String.valueOf(map.get("goods_info_id"));
+
+                if (DitaUtil.isNotBlank(goods_info_id)) {
+                    List tagList = (List) getSkuSaleNumMap.get(goods_info_id);
+                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                        tagList = new ArrayList();
+                        map.remove(goods_info_id);
+                        tagList.add(map);
+                        getSkuSaleNumMap.put(goods_info_id, tagList);
+                    } else {
+                        map.remove(goods_info_id);
+                        tagList.add(map);                             //存在放入
+                    }
+                }
+            }
+        }
+
+    }
+
+    public List getSkuSaleNum(String sku_id) {
+        if (getSkuSaleNumMap == null) {
+            getSkuSaleNum_init();
+        }
+        return (List) getSkuSaleNumMap.get(sku_id);
+    }
+
+
+    /**通过book_id取到行业**/
+    //select trade_id from meta_book where id = 7838;
+
+    /**
+     * 通过行业取到book_id
+     **/
+    //select id from meta_book where id !=7838 and trade_id = '11880';
+    public void getTrade_init() {
+        getTradeMap = new HashMap<>();
+        String sql = "  SELECT id,trade_id from meta_book where del_flag=0  ";
+        Object[] obj = new Object[]{};
+        List<Map> list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (Map map : list) {
+                List<Map> ortherBookIdlist = new ArrayList<>();
+                String id = String.valueOf(map.get("id"));
+                String trade_id = String.valueOf(map.get("trade_id"));
+                if (DitaUtil.isNotBlank(trade_id) && DitaUtil.isNotBlank(id)) {
+                    //循环找到同biz_id下不包含book_id 的其他id
+                    for (Map ortherMap : list) {
+                        if (String.valueOf(ortherMap.get("trade_id")).equals(trade_id) && !String.valueOf(ortherMap.get("id")).equals(id)) {
+                            ortherBookIdlist.add(ortherMap); //找到就放入获取isbn
+                        }
+                    }
+                    //map 中获取value 值
+                    List listBookId = (List) getTradeMap.get(id);
+                    if (listBookId == null || listBookId.size() == 0) {       //不存在就新建一个，放入
+                        getTradeMap.put(id, ortherBookIdlist);
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+    public List getTrade(String bookId) {
+
+        if (getTradeMap == null) {
+            getTrade_init();
+        }
+        return (List) getTradeMap.get(bookId);
     }
 
     public void clear() {
@@ -1133,7 +1589,19 @@ public class BookCacheService {
         RcommdBookByFigureIdMap = null;
         KeyRecommendMap = null;
         getCharactersMap = null;
-        getPublicBookIdMap=null;
+        getPublicBookIdMap = null;
+        getWriterBooksMap = null;
+        getLibraryNumMap = null;
+        getLibraryMap = null;
+        getProducerNameMap = null;
+        getOrderDetailMap = null;
+        getProducerNumMap = null;
+        getProducerMap = null;
+        getIsbnBySpuIdScoreMap = null;
+        getSaleNumMap = null;
+        getSkuSaleNumMap = null;
+        getTradeMap = null;
     }
+
 
 }

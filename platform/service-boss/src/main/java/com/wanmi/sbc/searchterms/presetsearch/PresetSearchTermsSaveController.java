@@ -2,11 +2,14 @@ package com.wanmi.sbc.searchterms.presetsearch;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.setting.api.provider.defaultsearchterms.DefaultSearchTermProvider;
 import com.wanmi.sbc.setting.api.provider.presetsearch.PresetSearchTermsQueryProvider;
 import com.wanmi.sbc.setting.api.provider.presetsearch.PresetSearchTermsSaveProvider;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsListRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsModifyRequest;
 import com.wanmi.sbc.setting.api.request.presetsearch.PresetSearchTermsRequest;
+import com.wanmi.sbc.setting.api.response.defaultsearchterms.SearchTermBo;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsListResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsQueryResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsResponse;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
 
