@@ -793,7 +793,7 @@ public class BookCacheService {
                         addList.add(ortherMap);
                     }
                 }
-                List tagList = (List) bookWriterAwardsMap.get(goods_id);
+                List tagList = (List) bookCommentSkuMap.get(goods_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
                     bookCommentSkuMap.put(goods_id, addList);
                 }

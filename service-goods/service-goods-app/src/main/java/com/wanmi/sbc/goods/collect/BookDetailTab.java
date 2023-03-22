@@ -53,7 +53,7 @@ public class BookDetailTab {
 
         String spu_no = String.valueOf(goodMap.get("spu"));
         String isbn = String.valueOf(goodMap.get("isbn"));
-        String spu_id = String.valueOf(goodMap.get("spu_id"));
+        String spu_id = String.valueOf(goodMap.get("spu_id")  );
 
       /*  String spu_id = "2c90c8647cfb7fdf017cfe04106201e6";
         String spu_no = "P671293304";
