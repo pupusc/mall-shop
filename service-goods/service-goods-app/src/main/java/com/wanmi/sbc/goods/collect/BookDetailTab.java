@@ -613,8 +613,10 @@ public class BookDetailTab {
     //是否显示积分全额抵扣
     public boolean isShowIntegral(String spuId, String sku_id) {
         boolean flag = true;//默认都显示
-        List blackList = goodJpa.getBlackBySpuId(spuId);//查询积分黑名单
-        List makertList = goodJpa.getByMarketSkuId(sku_id);//查询参加积分兑换活动
+        //List blackList = goodJpa.getBlackBySpuId(spuId);//查询积分黑名单
+        List blackList = bookCacheService.getBlackBySpuId(spuId);//查询积分黑名单
+        //List makertList = goodJpa.getByMarketSkuId(sku_id);//查询参加积分兑换活动
+        List makertList = bookCacheService.getByMarketSkuId(sku_id);//查询参加积分兑换活动
 
         //参加积分兑换活动 或者 加入黑名单 都不显示 积分全额抵扣
         if (blackList.size() > 0 || makertList.size() > 0) {

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.collect;
 
 import com.wanmi.sbc.goods.jpa.JpaManager;
+import com.wanmi.sbc.goods.jpa.MarkingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,9 @@ public class BookCacheService {
 
     @Autowired
     JpaManager jpaManager;
+
+    @Autowired
+    MarkingTemplate markingTemplate;
 
     public static Map bookMap = null;
 
@@ -56,6 +60,8 @@ public class BookCacheService {
     public static Map getSaleNumMap = null;
     public static Map getSkuSaleNumMap = null;
     public static Map getTradeMap = null;
+    public static Map getBlackBySpuIdMap = null;
+    public static Map getByMarketSkuIdMap = null;
 
 
     //通过isbn查找book_id缓存
@@ -1563,6 +1569,81 @@ public class BookCacheService {
         return (List) getTradeMap.get(bookId);
     }
 
+    /**
+     * 通过spu_id查询黑名单
+     **/
+    public void getBlackBySpuId_init() {
+        getBlackBySpuIdMap = new HashMap<>();
+        String sql = " select business_id from t_goods_blacklist where del_flag = 0 and business_category = 6  ";
+        Object[] obj = new Object[]{};
+        List list = jpaManager.queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                String business_id = String.valueOf(map.get("business_id"));
+
+                if (DitaUtil.isNotBlank(business_id)) {
+                    List tagList = (List) getBlackBySpuIdMap.get(business_id);
+                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                        tagList = new ArrayList();
+                        tagList.add(map);
+                        getBlackBySpuIdMap.put(business_id, tagList);
+                    } else {
+                        tagList.add(map);                             //存在放入
+                    }
+                }
+            }
+        }
+
+    }
+
+    public List getBlackBySpuId(String spuId) {
+        if (getBlackBySpuIdMap == null) {
+            getBlackBySpuId_init();
+        }
+        return (List) getBlackBySpuIdMap.get(spuId);
+    }
+    /**
+     * 通过sku_id查询参加积分兑换活动
+     **/
+    public void getByMarketSkuId_init() {
+        getByMarketSkuIdMap=new HashMap<>();
+        String currentTime = DitaUtil.getCurrentAllDate();
+
+        String sql = " select a.marketing_id,a.marketing_name,a.begin_time,a.end_time,b.scope_id as sku_id from marketing a left join marketing_scope b on a.marketing_id = b.marketing_id  " +
+                " where a.del_flag = 0 and a.marketing_type = 8 and a.is_pause = 0 " +
+                " and a.begin_time <= ? and ? <= a.end_time  " ;
+
+        Object[] obj = new Object[]{currentTime, currentTime};
+        List list = markingTemplate.getInstance().getJdbcTemplate().queryForList(sql, obj);
+        if (list != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                String sku_id = String.valueOf(map.get("sku_id"));
+
+                if (DitaUtil.isNotBlank(sku_id)) {
+                    List tagList = (List) getByMarketSkuIdMap.get(sku_id);
+                    if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
+                        tagList = new ArrayList();
+                        tagList.add(map);
+                        getByMarketSkuIdMap.put(sku_id, tagList);
+                    } else {
+                        tagList.add(map);                             //存在放入
+                    }
+                }
+            }
+        }
+
+    }
+
+    public List getByMarketSkuId(String sku_id) {
+        if (getByMarketSkuIdMap == null) {
+            getByMarketSkuId_init();
+        }
+        return (List) getByMarketSkuIdMap.get(sku_id);
+
+}
+
     public void clear() {
         bookMap = null;
         bookTagMap = null;
@@ -1601,7 +1682,8 @@ public class BookCacheService {
         getSaleNumMap = null;
         getSkuSaleNumMap = null;
         getTradeMap = null;
+        getBlackBySpuIdMap = null;
+        getByMarketSkuIdMap = null;
     }
 
 
-}
