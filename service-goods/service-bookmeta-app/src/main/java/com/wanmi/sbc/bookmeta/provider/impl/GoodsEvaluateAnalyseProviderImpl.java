@@ -31,24 +31,16 @@ import java.util.*;
 public class GoodsEvaluateAnalyseProviderImpl implements GoodsEvaluateAnalyseProvider {
     @Resource
     GoodsEvaluateAnalyseMapper goodsEvaluateAnalyseMapper;
+
     @Override
     public BusinessResponse<List<GoodsEvaluateAnalyseBo>> queryByPage(GoodsEvaluateAnalyseBo bo) {
         Page page = bo.getPage();
-        List<GoodsEvaluateAnalyseBo> list = new ArrayList<>();
-        try {
-            page.setTotalCount((int) goodsEvaluateAnalyseMapper.getCount(bo.getName()));
-            if (page.getTotalCount() <= 0) {
-                return BusinessResponse.success(Collections.EMPTY_LIST, page);
-            }
-            List<GoodsEvaluateAnalyse> allGoodsSearchKey = goodsEvaluateAnalyseMapper.getByPage(bo.getName(), page.getOffset(), page.getPageSize());
-            list = KsBeanUtil.convertList(allGoodsSearchKey, GoodsEvaluateAnalyseBo.class);
-        }catch (Exception e){
-            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
-                    DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
-                    "queryByPage",
-                    Objects.isNull(bo) ? "" : JSON.toJSONString(bo),
-                    e);
+        page.setTotalCount((int) goodsEvaluateAnalyseMapper.getCount(bo.getName()));
+        if (page.getTotalCount() <= 0) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(list,page);
+        List<GoodsEvaluateAnalyse> allGoodsSearchKey = goodsEvaluateAnalyseMapper.getByPage(bo.getName(), page.getOffset(), page.getPageSize());
+        List<GoodsEvaluateAnalyseBo> list = KsBeanUtil.convertList(allGoodsSearchKey, GoodsEvaluateAnalyseBo.class);
+        return BusinessResponse.success(list, page);
     }
 }
