@@ -65,8 +65,10 @@ public class GoodTags {
         String spu_no = String.valueOf(goodMap.get("spu_no"));
         String spu_id = String.valueOf(goodMap.get("goods_id"));
 
-      /*  String spu_id = "2c90c8647c3481e7017c35c181140001";
-        String spu_no = "P989359460";*/
+    /*    String spu_id = "2c9a00ca86299cda01862a0163e60000";
+        String spu_no = "P735546359";
+        String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
+        String isbn   = "ISBN_C_T003";*/
 
         List allList = new ArrayList();
 

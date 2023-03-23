@@ -796,6 +796,7 @@ public class BookCacheService {
             if (DitaUtil.isNotBlank(goods_id)) {
                 for (Map ortherMap : list) {
                     if (String.valueOf(ortherMap.get("goods_id")).equals(goods_id)) {
+                        ortherMap.remove("goods_id");
                         addList.add(ortherMap);
                     }
                 }
@@ -1087,7 +1088,7 @@ public class BookCacheService {
                 " left join meta_book_rcmmd b on a.id = b.biz_id " +
                 " left join meta_book c ON c.id=b.book_id " +
                 " where  b.biz_type in(5,3,2,4,9,10)  and b.is_selected = 1  and a.del_flag=0 and b.del_flag=0 and c.del_flag=0  " +
-                " GROUP BY b.biz_type  ORDER BY biz_type asc LIMIT 0,1";
+                " GROUP BY b.biz_type,b.book_id  ORDER BY biz_type asc ";
         Object[] obj = new Object[]{};
         List list = jpaManager.queryForList(sql, obj);
 
@@ -1130,7 +1131,7 @@ public class BookCacheService {
         getWriterBooksMap = new HashMap<>();
 
 
-        String sql = " select b.book_id,a.isbn,b.figure_id from meta_book a left join meta_book_figure b on a.id = b.book_id ";
+        String sql = " select b.book_id,a.isbn,b.figure_id from meta_book a left join meta_book_figure b on a.id = b.book_id group by b.figure_id, b.book_id";
 
         Object[] obj = new Object[]{};
         List<Map> list = jpaManager.queryForList(sql, obj);
@@ -1533,7 +1534,7 @@ public class BookCacheService {
     //select id from meta_book where id !=7838 and trade_id = '11880';
     public void getTrade_init() {
         getTradeMap = new HashMap<>();
-        String sql = "  SELECT id,trade_id from meta_book where del_flag=0  ";
+        String sql = "  SELECT id,trade_id from meta_book where del_flag=0 group by id ";
         Object[] obj = new Object[]{};
         List<Map> list = jpaManager.queryForList(sql, obj);
         if (list != null && list.size() > 0) {

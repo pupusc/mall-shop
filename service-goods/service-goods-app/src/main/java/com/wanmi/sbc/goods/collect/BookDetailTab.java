@@ -55,10 +55,10 @@ public class BookDetailTab {
         String isbn = String.valueOf(goodMap.get("isbn"));
         String spu_id = String.valueOf(goodMap.get("spu_id"));
 
-      /*  String spu_id = "2c90c8647cfb7fdf017cfe04106201e6";
-        String spu_no = "P671293304";
-        //String sku_id = "2c90c8647cfb7fdf017cfe04108601e7";
-        String isbn = "9787508694672";*/
+       /* String spu_id = "2c9a00ca86299cda01862a0163e60000";
+        String spu_no = "P735546359";
+        //String sku_id = "2c9a009b86a5b1850186a6ae64c80004";
+        String isbn   = "ISBN_C_T003";*/
 
         List allList = new ArrayList();
 
@@ -289,7 +289,7 @@ public class BookDetailTab {
             //List writerBooks = bookJpa.getWriterBooks(bookId, writerId);
             List writerBooks = bookCacheService.getWriterBooks(bookId, writerId);
             List ret = new ArrayList();
-            for (int j = 0; j < writerBooks.size(); j++) {
+            for (int j = 0; writerBooks != null && j < writerBooks.size(); j++) {
                 Map writerBookMap = (Map) writerBooks.get(j);
                 String isbn = String.valueOf(writerBookMap.get("isbn"));
                 //Map goodMap = bookJpa.findSpuByV3(isbn);
@@ -638,7 +638,9 @@ public class BookDetailTab {
             for (int i = 0; i < list.size(); i++) {
                 Map map = (Map) list.get(i);
                 //通过book_id 查看详情
-                bookList.add(BookIdBySingle(map.get("id").toString()));
+                Map bookMap = BookIdBySingle(map.get("id").toString());
+                if (bookMap != null && bookMap.size() > 0)
+                    bookList.add(bookMap);
             }
         }
         return bookList;
@@ -652,66 +654,69 @@ public class BookDetailTab {
         // Map map = goodJpa.getPublicBookId(book_id);
         Map map = bookCacheService.getPublicBookId(book_id);
 
-        String isbn = String.valueOf(map.get("isbn"));
-        String writerName = String.valueOf(map.get("writerName")); //取推荐人名称
-        String score = String.valueOf(map.get("score")); //取图书库-评分
-        String desrc = String.valueOf(map.get("desrc"));//标语
 
-        //当维护的推荐语对应推荐人为空，默认为文喵推荐
-        if (DitaUtil.isBlank(writerName)) {
-            map.put("writerName", "文喵");
-        }
+        if (map != null && map.size() > 0) {
+            String isbn = String.valueOf(map.get("isbn"));
+            String writerName = String.valueOf(map.get("writerName")); //取推荐人名称
+            String score = String.valueOf(map.get("score")); //取图书库-评分
+            String desrc = String.valueOf(map.get("desrc"));//标语
 
-        Map spuMap = new HashMap();
-        String spu_id = "";
-        String prop_value = "";//商城商品评分
-        String goods_subtitle = "";//商城商品评分
-        String saleNum = ""; //获取销售额
-        String goods_name = "";//商品名称
+            //当维护的推荐语对应推荐人为空，默认为文喵推荐
+            if (DitaUtil.isBlank(writerName)) {
+                map.put("writerName", "文喵");
+            }
 
-        //如果isbn 为空
-        if (!DitaUtil.isBlank(isbn)) {
-            //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
-            //spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
-            spuMap = bookCacheService.getIsbnBySpuIdScore(isbn);
-            spu_id = String.valueOf(spuMap.get("goods_id"));
-            prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
-            goods_subtitle = String.valueOf(spuMap.get("goods_subtitle"));//商城商品评分
-            saleNum = getSaleNum_bySpuID(spu_id); //获取销售额
-            goods_name = String.valueOf(spuMap.get("goods_name"));  //通过isbn 查看商品名称
-        }
+            Map spuMap = new HashMap();
+            String spu_id = "";
+            String prop_value = "";//商城商品评分
+            String goods_subtitle = "";//商城商品评分
+            String saleNum = ""; //获取销售额
+            String goods_name = "";//商品名称
 
-        //当无推荐信息，取商城商品副标题
-        if (DitaUtil.isBlank(desrc)) {
-            map.put("desrc", goods_subtitle);
-        }
-        //评分
-        map.put("score", getSaleNumScore(saleNum, score, prop_value));
+            //如果isbn 为空
+            if (!DitaUtil.isBlank(isbn)) {
+                //根据isbn 查找good_id 也就是spu_id 和 商城商品评分
+                //spuMap = goodJpa.getIsbnBySpuIdScore(isbn);
+                spuMap = bookCacheService.getIsbnBySpuIdScore(isbn);
+                spu_id = String.valueOf(spuMap.get("goods_id"));
+                prop_value = String.valueOf(spuMap.get("prop_value"));//商城商品评分
+                goods_subtitle = String.valueOf(spuMap.get("goods_subtitle"));//商城商品评分
+                saleNum = getSaleNum_bySpuID(spu_id); //获取销售额
+                goods_name = String.valueOf(spuMap.get("goods_name"));  //通过isbn 查看商品名称
+            }
+
+            //当无推荐信息，取商城商品副标题
+            if (DitaUtil.isBlank(desrc)) {
+                map.put("desrc", goods_subtitle);
+            }
+            //评分
+            map.put("score", getSaleNumScore(saleNum, score, prop_value));
        /* map.put("saleNum", saleNum);
         map.put("propNum", prop_value);
         map.put("score", score);*/
-        //根据spu_id 找sku_id     goodJpa.getSkuBySpuId(DitaUtil.isBlank(spu_id)
-        String sku_id = String.valueOf(bookCacheService.getSkuBySpuId(DitaUtil.isBlank(spu_id) ? null : spu_id).get("goods_info_id"));
-        map.put("bookName", goods_name);
-        map.put("sku_id", sku_id);
-        map.put("spu_id", spu_id);
-        map.put("labelMap", null);
-        map.put("tags", null);
+            //根据spu_id 找sku_id     goodJpa.getSkuBySpuId(DitaUtil.isBlank(spu_id)
+            String sku_id = String.valueOf(bookCacheService.getSkuBySpuId(DitaUtil.isBlank(spu_id) ? null : spu_id).get("goods_info_id"));
+            map.put("bookName", goods_name);
+            map.put("sku_id", sku_id);
+            map.put("spu_id", spu_id);
+            map.put("labelMap", null);
+            map.put("tags", null);
 
-        //标签
-        if (DitaUtil.isNotBlank(sku_id)) {
-            map.put("labelMap", getMarkingSku(sku_id));
-        }
-
-        //卖点标签
-        if (DitaUtil.isNotBlank(spu_id)) {
-            Map labelMap = new HashMap();
-            //读取公用标签
-            String old_json = redisService.getString("ELASTIC_SAVE:GOODS_TAGS_SPU_ID" + ":" + spu_id);
-            if (null != old_json) {
-                labelMap = JSONObject.parseObject(old_json, Map.class);
+            //标签
+            if (DitaUtil.isNotBlank(sku_id)) {
+                map.put("labelMap", getMarkingSku(sku_id));
             }
-            map.put("tags", labelMap);
+
+            //卖点标签
+            if (DitaUtil.isNotBlank(spu_id)) {
+                Map labelMap = new HashMap();
+                //读取公用标签
+                String old_json = redisService.getString("ELASTIC_SAVE:GOODS_TAGS_SPU_ID" + ":" + spu_id);
+                if (null != old_json) {
+                    labelMap = JSONObject.parseObject(old_json, Map.class);
+                }
+                map.put("tags", labelMap);
+            }
         }
 
         return map;
