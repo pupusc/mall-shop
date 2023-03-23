@@ -272,10 +272,10 @@ public class GoodRepository {
 
     public List getCommentSkuId(String spu_id) {
 
-        String sql = "select a.evaluate_content_key as comment_name,count(a.incr_id) as num from goods_evaluate_analyse a left join goods_evaluate b on a.evaluate_id = b.evaluate_id " +
-                "  where b.goods_id = ? " +
-                "  group by a.evaluate_content_key" +
-                "  order by num desc  ";
+        String sql = "select evaluate_content_key as comment_name,count(incr_id) as num from goods_evaluate_analyse " +
+                " where spu_id = ? " +
+                " group by evaluate_content_key,spu_id " +
+                " order by num desc";
 
         Object[] obj = new Object[]{spu_id};
         List list = jpaManager.queryForList(sql, obj);

@@ -8,6 +8,7 @@ import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.util.DitaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -35,7 +36,12 @@ public class AdvertisementPoolServiceImpl implements PoolService {
     @Override
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
-            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String skuNo = columnContentDTO.getSkuNo();
+            if (DitaUtil.isNotBlank(skuNo)) {
+                skuNo = skuNo.trim().replaceAll("\n", "");
+                columnContentDTO.setSkuNo(skuNo);
+            }
+            SkuDetailBO skuDetailBO = getSpuBySkuId(skuNo);
             String spuId = skuDetailBO.getSpuId();
             columnContentDTO.setSpuId(spuId);
 //            String spuId = columnContentDTO.getSpuId();

@@ -14,6 +14,7 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.bean.dto.*;
+import com.wanmi.sbc.util.DitaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -51,7 +52,12 @@ public class VideoPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         List<GoodsDto> goods = new ArrayList<>();
         for (ColumnContentDTO columnContentDTO : poolCollect) {
-            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String skuNo = columnContentDTO.getSkuNo();
+            if (DitaUtil.isNotBlank(skuNo)) {
+                skuNo = skuNo.trim().replaceAll("\n", "");
+                columnContentDTO.setSkuNo(skuNo);
+            }
+            SkuDetailBO skuDetailBO = getSpuBySkuId(skuNo);
             EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
             List<String> spuIds = new ArrayList<>();
             spuIds.add(skuDetailBO.getSpuId());

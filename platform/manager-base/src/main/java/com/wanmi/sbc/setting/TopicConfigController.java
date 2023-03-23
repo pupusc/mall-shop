@@ -402,7 +402,7 @@ public class TopicConfigController {
     @ApiOperation("楼层栏目商品添加")
     @PostMapping("/storey/v2/column/goods/add")
     public BaseResponse addStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsAddRequest request){
-        if(null!=request.getSpuId() || request.getSpuId().equals("")){
+        if(null==request.getSpuId() || request.getSpuId().equals("")){
             return BaseResponse.error("没有spuId");
         }
         Boolean exitBySpu = goodsProvider.exitBySpu(request.getSpuId());

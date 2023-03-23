@@ -8,6 +8,7 @@ import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -15,14 +16,14 @@ import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.BookType;
+import com.wanmi.sbc.util.DitaUtil;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  * @Date 2023/3/3 16:58
  */
 @Service
+@Slf4j
 public class GoodsPoolServiceImpl implements PoolService {
 
     @Autowired
@@ -51,7 +53,12 @@ public class GoodsPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
             //String spuId = columnContentDTO.getSpuId();
-            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String skuNo = columnContentDTO.getSkuNo();
+            if (DitaUtil.isNotBlank(skuNo)) {
+                skuNo = skuNo.trim().replaceAll("\n", "");
+                columnContentDTO.setSkuNo(skuNo);
+            }
+            SkuDetailBO skuDetailBO = getSpuBySkuId(skuNo);
             String spuId = skuDetailBO.getSpuId();
             List<String> spuIds = new ArrayList<>();
             spuIds.add(spuId);
@@ -66,6 +73,12 @@ public class GoodsPoolServiceImpl implements PoolService {
                 getGoods(columnContentDTO, goods, esSpuNewResp, skuDetailBO);
                 GoodsPoolDto goodsPoolDto = getPool(pool, columnContentDTO, goods);
                 goodsPoolDtos.add(goodsPoolDto);
+            } else {
+                log.info("时间:{},方法:{},skuNo参数:{},skuDetailBo:{}",
+                        DateUtil.format(new Date(),DateUtil.FMT_TIME_1),
+                        "getGoodsPool",
+                        Objects.isNull(columnContentDTO.getSkuNo())?"":JSON.toJSONString(columnContentDTO.getSkuNo()),
+                        Objects.isNull(skuDetailBO)?"":JSON.toJSONString(skuDetailBO));
             }
         }
     }
