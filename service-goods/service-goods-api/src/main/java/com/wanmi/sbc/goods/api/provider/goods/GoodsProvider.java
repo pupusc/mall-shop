@@ -374,4 +374,10 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/getSkuBySpu")
     BaseResponse getSkuBySpu(@RequestParam(value = "spuId" ,required = false) String spuId);
+
+    /**
+     * 查询spu是否存在
+     */
+    @PostMapping("/goods/${application.goods.version}/exitBySpu")
+    Boolean exitBySpu(@RequestParam(value = "spuId" ,required = false) String spuId);
 }
