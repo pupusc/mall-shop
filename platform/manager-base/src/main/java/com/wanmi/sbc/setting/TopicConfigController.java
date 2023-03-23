@@ -386,24 +386,6 @@ public class TopicConfigController {
     @PostMapping("/storey/v2/column/goods/list")
     public BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> listStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsQueryRequest request){
         BaseResponse<MicroServicePage<TopicStoreyColumnGoodsDTO>> microServicePageBaseResponse = topicConfigProvider.listStoryColumnGoods(request);
-//        List<TopicStoreyColumnGoodsDTO> content = microServicePageBaseResponse.getContext().getContent();
-//        for (TopicStoreyColumnGoodsDTO topicStoreyColumnGoodsDTO : content) {
-//            String skuId = topicStoreyColumnGoodsDTO.getSkuId();
-//            SkuDetailBO skuDetailBO = metaLabelProvider.getGoodsInfoBySkuId(skuId);
-//            String spuId = skuDetailBO.getSpuId();
-//            List<String> spuIds = new ArrayList<>();
-//            spuIds.add(spuId);
-//            EsKeyWordSpuNewQueryProviderReq es = new EsKeyWordSpuNewQueryProviderReq();
-//            es.setSpuIds(spuIds);
-//            //es.setKeyword(keyword);
-//            List<EsSpuNewResp> esResp = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-//            if (content.size() != 0) {
-//                EsSpuNewResp res = esResp.get(0);
-//                topicStoreyColumnGoodsDTO.setGoodsName(skuDetailBO.getSkuName());
-//                topicStoreyColumnGoodsDTO.setImageUrl(skuDetailBO.getImg() != null ? skuDetailBO.getImg() : (res.getUnBackgroundPic() != null ? res.getUnBackgroundPic() : res.getPic()));
-//            }
-//        }
-//        microServicePageBaseResponse.getContext().setContent(content);
         return microServicePageBaseResponse;
     }
 
@@ -453,6 +435,18 @@ public class TopicConfigController {
     @PostMapping("/storey/v2/column/goods/delete")
     public BaseResponse deleteStoryColumnGoods(@RequestBody EnableTopicStoreyColumnGoodsRequest request){
         return topicConfigProvider.deleteStoreyColumnGoods(request);
+    }
+
+    /**
+     * @description 楼层栏目商品删除
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层栏目删除")
+    @PostMapping("/storey/v2/column/delete")
+    public BaseResponse deleteStoryColumn(@RequestBody EnableTopicStoreyColumnGoodsRequest request){
+        return topicConfigProvider.deleteTopicStoreyColumn(request.getId());
     }
 
     /**
