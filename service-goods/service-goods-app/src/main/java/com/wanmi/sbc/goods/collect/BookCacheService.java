@@ -784,31 +784,31 @@ public class BookCacheService {
     public void getCommentSkuId_init() {
 
         bookCommentSkuMap = new HashMap<>();
-        String sql = " select b.goods_id, a.evaluate_content_key as comment_name,count(a.incr_id) as num from goods_evaluate_analyse a left join goods_evaluate b on a.evaluate_id = b.evaluate_id " +
-                "                 group by a.evaluate_content_key,goods_id " +
+        String sql = " select spu_id, evaluate_content_key as comment_name,count(incr_id) as num from goods_evaluate_analyse " +
+                "                 group by evaluate_content_key,spu_id " +
                 "                 order by num desc";
 
         Object[] obj = new Object[]{};
         List<Map> list = jpaManager.queryForList(sql, obj);
         for (Map map : list) {
-            String goods_id = String.valueOf(map.get("goods_id"));
+            String spu_id = String.valueOf(map.get("spu_id"));
             List addList = new ArrayList();
-            if (DitaUtil.isNotBlank(goods_id)) {
+            if (DitaUtil.isNotBlank(spu_id)) {
+
                 for (Map ortherMap : list) {
-                    if (String.valueOf(ortherMap.get("goods_id")).equals(goods_id)) {
-                        ortherMap.remove("goods_id");
+                    if (String.valueOf(ortherMap.get("spu_id")).equals(spu_id)) {
+                        ortherMap.remove("spu_id");
                         addList.add(ortherMap);
                     }
                 }
-                List tagList = (List) bookCommentSkuMap.get(goods_id);
+                List tagList = (List) bookCommentSkuMap.get(spu_id);
                 if (tagList == null || tagList.size() == 0) {       //不存在就新建一个，放入
-                    bookCommentSkuMap.put(goods_id, addList);
+                    bookCommentSkuMap.put(spu_id, addList);
                 }
             }
-
-
         }
     }
+
 
     //通过sku_id得到分组评论
     public List getCommentSkuId(String spu_id) {
