@@ -76,7 +76,7 @@ public interface BookListGoodsPublishV2Repository extends JpaRepository<BookList
     @Query(value = "select * from t_book_list_goods_publish where spu_id in ?1", nativeQuery = true)
     List<BookListGoodsPublishDTO> collectBookListGoodsPublishIdBySpuIds(List<String> spuIds);
 
-    @Query(value = "select distinct * from t_book_list_goods_publish where del_flag=0 and book_list_id in ?1 order by order_num asc",nativeQuery = true)
+    @Query(value = "select distinct * from t_book_list_goods_publish where del_flag=0 and book_list_id in ?1 group by spu_id order by order_num asc",nativeQuery = true)
     List<BookListGoodsPublishV2DTO> collectDistinctByDelFlagAndBookListIdIn(List<Integer> ids);
 
 
