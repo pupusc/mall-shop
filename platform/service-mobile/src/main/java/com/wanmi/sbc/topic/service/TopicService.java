@@ -659,6 +659,7 @@ public class TopicService {
                         g.put("stock",resp.getStock());
                         g.put("book",resp.getBook());
                         g.put("specMore",resp.getSpecMore());
+                        g.put("book",resp.getBook());
                     }
                 });
                 RankPageRequest pageRequest = new RankPageRequest();
