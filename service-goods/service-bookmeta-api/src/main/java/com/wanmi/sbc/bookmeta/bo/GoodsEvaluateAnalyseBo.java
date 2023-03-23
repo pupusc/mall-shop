@@ -14,7 +14,7 @@ import java.io.Serializable;
  */
 @Data
 public class GoodsEvaluateAnalyseBo implements Serializable {
-    private int id;
+    private Integer id;
     private String evaluateId;
     private String evaluateContentKey;
     private String name;
