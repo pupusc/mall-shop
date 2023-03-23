@@ -84,6 +84,7 @@ public class PresetSearchTermsService {
      * @return
      */
     public PresetSearchTermsQueryResponse listPresetSearchTermsV2() {
+
         List<PresetSearchTerms> list = presetSearchTermsRepositoy.findAll();
         List<PresetSearchTermsVO> ListSearch = new ArrayList<>();
         list.stream().filter(s->s.getPresetChannel()==0).forEach(search -> {
@@ -110,4 +111,5 @@ public class PresetSearchTermsService {
         });
         return new PresetSearchTermsQueryResponse(ListSearch);
     }
+
 }
