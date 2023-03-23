@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting.api.provider.presetsearch;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.setting.api.response.preserotation.PresetSearchRotationQueryResponse;
 import com.wanmi.sbc.setting.api.response.presetsearch.PresetSearchTermsQueryResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,5 +23,8 @@ public interface PresetSearchTermsQueryProvider {
 
     @PostMapping("/setting/${application.setting.version}/preset_search_terms/listV2")
     BaseResponse<PresetSearchTermsQueryResponse> listPresetSearchTermsV2();
+
+    @PostMapping("/setting/${application.setting.version}/preset_search_rotation/list")
+    BaseResponse<PresetSearchRotationQueryResponse> listPresetSearchRotation();
 
 }
