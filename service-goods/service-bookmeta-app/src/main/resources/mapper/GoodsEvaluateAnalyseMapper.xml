@@ -19,22 +19,18 @@
         select a.evaluate_id, b.evaluate_content, a.evaluate_content_key
         from goods_evaluate_analyse a
         left join goods_evaluate b on a.evaluate_id = b.evaluate_id
-        where 1=1
         <if test="name !=null and name !='' ">
-           and b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
+            where b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
         </if>
         limit #{limitIndex}, #{limitSize}
     </select>
 
     <select id="getCount" resultType="java.lang.Integer" parameterType="java.lang.String">
-        select count(1)
+        select count(a.evaluate_id)
         from goods_evaluate_analyse a
         left join goods_evaluate b on a.evaluate_id = b.evaluate_id
-        where 1=1
         <if test="name !=null and name !='' ">
-            and b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
+            where b.evaluate_content like concat('%',#{name},'%') or a.evaluate_content_key like concat('%',#{name},'%')
         </if>
     </select>
-
-
 </mapper>
