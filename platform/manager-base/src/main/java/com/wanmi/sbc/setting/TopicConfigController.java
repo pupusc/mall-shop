@@ -13,6 +13,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.UUIDUtil;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
@@ -63,6 +64,9 @@ public class TopicConfigController {
 
     @Autowired
     private EsSpuNewProvider esSpuNewProvider;
+
+    @Autowired
+    private GoodsProvider goodsProvider;
 
     /**
      * @description 新增专题
@@ -398,6 +402,13 @@ public class TopicConfigController {
     @ApiOperation("楼层栏目商品添加")
     @PostMapping("/storey/v2/column/goods/add")
     public BaseResponse addStoryColumnGoods(@RequestBody TopicStoreyColumnGoodsAddRequest request){
+        if(null==request.getSpuId() || request.getSpuId().equals("")){
+            return BaseResponse.error("没有spuId");
+        }
+        Boolean exitBySpu = goodsProvider.exitBySpu(request.getSpuId());
+        if(!exitBySpu){
+            return BaseResponse.error("商品在数据库中被删除或不存在");
+        }
         return topicConfigProvider.addStoreyColumnGoods(request);
     }
 

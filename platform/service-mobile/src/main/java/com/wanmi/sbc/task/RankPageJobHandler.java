@@ -167,6 +167,7 @@ public class RankPageJobHandler extends IJobHandler {
                         map.put("id",g.getGoodsId());
                         map.put("spuNo",g.getGoodsNo());
                         map.put("skuNo",g.getGoodsInfoNo());
+                        map.put("book",esSpuNewResp.getBook());
                         if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
                             map.put("imageUrl",esSpuNewResp.getPic());
                         }else if(DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())){

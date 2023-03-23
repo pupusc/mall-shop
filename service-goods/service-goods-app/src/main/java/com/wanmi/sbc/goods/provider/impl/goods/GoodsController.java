@@ -976,4 +976,13 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse getSkuBySpu(String spuId) {
         return BaseResponse.success(goodJpa.getSkuBySpuId(spuId));
     }
+
+    @Override
+    public Boolean exitBySpu(String spuId) {
+        Goods byGoodsId = goodsService.findByGoodsId(spuId);
+        if(null==byGoodsId){
+            return false;
+        }
+        return true;
+    }
 }
