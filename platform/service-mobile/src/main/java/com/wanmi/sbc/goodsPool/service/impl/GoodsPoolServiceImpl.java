@@ -16,6 +16,7 @@ import com.wanmi.sbc.goodsPool.service.PoolService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.bean.dto.*;
 import com.wanmi.sbc.setting.bean.enums.BookType;
+import com.wanmi.sbc.util.DitaUtil;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,12 @@ public class GoodsPoolServiceImpl implements PoolService {
     public void getGoodsPool(List<GoodsPoolDto> goodsPoolDtos, List<ColumnContentDTO> poolCollect, MixedComponentTabDto pool, String keyword) {
         for (ColumnContentDTO columnContentDTO : poolCollect) {
             //String spuId = columnContentDTO.getSpuId();
-            SkuDetailBO skuDetailBO = getSpuBySkuId(columnContentDTO.getSkuNo());
+            String skuNo = columnContentDTO.getSkuNo();
+            if (DitaUtil.isNotBlank(skuNo)) {
+                skuNo = skuNo.trim().replaceAll("\n", "");
+                columnContentDTO.setSkuNo(skuNo);
+            }
+            SkuDetailBO skuDetailBO = getSpuBySkuId(skuNo);
             String spuId = skuDetailBO.getSpuId();
             List<String> spuIds = new ArrayList<>();
             spuIds.add(spuId);
