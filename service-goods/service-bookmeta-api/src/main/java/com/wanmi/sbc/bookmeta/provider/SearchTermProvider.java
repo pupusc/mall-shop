@@ -28,4 +28,5 @@ public interface SearchTermProvider {
     int addSearchTerm(@RequestBody SearchTermBo bo);
     @PostMapping("/goods/${application.goods.version}/SearchTerm/importGoodsEvaluateAnalyse")
     BusinessResponse<String> importGoodsEvaluateAnalyse(@RequestBody List<GoodsEvaluateAnalyseBo> list);
+
 }

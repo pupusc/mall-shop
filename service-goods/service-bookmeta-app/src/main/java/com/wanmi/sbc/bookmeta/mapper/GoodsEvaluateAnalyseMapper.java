@@ -20,4 +20,6 @@ public interface GoodsEvaluateAnalyseMapper {
 
     int getCount(@Param("name") String name);
 
+    List<GoodsEvaluateAnalyse> getAll();
+
 }

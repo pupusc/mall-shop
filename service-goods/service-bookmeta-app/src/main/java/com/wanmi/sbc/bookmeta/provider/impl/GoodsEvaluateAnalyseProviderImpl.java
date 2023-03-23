@@ -43,4 +43,11 @@ public class GoodsEvaluateAnalyseProviderImpl implements GoodsEvaluateAnalysePro
         List<GoodsEvaluateAnalyseBo> list = KsBeanUtil.convertList(allGoodsSearchKey, GoodsEvaluateAnalyseBo.class);
         return BusinessResponse.success(list, page);
     }
+
+    @Override
+    public List<GoodsEvaluateAnalyseBo> exportGoodsEvaluateAnalyse() {
+        List<GoodsEvaluateAnalyse> all = goodsEvaluateAnalyseMapper.getAll();
+        List<GoodsEvaluateAnalyseBo> list = KsBeanUtil.convertList(all, GoodsEvaluateAnalyseBo.class);
+        return list;
+    }
 }

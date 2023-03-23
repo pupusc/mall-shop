@@ -22,4 +22,7 @@ public interface GoodsEvaluateAnalyseProvider {
    @PostMapping("/goods/${application.goods.version}/GoodsEvaluateAnalyse/queryByPage")
    BusinessResponse<List<GoodsEvaluateAnalyseBo>> queryByPage(@RequestBody @NotNull GoodsEvaluateAnalyseBo GoodsEvaluateAnalyseBo);
 
+   @PostMapping("/goods/${application.goods.version}/GoodsEvaluateAnalyse/importGoodsEvaluateAnalyse")
+   List<GoodsEvaluateAnalyseBo> exportGoodsEvaluateAnalyse();
+
 }

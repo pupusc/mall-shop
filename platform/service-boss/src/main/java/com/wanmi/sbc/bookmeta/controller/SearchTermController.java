@@ -33,7 +33,7 @@ import java.util.List;
 @RequestMapping("searchTerm")
 public class SearchTermController {
     @Resource
-    private  SearchTermProvider searchTermProvider;
+    private SearchTermProvider searchTermProvider;
 
     @Value("classpath:/download/goods_evaluate_analyse.xlsx")
     private org.springframework.core.io.Resource templateLabelFile;
@@ -43,16 +43,19 @@ public class SearchTermController {
         List<SearchTermBo> searchTermTree = searchTermProvider.getSearchTermTree(bo);
         return BusinessResponse.success(searchTermTree);
     }
+
     @PostMapping("delete")
     public BusinessResponse<Integer> delete(@RequestBody SearchTermBo bo) {
         int i = searchTermProvider.deleteSearchTerm(bo);
         return BusinessResponse.success(i);
     }
+
     @PostMapping("update")
     public BusinessResponse<Integer> update(@RequestBody SearchTermBo bo) {
         int i = searchTermProvider.updateSearchTerm(bo);
         return BusinessResponse.success(i);
     }
+
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody SearchTermBo bo) {
         int i = searchTermProvider.addSearchTerm(bo);
@@ -97,20 +100,27 @@ public class SearchTermController {
                 //循环当前行
                 for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
                     Cell cell = row.getCell(cellNum);
-                    if(cell!=null) {
-                    cell.setCellType(CellType.STRING);
-                    cells[cellNum] = cell.getStringCellValue();
-                }}
-                if (cells.length<2){
+                    if (cell != null) {
+                        cell.setCellType(CellType.STRING);
+                        cells[cellNum] = cell.getStringCellValue();
+                    } else {
+                        cells[cellNum] = "";
+                    }
+                }
+                if (cells.length < 5) {
                     continue;
                 }
-                List<GoodsEvaluateAnalyseBo>  list = new ArrayList<>();
-                for (int i = 1;i<cells.length;i++) {
-                    if (StringUtils.isBlank(cells[i])){
+                List<GoodsEvaluateAnalyseBo> list = new ArrayList<>();
+                for (int i = 5; i < cells.length; i++) {
+                    if (StringUtils.isBlank(cells[i])) {
                         continue;
                     }
                     GoodsEvaluateAnalyseBo goodsEvaluateAnalyseBo = new GoodsEvaluateAnalyseBo();
                     goodsEvaluateAnalyseBo.setEvaluateId(cells[0]);
+                    goodsEvaluateAnalyseBo.setSpuId(cells[1]);
+                    goodsEvaluateAnalyseBo.setSkuId(cells[2]);
+                    goodsEvaluateAnalyseBo.setSkuName(cells[3]);
+                    goodsEvaluateAnalyseBo.setEvaluateContent(cells[4]);
                     goodsEvaluateAnalyseBo.setEvaluateContentKey(cells[i]);
                     list.add(goodsEvaluateAnalyseBo);
                 }
@@ -127,7 +137,7 @@ public class SearchTermController {
             }
         }
         if (null != res) {
-            if (res.contains("failed")){
+            if (res.contains("failed")) {
                 return BusinessResponse.error(res);
             }
         }

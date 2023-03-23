@@ -14,22 +14,15 @@ import com.wanmi.sbc.setting.bean.vo.DefaultSearchTermsVO;
 import com.wanmi.sbc.setting.defaultsearchterms.model.DefaultSearchTerms;
 import com.wanmi.sbc.setting.defaultsearchterms.repository.DefaultSearchTermsRespository;
 
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyColumn;
-import com.wanmi.sbc.setting.util.BeanUtil;
-import org.apache.commons.beanutils.BeanUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -80,10 +73,11 @@ public class DefaultSearchTermsService {
     }
 
     public BaseResponse<List<SearchTermBo>> listDefaultSearchTermsByPage(SearchTermBo bo) {
-        List<DefaultSearchTerms> SearchTermsParent = defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(bo));
+        Sort sort = Sort.by(Sort.Direction.ASC, "sortNumber");
+        List<DefaultSearchTerms> SearchTermsParent = defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(bo),sort);
         List<SearchTermBo> searchTermBos = KsBeanUtil.convertList(SearchTermsParent, SearchTermBo.class);
         for (SearchTermBo term : searchTermBos) {
-            List<SearchTermBo> children = KsBeanUtil.convertList(defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(term)), SearchTermBo.class);
+            List<SearchTermBo> children = KsBeanUtil.convertList(defaultSearchTermsRespository.findAll(defaultSearchTermsRespository.deFaultSearchTermsSearchContent(term),sort), SearchTermBo.class);
             term.setChildrenList(children);
         }
         return BaseResponse.success(searchTermBos);

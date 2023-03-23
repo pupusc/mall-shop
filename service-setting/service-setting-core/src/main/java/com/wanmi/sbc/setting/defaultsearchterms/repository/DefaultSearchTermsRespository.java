@@ -49,9 +49,6 @@ public interface DefaultSearchTermsRespository extends JpaRepository<DefaultSear
             } else {
                 conditionList.add(criteriaBuilder.equal(root.get("parentId"), 0));
             }
-      /*      if (request.getName() != null && !"".equals(request.getName())) {
-                conditionList.add(criteriaBuilder.equal(root.get("defaultSearchKeyword"), "%" + request.getName() + "%"));
-            }*/
             conditionList.add(criteriaBuilder.equal(root.get("delFlag"), 0));
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };

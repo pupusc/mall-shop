@@ -14,7 +14,7 @@ import java.io.Serializable;
  */
 @Data
 public class GoodsEvaluateAnalyse implements Serializable {
-    @Column(name = "id")
+    @Column(name = "incr_id")
     private Integer id;
     @Column(name = "name")
     private String name;
@@ -24,4 +24,10 @@ public class GoodsEvaluateAnalyse implements Serializable {
     private String evaluateContentKey;
     @Column(name = "evaluate_content")
     private String evaluateContent;
+    @Column(name = "sku_id")
+    private String skuId;
+    @Column(name = "spu_id")
+    private String spuId;
+    @Column(name = "sku_name")
+    private String skuName;
 }

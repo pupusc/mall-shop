@@ -94,20 +94,44 @@
     <insert id="insertEvaluateAnalyse" parameterType="com.wanmi.sbc.bookmeta.entity.GoodsEvaluateAnalyse">
         insert into goods_evaluate_analyse
         <trim prefix="(" suffix=")" suffixOverrides=",">
-        <if test="evaluateId != null and evaluateId!=''">
-            evaluate_id,
-        </if>
-        <if test="evaluateContentKey != null and evaluateContentKey!=''">
-            evaluate_content_key
-        </if>
+            <if test="evaluateId != null and evaluateId!=''">
+                evaluate_id,
+            </if>
+            <if test="evaluateContentKey != null and evaluateContentKey!=''">
+                evaluate_content_key,
+            </if>
+            <if test="evaluateContent != null and evaluateContent!=''">
+                evaluate_content,
+            </if>
+            <if test="skuName != null and skuName!=''">
+                sku_name,
+            </if>
+            <if test="skuId != null and skuId!=''">
+                sku_id,
+            </if>
+            <if test="spuId != null and spuId!=''">
+                spu_id
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-        <if test="evaluateId != null and evaluateId!=''">
-            #{evaluateId},
-        </if>
-        <if test="evaluateContentKey != null and evaluateContentKey!=''">
-            #{evaluateContentKey}
-        </if>
+            <if test="evaluateId != null and evaluateId!=''">
+                #{evaluateId},
+            </if>
+            <if test="evaluateContentKey != null and evaluateContentKey!=''">
+                #{evaluateContentKey},
+            </if>
+            <if test="evaluateContent != null and evaluateContent!=''">
+                #{evaluateContent},
+            </if>
+            <if test="skuName != null and skuName!=''">
+                #{skuName},
+            </if>
+            <if test="skuId != null and skuId!=''">
+                #{skuId},
+            </if>
+            <if test="spuId != null and spuId!=''">
+                #{spuId}
+            </if>
         </trim>
     </insert>
     <update id="update" parameterType="com.wanmi.sbc.bookmeta.entity.SearchTerm">

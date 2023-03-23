@@ -17,6 +17,9 @@ public class GoodsEvaluateAnalyseBo implements Serializable {
     private Integer id;
     private String evaluateId;
     private String evaluateContentKey;
+    private String spuId;
+    private String skuId;
+    private String skuName;
     private String name;
     private String evaluateContent;
     private Page page = new Page(1,10);
