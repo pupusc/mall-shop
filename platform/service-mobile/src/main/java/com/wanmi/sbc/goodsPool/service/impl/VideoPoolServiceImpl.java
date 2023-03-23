@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
+import com.soybean.elastic.api.resp.EsSpuNewAggResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.SkuDetailBO;
@@ -57,8 +58,9 @@ public class VideoPoolServiceImpl implements PoolService {
             es.setSpuIds(spuIds);
             //es.setIsbn(columnContentDTO.getIsbn());
             //es.setKeyword(keyword);
-            List<EsSpuNewResp> content = esSpuNewProvider.listKeyWorldEsSpu(es).getContext().getResult().getContent();
-            if (content.size() != 0) {
+            EsSpuNewAggResp<List<EsSpuNewResp>> esSpuNewAggResp = esSpuNewProvider.listKeyWorldEsSpu(es).getContext();
+            List<EsSpuNewResp> content = esSpuNewAggResp != null ? (esSpuNewAggResp.getResult() != null ? esSpuNewAggResp.getResult().getContent() : null) : null;
+            if (content != null && content.size() != 0) {
                 EsSpuNewResp esSpuNewResp = content.get(0);
                 getGoods(columnContentDTO, goods, esSpuNewResp, skuDetailBO);
             }

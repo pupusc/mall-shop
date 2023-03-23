@@ -439,7 +439,7 @@
     <select id="getSkuIdBySkuNo" resultType="java.util.Map" parameterType="java.lang.String">
         select a.*,count(*) as spec_num
         from (select goods_info_id, goods_id,goods_info_img,goods_info_name,market_price from goods_info where goods_info_no = #{goodsInfoNo} and del_flag = 0 limit 0,1) a, goods_info b
-        where a.goods_id = b.goods_id and del_flag = 0;
+        where a.goods_id = b.goods_id and del_flag = 0 limit 1;
     </select>
 
     <select id="getScoreBySkuId" resultType="java.lang.String">
@@ -447,9 +447,7 @@
         select prop_value
         from goods_prop_detail_rel
         where goods_id = #{goodsId}
-          and prop_id = 3
-
-
+          and prop_id = 3 limit 1;
     </select>
     <select id="getIsbnBySkuId" resultType="java.lang.String">
 
@@ -461,12 +459,12 @@
           and c.id is not null
           and a.del_flag = 0
           and c.del_flag = 0
-          and b.del_flag = 0
+          and b.del_flag = 0 limit 1;
     </select>
     <select id="getSaleNumSkuId" resultType="java.lang.String">
         select sale_num from t_book_list_goods_publish
         where sku_id = #{goodsId}
-          and del_flag = 0;
+          and del_flag = 0 limit 1;
     </select>
     <select id="getSkuIdBySpuId1" resultType="java.util.Map">
         select goods_info_id,goods_info_img,goods_info_name,market_price from goods_info
