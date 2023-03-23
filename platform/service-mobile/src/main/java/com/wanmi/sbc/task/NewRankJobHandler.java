@@ -96,7 +96,11 @@ public class NewRankJobHandler extends IJobHandler {
         if(CollectionUtils.isEmpty(baseResponse)){
             return null;
         }
-        baseResponse.forEach(b->goods.add(b.getSkuId()));
+        baseResponse.forEach(b->{
+            if(!goods.contains(b.getSkuId())){
+                goods.add(b.getSkuId());
+            }
+        });
         List<GoodsCustomResponse> goodsCustomResponses = initGoods(goods,"H5").stream().filter(g->g.getStock()>0).collect(Collectors.toList());
         //初始化榜单商品树形结构
         idList.forEach(id->{
@@ -155,55 +159,55 @@ public class NewRankJobHandler extends IJobHandler {
                 goods.addAll(goodIds);
                 response.getRankRequestList().stream().filter(r ->r.getId().equals(id)).forEach(r -> r.setRankList(maps));
         });
-        //初始化榜单商品
-        goodsCustomResponses.forEach(g->{
-            EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
-            List<String> spuid=new ArrayList<>();
-            spuid.add(g.getGoodsId());
-            req.setSpuIds(spuid);
-            TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
-            List<TagsDto.Tags> tags = tagsDto.getTags();
-            MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
-            List<MarketingLabelNewDTO.Labels> marketinglabels=marketingLabel.getLabels();
-            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listNormalEsSpuNew(req).getContext().getContent();
-            EsSpuNewResp esSpuNewResp = esSpuNewResps.get(0);
-//            String label = g.getGoodsLabelList().get(0);
-            response.getRankRequestList().forEach(r->{
-                if(null!=r.getRankList()&&r.getRankList().size()>0){
-                    r.getRankList().forEach(t->{
-                        Map map= (Map) t;
-                        if(map.get("spuId").equals(g.getGoodsId())){
-                            map.put("goodsName",esSpuNewResp.getSpuName());
-                            if(CollectionUtils.isNotEmpty(g.getGoodsLabelList())) {
-                                map.put("label", g.getGoodsLabelList().get(0));
-                            }
-                            map.put("marketingLabel",marketinglabels);
-                            if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
-                                map.put("imageUrl",esSpuNewResp.getPic());
-                            }else if(DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())){
-                                map.put("imageUrl",esSpuNewResp.getUnBackgroundPic());
-                            }else if(DitaUtil.isNotBlank(g.getImageUrl())){
-                                map.put("imageUrl",g.getImageUrl());
-                            }else {
-                                map.put("imageUrl",g.getGoodsUnBackImg());
-                            }
-                            map.put("goodsInfoId",g.getGoodsInfoId());
-                            map.put("subName",g.getGoodsSubName());
-                            map.put("showPrice",g.getShowPrice());
-                            map.put("linePrice",g.getLinePrice());
-                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
-                            map.put("stock",g.getStock());
-                            if(null!=g.getGoodsExtProperties()) {
-                                map.put("author", g.getGoodsExtProperties().getAuthor());
-                                map.put("publisher",g.getGoodsExtProperties().getPublisher());
-                            }
-                        }
-                    });
-                }else {
-
-                }
-            });
-        });
+//        //初始化榜单商品
+//        goodsCustomResponses.forEach(g->{
+//            EsSpuNewQueryProviderReq req=new EsSpuNewQueryProviderReq();
+//            List<String> spuid=new ArrayList<>();
+//            spuid.add(g.getGoodsId());
+//            req.setSpuIds(spuid);
+//            TagsDto tagsDto = goodsInfoQueryProvider.getTabsBySpu(g.getGoodsId()).getContext();
+//            List<TagsDto.Tags> tags = tagsDto.getTags();
+//            MarketingLabelNewDTO marketingLabel=goodsInfoQueryProvider.getMarketingLabelsBySKu(g.getGoodsInfoId()).getContext();
+//            List<MarketingLabelNewDTO.Labels> marketinglabels=marketingLabel.getLabels();
+//            List<EsSpuNewResp> esSpuNewResps = esSpuNewProvider.listNormalEsSpuNew(req).getContext().getContent();
+//            EsSpuNewResp esSpuNewResp = esSpuNewResps.get(0);
+////            String label = g.getGoodsLabelList().get(0);
+//            response.getRankRequestList().forEach(r->{
+//                if(null!=r.getRankList()&&r.getRankList().size()>0){
+//                    r.getRankList().forEach(t->{
+//                        Map map= (Map) t;
+//                        if(map.get("spuId").equals(g.getGoodsId())){
+//                            map.put("goodsName",esSpuNewResp.getSpuName());
+//                            if(CollectionUtils.isNotEmpty(g.getGoodsLabelList())) {
+//                                map.put("label", g.getGoodsLabelList().get(0));
+//                            }
+//                            map.put("marketingLabel",marketinglabels);
+//                            if(DitaUtil.isNotBlank(esSpuNewResp.getPic())){
+//                                map.put("imageUrl",esSpuNewResp.getPic());
+//                            }else if(DitaUtil.isNotBlank(esSpuNewResp.getUnBackgroundPic())){
+//                                map.put("imageUrl",esSpuNewResp.getUnBackgroundPic());
+//                            }else if(DitaUtil.isNotBlank(g.getImageUrl())){
+//                                map.put("imageUrl",g.getImageUrl());
+//                            }else {
+//                                map.put("imageUrl",g.getGoodsUnBackImg());
+//                            }
+//                            map.put("goodsInfoId",g.getGoodsInfoId());
+//                            map.put("subName",g.getGoodsSubName());
+//                            map.put("showPrice",g.getShowPrice());
+//                            map.put("linePrice",g.getLinePrice());
+//                            map.put("discount",g.getLinePrice().divide(g.getShowPrice(), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(10)));
+//                            map.put("stock",g.getStock());
+//                            if(null!=g.getGoodsExtProperties()) {
+//                                map.put("author", g.getGoodsExtProperties().getAuthor());
+//                                map.put("publisher",g.getGoodsExtProperties().getPublisher());
+//                            }
+//                        }
+//                    });
+//                }else {
+//
+//                }
+//            });
+//        });
         return response.getRankRequestList();
     }
 
