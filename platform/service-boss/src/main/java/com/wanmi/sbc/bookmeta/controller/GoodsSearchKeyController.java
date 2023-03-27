@@ -185,7 +185,11 @@ public class GoodsSearchKeyController {
                     }
                 }
                 GoodsSearchKeyAddBo goodsSearchKeyAddBo = new GoodsSearchKeyAddBo();
-                goodsSearchKeyAddBo.setId(Integer.parseInt(cells[0]));
+                if (StringUtils.isBlank(cells[0])){
+                    goodsSearchKeyAddBo.setId(null);
+                }else {
+                    goodsSearchKeyAddBo.setId(Integer.parseInt(cells[0]));
+                }
                 goodsSearchKeyAddBo.setName(cells[1]);
                 goodsSearchKeyAddBo.setSpuId(cells[2]);
                 if (cells.length > 2 && StringUtils.isNotBlank(cells[4])) {
