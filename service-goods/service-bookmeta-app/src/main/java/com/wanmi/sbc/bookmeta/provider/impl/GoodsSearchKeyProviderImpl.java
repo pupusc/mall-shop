@@ -184,28 +184,30 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
             boolean spuExit = saleNumMapper.existSpu(goodsSearchKeyAddBo.getSpuId()) > 0;
             GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
 
-                if (goodsSearchKeyAddBo.getType() == 1) {
-                    boolean relSpuExit = saleNumMapper.existSpuRelation(goodsSearchKeyAddBo.getRelSpuId(), goodsSearchKeyAddBo.getRelSkuId()) > 0;
-                    if (spuExit && relSpuExit) {
-                        if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
-                            goodsSearchKeyMapper.updateGoodsSearchKey(convert);
-                            updateCount++;
-                        }
+            if (goodsSearchKeyAddBo.getType() == 1) {
+                boolean relSpuExit = saleNumMapper.existSpuRelation(goodsSearchKeyAddBo.getRelSpuId(), goodsSearchKeyAddBo.getRelSkuId()) > 0;
+                if (spuExit && relSpuExit) {
+                    if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
+                        goodsSearchKeyMapper.updateGoodsSearchKey(convert);
+                        updateCount++;
+                    } else {
                         goodsSearchKeyMapper.insertGoodsSearchKey(convert);
                         addCount++;
-                    } else {
-                        return BusinessResponse.success("failed spuId:" + goodsSearchKeyAddBo.getSpuId() + " is not exist");
                     }
-                } else if (goodsSearchKeyAddBo.getType() == 2) {
-                    if (spuExit) {
-                        if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
-                            goodsSearchKeyMapper.updateGoodsSearchKey(convert);
-                            updateCount++;
-                        }
+                } else {
+                    return BusinessResponse.success("failed spuId:" + goodsSearchKeyAddBo.getSpuId() + " is not exist");
+                }
+            } else if (goodsSearchKeyAddBo.getType() == 2) {
+                if (spuExit) {
+                    if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
+                        goodsSearchKeyMapper.updateGoodsSearchKey(convert);
+                        updateCount++;
+                    } else {
                         goodsSearchKeyMapper.insertGoodsSearchKey(convert);
                         addCount++;
                     }
                 }
+            }
 
         } catch (Exception e) {
             log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
