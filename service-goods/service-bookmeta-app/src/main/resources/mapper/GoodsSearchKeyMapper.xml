@@ -148,7 +148,7 @@
                 `type` = #{type},
             </if>
             <if test="goUrl !=null">
-                `go_url` =  #{goUrl},
+                `go_url` = #{goUrl},
             </if>
             <if test="orderNum !=null">
                 `order_num` =  #{orderNum},

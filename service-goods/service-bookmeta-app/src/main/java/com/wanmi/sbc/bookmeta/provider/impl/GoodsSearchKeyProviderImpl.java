@@ -17,6 +17,7 @@ import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,7 +65,7 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
         Page page = bo.getPage();
         List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
         try {
-            page.setTotalCount((int) goodsSearchKeyMapper.getAllGoodsSearchKeyCount(bo.getName(),bo.getSpuId()));
+            page.setTotalCount((int) goodsSearchKeyMapper.getAllGoodsSearchKeyCount(bo.getName(), bo.getSpuId()));
             if (page.getTotalCount() <= 0) {
                 return BusinessResponse.success(Collections.EMPTY_LIST, page);
             }
@@ -84,7 +85,7 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
     public int addGoodsSearchKey(GoodsSearchKeyAddBo goodsSearchKeyAddBo) {
         int i = 0;
         try {
-            if (goodsSearchKeyAddBo.getId() != null && goodsSearchKeyMapper.isExistGoodsSearchKeyById(goodsSearchKeyAddBo.getId())>0){
+            if (goodsSearchKeyAddBo.getId() != null && goodsSearchKeyMapper.isExistGoodsSearchKeyById(goodsSearchKeyAddBo.getId()) > 0) {
                 goodsSearchKeyMapper.deleteGoodsSearchKey(goodsSearchKeyAddBo.getId());
             }
             GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
@@ -181,19 +182,31 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
         int updateCount = 0;
         try {
             boolean spuExit = saleNumMapper.existSpu(goodsSearchKeyAddBo.getSpuId()) > 0;
-            if (spuExit) {
-                boolean isExist = goodsSearchKeyMapper.isExistGoodsSearchKey(goodsSearchKeyAddBo.getName(), goodsSearchKeyAddBo.getSpuId()) > 0;
-                GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
-                if (isExist) {
-                    goodsSearchKeyMapper.updateGoodsSearchKey(convert);
-                    updateCount++;
-                } else {
-                    goodsSearchKeyMapper.insertGoodsSearchKey(convert);
-                    addCount++;
+            GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
+
+                if (goodsSearchKeyAddBo.getType() == 1) {
+                    boolean relSpuExit = saleNumMapper.existSpuRelation(goodsSearchKeyAddBo.getRelSpuId(), goodsSearchKeyAddBo.getRelSkuId()) > 0;
+                    if (spuExit && relSpuExit) {
+                        if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
+                            goodsSearchKeyMapper.updateGoodsSearchKey(convert);
+                            updateCount++;
+                        }
+                        goodsSearchKeyMapper.insertGoodsSearchKey(convert);
+                        addCount++;
+                    } else {
+                        return BusinessResponse.success("failed spuId:" + goodsSearchKeyAddBo.getSpuId() + " is not exist");
+                    }
+                } else if (goodsSearchKeyAddBo.getType() == 2) {
+                    if (spuExit) {
+                        if (StringUtils.isNotBlank(String.valueOf(convert.getId()))) {
+                            goodsSearchKeyMapper.updateGoodsSearchKey(convert);
+                            updateCount++;
+                        }
+                        goodsSearchKeyMapper.insertGoodsSearchKey(convert);
+                        addCount++;
+                    }
                 }
-            } else {
-                return BusinessResponse.success("failed spuId:" + goodsSearchKeyAddBo.getSpuId() + " is not exist");
-            }
+
         } catch (Exception e) {
             log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
                     DateUtil.format(new Date(), DateUtil.FMT_TIME_1),

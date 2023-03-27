@@ -23,6 +23,8 @@ public interface SaleNumMapper {
     int getSaleNumCount(SaleNumBO saleNum);
     int existSpu(String spuId);
     int existSku(String skuId);
+
+    int existSpuRelation(@Param("spuId") String spuId,@Param("skuId") String skuId);
     List<SaleNum> getBySpuAndSku(@Param("spuId") String spuId,@Param("skuId") String skuId);
     int update(SaleNum saleNum);
 

@@ -11,6 +11,7 @@ import lombok.Data;
  */
 @Data
 public class GoodsKeyWordsDownLoadBO {
+    private Integer id;
     private String name;
     private String goodsName;
     private String spuId;

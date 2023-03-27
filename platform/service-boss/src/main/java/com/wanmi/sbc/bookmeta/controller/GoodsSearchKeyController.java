@@ -111,16 +111,17 @@ public class GoodsSearchKeyController {
             AtomicInteger rowCount = new AtomicInteger(1);
             for (GoodsKeyWordsDownLoadBO map : goodsBOS) {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
-                row.createCell(0).setCellValue(map.getName().toString());
-                row.createCell(1).setCellValue(map.getSpuId().toString());
-                row.createCell(2).setCellValue(map.getGoodsName().toString());
-                row.createCell(3).setCellValue(map.getType().toString());
+                row.createCell(0).setCellValue(map.getId().toString());
+                row.createCell(1).setCellValue(map.getName().toString());
+                row.createCell(2).setCellValue(map.getSpuId().toString());
+                row.createCell(3).setCellValue(map.getGoodsName().toString());
+                row.createCell(4).setCellValue(map.getType().toString());
                 if (1 == map.getType()) {
-                    row.createCell(4).setCellValue(map.getRelSpuId().toString());
-                    row.createCell(5).setCellValue(map.getRelSkuId().toString());
+                    row.createCell(5).setCellValue(map.getRelSpuId().toString());
+                    row.createCell(6).setCellValue(map.getRelSkuId().toString());
                 }
                 if (2 == map.getType()) {
-                    row.createCell(6).setCellValue(map.getGoUrl().toString());
+                    row.createCell(7).setCellValue(map.getGoUrl().toString());
                 }
             }
             wk.write(outputStream);
@@ -184,16 +185,18 @@ public class GoodsSearchKeyController {
                     }
                 }
                 GoodsSearchKeyAddBo goodsSearchKeyAddBo = new GoodsSearchKeyAddBo();
-                goodsSearchKeyAddBo.setName(cells[0]);
-                goodsSearchKeyAddBo.setSpuId(cells[1]);
-                if (cells.length > 2 && StringUtils.isNotBlank(cells[3])) {
-                    switch (cells[3]) {
+                goodsSearchKeyAddBo.setId(Integer.parseInt(cells[0]));
+                goodsSearchKeyAddBo.setName(cells[1]);
+                goodsSearchKeyAddBo.setSpuId(cells[2]);
+                if (cells.length > 2 && StringUtils.isNotBlank(cells[4])) {
+                    goodsSearchKeyAddBo.setType(Integer.parseInt(cells[4]));
+                    switch (cells[4]) {
                         case "1":
-                            goodsSearchKeyAddBo.setRelSpuId(cells[4]);
-                            goodsSearchKeyAddBo.setRelSkuId(cells[5]);
+                            goodsSearchKeyAddBo.setRelSpuId(cells[5]);
+                            goodsSearchKeyAddBo.setRelSkuId(cells[6]);
                             break;
                         case "2":
-                            goodsSearchKeyAddBo.setGoUrl(cells[6]);
+                            goodsSearchKeyAddBo.setGoUrl(cells[7]);
                             break;
                         default:
                             log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",

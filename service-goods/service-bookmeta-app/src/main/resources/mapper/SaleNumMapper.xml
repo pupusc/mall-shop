@@ -92,4 +92,7 @@
             </if>
         </where>
     </select>
+    <select id="existSpuRelation" resultType="java.lang.Integer">
+        select count(1) from goods_info where goods_id = #{spuId} and goods_info_id = #{skuId}
+    </select>
 </mapper>
