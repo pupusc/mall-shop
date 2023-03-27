@@ -17,6 +17,12 @@ public class GoodsSearchKeyAddReqVO implements Serializable {
     private int id;
     private String name;
     private String spuId;
+    private String relSpuId;
+    private String reSkuName;
+    private String relSkuId;
+    private Integer type;
+    private String goUrl;
+    private Integer orderNum;
     private int delFlag;
     private Integer status;
     private String createTime;

@@ -14,4 +14,8 @@ public class GoodsKeyWordsDownLoadBO {
     private String name;
     private String goodsName;
     private String spuId;
+    private String goUrl;
+    private String relSpuId;
+    private String relSkuId;
+    private Integer type;
 }

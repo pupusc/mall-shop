@@ -64,20 +64,12 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
         Page page = bo.getPage();
         List<GoodsNameBySpuIdBO> goodsNameBySpuIdBOS = new ArrayList<>();
         try {
-            page.setTotalCount((int) goodsSearchKeyMapper.getAllGoodsSearchKeyCount(bo.getSpuId()));
+            page.setTotalCount((int) goodsSearchKeyMapper.getAllGoodsSearchKeyCount(bo.getName(),bo.getSpuId()));
             if (page.getTotalCount() <= 0) {
                 return BusinessResponse.success(Collections.EMPTY_LIST, page);
             }
-            GoodSearchKey convert = KsBeanUtil.convert(bo, GoodSearchKey.class);
-            List<GoodSearchKey> allGoodsSearchKey = goodsSearchKeyMapper.getAllGoodsSearchKey(bo.getName(), page.getOffset(), page.getPageSize());
-
-            if (allGoodsSearchKey.size() > 0) {
-                for (GoodSearchKey g : allGoodsSearchKey) {
-                    GoodsNameBySpuIdBO convert1 = KsBeanUtil.convert(g, GoodsNameBySpuIdBO.class);
-                    convert1.setName(g.getName().substring(1, g.getName().length() - 1));
-                    goodsNameBySpuIdBOS.add(convert1);
-                }
-            }
+            List<GoodSearchKey> allGoodsSearchKey = goodsSearchKeyMapper.getAllGoodsSearchKey(bo.getName(), bo.getSpuId(), page.getOffset(), page.getPageSize());
+            goodsNameBySpuIdBOS = KsBeanUtil.convertList(allGoodsSearchKey, GoodsNameBySpuIdBO.class);
         } catch (Exception e) {
             log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
                     DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
@@ -85,7 +77,6 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
                     Objects.isNull(bo) ? "" : JSON.toJSONString(bo),
                     e);
         }
-
         return BusinessResponse.success(goodsNameBySpuIdBOS, page);
     }
 
@@ -93,6 +84,9 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
     public int addGoodsSearchKey(GoodsSearchKeyAddBo goodsSearchKeyAddBo) {
         int i = 0;
         try {
+            if (goodsSearchKeyAddBo.getId() != null && goodsSearchKeyMapper.isExistGoodsSearchKeyById(goodsSearchKeyAddBo.getId())>0){
+                goodsSearchKeyMapper.deleteGoodsSearchKey(goodsSearchKeyAddBo.getId());
+            }
             GoodSearchKey convert = KsBeanUtil.convert(goodsSearchKeyAddBo, GoodSearchKey.class);
             convert.setCreateTime(new Date());
             i = goodsSearchKeyMapper.insertGoodsSearchKey(convert);
@@ -208,5 +202,10 @@ public class GoodsSearchKeyProviderImpl implements GoodsSearchKeyProvider {
                     e);
         }
         return BusinessResponse.success("success add " + addCount + "update " + updateCount);
+    }
+
+    @Override
+    public List<Map<String, Object>> getList(GoodsSearchKeyAddBo goodsSearchKeyAddBo) {
+        return goodsSearchKeyMapper.getSpuAndSkuByName(goodsSearchKeyAddBo.getName());
     }
 }

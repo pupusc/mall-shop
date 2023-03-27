@@ -19,6 +19,7 @@ public class SaleNumBO implements Serializable {
     private String skuId;
     private String skuName;
     private int salesNum;
+//    private String salesNum;
     private double fixPrice;
     private Page page = new Page(1,10);
     private int limitIndex;

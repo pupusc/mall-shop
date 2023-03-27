@@ -2,6 +2,8 @@ package com.wanmi.sbc.bookmeta.vo;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+
 /**
  * Created with IntelliJ IDEA.
  *
@@ -15,5 +17,11 @@ public class GoodsSearchBySpuIdRespVO {
     private String name;
     private String goodsName;
     private String spuId;
+    private String relSpuId;
+    private String relSkuId;
+    private String relSkuName;
+    private Integer type;
+    private String goUrl;
+    private Integer orderNum;
     private int status;
 }

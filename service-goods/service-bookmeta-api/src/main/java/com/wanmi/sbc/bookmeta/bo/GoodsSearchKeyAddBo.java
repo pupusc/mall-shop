@@ -13,10 +13,16 @@ import java.util.Date;
  */
 @Data
 public class GoodsSearchKeyAddBo {
-    private int id;
+    private Integer id;
     private String name;
     private String spuId;
-    private int delFlag;
+    private String relSpuId;
+    private String relSkuName;
+    private String relSkuId;
+    private Integer type;
+    private String goUrl;
+    private Integer orderNum;
+    private Integer delFlag;
     private Integer status;
     private Date createTime;
     private Date updateTime;

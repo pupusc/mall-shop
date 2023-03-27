@@ -135,6 +135,7 @@ public class SaleNumController {
                 saleNumBO.setSkuId((cells[0]));
                 saleNumBO.setSkuName((cells[1]));
                 saleNumBO.setSalesNum(Integer.parseInt(cells[2]));
+//                saleNumBO.setSalesNum((cells[2]));
                 if (lastCellNum>3 && StringUtils.isNotBlank(cells[3])){
                     saleNumBO.setFixPrice(Double.parseDouble(cells[3]));
                 }else {

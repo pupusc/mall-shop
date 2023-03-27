@@ -15,6 +15,12 @@ public class GoodsNameBySpuIdBO {
     private int id;
     private String name;
     private String goodsName;
+    private String relSpuId;
+    private String relSkuId;
+    private String relSkuName;
+    private Integer type;
+    private String goUrl;
+    private Integer orderNum;
     private String spuId;
     private int delFlag;
     private Integer status;

@@ -25,6 +25,7 @@ public class SaleNum implements Serializable {
     private String skuName;
     @Column(name = "sales_num")
     private Integer salesNum;
+//    private String salesNum;
     @Column(name = "fix_price")
     private Double fixPrice;
 }

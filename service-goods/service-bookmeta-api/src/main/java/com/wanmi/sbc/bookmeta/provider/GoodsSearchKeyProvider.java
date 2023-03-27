@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,4 +42,6 @@ public interface GoodsSearchKeyProvider {
     @PostMapping("/goods/${application.goods.version}/goodsSearchKey/importGoodsSearchKey")
     BusinessResponse<String> importGoodsSearchKey(@RequestBody GoodsSearchKeyAddBo goodsSearchKeyAddBo);
 
+    @PostMapping("/goods/${application.goods.version}/goodsSearchKey/getlist")
+    List<Map<String, Object>> getList(@RequestBody GoodsSearchKeyAddBo goodsSearchKeyAddBo);
 }

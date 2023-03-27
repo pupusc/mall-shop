@@ -8,8 +8,10 @@ import com.wanmi.sbc.bookmeta.vo.GoodsSearchKeyAddReqVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -40,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Description:
  */
 @RestController
+@Slf4j
 @RequestMapping("goodsSearchKey")
 public class GoodsSearchKeyController {
 
@@ -47,6 +50,7 @@ public class GoodsSearchKeyController {
     private GoodsSearchKeyProvider goodsSearchKeyProvider;
     @Value("classpath:/download/good_search_key.xlsx")
     private org.springframework.core.io.Resource templateLabelFile;
+
     @PostMapping("queryGoodsSearchKey")
     public BusinessResponse<List<GoodsSearchBySpuIdRespVO>> getGoodsSearch(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
         List<GoodsNameBySpuIdBO> goodsNameBySpuId = goodsSearchKeyProvider.getGoodsNameBySpuId(pageRequest.getName());
@@ -59,21 +63,22 @@ public class GoodsSearchKeyController {
         GoodsNameBySpuIdBO convert = KsBeanUtil.convert(pageRequest, GoodsNameBySpuIdBO.class);
         BusinessResponse<List<GoodsNameBySpuIdBO>> goodsNameBySpuId = goodsSearchKeyProvider.getAllGoodsSearchKey(convert);
         List<GoodsSearchBySpuIdRespVO> goodsSearchBySpuIdRespVOS = KsBeanUtil.convertList(goodsNameBySpuId.getContext(), GoodsSearchBySpuIdRespVO.class);
-        return BusinessResponse.success(goodsSearchBySpuIdRespVOS);
+        return BusinessResponse.success(goodsSearchBySpuIdRespVOS, goodsNameBySpuId.getPage());
     }
 
     @PostMapping("addGoodsSearchKey")
     public BusinessResponse<Integer> addGoodsSearch(@RequestBody GoodsSearchKeyAddReqVO pageRequest) {
         GoodsSearchKeyAddBo convert = KsBeanUtil.convert(pageRequest, GoodsSearchKeyAddBo.class);
-        boolean matches = convert.getName().matches("(,)(.*?)(,)");
+/*        boolean matches = convert.getName().matches("(,)(.*?)(,)");
         if(!matches){
             return BusinessResponse.error("必须以,开头,以,为结尾");
-        }
+        }*/
         int i = goodsSearchKeyProvider.addGoodsSearchKey(convert);
         return BusinessResponse.success(i);
     }
+
     @PostMapping("updateGoodsSearchKey")
-    public BusinessResponse<Integer> updateGoodsSearch(@RequestBody GoodsSearchBySpuIdReqVO pageRequest) {
+    public BusinessResponse<Integer> updateGoodsSearch(@RequestBody GoodsSearchKeyAddReqVO pageRequest) {
         GoodsSearchKeyAddBo convert = KsBeanUtil.convert(pageRequest, GoodsSearchKeyAddBo.class);
         int i = goodsSearchKeyProvider.updateGoodsSearchKey(convert);
         return BusinessResponse.success(i);
@@ -92,6 +97,7 @@ public class GoodsSearchKeyController {
         BusinessResponse<List<GoodsBO>> goodsList = goodsSearchKeyProvider.getGoodsList(convert);
         return goodsList;
     }
+
     @PostMapping("export")
     public void export() {
         InputStream is = null;
@@ -105,9 +111,17 @@ public class GoodsSearchKeyController {
             AtomicInteger rowCount = new AtomicInteger(1);
             for (GoodsKeyWordsDownLoadBO map : goodsBOS) {
                 Row row = expressCompanySheet.createRow(rowCount.getAndIncrement());
-                    row.createCell(0).setCellValue(map.getName().toString());
-                    row.createCell(1).setCellValue(map.getSpuId().toString());
-                    row.createCell(2).setCellValue(map.getGoodsName().toString());
+                row.createCell(0).setCellValue(map.getName().toString());
+                row.createCell(1).setCellValue(map.getSpuId().toString());
+                row.createCell(2).setCellValue(map.getGoodsName().toString());
+                row.createCell(3).setCellValue(map.getType().toString());
+                if (1 == map.getType()) {
+                    row.createCell(4).setCellValue(map.getRelSpuId().toString());
+                    row.createCell(5).setCellValue(map.getRelSkuId().toString());
+                }
+                if (2 == map.getType()) {
+                    row.createCell(6).setCellValue(map.getGoUrl().toString());
+                }
             }
             wk.write(outputStream);
             String fileName = URLEncoder.encode("good_search_key.xlsx", "UTF-8");
@@ -162,12 +176,33 @@ public class GoodsSearchKeyController {
                 //循环当前行
                 for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
                     Cell cell = row.getCell(cellNum);
-                    cell.setCellType(CellType.STRING);
-                    cells[cellNum] = cell.getStringCellValue();
+                    if (cell == null) {
+                        cells[cellNum] = "";
+                    } else {
+                        cell.setCellType(CellType.STRING);
+                        cells[cellNum] = cell.getStringCellValue();
+                    }
                 }
-                GoodsSearchKeyAddBo goodsSearchKeyAddBo =new GoodsSearchKeyAddBo();
+                GoodsSearchKeyAddBo goodsSearchKeyAddBo = new GoodsSearchKeyAddBo();
                 goodsSearchKeyAddBo.setName(cells[0]);
                 goodsSearchKeyAddBo.setSpuId(cells[1]);
+                if (cells.length > 2 && StringUtils.isNotBlank(cells[3])) {
+                    switch (cells[3]) {
+                        case "1":
+                            goodsSearchKeyAddBo.setRelSpuId(cells[4]);
+                            goodsSearchKeyAddBo.setRelSkuId(cells[5]);
+                            break;
+                        case "2":
+                            goodsSearchKeyAddBo.setGoUrl(cells[6]);
+                            break;
+                        default:
+                            log.error("时间:{},方法:{},入口参数:{},执行异常,Cause:{}",
+                                    com.wanmi.sbc.common.util.DateUtil.format(new Date(), DateUtil.FMT_TIME_1),
+                                    "downloadQuery",
+                                    multipartFile,
+                                    "type类型不支持");
+                    }
+                }
                 goodsSearchKeyAddBo.setCreateTime(new Date());
                 res = goodsSearchKeyProvider.importGoodsSearchKey(goodsSearchKeyAddBo).getContext();
             }
@@ -182,10 +217,15 @@ public class GoodsSearchKeyController {
             }
         }
         if (null != res) {
-            if (res.contains("failed")){
+            if (res.contains("failed")) {
                 return BusinessResponse.error(res);
             }
         }
         return BusinessResponse.success(res);
+    }
+
+    @RequestMapping("/getList")
+    public BusinessResponse<List<Map<String, Object>>> getSpuIdAndSkuId(@RequestBody GoodsSearchKeyAddBo bo) {
+        return BusinessResponse.success(goodsSearchKeyProvider.getList(bo));
     }
 }

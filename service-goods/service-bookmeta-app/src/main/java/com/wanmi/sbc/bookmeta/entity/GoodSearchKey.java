@@ -24,6 +24,17 @@ public class GoodSearchKey {
     private String goodsName;
     @Column(name = "spu_id")
     private String spuId;
+    @Column(name = "rel_spu_id")
+    private String relSpuId;
+    private String relSkuName;;
+    @Column(name = "rel_sku_id")
+    private String relSkuId;
+    @Column(name = "type")
+    private Integer type;
+    @Column(name = "go_url")
+    private String goUrl;
+    @Column(name = "order_num")
+    private Integer orderNum;
     @Column(name = "del_flag")
     private Integer delFlag;
     @Column(name = "create_time")

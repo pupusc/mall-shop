@@ -4,13 +4,19 @@
 
     <resultMap id="GoodSearchKeyMap" type="com.wanmi.sbc.bookmeta.entity.GoodSearchKey">
         <result property="id" column="id" jdbcType="INTEGER"/>
-        <result property="name" column="name" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="spuId" column="spu_id" jdbcType="VARCHAR"/>
+        <result property="relSpuId" column="rel_spu_id" jdbcType="VARCHAR"/>
+        <result property="relSkuId" column="rel_sku_id" jdbcType="VARCHAR"/>
+        <result property="relSkuName" column="rel_sku_name" jdbcType="VARCHAR"/>
+        <result property="goUrl" column="go_url" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="orderNum" column="order_num" jdbcType="INTEGER"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
         <result property="status" column="status" jdbcType="INTEGER"/>
         <result property="goodsName" column="goods_name" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="INTEGER"/>
-        <result property="updateTime" column="update_time" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <select id="getGoodsNameBySpuId" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
@@ -22,7 +28,7 @@
         <where>
             gsk.del_flag = 0 and gsk.del_flag = 0
             <if test="name != null">
-                and  gsk.name like  concat('%,',#{name},'%,')
+                and gsk.name like concat('%,',#{name},'%,')
             </if>
         </where>
         order by gsk.create_time desc
@@ -37,23 +43,34 @@
         gsk.del_flag,
         gsk.create_time,
         gsk.update_time,
+        gsk.rel_spu_id,
+        gsk.rel_sku_id,
+        gsk.type,
+        gsk.go_url,
+        gsk.order_num,
         gsk.del_flag as status,
-        gs.goods_name
-        from goods_search_key gsk left join goods gs on gsk.spu_id = gs.goods_id
+        gs.goods_name,
+        gi.goods_info_name as rel_sku_name
+        from goods_search_key gsk
+        left join goods gs on gsk.spu_id = gs.goods_id
+        left join goods_info gi on gi.goods_info_id = gsk.rel_sku_id
         where gs.del_flag =0 and gsk.del_flag=0
         <if test="name!= null">
-            and  gs.goods_name like  concat('%',#{name},'%')
+            and gsk.name like concat('%',#{name},'%')
         </if>
+        and gsk.spu_id = #{spuId}
         limit #{limitIndex}, #{limitSize};
     </select>
 
     <select id="getAllGoodsSearchKeyCount" resultType="java.lang.Integer" parameterType="java.lang.String">
         select count(1)
         from goods_search_key gsk left join goods gs on gsk.spu_id = gs.goods_id
+        left join goods_info gi on gi.goods_info_id = gsk.rel_sku_id
         where gs.del_flag =0 and gsk.del_flag=0
         <if test="name != null">
-            and gs.goods_name like  concat('%',#{name},'%')
+            and gsk.name like concat('%',#{name},'%')
         </if>
+        and gsk.spu_id = #{spuId}
     </select>
 
 
@@ -66,6 +83,21 @@
             <if test="spuId !=null">
                 `spu_id`,
             </if>
+            <if test="relSpuId !=null">
+                `rel_spu_id`,
+            </if>
+            <if test="relSkuId !=null">
+                `rel_sku_id`,
+            </if>
+            <if test="type !=null">
+                `type`,
+            </if>
+            <if test="goUrl !=null">
+                `go_url`,
+            </if>
+            <if test="orderNum !=null">
+                `order_num`,
+            </if>
             <if test="createTime !=null">
                 `create_time`
             </if>
@@ -76,6 +108,21 @@
             </if>
             <if test="spuId !=null">
                 #{spuId},
+            </if>
+            <if test="relSpuId !=null">
+                #{relSpuId},
+            </if>
+            <if test="relSkuId !=null">
+                #{relSkuId},
+            </if>
+            <if test="type !=null">
+                #{type},
+            </if>
+            <if test="goUrl !=null">
+                #{goUrl},
+            </if>
+            <if test="orderNum !=null">
+                #{orderNum},
             </if>
             <if test="createTime !=null">
                 #{createTime}
@@ -91,6 +138,21 @@
             <if test="spuId !=null">
                 `spu_id` = #{spuId},
             </if>
+            <if test="relSpuId !=null">
+                `rel_spu_id` = #{relSpuId},
+            </if>
+            <if test="relSkuId !=null">
+                `rel_sku_id`= #{relSkuId},
+            </if>
+            <if test="type !=null">
+                `type` = #{type},
+            </if>
+            <if test="goUrl !=null">
+                `go_url` =  #{goUrl},
+            </if>
+            <if test="orderNum !=null">
+                `order_num` =  #{orderNum},
+            </if>
             <if test="createTime !=null">
                 `create_time` = #{createTime}
             </if>
@@ -99,7 +161,9 @@
     </update>
 
     <update id="deleteGoodsSearchKey" parameterType="java.lang.Integer">
-        update goods_search_key set del_flag = 1 where id = #{id}
+        update goods_search_key
+        set del_flag = 1
+        where id = #{id}
     </update>
 
     <select id="getGoodsList" resultType="com.wanmi.sbc.goods.bean.vo.GoodsVO">
@@ -118,19 +182,41 @@
     </select>
 
     <select id="downLoadQuery" resultMap="GoodSearchKeyMap" parameterType="java.lang.String">
-        select
-        gsk.id,
-        gsk.name,
-        gsk.spu_id,
-        gsk.del_flag,
-        gsk.create_time,
-        gsk.update_time,
-        gsk.del_flag as status,
-        gs.goods_name
-        from goods_search_key gsk left join goods gs on gsk.spu_id = gs.goods_id
-        where gs.del_flag =0 and gsk.del_flag=0
+        select gsk.id,
+               gsk.name,
+               gsk.spu_id,
+               gsk.del_flag,
+               gsk.create_time,
+               gsk.update_time,
+               gsk.del_flag as status,
+               gs.goods_name,
+               gsk.rel_spu_id,
+               gsk.rel_sku_id,
+               gsk.type,
+               gsk.go_url,
+               gsk.order_num
+        from goods_search_key gsk
+                 left join goods gs on gsk.spu_id = gs.goods_id
+        where gs.del_flag = 0
+          and gsk.del_flag = 0
     </select>
     <select id="isExistGoodsSearchKey" resultType="java.lang.Integer">
-        select count(1) from goods_search_key where del_flag = 0 and name = #{name} and spu_id = #{spuId}
+        select count(1)
+        from goods_search_key
+        where del_flag = 0
+          and name = #{name}
+          and spu_id = #{spuId}
+    </select>
+
+    <select id="getSpuAndSkuByName" parameterType="java.lang.String" resultType="map">
+        select goods_id, goods_info_id, goods_info_name
+        from goods_info
+        <if test="name !=null and name !=''">
+            where goods_info_name like concat('%',#{name},'%') or goods_info_id like concat('%',#{name},'%')
+        </if>
+        limit 10
+    </select>
+    <select id="isExistGoodsSearchKeyById" resultType="java.lang.Integer">
+        select count(1) from goods_search_key where id = #{id}
     </select>
 </mapper>
